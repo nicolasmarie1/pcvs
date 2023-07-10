@@ -11,6 +11,7 @@ variables:
     - docker
     only:
     - master
+    - devel
     - merge_requests
     - web
 
@@ -49,7 +50,7 @@ build_doc:
 
 test_doc:
     <<: *scope
-    allow_failure: true
+    allow_failure: false
     stage: Documentation
     script:
     - tox -e lint-docs
