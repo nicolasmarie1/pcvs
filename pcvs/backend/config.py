@@ -86,7 +86,7 @@ def check_valid_kind(s) -> bool:
         raise ConfigException.BadTokenError("no 'kind' specified")
 
     if s not in CONFIG_BLOCKS:
-        raise ConfigException.BadTokenError("invalid 'kind'")
+        raise ConfigException.BadTokenError("invalid 'kind': '{}'".format(s))
 
 
 class ConfigurationBlock:

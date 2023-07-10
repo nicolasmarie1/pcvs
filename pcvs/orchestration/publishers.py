@@ -5,14 +5,14 @@ import os
 import shutil
 import tarfile
 import tempfile
-from typing import Dict, List, Optional, Iterable
+from typing import Dict, Iterable, List, Optional
 
 from ruamel.yaml import YAML
 
 import pcvs
 from pcvs import io
 from pcvs.helpers import utils
-from pcvs.helpers.exceptions import PublisherException, CommonException
+from pcvs.helpers.exceptions import CommonException, PublisherException
 from pcvs.helpers.system import MetaConfig, ValidationScheme
 from pcvs.plugins import Plugin
 from pcvs.testing.test import Test

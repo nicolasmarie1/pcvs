@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import pkg_resources
+
 from pcvs import io
 from pcvs.backend import bank, config, profile
-from pcvs.cli import (cli_bank, cli_config, cli_profile, cli_report, cli_run,
-                      cli_session, cli_utilities, cli_remote_run)
+from pcvs.cli import (cli_bank, cli_config, cli_profile, cli_remote_run,
+                      cli_report, cli_run, cli_session, cli_utilities)
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import PluginException
 from pcvs.plugins import Collection, Plugin

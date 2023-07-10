@@ -1,8 +1,8 @@
-import click
-
 import os
 import sys
 from datetime import datetime
+
+import click
 
 import pcvs
 from pcvs import NAME_BUILDFILE, NAME_RUN_CONFIG_FILE, io

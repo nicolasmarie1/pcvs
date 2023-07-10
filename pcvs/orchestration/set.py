@@ -1,17 +1,18 @@
-import signal
+import enum
+import json
 import os
 import queue
+import signal
 import subprocess
 import threading
 import time
-import enum
 from typing import List
 
 from pcvs import io
 from pcvs.helpers import communications, log
 from pcvs.helpers.system import MetaConfig
 from pcvs.testing.test import Test
-import json
+
 
 class Set:
     """Gather multiple jobs to be scheduled.

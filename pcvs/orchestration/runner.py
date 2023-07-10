@@ -1,18 +1,18 @@
-import subprocess
-import queue
-import time
-import os
-import signal
-import threading
 import json
+import os
+import queue
+import signal
+import subprocess
+import threading
+import time
 
 import pcvs
-from pcvs.testing.test import Test
 from pcvs import io
 from pcvs.helpers.exceptions import RunnerException
+from pcvs.helpers.system import MetaConfig
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.orchestration.set import Set
-from pcvs.helpers.system import MetaConfig
+from pcvs.testing.test import Test
 
 
 class RunnerAdapter(threading.Thread):

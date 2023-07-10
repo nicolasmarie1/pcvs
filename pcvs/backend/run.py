@@ -9,13 +9,13 @@ from subprocess import CalledProcessError
 
 from ruamel.yaml import YAML
 
-from pcvs import (NAME_BUILD_CONF_FN, NAME_BUILD_CACHEDIR, NAME_BUILD_SCRATCH,
-                  NAME_BUILDFILE, NAME_BUILDIR, NAME_BUILD_CONF_SH, NAME_SRCDIR,
-                  io, testing)
+from pcvs import (NAME_BUILD_CACHEDIR, NAME_BUILD_CONF_FN, NAME_BUILD_CONF_SH,
+                  NAME_BUILD_SCRATCH, NAME_BUILDFILE, NAME_BUILDIR,
+                  NAME_SRCDIR, io, testing)
 from pcvs.backend import bank as pvBank
 from pcvs.backend import spack as pvSpack
 from pcvs.helpers import communications, criterion, utils
-from pcvs.helpers.exceptions import TestException, RunException
+from pcvs.helpers.exceptions import RunException, TestException
 from pcvs.helpers.system import MetaConfig, MetaDict
 from pcvs.orchestration import Orchestrator
 from pcvs.orchestration.publishers import BuildDirectoryManager

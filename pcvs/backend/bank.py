@@ -9,11 +9,10 @@ from typing import Dict, List, Optional
 from ruamel.yaml import YAML
 
 from pcvs import NAME_BUILD_CONF_FN, NAME_BUILD_RESDIR, PATH_BANK, dsl
-from pcvs.helpers import utils
-from pcvs.helpers import git
-from pcvs.orchestration.publishers import BuildDirectoryManager
+from pcvs.helpers import git, utils
 from pcvs.helpers.exceptions import BankException, CommonException
 from pcvs.helpers.system import MetaDict
+from pcvs.orchestration.publishers import BuildDirectoryManager
 
 #: :var BANKS: list of available banks when PCVS starts up
 #: :type BANKS: dict, keys are bank names, values are file path

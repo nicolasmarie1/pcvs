@@ -1,15 +1,14 @@
 import os
 import random
-
-from typing import List, Dict, Optional, Iterable, Union
+from typing import Dict, Iterable, List, Optional, Union
 
 from flask import Flask
 from ruamel.yaml import YAML
 
 import pcvs
 from pcvs.backend.session import Session, list_alive_sessions
-from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers import utils
+from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers.system import MetaDict
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.webview import create_app, data_manager

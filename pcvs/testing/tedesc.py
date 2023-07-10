@@ -1,14 +1,14 @@
-import shutil
-import tempfile
 import copy
 import os
 import re
+import shutil
+import tempfile
 
 import pcvs
 from pcvs import testing
 from pcvs.helpers import pm
 from pcvs.helpers.criterion import Criterion, Serie
-from pcvs.helpers.exceptions import TestException, ProfileException
+from pcvs.helpers.exceptions import ProfileException, TestException
 from pcvs.helpers.system import MetaConfig, MetaDict
 from pcvs.testing.test import Test
 

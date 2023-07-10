@@ -7,12 +7,12 @@ import tempfile
 from ruamel.yaml import YAML, YAMLError
 
 from pcvs import NAME_BUILDFILE, NAME_BUILDIR, io
-from pcvs.testing.testfile import TestFile
 from pcvs.backend import config, profile, run
 from pcvs.helpers import system, utils
 from pcvs.helpers.exceptions import ValidationException
 from pcvs.helpers.system import MetaDict
 from pcvs.orchestration.publishers import BuildDirectoryManager
+from pcvs.testing.testfile import TestFile
 
 
 def locate_scriptpaths(output=None):

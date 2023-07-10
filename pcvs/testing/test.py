@@ -1,11 +1,11 @@
 import base64
+import hashlib
 import json
-import zlib
 import os
 import re
 import shlex
 import sys
-import hashlib
+import zlib
 from enum import IntEnum
 
 from pcvs import io

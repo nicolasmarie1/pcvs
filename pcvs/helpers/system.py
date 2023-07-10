@@ -6,9 +6,9 @@ from ruamel.yaml import YAML, YAMLError
 
 import pcvs
 from pcvs import NAME_BUILDIR, PATH_INSTDIR
-from pcvs.io import Verbosity
 from pcvs.helpers import git, pm
 from pcvs.helpers.exceptions import CommonException, ValidationException
+from pcvs.io import Verbosity
 
 
 ####################################

@@ -2,8 +2,8 @@ import os
 
 from pcvs import NAME_BUILDFILE, NAME_BUILDIR, io
 from pcvs.backend import report as pvReport
-from pcvs.ui.textual import textual_avail
 from pcvs.helpers import utils
+from pcvs.ui.textual import textual_avail
 
 try:
     import rich_click as click

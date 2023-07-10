@@ -6,8 +6,8 @@ from pcvs.backend import session
 from pcvs.helpers import log
 from pcvs.helpers.system import MetaConfig
 from pcvs.orchestration.manager import Manager
-from pcvs.orchestration.set import Set
 from pcvs.orchestration.runner import RunnerAdapter
+from pcvs.orchestration.set import Set
 from pcvs.plugins import Plugin
 from pcvs.testing.test import Test
 

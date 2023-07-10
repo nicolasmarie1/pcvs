@@ -1,8 +1,8 @@
-import subprocess
 import base64
 import glob
 import os
 import random
+import subprocess
 
 import click
 from ruamel.yaml import YAML
