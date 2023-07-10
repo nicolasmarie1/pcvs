@@ -9,6 +9,6 @@ flake8
 coverage
 isort
 mypy
-sphinx
+sphinx<7.0.0
 sphinx-autodoc-typehints
 sphinx_rtd_theme

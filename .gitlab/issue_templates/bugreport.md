@@ -5,7 +5,7 @@
 * **Platform**: Linux/Windows/MacOS, `uname -a`
 * **I have checked:**:
   - [ ] this bug report is not a duplicate
-  - [ ] Any resource are enclosed (profiles, config.yml, etc.)
+  - [ ] Any useful resource are enclosed (profiles, config.yml, etc.)
 
 ## Description
 

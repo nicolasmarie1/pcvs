@@ -40,13 +40,13 @@ build_doc:
     <<: *scope
     stage: Documentation
     script:
-    - tox -e docs
+    - tox -e doc
 
 test_doc:
     <<: *scope
     stage: Documentation
     script:
-    - tox -e lint-docs
+    - tox -e lint-doc
 
 imports:
     <<: *scope
