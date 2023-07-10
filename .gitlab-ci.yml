@@ -22,14 +22,14 @@ stages:
 - Documentation
 - Linting
 
-global-lint:
+flake:
     <<: *scope
     stage: Linting
     allow_failure: true
     script:
     - tox -e lint-flake
 
-types:
+typing:
     <<: *scope
     stage: Linting
     allow_failure: true

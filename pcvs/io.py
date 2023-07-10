@@ -20,7 +20,7 @@ from rich.theme import Theme
 
 import pcvs
 
-    
+
 class SpecialChar:
     """
     Class mapping special char display.
