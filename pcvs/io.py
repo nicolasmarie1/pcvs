@@ -20,8 +20,13 @@ from rich.theme import Theme
 
 import pcvs
 
-
+    
 class SpecialChar:
+    """
+    Class mapping special char display.
+    
+    Enabled or disabled according to utf support.
+    """
     copy = '\u00A9'
     item = '\u27E2'
     sec = '\u2756'
@@ -36,6 +41,12 @@ class SpecialChar:
     sep_h = "\u23BC"
 
     def __init__(self, utf_support=True):
+        """
+        Initialize a new char handler depending on utf support
+
+        :param utf_support: support for utf encoding, defaults to True
+        :type utf_support: bool, optional
+        """
         if not utf_support:
             self.copy = '(c)'
             self.item = '*'
@@ -51,6 +62,15 @@ class SpecialChar:
             self.sep_h = "-"
 
 class Verbosity(enum.IntEnum):
+    """
+    Enum to map a verbosity level to a more
+    convenient label.
+    
+    * COMPACT: compact way, jobs are displayed packed per input YAML file.
+    * DETAILED: each job will output result on a one-line manner
+    * INFO: DETAILED & INFO messages will be logged
+    * DEBUG: DETAILED & INFO & DEBUG messages will be logged
+    """
     COMPACT = 0
     DETAILED = 1
     INFO = 2
@@ -58,11 +78,28 @@ class Verbosity(enum.IntEnum):
     NB_LEVELS = enum.auto()
     
     def __str__(self):
+        """Convert object to human-readable string"""
         return self.name
     
 class TheConsole(Console):
+    """
+    Main interface to print information to users.
+    
+    Any output from the application should be handled by this Console.
 
+    :param Console: Rich base class
+    :type Console: Console
+    """
     def __init__(self, *args, **kwargs):
+        """
+        Build a new Console.
+        
+        Many options to configure the console:
+        - color: boolean (color support)
+        - verbose: boolean (verbose msg mode in log files)
+        - stderr: boolean (print to stdout by default)
+        Any other argument is considered a base class options.
+        """
         self._color = "auto" if kwargs.get('color', True) else None
         self._verbose = Verbosity(min(Verbosity.NB_LEVELS -1, kwargs.get('verbose', 0)))
         self._debugfile = open(os.path.join(".", pcvs.NAME_DEBUG_FILE), "w")
@@ -94,32 +131,82 @@ class TheConsole(Console):
 
     @property
     def logfile(self):
+        """
+        Get the path to the logging file
+
+        :return: the logging file
+        :rtype: str
+        """
         return os.path.abspath(self._debugfile.name)
     
     @property
     def outfile(self):
+        """
+        Get the path where the Console output is logged (disabled by default)
+
+        :return: the file path
+        :rtype: str
+        """
         return os.path.abspath(self.file.name)
     @property
     def verbose(self):
+        """
+        Get verbose status.
+
+        :return: the status
+        :rtype: integer
+        """
         return self._verbose
 
     def verb_level(self, level):
+        """
+        Test if a given level is logged by the current console
+
+        :param level: the targeted level
+        :type level: Verbosity
+        :return: True if this level is logged, false otherwise
+        :rtype: boolean
+        """
         return self._verbose >= level 
     
     @property
     def verb_compact(self):
+        """
+        Return true if at least COMPACT debug level is enabled.
+
+        :return: a boolean to check debug level
+        :rtype: boolean
+        """
         return self.verb_level(Verbosity.COMPACT)
     
     @property
     def verb_detailed(self):
+        """
+        Return true if at least DETAILED debug level is enabled.
+
+        :return: a boolean to check debug level
+        :rtype: boolean
+        """
         return self.verb_level(Verbosity.DETAILED)
     
     @property
     def verb_info(self):
+        """
+        Return true if at least INFO debug level is enabled.
+
+        :return: a boolean to check debug level
+        :rtype: boolean
+        """
         return self.verb_level(Verbosity.INFO)
     
     @property
     def verb_debug(self):
+        """
+        Return true if at least DEBUG debug level is enabled.
+
+        :return: a boolean to check debug level
+        :rtype: boolean
+        """
         return self.verb_level(Verbosity.DEBUG)
 
     @verbose.setter

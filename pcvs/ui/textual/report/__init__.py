@@ -235,6 +235,9 @@ class SessionInfoScreen(ModalScreen):
         self.app.pop_screen()
 
 class ReportApplication(App):
+    """
+    Main Application handler
+    """
     TITLE = "PCVS Job Result Viewer"
     SCREENS = {
         "main": MainScreen(),
@@ -254,17 +257,39 @@ class ReportApplication(App):
     
     @on(SessionPickScreen.SwitchAnotherSession)
     def switch_session(self, event):
-        #self.app.push_screen("wait")
+        """
+        Coming back from picking a session, refresh the table
+
+        :param event: not significant here
+        """
         self.app.query_one(JobListViewer).update_table()
-        #self.app.pop_screen()
         
         
     def on_mount(self):
+        """
+        First screen loaded
+        """
         self.push_screen('main')
         
     def __init__(self, model):
+        """
+        Init the application with a model.
+        
+        Currently, a model is a derived class from BuildDirectoryManager
+
+        :param model: the model used to access resources
+        :type model: ReportModel
+        """
         self.model: ReportModel = model
         super().__init__()
     
 def start_app(p=None) -> int:
+    """
+    handler to start a new Textual application.
+
+    :param p: profile, defaults to None
+    :type p: Profile, optional
+    :return: A return code from Textual Application
+    :rtype: int
+    """
     app = ReportApplication(ReportModel(p)).run()
