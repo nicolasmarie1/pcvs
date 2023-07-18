@@ -24,6 +24,8 @@
       # extra ldflags
       ldflags: "extra ldflags"
       envs: []
+      # force explicit language if PCVS has trouble to autodetect
+      lang: ['cc', 'cxx', 'fc']
     custom:
       program: "myscript.sh"
       envs: ["VAR1=value", "VAR2=value"]
