@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 import tempfile
+from typing import Optional
 
 import pcvs
 from pcvs import testing
@@ -13,7 +14,14 @@ from pcvs.helpers.system import MetaConfig, MetaDict
 from pcvs.testing.test import Test
 
 
-def detect_source_lang(array_of_files):
+# now return the first valid language, according to settings
+# order matters: if sources contains multiple languages, the first
+# appearing in this list will be considered as the main language
+
+
+
+
+def detect_source_lang(array_of_files) -> str:
     """Determine compilation language for a target file (or list of files).
 
     Only one language is detected at once.
@@ -41,15 +49,27 @@ def detect_source_lang(array_of_files):
             detect.append('f08')
         elif re.search(r'\.(f|F)$', f):
             detect.append('fc')
+    return detect
 
-    # now return the first valid language, according to settings
-    # order matters: if sources contains multiple languages, the first
-    # appearing in this list will be considered as the main language
-    for i in ['f08', 'f03', 'f95', 'f90', 'f77', 'fc', 'cxx', 'cc']:
-        if i in detect and i in MetaConfig.root.compiler:
-            return i
-    return 'cc'
-
+def validate_source_lang(langs, allowed_languages) -> Optional[str]:
+    #1. If fortran, select a compiler in that order
+    for i in ['f08', 'f03', 'f95', 'f90', 'f77', 'fc']:
+        if i in langs:
+            # fallback: if a requested language is not
+            # defined by compiler configuration,
+            # fallback to un-versioned compiler
+            if i not in allowed_languages:
+                return 'fc' if 'fc' in allowed_languages else None
+            else:
+                return i
+    
+    for i in ['cxx', 'cc']:
+        if i in langs:
+            if i not in allowed_languages:
+                return 'cc' if 'cc' in allowed_languages else None
+            else:
+                return i
+    return None
 
 def extract_compiler_config(lang, variants):
     """
@@ -335,7 +355,21 @@ class TEDescriptor:
         :return: the command to be used.
         :rtype: str
         """
-        lang = detect_source_lang(self._build.files)
+        langs: Optional[str] = None
+        if not self._build.sources.get("lang", None):
+            langs = detect_source_lang(self._build.files)
+            if langs is None:
+                raise TestException.TestExpressionError(self._build.files, reason="Unable to detect the compiler to use", )
+        else:
+            langs = self._build.sources.lang
+            if isinstance(langs, str):
+                langs = [langs]
+
+        lang = validate_source_lang(langs, MetaConfig.root.compiler.keys())
+        
+        if lang is None:
+            raise TestException.TestExpressionError(langs, reason="Unable to find the right compiler")
+
         binary = self._te_name
         if self._build.sources.binary:
             binary = self._build.sources.binary
