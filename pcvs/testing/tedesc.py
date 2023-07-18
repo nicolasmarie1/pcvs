@@ -67,7 +67,7 @@ def extract_compiler_config(lang, variants):
             reason="Unknown language, not defined into Profile",
             dbg_info={"lang": lang, "list": MetaConfig.root.compiler.keys()}
         )
-    
+
     config = MetaConfig.root.compiler[lang]
     for v in variants:
         if v in config.variants:
@@ -79,7 +79,7 @@ def extract_compiler_config(lang, variants):
                     config[k] += v
         else:
             return (None, [], [])
-                    
+
     return (config.program, config.args, config.envs)
 
 
@@ -180,7 +180,7 @@ class TEDescriptor:
         """
         if not isinstance(node, dict):
             raise TestException.TestExpressionError(node)
-        
+
         self._te_name = name
         self._skipped = name.startswith('.')
         self._te_label = label
@@ -275,7 +275,7 @@ class TEDescriptor:
                     self._build.binary = compat[k]
                 if self._run and 'program' not in self._run:
                     self._run.program = compat[k]
-        
+
         if 'cflags' in self._build and 'sources' in self._build:
             self._build['sources']['cflags'] = self._build['cflags']
         if 'ldflags' in self._build and 'sources' in self._build:
@@ -284,7 +284,6 @@ class TEDescriptor:
             self._build.autotools.args = self._build.autotools.params
         if 'vars' in self._build.get('cmake', {}):
             self._build.cmake.args = self._build.cmake.vars
-        
 
     def _configure_criterions(self):
         """Prepare the list of components this TE will be built against.
@@ -345,8 +344,9 @@ class TEDescriptor:
 
         self._build.sources.binary = binary
 
-        program, args, envs = extract_compiler_config(lang, self._build.variants)
-        
+        program, args, envs = extract_compiler_config(
+            lang, self._build.variants)
+
         command = "{cc} {cflags} {files} {ldflags} {args} {out}".format(
             cc=program,
             args=" ".join(args),
@@ -371,7 +371,8 @@ class TEDescriptor:
             basepath = os.path.dirname(self._build.files[0])
             command.append("-f {}".format(" ".join(self._build.files)))
 
-        compiler, args, envs = extract_compiler_config("cc", self._build.variants)
+        compiler, args, envs = extract_compiler_config(
+            "cc", self._build.variants)
         # build the 'make' command
         command.append(
             '-C {path} {target} '.format(
@@ -379,7 +380,7 @@ class TEDescriptor:
                 target=self._build.make.get('target', '')
             )
         )
-        
+
         command += " ".join(self._build['make'].get('args', []))
         envs += self._build['make'].get('envs', [])
 
@@ -396,7 +397,7 @@ class TEDescriptor:
             command.append(self._build.files[0])
         else:
             command.append(self._srcdir)
-            
+
         _, args, envs = extract_compiler_config("cc", self._build.variants)
         command.append(
             r"-G 'Unix Makefiles' "
@@ -409,7 +410,7 @@ class TEDescriptor:
         envs += self._build['cmake'].get('envs', [])
 
         self._build.files = [os.path.join(self._buildir, "Makefile")]
-        tmp =  self.__build_from_makefile()
+        tmp = self.__build_from_makefile()
         next_command = tmp[0]
         envs += tmp[1]
         return (" && ".join([" ".join(command), next_command]), envs)
@@ -435,11 +436,11 @@ class TEDescriptor:
                 "autogen.sh"
             )
             command.append("{} && ".format(autogen_path))
-            
+
         _, _, envs = extract_compiler_config("cc", self._build.variants)
 
         command.append(r"{configure} ".format(configure=configure_path))
-        
+
         command += self._build['autotools'].get('args', [])
         envs += self._build['autotools'].get('envs', [])
 
@@ -447,21 +448,21 @@ class TEDescriptor:
         tmp = self.__build_from_makefile()
         next_command = tmp[0]
         envs += tmp[1]
-        
+
         # TODO: why not creating another test, with a dep on this one ?
         return (" && ".join([" ".join(command), next_command]), envs)
 
     def __build_from_user_script(self):
         command = []
         env = []
-        
+
         command = self._build.custom.get('program', 'echo')
         # args not relevant as cflags/ldflags can be used instead
         env = self._build.custom.get('envs', [])
-        
+
         if not os.path.isabs(command):
             command = os.path.join(self._buildir, command)
-            
+
         return (". {} && {}".format(os.path.join(MetaConfig.root.validation.output, pcvs.NAME_BUILD_CONF_SH), command), env)
 
     def __build_exec_process(self):
@@ -564,10 +565,10 @@ class TEDescriptor:
             elif self._build.sources.binary:
                 program = self._build.sources.binary
 
-
             clone_outdir = self.get_attr('copy_output', False)
             if clone_outdir:
-                buildir = tempfile.mkdtemp(prefix="{}.".format(self._te_name), dir=self._buildir)
+                buildir = tempfile.mkdtemp(prefix="{}.".format(
+                    self._te_name), dir=self._buildir)
             else:
                 buildir = self._buildir
 
@@ -627,18 +628,18 @@ class TEDescriptor:
         # if this TE does not lead to a single test, skip now
         if self._skipped:
             return
-        
+
         clone_indir = self.get_attr('copy_input', False)
-    
+
         if clone_indir:
-            isolation_path = tempfile.mkdtemp(prefix="{}.".format(self._te_name), dir=self._buildir)
+            isolation_path = tempfile.mkdtemp(
+                prefix="{}.".format(self._te_name), dir=self._buildir)
             old_src_dir = self._srcdir
             self._srcdir = os.path.join(isolation_path, "src")
             shutil.copytree(old_src_dir, self._srcdir)
             self._buildir = os.path.join(isolation_path, "build")
             os.mkdir(self._buildir)
-                
-            
+
         if self._build:
             yield from self.__construct_compil_tests()
         if self._run:
@@ -677,11 +678,11 @@ class TEDescriptor:
                 #user_cnt *= len(v.values)
 
         # store debug info
-        #self._debug_yaml['.stats'] = {
+        # self._debug_yaml['.stats'] = {
         #    'theoric': user_cnt * real_cnt,
         #    'program_factor': user_cnt,
         #    'effective': self._effective_cnt
-        #}
+        # }
 
         return self._debug_yaml
 

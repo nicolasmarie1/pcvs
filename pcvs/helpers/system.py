@@ -237,12 +237,12 @@ class MetaConfig(MetaDict):
 
         self[subnode].validate(subnode)
         return self[subnode]
-    
+
     def bootstrap_from_profile(self, pf_as_dict):
-        
+
         if not isinstance(pf_as_dict, MetaDict):
             pf_as_dict = MetaDict(pf_as_dict)
-            
+
         self.bootstrap_compiler(pf_as_dict.compiler)
         self.bootstrap_runtime(pf_as_dict.runtime)
         self.bootstrap_machine(pf_as_dict.machine)

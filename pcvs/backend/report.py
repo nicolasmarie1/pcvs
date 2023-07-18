@@ -45,7 +45,7 @@ class Report:
     """
     Map a Report interface, to handle request from frontends.
     """
-    
+
     def __init__(self) -> None:
         """
         Initialize a new report (no args)
@@ -57,7 +57,7 @@ class Report:
     def __create_build_handler(self, path) -> BuildDirectoryManager:
         """
         Initialize a new handler to a build directory.
-        
+
         This object will be used to forward result requests.
 
         :param path: build directory path
@@ -93,7 +93,7 @@ class Report:
     def load_alive_sessions(self) -> None:
         """
         Load currently active sessions as reference in PATH_SESSION.
-        
+
         A issue with this function,  as invalid sessions are not managet yet.
         """
         self._alive_session_infos = list_alive_sessions()
@@ -127,7 +127,7 @@ class Report:
     def dict_convert_list_to_cnt(self, l: Dict[str, List[int]]) -> Dict[str, int]:
         """
         Convert dict of arrays to a dict of array lengths.
-        
+
         Used to convert dict of per-status jobs to a summary of them.
 
         :param l: the dict of arrays
@@ -149,11 +149,11 @@ class Report:
                 self.single_session_status(sid))
             state = self._alive_session_infos[sid]['state'] if sid in self._alive_session_infos else Session.State.COMPLETED
             yield {'sid': sid,
-                        'state': str(state),
-                        'count': counts,
-                        'path': sdata.prefix,
-                        'info': sdata.config.validation.get('message', 'No message')}
-        
+                   'state': str(state),
+                   'count': counts,
+                   'path': sdata.prefix,
+                   'info': sdata.config.validation.get('message', 'No message')}
+
     def single_session_config(self, sid) -> dict:
         assert sid in self._sessions
         d = self._sessions[sid].get_config()
@@ -182,7 +182,7 @@ class Report:
     def single_session_tags(self, sid) -> Dict[str, Dict]:
         """
         Get per-session available tags.
-        
+
         Outputs a per-status dict.
 
         :param sid: Session ID
@@ -208,7 +208,7 @@ class Report:
     def single_session_labels(self, sid) -> Dict[str, Dict]:
         """
         Get per-session available labels.
-        
+
         Outputs a per-status dict.
 
         :param sid: Session ID
@@ -249,13 +249,13 @@ class Report:
     def single_session_get_view(self, sid, name, subset=None, summary=False) -> Dict[str, Dict]:
         """
         Get a specific view from a given session.
-        
+
         A view consists in a per-status split of jobs depending on the purpose
         of the stored view. PCVS currently provide automatically:
         * Per status
         * Per tags
         * Per labels
-        
+
         If `subset` is provided, only the nodes matching the key will be
         returned.
         If `summary` is True, a job count will be returned instead of actual
@@ -272,7 +272,7 @@ class Report:
         :return: the result dict
         :rtype: dict
         """
-        
+
         d = {}
         if name == "tags":
             d = self.single_session_tags(sid)
@@ -288,7 +288,6 @@ class Report:
             return {k: self.dict_convert_list_to_cnt(v) for k, v in d.items()}
         else:
             return d
-        
 
 
 def build_static_pages(buildir) -> None:
@@ -301,6 +300,7 @@ def build_static_pages(buildir) -> None:
     :type buildir: str
     """
     raise CommonException.WIPError()
+
 
 def start_server(report: Report) -> Flask:
     """Initialize the Flask server, default to 5000.

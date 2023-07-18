@@ -54,7 +54,7 @@ class Branch(Reference):
     def __init__(self, repo, name='master'):
         super().__init__(repo)
         self._name = name
-    
+
     @property
     def name(self):
         return self._name

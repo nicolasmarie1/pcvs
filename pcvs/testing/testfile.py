@@ -19,10 +19,11 @@ from pcvs.testing import tedesc
 
 constant_tokens = None
 
+
 def init_constant_tokens():
     """
     Initialize global tokens to be replaced.
-    
+
     The dict is built from profile specifications. The exact location for this
     function is still to be determined.
     """
@@ -32,21 +33,24 @@ def init_constant_tokens():
         '@USER@': getpass.getuser(),
     }
     for comp, comp_node in MetaConfig.root.compiler.items():
-        constant_tokens['@COMPILER_{}@'.format(comp.upper())] = comp_node.get('program', "")
-        
-    constant_tokens['@RUNTIME_PROGRAM@'] = MetaConfig.root.runtime.get('program', "")
+        constant_tokens['@COMPILER_{}@'.format(comp.upper())
+                        ] = comp_node.get('program', "")
+
+    constant_tokens['@RUNTIME_PROGRAM@'] = MetaConfig.root.runtime.get(
+        'program', "")
+
 
 def replace_special_token(content, src, build, prefix, list=False):
     output = []
     errors = []
-    
+
     global constant_tokens
     if not constant_tokens:
         init_constant_tokens()
-    
+
     if prefix is None:
         prefix = ""
-    
+
     tokens = {
         **constant_tokens,
         '@BUILDPATH@': os.path.join(build, prefix),
@@ -55,11 +59,11 @@ def replace_special_token(content, src, build, prefix, list=False):
         '@BROOTPATH@': build,
         '@SPACKPATH@': "TBD",
     }
-    
+
     r = re.compile("(?P<name>@[a-zA-Z0-9-_]+@)")
     for line in content.split('\n'):
         for match in r.finditer(line):
-            
+
             name = match.group('name')
             if name not in tokens:
                 errors.append(name)
@@ -138,18 +142,18 @@ class TestFile:
         """
         source, _, build, _ = testing.generate_local_variables(
             self._label, self._prefix)
-        
+
         stream = replace_special_token(data, source, build, self._prefix)
         try:
             self._raw = YAML(typ='safe').load(stream)
         except YAMLError as e:
             raise ValidationException.FormatError(origin="<stream>")
-    
+
     def save_yaml(self):
         src, _, build, curbuild = testing.generate_local_variables(
             self._label,
             self._prefix)
-        
+
         with open(os.path.join(curbuild, "pcvs.setup.yml"), "w") as fh:
             YAML(typ='safe').dump(self._raw, fh)
 
@@ -162,17 +166,17 @@ class TestFile:
             # Issues with replacing @...@ keys
             e.add_dbg(file=self._in)
             raise TestException.TestExpressionError(self._in, error=e)
-        
+
         except ValidationException.FormatError as e:
             # YAML is valid but not following the Scheme
             # If YAML is invalid, load() functions will failed first
-            
+
             # At first attempt, YAML are converted.
             # There is no second chance
             if not allow_conversion:
                 e.add_dbg(file=self._in)
                 raise e
-            
+
             tmpfile = tempfile.mkstemp()[1]
             with open(tmpfile, 'w') as fh:
                 YAML(typ='safe').dump(self._raw, fh)
@@ -183,18 +187,19 @@ class TestFile:
                 stderr=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 shell=True)
-            
+
             fds = proc.communicate()
             os.remove(tmpfile)
             if proc.returncode != 0:
                 raise e
             converted_data = YAML(typ='safe').load(fds[0].decode('utf-8'))
-            #keep only TE conversion
+            # keep only TE conversion
             # anything else is dropped when converting on-the-fly
             self._raw = converted_data
             self.validate(allow_conversion=False)
             io.console.warning("\t--> Legacy syntax for: {}".format(self._in))
-            io.console.warning("Please consider updating it with `pcvs_convert -k te`")
+            io.console.warning(
+                "Please consider updating it with `pcvs_convert -k te`")
             return False
 
     @property
@@ -212,7 +217,7 @@ class TestFile:
         # if file hasn't be loaded yet
         if self._raw is None:
             self.load_from_file(self._in)
-            
+
         self.validate()
 
         # main loop, parse each node to register tests
@@ -225,7 +230,8 @@ class TestFile:
             td = tedesc.TEDescriptor(k, content, self._label, self._prefix)
             for test in td.construct_tests():
                 self._tests.append(test)
-            io.console.info("{}: {}".format(td.name, pprint.pformat(td.get_debug())))
+            io.console.info("{}: {}".format(
+                td.name, pprint.pformat(td.get_debug())))
 
             MetaConfig.root.get_internal(
                 "pColl").invoke_plugins(Plugin.Step.TDESC_AFTER)

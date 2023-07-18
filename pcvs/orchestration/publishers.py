@@ -22,15 +22,15 @@ class ResultFile:
     """
     A instance manages a pair of file dedicated to load/store PCVS job results
     on disk.
-    
+
     A job result is stored in two different files whens given to a single
     ResultFile:
     * <prefix>.json, containing metadata (rc, command...)
     * <prefix>.bz2 BZ2-compressed job data.
-    
+
     a MAGIC_TOKEN is used to detect file/data corruption.
     """
-    
+
     MAGIC_TOKEN = "PCVS-START-RAW-OUTPUT"
 
     def __init__(self, filepath, filename):
@@ -144,29 +144,29 @@ class ResultFile:
         for name, data in self._data.items():
             elt = Test()
             elt.from_json(data)
-            
+
             offset = data['result']['output']['offset']
             length = data['result']['output']['length']
             if offset >= 0 and length > 0:
                 elt.encoded_output = self.extract_output(offset, length)
             yield elt
-    
+
     def extract_output(self, offset, length) -> str:
-        assert(offset >= 0)
-        assert(length > 0)
-        
+        assert (offset >= 0)
+        assert (length > 0)
+
         self._rawout_reader.seek(offset)
         rawout = self._rawout_reader.read(length).decode('utf-8')
-                
+
         if not rawout.startswith(self.MAGIC_TOKEN):
             raise PublisherException.BadMagicTokenError()
-        
+
         return rawout[len(self.MAGIC_TOKEN):]
-    
+
     def retrieve_test(self, id=None, name=None) -> List[Test]:
         """
         Find jobs based on its id or name and return associated Test object.
-        
+
         Only id OR name should be set (not both). To handle multiple matches,
         this function returns a list of class:`Test`.
 
@@ -251,7 +251,7 @@ class ResultFile:
     def rawdata_prefix(self):
         """
         Getter to the actual rawdata file name
-        
+
 
         :return: file name
         :rtype: str
@@ -305,7 +305,7 @@ class ResultFileManager:
     def build_bidir_map_data(self) -> None:
         """
         Rebuild global views from partial storage on disk.
-        
+
         For optimization reasons, information that may be rebuilt are not stored
         on disk to save space.
         """
@@ -321,7 +321,7 @@ class ResultFileManager:
             self._mapdata_rev[job.id] = job.output_info['file']
             self._mapdata.setdefault(job.output_info['file'], list())
             self._mapdata[job.output_info['file']].append(id)
-    
+
     def reconstruct_view_data(self) -> None:
         for job in self.browse_tests():
             state = str(job.state)
@@ -391,7 +391,7 @@ class ResultFileManager:
         self._max_size = per_file_max_sz
 
         self.build_bidir_map_data()
-        
+
         self.discover_result_files()
         if not self._current_file:
             self.create_new_result_file()
@@ -406,7 +406,7 @@ class ResultFileManager:
     def save(self, job: Test):
         """
         Add a new job to be saved to the result directory.
-        
+
         May not be flushed righ away to disk, some caching may be used to
         improve performance. While adding the Test to low-level manager, this
         function also updates view & maps accordingly.
@@ -451,7 +451,7 @@ class ResultFileManager:
     def retrieve_test(self, id) -> Optional[Test]:
         """
         Build the Test object mapped to the given job id.
-        
+
         If such ID does not exist, it will return None.
 
         :param id: _description_
@@ -498,11 +498,11 @@ class ResultFileManager:
         for hdl in self._opened_files.values():
             for j in hdl.content:
                 yield j
-            
+
     def retrieve_tests_by_name(self, name) -> List[Test]:
         """
         Locate a test by its name.
-        
+
         As multiple matches could occur, this function return a list of class:`Test`
 
         :param name: the test name
@@ -610,14 +610,14 @@ class ResultFileManager:
         if res not in self._opened_files:
             self._opened_files[res] = ResultFile(self._outdir, res)
         hdl = self._opened_files[res]
-        
+
         match = hdl.retrieve_test(id=id)
         assert (len(match) <= 1)
         if match:
             # cache the mapping
             self._mapdata_rev[id] = match[0]
             return match[0]
-        else: 
+        else:
             return None
 
     @property
@@ -666,7 +666,7 @@ class ResultFileManager:
     def finalize(self):
         """
         Flush & close the current manager.
-        
+
         This instance should not be used again after this call.
         """
         self.flush()
@@ -684,10 +684,11 @@ class BuildDirectoryManager:
     compliant with this interface. It provides basic mechanism to load/save any
     past, present or future executions.
     """
+
     def __init__(self, build_dir="."):
         """
         Initialize a new instance.
-        
+
         This is not destructive, it won't delete any existing resource created
         from previous execution. It will mainly flag this directory as a valid
         PCVS build directory.
@@ -717,7 +718,7 @@ class BuildDirectoryManager:
     def init_results(self, per_file_max_sz=0):
         """
         Initialize the result handler. 
-        
+
         This function is not called directly from the __init__ method as this
         isntance may be used for both reading & writing into the destination
         directory. This function implies storing a new execution.
@@ -755,7 +756,7 @@ class BuildDirectoryManager:
     def prepare(self, reuse=False):
         """
         Prepare the dir for a new run.
-        
+
         This function is not included as part of the __init__ function as this
         instance may be used both for reading & writing into the destination
         directory. This function implies all previous results be be cleared off.
@@ -772,7 +773,7 @@ class BuildDirectoryManager:
         self.clean(pcvs.NAME_BUILD_CONTEXTDIR)
 
         self.clean_archives()
-        
+
         self.save_extras(pcvs.NAME_BUILD_CACHEDIR, dir=True, export=False)
         self.save_extras(pcvs.NAME_BUILD_CONTEXTDIR, dir=True, export=False)
         self.save_extras(pcvs.NAME_BUILD_SCRATCH, dir=True, export=False)
@@ -803,9 +804,10 @@ class BuildDirectoryManager:
             self._config = MetaConfig(YAML(typ='safe').load(fh))
 
         return self._config
+
     def use_as_global_config(self):
         MetaConfig.root = self._config
-        
+
     def save_config(self, config) -> None:
         """
         Save the config & store it directly into the build directory.
@@ -820,7 +822,6 @@ class BuildDirectoryManager:
             h = YAML(typ='safe')
             h.default_flow_style = None
             h.dump(config.dump_for_export(), fh)
-    
 
     def get_config(self) -> dict:
         """
@@ -830,7 +831,7 @@ class BuildDirectoryManager:
         :rtype: dict
         """
         return self._config
-        
+
     @property
     def config(self) -> MetaConfig:
         """
@@ -843,25 +844,24 @@ class BuildDirectoryManager:
 
     def add_cache_entry(self, idx=0):
         d = os.path.join(self._path, pcvs.NAME_BUILD_CONTEXTDIR, str(idx))
-        
+
         if os.path.exists(d):
             raise CommonException.AlreadyExistError(d)
         else:
             os.makedirs(d)
-        
+
         return d
-    
+
     def get_cache_entry(self, idx=0):
         return os.path.join(self._path, pcvs.NAME_BUILD_CONTEXTDIR, str(idx))
-    
 
     def save_extras(self, rel_filename, data="", dir=False, export=False) -> None:
         """
         Register a specific build-relative path, to be saved into the directory.
-        
+
         The only entry-point to save a resource into it. Resources can be files
         (with or without content) or directory.
-        
+
         If `export` is set to True, resource (file or whole directory) will also
         be copied to the final archive.
 
@@ -883,7 +883,8 @@ class BuildDirectoryManager:
             try:
                 os.makedirs(os.path.join(self._path, rel_filename))
             except FileExistsError:
-                io.console.warn("subprefix {} existed before registering".format(rel_filename))
+                io.console.warn(
+                    "subprefix {} existed before registering".format(rel_filename))
         else:
             d = os.path.dirname(rel_filename)
             if not os.path.isdir(d):
@@ -899,7 +900,7 @@ class BuildDirectoryManager:
         """
         Prepare the build directory for a new execution by removing anything not
         relevant for a new run.
-        
+
         Please not this function will erase anything not relative to PCVS. As an
         argument, one may specify a specific prefix to be removed. Paths should
         relative to root build directory.
@@ -936,7 +937,7 @@ class BuildDirectoryManager:
     def create_archive(self, timestamp=None) -> str:
         """
         Generate an archive for the build directory.
-        
+
         This archive will be stored in the root directory..
 
         :param timestamp: file suffix, defaults to current timestamp
@@ -944,10 +945,10 @@ class BuildDirectoryManager:
         :return: the archive path name
         :rtype: str
         """
-        
-        #ensure all results are flushed away before creating the archive
+
+        # ensure all results are flushed away before creating the archive
         self.results.finalize()
-        
+
         if not timestamp:
             timestamp = datetime.datetime.now()
         str_timestamp = timestamp.strftime('%Y%m%d%H%M%S')
@@ -965,7 +966,7 @@ class BuildDirectoryManager:
 
         # copy results
         __relative_add(os.path.join(self._path, pcvs.NAME_BUILD_RESDIR),
-                    recursive=True)
+                       recursive=True)
         # copy the config
         __relative_add(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN))
         __relative_add(os.path.join(self._path, pcvs.NAME_DEBUG_FILE))
@@ -975,12 +976,12 @@ class BuildDirectoryManager:
             if not os.path.exists(p):
                 not_found_files.append(p)
             __relative_add(p)
-            
+
         if len(not_found_files) > 0:
             raise CommonException.NotFoundError(
-                    reason="Extra files to be stored to archive do not exist",
-                    dbg_info={"Failed paths": not_found_files}
-                )
+                reason="Extra files to be stored to archive do not exist",
+                dbg_info={"Failed paths": not_found_files}
+            )
 
         archive.close()
         return archive_file
@@ -989,10 +990,10 @@ class BuildDirectoryManager:
     def load_from_archive(cls, archive_path):
         """
         Populate the instance from an archive.
-        
+
         This object is initially built to load data from a build directory. This
         way, the object is mapped with an existing archive.
-        
+
         .. warning::
             This method does not support (yet) to save tests after an archive has
             been loaded (as no output directory has been configured).
@@ -1003,13 +1004,13 @@ class BuildDirectoryManager:
         :rtype: _type_
         """
         archive = tarfile.open(archive_path, mode="r:gz")
-        
+
         path = tempfile.mkdtemp(prefix="pcvs-archive")
         archive.extractall(path)
         archive.close()
-        
+
         d = [x for x in os.listdir(path) if x.startswith("pcvsrun_")]
-        assert(len(d) == 1)
+        assert (len(d) == 1)
         hdl = BuildDirectoryManager(build_dir=os.path.join(path, d[0]))
         hdl.load_config()
         hdl._archive_path = archive_path
@@ -1018,7 +1019,7 @@ class BuildDirectoryManager:
     def finalize(self):
         """
         Close & release the current instance.
-        
+
         It should not be used to save tests after this call.
         """
         self.results.finalize()

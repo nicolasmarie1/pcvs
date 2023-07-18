@@ -172,13 +172,13 @@ class Criterion:
         self._str = description.get('subtitle', None)
         self._values = description.get('values', [])
         self._expanded = False
-        #Sanity check
+        # Sanity check
         self.sanitize_values()
 
     def sanitize_values(self):
         """
         Check for any inconsistent values in the current Criterion.
-        
+
         Currently, only scalar items or dict (=> sequence) are allowed.
         Will raise an exeption in case of inconsistency (Maybe this should be
         managed in another way through the error handling)
@@ -196,9 +196,9 @@ class Criterion:
             if isinstance(v, dict):
                 for key in v.keys():
                     assert key in ['op', 'of', 'from', 'to']
-            
 
     # only allow overriding values (for now)
+
     def override(self, desc):
         """Replace the value of the criterion using a descriptor containing the
             said value
@@ -210,7 +210,7 @@ class Criterion:
             self._values = desc['values']
             self._expanded = False
             self.sanitize_values()
-    
+
     def intersect(self, other):
         """Update the calling Criterion with the interesection of the current
         range of possible values with the one given as a parameters.
@@ -400,24 +400,24 @@ class Criterion:
     @property
     def expanded(self):
         return self._expanded
-    
+
     @property
     def min_value(self):
-        assert(self.expanded)
+        assert (self.expanded)
         return min(self._values)
-    
+
     @property
     def max_value(self):
-        assert(self.expanded)
+        assert (self.expanded)
         return max(self._values)
-    
+
     def expand_values(self, reference=None):
         """Browse values for the current criterion and make it ready to
         generate combinations"""
         values = []
         start = 0
         end = 100
-        
+
         if self.expanded:
             return
         if reference:
@@ -426,13 +426,14 @@ class Criterion:
                 reference.expand_values()
             start = reference.min_value
             end = reference.max_value
-        
+
         io.console.debug("Expanding {}: {}".format(self.name, self._values))
         if self._numeric is True:
             for v in self._values:
-                
+
                 if isinstance(v, dict):
-                    values += self.__convert_sequence_to_list(v, s=start, e=end)
+                    values += self.__convert_sequence_to_list(
+                        v, s=start, e=end)
                 elif isinstance(v, (int, float, str)):
                     values.append(v)
                 else:

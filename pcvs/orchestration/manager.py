@@ -39,7 +39,8 @@ class Manager:
         """
         self._comman = MetaConfig.root.get_internal('comman')
         self._plugin = MetaConfig.root.get_internal('pColl')
-        self._concurrent_level = MetaConfig.root.machine.get('concurrent_run', 1)
+        self._concurrent_level = MetaConfig.root.machine.get(
+            'concurrent_run', 1)
 
         self._dims = dict()
         self._max_size = max_size
@@ -92,16 +93,16 @@ class Manager:
             self.job_hashes[hashed] = job
             self._count.total += 1
             self.save_dependency_rule(job.basename, job)
-            
+
     def save_dependency_rule(self, pattern, jobs):
-        assert(isinstance(pattern, str))
-        
+        assert (isinstance(pattern, str))
+
         if not isinstance(jobs, list):
             jobs = [jobs]
-            
+
         self.dep_rules.setdefault(pattern, list())
         self.dep_rules[pattern] += jobs
-        
+
     def get_count(self, tag="total"):
         """Access to a particular counter.
 
@@ -129,7 +130,7 @@ class Manager:
                 for d in job.get_dep_graph().keys():
                     s.append('"{}"->"{}";'.format(job.name, d))
         s.append("}")
-        
+
         if not outfile:
             print("\n".join(s))
         else:
@@ -164,7 +165,7 @@ class Manager:
             for job_dep in job_dep_list:
                 if job_dep.name in chain:
                     raise OrchestratorException.CircularDependencyError(chain)
-                
+
                 # without copying the chain, resolution of siblings deps will alter
                 # the same list --> a single dep may appear multiple time and raise
                 # a false CiprcularDep
@@ -192,19 +193,17 @@ class Manager:
 
     def prune_non_runnable_jobs(self):
         for k in sorted(self._dims.keys(), reverse=True):
-                if len(self._dims[k]) <= 0:
-                    continue
-                else:
-                    removed_jobs = list()
-                    for job in self._dims[k]:
-                        if job.pick_count() > Test.SCHED_MAX_ATTEMPTS:
-                            self.publish_failed_to_run_job(job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
-                            removed_jobs.append(job)
-                    for elt in removed_jobs:
-                        self._dims[k].remove(elt)
-            
-
-            
+            if len(self._dims[k]) <= 0:
+                continue
+            else:
+                removed_jobs = list()
+                for job in self._dims[k]:
+                    if job.pick_count() > Test.SCHED_MAX_ATTEMPTS:
+                        self.publish_failed_to_run_job(
+                            job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
+                        removed_jobs.append(job)
+                for elt in removed_jobs:
+                    self._dims[k].remove(elt)
 
     def create_subset(self, max_dim):
         """Extract one or more jobs, ready to be run.
@@ -222,8 +221,9 @@ class Manager:
 
         the_set = None
         self._plugin.invoke_plugins(Plugin.Step.SCHED_SET_BEFORE)
-        user_sched_job = self._plugin.has_enabled_step(Plugin.Step.SCHED_JOB_EVAL)
-        
+        user_sched_job = self._plugin.has_enabled_step(
+            Plugin.Step.SCHED_JOB_EVAL)
+
         if self._plugin.has_enabled_step(Plugin.Step.SCHED_SET_EVAL):
             the_set = self._plugin.invoke_plugins(
                 Plugin.Step.SCHED_SET_EVAL,
@@ -271,7 +271,8 @@ class Manager:
                         if job.has_failed_dep():
                             # Cannot be scheduled for dep purposes
                             # push it to publisher
-                            self.publish_failed_to_run_job(job, Test.NOSTART_STR, Test.State.ERR_DEP)
+                            self.publish_failed_to_run_job(
+                                job, Test.NOSTART_STR, Test.State.ERR_DEP)
                             # Attempt to find another job to schedule
                             continue
 
@@ -281,12 +282,12 @@ class Manager:
                         # => SCHEDULE
                         if user_sched_job:
                             pick_job = self._plugin.invoke_plugins(
-                                                    Plugin.Step.SCHED_JOB_EVAL,
-                                                    job=job,
-                                                    set=the_set)
+                                Plugin.Step.SCHED_JOB_EVAL,
+                                job=job,
+                                set=the_set)
                         else:
                             pick_job = job.get_dim() <= max_dim
-                            
+
                         if job.state != Test.State.IN_PROGRESS and pick_job:
                             job.pick()
                             if not the_set:
@@ -295,7 +296,8 @@ class Manager:
                             break
                         else:
                             if job.not_picked():
-                                self.publish_failed_to_run_job(job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
+                                self.publish_failed_to_run_job(
+                                    job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
                             else:
                                 self._dims[k].append(job)
         self._plugin.invoke_plugins(Plugin.Step.SCHED_SET_AFTER)
@@ -327,8 +329,9 @@ class Manager:
                 self.publish_job(job, publish_args=None)
                 job.display()
             else:
-                
+
                 if job.not_picked():
-                    self.publish_failed_to_run_job(job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
+                    self.publish_failed_to_run_job(
+                        job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
                 else:
                     self.add_job(job)

@@ -166,7 +166,7 @@ def run(ctx, profilename, output, detach, override, anon, settings_file,
     May also be provided as a list of directories as described by tests
     found in DIRS.
     """
-    
+
     io.console.info("PRE-RUN: start")
     # first, prepare raw arguments to be usable
     if output is not None:
@@ -295,6 +295,6 @@ def run(ctx, profilename, output, detach, override, anon, settings_file,
     else:
         sid = the_session.run(the_session)
         utils.unlock_file(buildfile)
-       
+
     final_rc = the_session.rc if only_success else 0
     sys.exit(final_rc)

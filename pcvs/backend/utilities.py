@@ -154,7 +154,7 @@ def process_check_setup_file(root, prefix, run_configuration):
         with utils.cwd(tdir):
             env['pcvs_src'] = root
             env['pcvs_testbuild'] = tdir
-            
+
             if not os.path.isdir(os.path.join(tdir, prefix)):
                 os.makedirs(os.path.join(tdir, prefix))
             if not prefix:
@@ -174,6 +174,7 @@ def process_check_setup_file(root, prefix, run_configuration):
         err_msg = base64.b64encode(str(e.stderr).encode('utf-8'))
 
     return (err_msg, data)
+
 
 def __set_token(token, nset=None) -> str:
     """Manage display token (job display) depending on given condition.
@@ -253,27 +254,28 @@ def process_check_directory(dir, pf_name="default", conversion=True):
             dflt = None
             err = None
             try:
-                cur = TestFile(file_in="", path_out="", label="", prefix=subprefix)
+                cur = TestFile(file_in="", path_out="",
+                               label="", prefix=subprefix)
                 cur.load_from_str(data)
-                converted = not(cur.validate(allow_conversion=conversion))
+                converted = not (cur.validate(allow_conversion=conversion))
                 nb_nodes = cur.nb_descs
                 total_nodes += nb_nodes
-                success=True
+                success = True
 
             except YAMLError as e:
                 err = base64.b64encode(str(e).encode('utf-8'))
-                success=False
+                success = False
             except ValidationException.FormatError as e:
                 err = base64.b64encode(str(e).encode('utf-8'))
-                success=False
-                
+                success = False
+
             if converted is True:
                 # yaml VALID but old syntax
                 # --> yellow
-                success=None
-                dflt = "{} {}".format(io.console.utf('succ'), io.console.utf('copy'))
+                success = None
+                dflt = "{} {}".format(io.console.utf(
+                    'succ'), io.console.utf('copy'))
             yaml_ok = __set_token(success, nset=dflt)
-            
 
         table.add_row(
             setup_ok,

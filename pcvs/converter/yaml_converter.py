@@ -76,17 +76,17 @@ def compute_new_key(k, v, m) -> str:
     execute python code on the fly (complex transformation)
     """
     replacement = ""
-    
+
     # A tricky thing here. Recently we realised users may use a dot as a
     # TE name, also used as a split pattern.
-    # To make the converter work again, any dot used to flatten the dict 
+    # To make the converter work again, any dot used to flatten the dict
     # is replaced with a "||".
     # BUT dots in user-defined input & regexes should not be touched
     # This is why the replacement is done BEFORE applying regex results.
     # EXCEPTION: dynamic conversion through code execution cannot be parsed
     # automatically and "||" need to be manually inserted (hard to say which dots
     # are relevant).
-    
+
     # if this key is a special python expression to process:
     if k.startswith('call:'):
         # basic replace the whole string with any placeholder
@@ -279,7 +279,8 @@ def main(ctx, color, encoding, verbose, kind, input_file, out, scheme, template,
     io.console.print_header("YAML Conversion")
 
     if in_place and (stdout or out is not None):
-        raise click.BadOptionUsage("--stdout/--in-place", "Cannot use --in-place option with any other output options (--output/--stdout)")
+        raise click.BadOptionUsage(
+            "--stdout/--in-place", "Cannot use --in-place option with any other output options (--output/--stdout)")
     elif in_place:
         out = input_file
 
@@ -328,10 +329,10 @@ def main(ctx, color, encoding, verbose, kind, input_file, out, scheme, template,
     # as modifiers may have created nested dictionaries:
     # => "flattening" again, but with no prefix (persistent from first)
     data_to_convert = flatten(data_to_convert, "")
-    
+
     # Finally, convert the original data to the final yaml dict
     io.console.print_item("Process the data")
-    final_data = process(data_to_convert, warn_if_missing=not(skip_unknown))
+    final_data = process(data_to_convert, warn_if_missing=not (skip_unknown))
 
     # remove appended kind (if any)
     final_data = final_data.get(kind, final_data)

@@ -250,7 +250,8 @@ class Profile:
                 if k not in config.CONFIG_BLOCKS:
                     err_dbg.append(k)
             if err_dbg:
-                raise ValidationException.FormatError("Unknown kind in Profile", invalid_kinds=err_dbg)
+                raise ValidationException.FormatError(
+                    "Unknown kind in Profile", invalid_kinds=err_dbg)
 
             for kind in config.CONFIG_BLOCKS:
                 # if kind not in self._details:
@@ -269,16 +270,18 @@ class Profile:
                 stderr=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 shell=True)
-            
+
             fds = proc.communicate()
             if proc.returncode != 0:
                 raise e
             converted_data = YAML(typ='safe').load(fds[0].decode('utf-8'))
             self.fill(converted_data)
             self.check(allow_legacy=False)
-            io.console.warning("Legacy format for profile '{}'".format(self._name))
-            io.console.warning("Please consider updating it with `pcvs_convert -k profile`")
-            
+            io.console.warning(
+                "Legacy format for profile '{}'".format(self._name))
+            io.console.warning(
+                "Please consider updating it with `pcvs_convert -k profile`")
+
     def flush_to_disk(self):
         """Write down profile to disk.
 
@@ -286,7 +289,7 @@ class Profile:
         schemes.
         """
         self._retrieve_file()
-        #self.check()
+        # self.check()
 
         # just in case the block subprefix does not exist yet
         prefix_file = os.path.dirname(self._file)
@@ -359,7 +362,6 @@ class Profile:
                 self.check()
             except Exception as e:
                 raise e
-            
 
     def edit_plugin(self):
         """Edit the 'runtime.plugin' section of the current profile.

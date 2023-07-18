@@ -81,7 +81,7 @@ def bank_show(ctx, name, path):
         raise click.BadArgumentUsage("'{}' does not exist".format(name))
     else:
         b.connect()
-    
+
     if path:
         print(b.path)
     else:

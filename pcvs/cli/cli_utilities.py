@@ -54,7 +54,7 @@ def exec(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout, pall)
         penv = "env"
         pcmd = "cmd"
         pout = "out"
-    
+
     if pmod:
         display.add(pmod)
     if pcmd:
@@ -149,11 +149,13 @@ def check(ctx, dir, encoding, color, configs, profiles, pf_name, conversion):
 
     if configs:
         io.console.print_header("Configurations")
-        errors = {**errors, **pvUtils.process_check_configs(conversion=conversion)}
+        errors = {**errors, **
+                  pvUtils.process_check_configs(conversion=conversion)}
 
     if profiles:
         io.console.print_header("Profile(s)")
-        errors = {**errors, **pvUtils.process_check_profiles(conversion=conversion)}
+        errors = {**errors, **
+                  pvUtils.process_check_profiles(conversion=conversion)}
 
     if dir:
         io.console.print_header("Test directories")

@@ -58,7 +58,7 @@ class Set:
         ALLOC = enum.auto()
         REMOTE = enum.auto()
         BATCH = enum.auto()
-        
+
     def __init__(self, execmode=ExecMode.LOCAL):
         """constructor method."""
         self._id = Set.global_increment
@@ -68,7 +68,7 @@ class Set:
         self._execmode: Set.ExecMode = execmode
         self._completed = False
         self._map = dict()
-        
+
         if not self.comman:
             if MetaConfig.root.get_internal('comman') is not None:
                 self.comman = MetaConfig.root.get_internal('comman')
@@ -77,15 +77,15 @@ class Set:
     def execmode(self) -> ExecMode:
         """
         Get execution mode for this Set.
-        
+
         See Set.ExecMode for more information.
-        
+
 
         :return: The current exec mode
         :rtype: class:`Set.ExecMode`
         """
         return self._execmode
-    
+
     @execmode.setter
     def execmode(self, v: ExecMode):
         """

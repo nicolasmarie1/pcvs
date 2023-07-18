@@ -382,7 +382,7 @@ class Session:
                             kwargs=kwargs)
 
             child.start()
-            
+
             return self._sid
 
     def run(self, *args, **kwargs):
