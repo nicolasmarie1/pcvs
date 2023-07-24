@@ -2,7 +2,6 @@ import fileinput
 import os
 import pprint
 import shutil
-import signal
 import subprocess
 import time
 from subprocess import CalledProcessError
@@ -34,11 +33,15 @@ def print_progbar_walker(elt):
     """
     if elt is None:
         return None
-    return "["+elt[0]+"] " + (elt[1] if elt[1] else "")
+    return "[" + elt[0] + "] " + (elt[1] if elt[1] else "")
 
 
 def display_summary(the_session):
-    """Display a summary for this run, based on profile & CLI arguments."""
+    """Display a summary for this run, based on profile & CLI arguments.
+
+    :param the_session: active session, for extra info to be displayed.
+    :type the_session: Session
+    """
     cfg = MetaConfig.root.validation
 
     io.console.print_section("Global Information")
@@ -76,6 +79,14 @@ def display_summary(the_session):
 
 
 def stop_pending_jobs(exc=None):
+    """
+    Called when PCVS is going to stop upon external request, stop the scheduler
+
+    :param exc: exception to raise, defaults to None
+    :type exc: Exception, optional
+    :raises exc: the exception to raise (this function is generally called when
+        a exception is raised, this do some actions without capturing the exeception)
+    """
     orch = MetaConfig.root.get_internal('orchestrator')
     if orch:
         orch.stop()
@@ -91,7 +102,9 @@ def process_main_workflow(the_session=None):
     active terminal or as a detached process.
 
     :param the_session: the session handler this run is connected to, defaults to None
-    :type the_session: :class:`Session`, optional
+    :type the_session: Session, optional
+    :return: the exit code
+    :rtype: int
     """
     io.console.info("RUN: Session start")
     global_config = MetaConfig.root
@@ -119,7 +132,7 @@ def process_main_workflow(the_session=None):
             process_spack()
         end = time.time()
         io.console.print_section(
-            "===> Processing done in {:<.3f} sec(s)".format(end-start))
+            "===> Processing done in {:<.3f} sec(s)".format(end - start))
 
     io.console.print_header("Summary")
     display_summary(the_session)
@@ -214,7 +227,7 @@ def prepare():
     per_file_max_sz = 0
     try:
         per_file_max_sz = int(valcfg.per_result_file_sz)
-    except:
+    except (TypeError, ValueError):
         pass
     build_man.init_results(per_file_max_sz=per_file_max_sz)
 
@@ -308,7 +321,7 @@ def process_files():
     It includes walking through user directories to find definitions AND
     generating the associated tests.
 
-    :raises TestUnfoldError: An error occured while processing files
+    :raises TestExpressionError: An error occured while processing files
     """
     io.console.print_item("Locate benchmarks from user directories")
     setup_files, yaml_files = find_files_to_process(
@@ -336,6 +349,9 @@ def process_files():
 
 
 def process_spack():
+    """
+    Build job to schedule from Spack recipes.
+    """
 
     if not shutil.which('spack'):
         io.console.warn(
@@ -384,7 +400,7 @@ def build_env_from_configuration(current_node, parent_prefix="pcvs"):
             v = ''
         if isinstance(v, dict):
             env_dict.update(build_env_from_configuration(
-                v, parent_prefix+"_"+k))
+                v, parent_prefix + "_" + k))
             continue
         elif v is None:
             v = ''
@@ -406,6 +422,7 @@ def process_dyn_setup_scripts(setup_files):
 
     :param setup_files: list of tuples, each mapping a single pcvs.setup file
     :type setup_files: tuple
+    :raises NonZeroSetupScript: the Setup script doe not complete successfully
     :return: list of errors encountered while processing.
     :rtype: list
     """
@@ -449,10 +466,10 @@ def process_dyn_setup_scripts(setup_files):
 
             # should be enabled only in debug mode
             # flush the output to $BUILD/pcvs.yml
-            #out_file = os.path.join(cur_build, 'pcvs.yml')
+            # out_file = os.path.join(cur_build, 'pcvs.yml')
             # with open(out_file, 'w') as fh:
                 # fh.write(fdout.decode('utf-8'))
-        except CalledProcessError as e:
+        except CalledProcessError:
             err.append((f, RunException.ProgramError(file=f)))
             continue
         except RunException.NonZeroSetupScript as e:
@@ -511,7 +528,6 @@ def process_static_yaml_files(yaml_files):
             obj.process()
             obj.flush_sh_file()
         except Exception as e:
-            #raise e
             err.append((f, e))
             io.console.info("{} (failed to parse): {}".format(f, e))
     return err
@@ -550,8 +566,6 @@ def terminate():
     """Finalize a validation run.
 
     This include generating & anonymizing (if needed) the archive.
-
-    :raises ProgramError: Problem occured while invoking the archive tool.
     """
     MetaConfig.root.get_internal(
         "pColl").invoke_plugins(Plugin.Step.END_BEFORE)
@@ -562,6 +576,7 @@ def terminate():
     io.console.print_section("Prepare results")
     io.console.move_debug_file(outdir)
     archive_path = build_man.create_archive()
+    io.console.print_item("Archive: {}".format(archive_path))
 
     # if MetaConfig.root.validation.anonymize:
     #    io.console.print_item("Anonymize data")

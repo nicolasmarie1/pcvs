@@ -1,12 +1,11 @@
 import base64
-import json
 import os
 import subprocess
 import tempfile
 
 from ruamel.yaml import YAML, YAMLError
 
-from pcvs import NAME_BUILDFILE, NAME_BUILDIR, io
+from pcvs import io
 from pcvs.backend import config, profile, run
 from pcvs.helpers import system, utils
 from pcvs.helpers.exceptions import ValidationException
@@ -57,7 +56,17 @@ def compute_scriptpath_from_testname(testname, output=None):
     )
 
 
-def get_logged_output(prefix, testname):
+def get_logged_output(prefix, testname) -> str:
+    """
+    Get job output from the given archive/build path.
+
+    :param prefix: the archive or directory to scan from
+    :type prefix: str
+    :param testname: the full test name
+    :type testname: str
+    :return: the raw output
+    :rtype: str
+    """
     if prefix is None:
         prefix = os.getcwd()
     buildir = utils.find_buildir_from_prefix(prefix)
@@ -79,6 +88,8 @@ def process_check_configs(conversion=True):
     """Analyse available configurations to ensure their correctness relatively
     to their respective schemes.
 
+    :param conversion: allow legacy format for this check (True by default)
+    :type conversion: bool, optional
     :return: caught errors, as a dict, where the keys is the errmsg base64
     :rtype: dict"""
     errors = dict()
@@ -110,6 +121,8 @@ def process_check_profiles(conversion=True):
     """Analyse availables profiles and check their correctness relatively to the
     base scheme.
 
+    :param conversion: allow legacy format for this check (True by default)
+    :type conversion: bool, optional
     :return: list of caught errors as a dict, where keys are error msg base64
     :rtype: dict"""
     t = io.console.create_table("Available Profile", ["valid", "ID"])
@@ -137,10 +150,12 @@ def process_check_profiles(conversion=True):
 def process_check_setup_file(root, prefix, run_configuration):
     """Check if a given pcvs.setup could be parsed if used in a regular process.
 
-    :param filename: the pcvs.setup filepath
-    :type filename: str
+    :param root: the pcvs.setup filepath
+    :type root: str
     :param prefix: the subtree the setup is extract from (used as argument)
     :type prefix: str
+    :param run_configuration: the system env to herit for this setup check
+    :type run_configuration: dict
     :return: a tuple (err msg, icon to print, parsed data)
     :rtype: tuple
     """
@@ -203,8 +218,12 @@ def __set_token(token, nset=None) -> str:
 def process_check_directory(dir, pf_name="default", conversion=True):
     """Analyze a directory to ensure defined test files are valid.
 
+    :param conversion: allow legacy format for this check (True by default)
+    :type conversion: bool, optional
     :param dir: the directory to process.
     :type dir: str
+    :param pf_name: profile name to be loaded, defaults to "default"
+    :type pf_name: str, defaults to "default"
     :return: a dict of caught errors
     :rtype: dict
     """

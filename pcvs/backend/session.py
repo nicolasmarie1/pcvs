@@ -1,4 +1,3 @@
-import copy
 import os
 from datetime import datetime
 from enum import IntEnum
@@ -8,7 +7,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml.main import yaml_object
 
 from pcvs import PATH_SESSION, io
-from pcvs.helpers import log, utils
+from pcvs.helpers import utils
 
 yml = YAML()
 
@@ -34,7 +33,7 @@ def lock_session_file(timeout=None):
     utils.lock_file(PATH_SESSION, timeout=timeout)
 
 
-def store_session_to_file(c):
+def store_session_to_file(c) -> int:
     """Save a new session into the session file (in HOME dir).
 
     :param c: session infos to store
@@ -144,7 +143,7 @@ def list_alive_sessions():
             all_sessions = yml.load(fh)
             if all_sessions:
                 del all_sessions["__metadata"]
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         all_sessions = {}
     finally:
         unlock_session_file()
@@ -204,7 +203,7 @@ class Session:
     Despite the fact it is designed for manage concurrent runs,  it takes a
     callback and can be derived for other needs.
 
-    :param _func: user function to be called once the session starts 
+    :param _func: user function to be called once the session starts
     :type _func: Callable
     :param _sid: session id, automatically generated
     :type _sid: int
@@ -225,8 +224,8 @@ class Session:
             """Convert a Test.State to a valid YAML representation.
 
             A new tag is created: 'Session.State' as a scalar (str).
-            :param dumper: the YAML dumper object 
-            :type dumper: :class:`YAML().dumper`
+            :param representer: the YAML dumper object
+            :type representer: :class:`YAML().dumper`
             :param data: the object to represent
             :type data: class:`Session.State`
             :return: the YAML representation
@@ -239,8 +238,8 @@ class Session:
             """Construct a :class:`Session.State` from its YAML representation.
 
             Relies on the fact the node contains a 'Session.State' tag.
-            :param loader: the YAML loader
-            :type loader: :class:`yaml.FullLoader`
+            :param constructor: the YAML loader
+            :type constructor: :class:`yaml.FullLoader`
             :param node: the YAML representation
             :type node: Any
             :return: The session State as an object
@@ -369,7 +368,7 @@ class Session:
             # some sessions can have their starting time set directly when
             # initializing the object.
             # for instance for runs, elapsed time not session time but wall time"""
-            if self.property('started') == None:
+            if self.property('started') is None:
                 self._session_infos['started'] = datetime.now()
 
             # flag it as running & make the info public
@@ -395,10 +394,12 @@ class Session:
         :type args: tuple
         :param kwargs user function keyword-based arguments.
         :type kwargs: tuple
+        :return: the session ID for this run
+        :rtype: int
         """
         if self._func is not None:
             # same as above, shifted starting time or not
-            if self.property('started') == None:
+            if self.property('started') is None:
                 self._session_infos['started'] = datetime.now()
 
             self._session_infos['state'] = self.State.IN_PROGRESS

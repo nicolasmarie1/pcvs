@@ -1,13 +1,19 @@
 import subprocess
 
-import pcvs
 from pcvs import testing
-from pcvs.helpers import utils
 from pcvs.helpers.system import MetaDict
 from pcvs.testing.testfile import TestFile
 
 
 def parse_spec_variants(specname):
+    """
+    From a given Spack spec, build the list of values for any declared variant.
+
+    :param specname: the spack spec to concretize
+    :type specname: str
+    :return: the dict of possible values for each variants
+    :rtype: Dict[str, Any]
+    """
     d = dict()
     cmd = 'spack python -c \'import spack.repo; print("\\n".join(["{}:{}".format(v.name, v.allowed_values) for v in spack.repo.get("' + \
         specname + '").variants.values()]))\''
@@ -28,6 +34,16 @@ def parse_spec_variants(specname):
 
 
 def generate_from_variants(package, label, prefix):
+    """
+    Build job to be scheduled from a given Spack package.
+
+    :param package: Spack package name
+    :type package: str
+    :param label: group label name
+    :type label: str
+    :param prefix: subprefix name for this package
+    :type prefix: str
+    """
     data = MetaDict()
     dict_of_variants = parse_spec_variants(package)
 

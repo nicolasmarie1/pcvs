@@ -1,8 +1,7 @@
 import os
 import random
-from typing import Dict, Iterable, List, Optional, Union
+from typing import Dict, Iterable, List, Union
 
-from flask import Flask
 from ruamel.yaml import YAML
 
 import pcvs
@@ -35,7 +34,7 @@ def upload_buildir_results(buildir) -> None:
         'dirs': conf_yml.validation.dirs
     })
     for test in man.results.browse_tests():
-        hdl.save(test)
+        man.save(test)
         dataman.insert_test(sid, test)
 
     dataman.close_session(sid, {'state': Session.State.COMPLETED})
@@ -62,9 +61,9 @@ class Report:
 
         :param path: build directory path
         :type path: str
-        :raises Exception: Invalid path is provided
+        :raises NotPCVSRelated: Invalid path is provided
         :return: the actual handler
-        :rtype: class:`BuildDirectoryManager`
+        :rtype: BuildDirectoryManager
         """
         if utils.check_is_buildir(path):
             hdl = BuildDirectoryManager(path)
@@ -83,6 +82,8 @@ class Report:
 
         :param path: the build path (root dir)
         :type path: str
+        :return: the session handler
+        :rtype: BuildDirectoryManager
         """
         hdl = self.__create_build_handler(path)
         hdl.load_config()
@@ -124,25 +125,23 @@ class Report:
         return list(self._sessions.keys())
 
     @classmethod
-    def dict_convert_list_to_cnt(self, l: Dict[str, List[int]]) -> Dict[str, int]:
+    def dict_convert_list_to_cnt(self, arrays: Dict[str, List[int]]) -> Dict[str, int]:
         """
         Convert dict of arrays to a dict of array lengths.
 
         Used to convert dict of per-status jobs to a summary of them.
 
-        :param l: the dict of arrays
-        :type l: dict
+        :param arrays: the dict of arrays
+        :type arrays: dict
         :return: a summary of given dict
         :rtype: dict
         """
-        return {k: len(v) for k, v in l.items()}
+        return {k: len(v) for k, v in arrays.items()}
 
     def session_infos(self) -> Iterable[Dict]:
         """
         Get sesion metadata for each session currently loaded into the instance.
-
-        :return: the list of metadata (as dict)
-        :rtype: list
+        :rtype: Iterator[Dict[str, Any]]
         """
         for sid, sdata in self._sessions.items():
             counts = self.dict_convert_list_to_cnt(
@@ -155,6 +154,14 @@ class Report:
                    'info': sdata.config.validation.get('message', 'No message')}
 
     def single_session_config(self, sid) -> dict:
+        """
+        Get the configuration map from a single session.
+
+        :param sid: the sesion ID
+        :type sid: int
+        :return: the configuration node (=conf.yml)
+        :rtype: dict
+        """
         assert sid in self._sessions
         d = self._sessions[sid].get_config()
         d['runtime']['plugin'] = ''
@@ -241,7 +248,7 @@ class Report:
         :param jid: Job ID
         :type jid: int
         :return: the Actual test object
-        :rtype: class:`Test`
+        :rtype: Test
         """
         assert sid in self._sessions
         return self._sessions[sid].results.map_id(id=jid)
@@ -298,19 +305,18 @@ def build_static_pages(buildir) -> None:
 
     :param buildir: the build directory to load
     :type buildir: str
+    :raises WIPError: Not implemented yet
     """
     raise CommonException.WIPError()
 
 
-def start_server(report: Report) -> Flask:
+def start_server(report: Report):
     """Initialize the Flask server, default to 5000.
 
     A random port is picked if the default is already in use.
     :param report: The model to be used.
-    :type report: class:`Report`
-    :return: the application handler
-    :rtype: class:`Flask`
+    :type report: Report
     """
     app = create_app(report)
-    ret = app.run(host='0.0.0.0', port=int(
+    app.run(host='0.0.0.0', port=int(
         os.getenv("PCVS_REPORT_PORT", 5000)), debug=True)

@@ -113,7 +113,7 @@ class ConfigurationBlock:
             in later versions.
 
         :param str _kind: which component this object describes
-        :param str _name: block name 
+        :param str _name: block name
         :param dict details: block content
         :param str _scope: block scope, may be None
         :param str _file: absolute path for the block on disk
@@ -232,8 +232,12 @@ class ConfigurationBlock:
         self.load_from_disk()
         return MetaDict(self._details).to_dict()
 
-    def check(self, allow_conversion=True) -> None:
-        """Validate a single configuration block according to its scheme."""
+    def check(self) -> None:
+        """
+        Validate a single configuration block according to its scheme.
+
+        :raises: ValidationException.SchemeError, ValidationException.FormatError
+        """
         system.ValidationScheme(self._kind).validate(
             self._details, filepath=self.full_name)
 
@@ -258,7 +262,13 @@ class ConfigurationBlock:
             self._details = MetaDict(YAML(typ='safe').load(f))
 
     def load_template(self, name=None) -> None:
-        """load from the specific template, to create a new config block"""
+        """
+        load from the specific template, to create a new config block
+
+        :param name:template name, defaults to None
+        :type name: str, optional
+        :raises NotFoundError: template not found
+        """
         self._exists = True
         if not name:
             name = self._kind + ".default"
@@ -330,8 +340,6 @@ class ConfigurationBlock:
         """Open the current block for edition.
 
         :raises Exception: Something occured on the edited version.
-        :param e: the EDITOR to use instead of default.
-        :type e: str
         """
         assert (self._file is not None)
 
@@ -360,8 +368,6 @@ class ConfigurationBlock:
         default, data are stored as a base64 string. In order to let user edit
         the code, the string need to be decoded first.
 
-        :param e: the editor to use instead of defaults
-        :type e: str
         """
         if self._kind != "runtime":
             return

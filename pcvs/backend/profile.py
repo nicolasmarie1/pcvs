@@ -1,9 +1,8 @@
 import base64
 import glob
 import os
-import random
 import subprocess
-
+from typing import Optional
 import click
 from ruamel.yaml import YAML
 
@@ -225,11 +224,15 @@ class Profile:
         """Populate the profile from templates of 5 basic config. blocks.
 
         Filepath still need to be determined via `retrieve_file()` call.
+
+        :param name: the profile template name
+        :type name: str, optional
+        :raises NotFoundError: target profile isn't found
         """
         self._exists = True
         self._file = None
         filepath = os.path.join(
-            PATH_INSTDIR, "templates", "profile", name)+".yml"
+            PATH_INSTDIR, "templates", "profile", name) + ".yml"
         if not os.path.isfile(filepath):
             raise ProfileException.NotFoundError(
                 "{} is not a valid base name.\nPlease use pcvs profile list --all".format(name))
@@ -237,12 +240,16 @@ class Profile:
         with open(filepath, "r") as fh:
             self.fill(YAML(typ='safe').load(fh))
 
-    def check(self, allow_legacy=True):
+    def check(self, allow_legacy: Optional[bool] = True):
         """Ensure profile meets scheme requirements, as a concatenation of 5
         configuration block schemes.
 
+        :param allow_legacy: if the check failed, attempt to validate through
+            legacy syntax (recursive call)
+        :type allow_legacy: (Optional[str])
         :raises FormatError: A 'kind' is missing from
-            profile OR incorrect profile.
+            profile
+        :raises ValidationException.FormatError: incorrect profile.
         """
         try:
             err_dbg = list()
@@ -259,9 +266,9 @@ class Profile:
                 #        "Missing '{}' in profile".format(kind))
                 system.ValidationScheme(kind).validate(
                     self._details[kind], filepath=self._name)
-        except ValidationException.FormatError as e:
+        except ValidationException.FormatError:
             if not allow_legacy:
-                raise e
+                raise
             # Is the profile a legacy format ?
             # Attempt to convert it on the fly
             proc = subprocess.Popen(
@@ -273,7 +280,7 @@ class Profile:
 
             fds = proc.communicate()
             if proc.returncode != 0:
-                raise e
+                raise
             converted_data = YAML(typ='safe').load(fds[0].decode('utf-8'))
             self.fill(converted_data)
             self.check(allow_legacy=False)
@@ -333,9 +340,6 @@ class Profile:
     def edit(self):
         """Open the editor to manipulate profile content.
 
-        :param e: an editor program to use instead of defaults
-        :type e: str
-
         :raises Exception: Something happened while editing the file
 
         .. warning::
@@ -366,9 +370,6 @@ class Profile:
     def edit_plugin(self):
         """Edit the 'runtime.plugin' section of the current profile.
 
-        :param e: an editor program to use instead of defaults
-        :type e: str
-
         :raises Exception: Something happened while editing the file.
 
         .. warning::
@@ -391,7 +392,7 @@ from pcvs.plugins import Plugin
 
 class MyPlugin(Plugin):
     step = Plugin.Step.TEST_EVAL
-    
+
     def run(self, *args, **kwargs):
     # this dict maps keys (it name) with values (it value)
     # returns True if the combination should be used
