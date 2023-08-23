@@ -414,8 +414,7 @@ class TEDescriptor:
                 target=self._build.make.get('target', '')
             )
         )
-
-        command += " ".join(self._build['make'].get('args', []))
+        command += self._build['make'].get('args', [])
         envs += self._build['make'].get('envs', [])
 
         return (" ".join(command), envs)
