@@ -12,7 +12,7 @@ from textual.screen import ModalScreen, Screen
 from textual.widget import Widget
 from textual.widgets import (Button, DataTable, DirectoryTree, Footer, Header,
                              Input, LoadingIndicator, OptionList, Static,
-                             TextLog)
+                             RichLog)
 from textual.widgets.option_list import Option
 
 from pcvs.helpers.utils import check_is_build_or_archive
@@ -155,7 +155,7 @@ class JobListViewer(Widget):
 
 
 class SingleJobViewer(Widget):
-    log = reactive(TextLog(wrap=True))
+    log = reactive(RichLog(wrap=True))
     cmd = reactive(Static())
 
     def compose(self):
@@ -224,7 +224,7 @@ class SessionInfoScreen(ModalScreen):
             "pf_name": Static("Profile:"),
         }
         config = self.app.model.active.config
-        infolog = TextLog()
+        infolog = RichLog()
 
         infolog.write(pprint.pformat(config))
 
