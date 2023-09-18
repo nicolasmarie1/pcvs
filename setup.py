@@ -9,7 +9,7 @@ version = loc['__version__']
 try:
     import sh
     version += "+{}".format(sh.git("rev-parse", "HEAD").strip()[:8])
-    if sh.git('diff', 'HEAD'):
+    if sh.git('--no-pager', 'diff', 'HEAD'):
         version += ".dirty"
 except:
     pass
