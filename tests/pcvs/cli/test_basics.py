@@ -1,6 +1,7 @@
 import pcvs
 
-from .conftest import click_call, isolated_fs
+from .conftest import click_call
+from .conftest import isolated_fs
 
 
 def test_cmd():

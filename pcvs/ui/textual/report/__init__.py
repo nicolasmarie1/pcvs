@@ -5,14 +5,24 @@ from typing import Iterable
 
 from textual import on
 from textual.app import App
-from textual.containers import Container, Grid, Horizontal
+from textual.containers import Container
+from textual.containers import Grid
+from textual.containers import Horizontal
 from textual.message import Message
 from textual.reactive import reactive
-from textual.screen import ModalScreen, Screen
+from textual.screen import ModalScreen
+from textual.screen import Screen
 from textual.widget import Widget
-from textual.widgets import (Button, DataTable, DirectoryTree, Footer, Header,
-                             Input, LoadingIndicator, OptionList, Static,
-                             RichLog)
+from textual.widgets import Button
+from textual.widgets import DataTable
+from textual.widgets import DirectoryTree
+from textual.widgets import Footer
+from textual.widgets import Header
+from textual.widgets import Input
+from textual.widgets import LoadingIndicator
+from textual.widgets import OptionList
+from textual.widgets import RichLog
+from textual.widgets import Static
 from textual.widgets.option_list import Option
 
 from pcvs.helpers.utils import check_is_build_or_archive

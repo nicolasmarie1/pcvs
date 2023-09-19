@@ -1,16 +1,21 @@
 import os
 import random
-from typing import Dict, Iterable, List, Union
+from typing import Dict
+from typing import Iterable
+from typing import List
+from typing import Union
 
 from ruamel.yaml import YAML
 
 import pcvs
-from pcvs.backend.session import Session, list_alive_sessions
+from pcvs.backend.session import list_alive_sessions
+from pcvs.backend.session import Session
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers.system import MetaDict
 from pcvs.orchestration.publishers import BuildDirectoryManager
-from pcvs.webview import create_app, data_manager
+from pcvs.webview import create_app
+from pcvs.webview import data_manager
 
 
 def upload_buildir_results(buildir) -> None:

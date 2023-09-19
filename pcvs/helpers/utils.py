@@ -7,10 +7,15 @@ import time
 from contextlib import contextmanager
 from shutil import SameFileError
 
-from pcvs import (NAME_BUILDFILE, NAME_BUILDIR, NAME_SRCDIR, PATH_HOMEDIR,
-                  PATH_INSTDIR, io)
-from pcvs.helpers.exceptions import (CommonException, LockException,
-                                     RunException)
+from pcvs import io
+from pcvs import NAME_BUILDFILE
+from pcvs import NAME_BUILDIR
+from pcvs import NAME_SRCDIR
+from pcvs import PATH_HOMEDIR
+from pcvs import PATH_INSTDIR
+from pcvs.helpers.exceptions import CommonException
+from pcvs.helpers.exceptions import LockException
+from pcvs.helpers.exceptions import RunException
 
 ####################################
 ##    STORAGE SCOPE MANAGEMENT    ##

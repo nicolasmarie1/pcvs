@@ -1,7 +1,8 @@
 import os
 
 from pcvs.backend.report import Report
-from pcvs.helpers.utils import check_is_archive, check_is_buildir
+from pcvs.helpers.utils import check_is_archive
+from pcvs.helpers.utils import check_is_buildir
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.testing.test import Test
 

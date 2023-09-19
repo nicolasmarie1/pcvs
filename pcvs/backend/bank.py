@@ -1,13 +1,18 @@
 import os
 import tarfile
 import tempfile
-from typing import Dict, List, Optional
+from typing import Dict
+from typing import List
+from typing import Optional
 
 from ruamel.yaml import YAML
 
-from pcvs import PATH_BANK, dsl
-from pcvs.helpers import git, utils
-from pcvs.helpers.exceptions import BankException, CommonException
+from pcvs import dsl
+from pcvs import PATH_BANK
+from pcvs.helpers import git
+from pcvs.helpers import utils
+from pcvs.helpers.exceptions import BankException
+from pcvs.helpers.exceptions import CommonException
 from pcvs.orchestration.publishers import BuildDirectoryManager
 
 #: :var BANKS: list of available banks when PCVS starts up

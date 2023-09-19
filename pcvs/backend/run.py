@@ -8,14 +8,24 @@ from subprocess import CalledProcessError
 
 from ruamel.yaml import YAML
 
-from pcvs import (NAME_BUILD_CACHEDIR, NAME_BUILD_CONF_FN, NAME_BUILD_CONF_SH,
-                  NAME_BUILD_SCRATCH, NAME_BUILDFILE, NAME_BUILDIR,
-                  NAME_SRCDIR, io, testing)
+from pcvs import io
+from pcvs import NAME_BUILD_CACHEDIR
+from pcvs import NAME_BUILD_CONF_FN
+from pcvs import NAME_BUILD_CONF_SH
+from pcvs import NAME_BUILD_SCRATCH
+from pcvs import NAME_BUILDFILE
+from pcvs import NAME_BUILDIR
+from pcvs import NAME_SRCDIR
+from pcvs import testing
 from pcvs.backend import bank as pvBank
 from pcvs.backend import spack as pvSpack
-from pcvs.helpers import communications, criterion, utils
-from pcvs.helpers.exceptions import RunException, TestException
-from pcvs.helpers.system import MetaConfig, MetaDict
+from pcvs.helpers import communications
+from pcvs.helpers import criterion
+from pcvs.helpers import utils
+from pcvs.helpers.exceptions import RunException
+from pcvs.helpers.exceptions import TestException
+from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import MetaDict
 from pcvs.orchestration import Orchestrator
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.plugins import Plugin

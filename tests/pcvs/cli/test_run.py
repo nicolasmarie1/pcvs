@@ -4,7 +4,8 @@ from unittest.mock import patch
 import pcvs
 from pcvs.backend import run as tested
 
-from .conftest import click_call, isolated_fs
+from .conftest import click_call
+from .conftest import isolated_fs
 
 
 @patch("pcvs.backend.session.lock_session_file", return_value={})

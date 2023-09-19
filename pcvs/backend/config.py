@@ -1,13 +1,17 @@
 import base64
 import glob
 import os
-from typing import Dict, List, Union
+from typing import Dict
+from typing import List
+from typing import Union
 
 import click
 from ruamel.yaml import YAML
 
-from pcvs import PATH_INSTDIR, io
-from pcvs.helpers import system, utils
+from pcvs import io
+from pcvs import PATH_INSTDIR
+from pcvs.helpers import system
+from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ConfigException
 from pcvs.helpers.system import MetaDict
 

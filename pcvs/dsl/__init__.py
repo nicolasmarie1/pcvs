@@ -1,10 +1,13 @@
 import json
 import os
-from enum import Enum, IntEnum
-from typing import Dict, List
+from enum import Enum
+from enum import IntEnum
+from typing import Dict
+from typing import List
 
 from pcvs import io
-from pcvs.helpers import exceptions, git
+from pcvs.helpers import exceptions
+from pcvs.helpers import git
 from pcvs.testing.test import Test
 
 

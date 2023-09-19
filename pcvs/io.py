@@ -5,7 +5,11 @@ import os
 import shutil
 import sys
 from datetime import datetime
-from typing import Optional, List, Dict, Iterable, Callable
+from typing import Callable
+from typing import Dict
+from typing import Iterable
+from typing import List
+from typing import Optional
 
 import click
 import rich.box as box
@@ -13,8 +17,12 @@ from rich.console import Console
 from rich.live import Live
 from rich.logging import RichHandler
 from rich.panel import Panel
-from rich.progress import (BarColumn, Progress, SpinnerColumn, TextColumn,
-                           TimeElapsedColumn, track)
+from rich.progress import BarColumn
+from rich.progress import Progress
+from rich.progress import SpinnerColumn
+from rich.progress import TextColumn
+from rich.progress import TimeElapsedColumn
+from rich.progress import track
 from rich.table import Table
 from rich.theme import Theme
 

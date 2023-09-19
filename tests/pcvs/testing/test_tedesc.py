@@ -3,10 +3,13 @@ from unittest.mock import patch
 
 import pytest
 
-from pcvs.helpers import criterion, exceptions, pm, system
-from pcvs.plugins import Collection
+from pcvs.helpers import criterion
+from pcvs.helpers import exceptions
+from pcvs.helpers import pm
+from pcvs.helpers import system
 from pcvs.helpers.criterion import Criterion
 from pcvs.helpers.system import MetaDict
+from pcvs.plugins import Collection
 from pcvs.testing import tedesc as tested
 
 

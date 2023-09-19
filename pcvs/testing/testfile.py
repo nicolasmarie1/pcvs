@@ -8,11 +8,15 @@ import re
 import subprocess
 import tempfile
 
-from ruamel.yaml import YAML, YAMLError
+from ruamel.yaml import YAML
+from ruamel.yaml import YAMLError
 
-from pcvs import PATH_INSTDIR, io, testing
+from pcvs import io
+from pcvs import PATH_INSTDIR
+from pcvs import testing
 from pcvs.helpers import system
-from pcvs.helpers.exceptions import TestException, ValidationException
+from pcvs.helpers.exceptions import TestException
+from pcvs.helpers.exceptions import ValidationException
 from pcvs.helpers.system import MetaConfig
 from pcvs.plugins import Plugin
 from pcvs.testing import tedesc

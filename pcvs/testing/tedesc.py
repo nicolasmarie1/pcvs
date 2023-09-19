@@ -8,11 +8,13 @@ from typing import Optional
 import pcvs
 from pcvs import testing
 from pcvs.helpers import pm
-from pcvs.helpers.criterion import Criterion, Serie
-from pcvs.helpers.exceptions import ProfileException, TestException
-from pcvs.helpers.system import MetaConfig, MetaDict
+from pcvs.helpers.criterion import Criterion
+from pcvs.helpers.criterion import Serie
+from pcvs.helpers.exceptions import ProfileException
+from pcvs.helpers.exceptions import TestException
+from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import MetaDict
 from pcvs.testing.test import Test
-
 
 # now return the first valid language, according to settings
 # order matters: if sources contains multiple languages, the first
