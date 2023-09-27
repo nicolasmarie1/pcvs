@@ -1,4 +1,5 @@
 import os
+import hashlib
 from datetime import datetime
 from enum import IntEnum
 from multiprocessing import Process
@@ -12,27 +13,8 @@ from pcvs.helpers import utils
 
 yml = YAML()
 
-
-def unlock_session_file():
-    """Release the lock after manipulating the session.yml file.
-
-    The call won't fail if the lockfile is not taken before unlocking.
-    """
-    utils.unlock_file(PATH_SESSION)
-
-
-def lock_session_file(timeout=None):
-    """Acquire the lockfil before manipulating the session.yml file.
-
-    This ensure safety between multiple PCVS instances. Be sure to call
-    `unlock_session_file()` once completed
-
-    :param timeout: return from blocking once timeout is expired (raising
-        TimeoutError)
-    :type timeout: int
-    """
-    utils.lock_file(PATH_SESSION, timeout=timeout)
-
+def session_file_hash(session_infos):
+    return hashlib.sha1("{}:{}".format(session_infos["path"], session_infos["started"]).encode()).hexdigest()
 
 def store_session_to_file(c) -> int:
     """Save a new session into the session file (in HOME dir).
@@ -42,40 +24,19 @@ def store_session_to_file(c) -> int:
     :return: the sid associated to new create session id.
     :rtype: int
     """
-    all_sessions = None
-    sid = -1
     global yml
 
-    lock_session_file()
+    if not os.path.exists(PATH_SESSION):
+        os.makedirs(PATH_SESSION)
+
+    shash = session_file_hash(c)
+    session_file = os.path.join(PATH_SESSION, "{}.yml".format(shash))
     try:
-        # to operate, PCVS needs to full-read and then full-write the whole file
-        if os.path.isfile(PATH_SESSION):
-            with open(PATH_SESSION, 'r') as fh:
-                all_sessions = yml.load(fh)
-
-        # compute the session id, incrementally done from the highest session id
-        # currently running and registered.
-        # Please not a session is not flushed away from logs until the user
-        # explicitly does it
-        if all_sessions is None:
-            all_sessions = {"__metadata": {"next": 0}}
-
-        # Lookup for an available session id number
-        sid = all_sessions["__metadata"]["next"]
-        while sid in all_sessions.keys() or sid == -1:
-            sid += 1
-
-        all_sessions["__metadata"]["next"] = (sid + 1) % 1000000
-
-        assert (sid not in all_sessions.keys())
-        all_sessions[sid] = c
-
-        # dump the file back
-        with open(PATH_SESSION, 'w') as fh:
-            yml.dump(all_sessions, fh)
-    finally:
-        unlock_session_file()
-    return sid
+        with open(session_file, "x") as fh:
+            yml.dump(c, fh)
+    except Exception as e:
+        raise e
+    return shash
 
 
 def update_session_from_file(sid, update):
@@ -89,22 +50,24 @@ def update_session_from_file(sid, update):
     :type: dict
     """
     global yml
-    lock_session_file()
-    try:
-        all_sessions = None
-        if os.path.isfile(PATH_SESSION):
-            with open(PATH_SESSION, 'r') as fh:
-                all_sessions = yml.load(fh)
-
-        if all_sessions is not None and sid in all_sessions:
+    
+    if not os.path.exists(PATH_SESSION):
+        os.makedirs(PATH_SESSION)
+    
+    for f in os.listdir(PATH_SESSION):
+        if f.startswith(sid):
+            with open(os.path.join(PATH_SESSION, f), "r") as fh:
+                data = yml.load(fh)
+            
             for k, v in update.items():
-                all_sessions[sid][k] = v
-            # only if editing is done, flush the file back
-            with open(PATH_SESSION, 'w') as fh:
-                yml.dump(all_sessions, fh)
-    finally:
-        unlock_session_file()
-
+                data[k] = v
+            
+            with open(os.path.join(PATH_SESSION, f), "w") as fh:
+                yml.dump(data, fh)
+        
+            return True
+        
+    return False
 
 def remove_session_from_file(sid):
     """clear a session from logs.
@@ -113,22 +76,12 @@ def remove_session_from_file(sid):
     :type sid: int
     """
     global yml
-    lock_session_file()
-    try:
-        all_sessions = None
-        if os.path.isfile(PATH_SESSION):
-            with open(PATH_SESSION, 'r') as fh:
-                all_sessions = yml.load(fh)
-
-        if all_sessions is not None and sid in all_sessions:
-            del all_sessions[sid]
-            with open(PATH_SESSION, 'w') as fh:
-                if len(all_sessions) > 0:
-                    yml.dump(all_sessions, fh)
-                # else, truncate the file to zero -> open(w) with no data
-    finally:
-        unlock_session_file()
-
+    
+    for f in os.listdir(PATH_SESSION):
+        if f.startswith(sid):
+            os.remove(os.path.join(PATH_SESSION, f))
+            return True
+    return False
 
 def list_alive_sessions():
     """Load and return the complete dict from session.yml file
@@ -137,17 +90,19 @@ def list_alive_sessions():
     :rtype: dict
     """
     global yml
-    lock_session_file(timeout=15)
-
-    try:
-        with open(PATH_SESSION, 'r') as fh:
-            all_sessions = yml.load(fh)
-            if all_sessions:
-                del all_sessions["__metadata"]
-    except FileNotFoundError:
-        all_sessions = {}
-    finally:
-        unlock_session_file()
+    if not os.path.exists(PATH_SESSION):
+        os.makedirs(PATH_SESSION)
+    
+    all_sessions = {}
+    
+    for f in os.listdir(PATH_SESSION):
+        assert(os.path.splitext(f) not in all_sessions)
+        try:
+            with open(os.path.join(PATH_SESSION, f), "r") as fh:
+                data = yml.load(fh)
+                all_sessions[os.path.splitext(f)[0]] = data
+        except:
+            continue
     return all_sessions
 
 

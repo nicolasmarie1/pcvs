@@ -1,4 +1,5 @@
 import os
+import hashlib
 from datetime import datetime
 from unittest import mock
 from unittest.mock import patch
@@ -18,7 +19,7 @@ def dummy_main_function(arg_a, arg_b):
 @pytest.fixture
 def mock_home_config():
     with CliRunner().isolated_filesystem():
-        mock.patch.object(pcvs, 'PATH_SESSION', os.path.join(os.getcwd(), "session.yml")
+        mock.patch.object(pcvs, 'PATH_SESSION', os.path.join(os.getcwd(), "sessions")
         )
 
 
@@ -31,38 +32,40 @@ def test_session_init():
 
 def test_session_file():
     with CliRunner().isolated_filesystem():
-        s = os.path.join(os.getcwd(), "session.yml")
-        sl = os.path.join(os.getcwd(), ".session.yml.lck")
-        with patch.object(tested, "PATH_SESSION", s) as mock_session:
-            id = tested.store_session_to_file({"key": 'value'})
-            with open(s, "r") as fh:
+        date = datetime.now()
+        session = {
+            "path": os.getcwd(),
+            "started": date
+        }
+        
+        with patch.object(tested, "PATH_SESSION", os.getcwd()) as mock_session:
+            id = tested.store_session_to_file(session)
+            assert(os.path.isfile(os.path.join(mock_session, "{}.yml".format(id))))
+            assert(id == tested.session_file_hash(session))
+            assert(id == hashlib.sha1("{}:{}".format(session['path'], session['started']).encode()).hexdigest())
+
+            with open(os.path.join(mock_session, "{}.yml".format(id)), "r") as fh:
                 data = YAML().load(fh)
                 assert(len(data.keys()) == 2)
-                assert('__metadata' in data)
-                assert('next' in data['__metadata'])
-                
-                assert(id in data)
-                assert('key' in data[id])
-                assert('value' == data[id]['key'])
-            
-            tested.update_session_from_file(id, {
-                "key": "new_value",
-                "another_key": 'another_val'
-                })
-            with open(s, 'r') as fh:
-                data = YAML().load(fh)
-                assert(len(data.keys()) == 2)
-                assert(id in data)
-                assert('key' in data[id])
-                assert('new_value' == data[id]['key'])
-                assert('another_key' in data[id])
-                assert('another_val' in data[id]['another_key'])
+                assert(data["path"] == os.getcwd())
+                assert(data["started"] == date)
             
             sessions = tested.list_alive_sessions()
             assert(len(sessions) == 1)
             assert(id in sessions)
             
-            tested.remove_session_from_file(id)
-            with open(s, "r") as fh:
+            end_date = datetime.now()
+            tested.update_session_from_file(id, {
+                "ended": end_date
+                })
+        
+            with open(os.path.join(mock_session, "{}.yml".format(id)), "r") as fh:
                 data = YAML().load(fh)
-                assert(id not in data)
+                assert(len(data.keys()) == 3)
+                assert(data["path"] == os.getcwd())
+                assert(data["started"] == date)
+                assert(data["ended"] == end_date)
+            
+            
+            tested.remove_session_from_file(id)
+            assert(not os.path.exists(os.path.join(mock_session, "{}.yml".format(id))))
