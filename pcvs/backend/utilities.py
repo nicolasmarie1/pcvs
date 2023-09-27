@@ -79,8 +79,7 @@ def get_logged_output(prefix, testname) -> str:
         man = BuildDirectoryManager(build_dir=buildir)
         man.init_results()
         for test in man.results.retrieve_tests_by_name(name=testname):
-            s += "\n##### TEST OUTPUT #####\n### Testname: {}\n{}\n".format(
-                test.name, test.get_raw_output(encoding='utf-8'))
+            s += test.get_raw_output(encoding='utf-8')
         man.finalize()
     if not s:
         s = "No test named '{}' found here.".format(testname)
