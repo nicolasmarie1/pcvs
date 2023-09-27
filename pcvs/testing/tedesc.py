@@ -224,7 +224,7 @@ class TEDescriptor:
         self._run = MetaDict(node.get('run', None))
         self._validation = MetaDict(node.get('validate', None))
         self._artifacts = MetaDict(node.get('artifact', None))
-        self._metrics = MetaDict(node.get('metric', None))
+        self._metrics = MetaDict(node.get('metrics', None))
         self._attributes = MetaDict(node.get("attributes", None))
         self._template = node.get('group', None)
         self._debug = self._te_name+":\n"

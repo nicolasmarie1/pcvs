@@ -1,3 +1,4 @@
+
 compiler:
   cc: {program: mpicc}
   cxx: {program: mpicxx}

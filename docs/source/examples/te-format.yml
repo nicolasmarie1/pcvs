@@ -1,19 +1,35 @@
 ---
+# This node will be ignored while unrolling tests
+# as node name starts with a dot "."
 .this_is_a_job:
+  # A node can reference a "group", a profile-wide template to propagate multiple
+  # TE keys to different YAML files at once
   group: "GRPSERIAL"
+  # A tag is a label to classify jobs when displaying results
   tag: ["a", "b"]
+  # Build rules => how to build the benchmark
   build:
-    # source files to include (if needed)
+    # Files used to build this node
+    # it can be a source file, a makefile...
     files: "@SRCPATH@/*.c"
+    # ===== FOR ANY BUILD SYSTEM
+    # args: arguments forwarded to the build system
+    # envs: environment variables exported to the target shell.
+    # Only one build system is expected to be used at once among the following:
+
     autotools:
       args: ['--disable-bootstrap']
       envs: []
     cmake:
+      # "vars" is a shortcut to "args: ["-D<var>"]"
       vars: ['CMAKE_VERBOSE_MAKEFILE=ON']
       args: []
       envs: []
     make:
+      # default makefile target to invoke
       target: "all"
+      # a list of macros can be used as placeholder to be replaced when
+      # unrolling. A list is available at the end of this file.
       args: ['MPICC=@COMPILER_CC@']
       envs: []
     sources:
@@ -27,43 +43,29 @@
       # force explicit language if PCVS has trouble to autodetect
       lang: ['cc', 'cxx', 'fc']
     custom:
+      # Really complex build scenario PCVS may not be able to handle
       program: "myscript.sh"
       envs: ["VAR1=value", "VAR2=value"]
-    # dependency scheme
+    # dependency scheme. This can be:
+    # a fully expanded test name
+    # a TE node (like ".this_is_a_job" for the current node).
+    # A circular detection is run.
     depends_on: ["this_is_another_test"]
     # directory where program should be built
     cwd: "dir/to/build"
-    # variants describing the job.
-    # available variants are provided by compiler.$LANG
+    # variants required from profiles to run this job
+    # IF these variants are not satisfied, jobs will be discarded.
+    # it indicates not support for a specific variant.
+    # There is no preset variants, all of them can be declared by the profile.
+    # It can be found under compiler.$LANG.variants
     variants:
       - openmp
       - accel
       - mpi
-    attributes:
-      command_wrap: true
-
-  run: &run_part
-    program: "./a.out"
-    attributes:
-      command_wrap: true
-      path_resolution: false
-    iterate:
-      # runtime iterators
-      n_mpi:
-        values: [2, 4]
-      n_omp:
-        values: [1, 2]
-      program:
-        # name will be used as part of final test-name
-        give_it_a_name:
-          numeric: true
-          type: "argument"
-          values: ["-iter 1000", "-fast"]
-          subtitle: "lol"
-    # directory where program should be built
-    cwd: "dir/to/build"
-    # dependency scheme
-    depends_on: ["this_is_another_run_test_in_the_same_file"]
+    # PM interaction, allow to load package/module BEFORE running jobs
+    # This load will be done for every job, it may create overhead.
+    # currently, only spack recipes & module will be allowed.
+    # If a spack recipe is not available, it will be installed first.
     package_manager:
       spack:
         - protobuf@3.1.1
@@ -71,37 +73,147 @@
       module:
         - protobuf
         - gnu/gcc/7.3.0
+
+  run: &run_part
+    # path to program (defaults to build.sources.binary if not set)
+    program: "./a.out"
+    # Scale the benchmark to build test scenarios.
+    iterate:
+      # subnodes are parsed relatively to the profile configuration.
+      # There are expected to be declared to profiles, under "criterion"
+      # only intersected values with profiles will be kept.
+      n_mpi:
+        values: [2, 4]
+      n_omp:
+        values: [1, 2]
+      # Special key to declare program-scope parameter matrix.
+      # One can use as many parameters to run the given program.
+      # criterion name will be given by the key
+      # criterion values will be given by the "values" field
+      # criterion label (used to generate test-name) will be given by "subtitle"
+      # parameter position will be given by "type": "argument" or "environment"
+      # numeric attributes allow to use sequence to generate values.
+      # for instance, to generate only power of 2 values:
+      #  => values: [{from: 0; to: 100, op: "mul": of: 2}]
+      program:
+        give_it_a_name:
+          numeric: true
+          type: "argument"
+          values: ["-iter 1000", "-fast"]
+          subtitle: "lol"
+    # directory where program should be built
+    cwd: "dir/to/build"
+    # dependency scheme, same rules as build.depends_on.
+    depends_on: ["this_is_another_run_test_in_the_same_file"]
+    # PM interaction, same as build.package_manager
+    package_manager:
+      spack:
+        - protobuf@3.1.1
+        - gcc@7.3.0
+      module:
+        - protobuf
+        - gnu/gcc/7.3.0
+  # How to validate jobs generated from this specification ?
+  # each of these subkeys are cumulative, all of them has to be true to 
+  # mark the job as a success
+  validate:
+    # expected return code
+    expect_exit: 0
+    # time limit
+    time:
+      # max execution time the job should not exceed to succeed
+      mean: 10.0
+      # time measurement may vary. Some tolerance is allowed (only upper-bound)
+      tolerance: 2.0
+      # After this time, job will be automatically stopped and marked as failed
+      # note that PCVS cannot be able to handle every job kill mechanism.
+      # Our approach is to terminate the process which spawned the test on
+      # resources. With some batch-managers, it may lead to leaks.
+      kill_after: 20
+    # Output formatting compliance
+    # It is based on rule definition as regex. These regex has to be matched (or
+    # not) to pass.
+    match:
+      # rule name
+      label:
+        # the regex
+        expr: '^\d+(\.\d+) received$'
+        # Is the pattern allowed or forbidden in the output.
+        # True: The regex MUST match to success
+        # False: The regex MUST NOT match to success
+        # default: True
+        expect: true|false
+      label2: 'Total Elapsed: \d+\.\d+ sec.$'
+    # Analysis method
+    # based on dedicated Python module (builtin or user-made) to be run on every
+    # jobs to select the final status
+    # use-case: mark job status depending on its execution history over past
+    # runs.
+    analysis:
+      method: "<method>"
+    # Generic scenario, not handled by PCVS.
+    # Job info & output are provided to the script, returning 0 in case of
+    # success, non-zero otherwise.
+    script:
+      path: "/path/to/script"
+
+  # Post execution rules.
+  # artifacts can be stored to the final results to store job-specific data.
+  # Currently, artifacts only supports filesystem
   artifact:
     # relative to $BUILDPATH
     obj1: "./path/1"
     obj2: "./path/2"
 
+  # From the output, extract data to be stored as results.
+  # A regex is used to capture the metric from the standard output and is stored
+  # to the final result JSON file for later reference.
   metrics:
+    # metric name
     metric1:
+      # regex to match
       key: "regex"
     metric2:
       key: "regex"
+      attributes:
+        # if multiple occurences of the regex are found, only keep the first
+        # match. (default: false)
+        unique: true
 
-  # this is a copy/paste from pav2
-  validate:
-    expect_exit: 0
-    time:
-      mean: 10.0
-      tolerance: 2.0
-      kill_after: 20
-    match:
-      label:
-        expr: '^\d+(\.\d+) received$'
-        expect: true|false
-      label2: 'Total Elapsed: \d+\.\d+ sec.$'
-    analysis:
-      method: "<method>"
-    script:
-      path: "/path/to/script"
+  # A list of properties to enable specific features.
+  # These attributes are common to build/run configurations
+  # if a different set of attributes are required for build & run a single TE,
+  # feel free to create TWO nodes, with a dep on "build".
+  attributes:
+    # control if the current benchmark program should be prefixed by
+    # the runtime.program command (default: true)
+    # True: ./a.out -> mpirun ./a.out
+    # False: ./a.out -> ./a.out
+    command_wrap: true
+    # controls if the relative path defined by this TE should be converted to
+    # absolute path to avoid PATH resolution. (default: true)
+    # True: ./a.out -> @BUILDIR@/./a.out
+    # False: spack install -> spack install
+    path_resolution: true
+    # duplicates inputs defined by this TE for any generated test.
+    # For instance, if the current build directory provide a non-shareable
+    # resource, it may run into trouble when running concurrent tests from this
+    # specification. A dedicated directory is built for each subtest.
+    # (default: false)
+    copy_input: false
+    # duplicates outputs defined by this TE for any generated test.
+    # This is the opposite of copy_input, to allow generate concurrent artifacts
+    # from this single specification (default: false)
+    copy_output: false
+    
 
 #########################################################
 
 # depicts an inheritance mechanism.
+# a key is defined as &key, as put on the "run" node above.
+# It can then be referred with "*key". Any subkeys are copied
+# to under the target node.
+# This can be used to factor keys among multiples job descriptions
 real_test:
   build:
     make:
