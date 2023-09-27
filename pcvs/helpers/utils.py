@@ -1,4 +1,5 @@
 import os
+import fcntl
 import shutil
 import signal
 import socket
@@ -280,11 +281,21 @@ def unlock_file(f):
     :type f: os.path
     """
     lf_name = get_lockfile_name(f)
-    if os.path.exists(lf_name) and os.path.isfile(lf_name):
-        os.remove(lf_name)
-        if io.console:
-            io.console.debug("Unlock {}".format(lf_name))
+    try:
+        if not os.path.isfile(lf_name):
+            open(lf_name, "x").close()
+    except FileExistsError:
+        pass
 
+    try:
+        with open(lf_name, "w+") as fh:
+            fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
+            if io.console:
+                io.console.debug("Unlock {}".format(lf_name))
+    except Exception as e:
+        if io.console:
+            io.console.warning("Issue unlocking {}: {}".format(lf_name), e)
+        pass
 
 def lock_file(f, reentrant=False, timeout=None, force=True):
     """Try to lock a directory.
@@ -328,19 +339,33 @@ def trylock_file(f, reentrant=False):
     :rtype: bool
     """
     lockfile_name = get_lockfile_name(f)
-    if not os.path.exists(lockfile_name):
-        with open(lockfile_name, 'w') as fh:
-            fh.write("{}||{}".format(socket.gethostname(), os.getpid()))
-        if io.console:
-            io.console.debug("Lock {}".format(lockfile_name))
-        return True
-    else:
+    
+    # touch the file if not exist, not care about FileExists.
+    try:
+        if not os.path.isfile(lockfile_name):
+            open(lockfile_name, "x").close()
+    except FileExistsError:
+        pass
+    
+    try:
+        # attempt to acquire the lock
+        with open(lockfile_name, "w") as fh:
+            fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            # from here, lock is taken
+            fh.write("{}||{}||{}".format(socket.gethostname(), os.getpid(), 42))
+            if io.console:
+                io.console.debug("Trylock {}".format(lockfile_name))
+            return True
+    except OSError as e:
         try:
             hostname, pid = get_lock_owner(f)
             if pid == os.getpid() and hostname == socket.gethostname() and reentrant:
-                io.console.debug("Lock {}".format(lockfile_name))
+                io.console.debug("Already locked {} for this process".format(lockfile_name))
                 return True
-        except ValueError as e:
+            if io.console:
+                io.console.debug("Not locked, owned by {}:{}".format(hostname, pid))
+            
+        except Exception:
             pass  # return False
 
         return False
@@ -355,7 +380,13 @@ def is_locked(f):
     :rtype: bool
     """
     lf_name = get_lockfile_name(f)
-    return os.path.isfile(os.path.abspath(lf_name))
+    try:
+        with open(lf_name, "r") as fh:
+            data = fh.read()
+            if data:
+                return True
+    except:
+        return False
 
 
 def get_lock_owner(f):
@@ -370,6 +401,7 @@ def get_lock_owner(f):
     lf_name = get_lockfile_name(f)
     with open(lf_name, 'r') as fh:
         s = fh.read().strip().split('||')
+        assert(int(s[2]) == 42)
         return s[0], int(s[1])
 
 
