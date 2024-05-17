@@ -105,7 +105,7 @@ def exec(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout, pall)
     sys.exit(rc)
 
 
-@click.command(name="check", short_help="Ensure future input will be conformant to standards")
+@click.command(name="check", short_help="Ensure future input will be compliant with standards")
 @click.option("--encoding", "-E", "encoding", default=False, is_flag=True,
               help="Check capability to print utf-8 characters properly")
 @click.option("--colouring", "-X", "color", default=False, is_flag=True,
@@ -114,7 +114,7 @@ def exec(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout, pall)
               type=click.Path(exists=True, file_okay=False),
               help="Check correctness for pcvs.* files")
 @click.option("--configs", "-C", "configs", default=False, is_flag=True,
-              help="Check correctness for all registered configuation block")
+              help="Check correctness for all registered configuration blocks")
 @click.option("--profiles", "-P", "profiles", default=False, is_flag=True,
               help="Check correctness for all registered profiles")
 @click.option("--profile-model", "-p", "pf_name", default="default",
