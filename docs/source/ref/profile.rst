@@ -1,7 +1,7 @@
 Profiles 
 ========
 
-Generalitites 
+Generalities 
 -------------
 
 A PCVS profile defines a configuration in which PCVS will launch. This
@@ -39,7 +39,7 @@ profile, one can use the command :
 
 .. code-block:: bash
 
-    pcvs profile build example_profile
+    pcvs profile create example_profile
 
 To export this profile in a file format, use the command :
 
@@ -54,7 +54,7 @@ back into PCVS use the command :
 
     pcvs profile import example_profile example_profile.yml
 
-Without arguments, the ``pcvs profile build`` command builds blocks as default,
+Without arguments, the ``pcvs profile create`` command builds blocks as default,
 but a profile can be built with custom configuration blocks. 
 
 Building a profile with existing configuration blocks
@@ -70,7 +70,7 @@ In the CLI
 
 .. code-block:: bash
 
-    pcvs profile build example_profile -b [scope].[block-name].[block-type]
+    pcvs profile create example_profile -b [scope].[block-name].[block-type]
 
 This command has to include either 0 or 5 ``-b`` blocks (default or complete
 configuration). 
@@ -80,7 +80,7 @@ With the interactive mode
 
 .. code-block:: bash
 
-    pcvs profile build -i
+    pcvs profile create -i
 
 For the configuration blocks setting please refer to the Configuration
 blocks section.
@@ -93,7 +93,7 @@ with the corresponding commands.
 
 Use pcvs profile list to see every available profiles.
 
-``pcvs profile alter [profile]`` launches a text editor in order to manually
+``pcvs profile edit [profile]`` launches a text editor in order to manually
 change the profile. PCVS scans editors to give a choice to users.
 
 ``pcvs profile destroy [profile]`` deletes a profile 
