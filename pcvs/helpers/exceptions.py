@@ -81,7 +81,7 @@ class CommonException:
             super().__init__(reason=reason,
                              help_msg="\n".join([
                                  "Note configuration, profiles & pcvs.* files can be ",
-                                 "verified through `pcvs check [-c|-p|-D <path>]`"]),
+                                 "verified through `pcvs check [-C|-P|-D <path>]`"]),
                              dbg_info=kwargs)
 
     class UnclassifiableError(GenericException):
