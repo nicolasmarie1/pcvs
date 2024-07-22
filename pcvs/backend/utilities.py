@@ -128,7 +128,7 @@ def process_check_profiles(conversion=True):
     :type conversion: bool, optional
     :return: list of caught errors as a dict, where keys are error msg base64
     :rtype: dict"""
-    t = io.console.create_table("Available Profile", ["valid", "ID"])
+    t = io.console.create_table("Available Profile", ["Valid", "ID"])
     errors = dict()
 
     for scope in utils.storage_order():

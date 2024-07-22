@@ -336,7 +336,7 @@ def profile_edit(ctx, token, edit_plugin):
                  short_help="Import a file as a profile")
 @click.argument("token", nargs=1, type=click.STRING,
                 shell_complete=compl_list_token)
-@click.option("-s", "--source", "src_file", type=click.File('r'), default=sys.stdin, help="TODO")
+@click.option("-s", "--source", "src_file", type=click.File('r'), default=sys.stdin, help="File to populate the profile from")
 @click.option("-f", "--force", "force", is_flag=True, default=False)
 @click.pass_context
 def profile_import(ctx, token, src_file, force):
@@ -356,7 +356,7 @@ def profile_import(ctx, token, src_file, force):
                  short_help="Export a profile to a file")
 @click.argument("token", nargs=1, type=click.STRING,
                 shell_complete=compl_list_token)
-@click.option("-o", "--output", "dest_file", type=click.File('w'), default=sys.stdout, help="TODO")
+@click.option("-o", "--output", "dest_file", type=click.File('w'), default=sys.stdout, help="YAML-formatted output file path")
 @click.pass_context
 def profile_export(ctx, token, dest_file):
     """Export a profile to a YAML. If '--output' is omitted, the standard output
