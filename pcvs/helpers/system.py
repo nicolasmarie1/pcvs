@@ -348,7 +348,7 @@ class MetaConfig(MetaDict):
         subtree.set_nosquash('webreport', None)
         subtree.set_nosquash("only_success", False)
         subtree.set_nosquash("enable_report", False)
-        subtree.set_nosquash('job_timeout', 86400)
+        subtree.set_nosquash('job_timeout', 60)
         subtree.set_nosquash('per_result_file_sz', 10 * 1024 * 1024)
         subtree.set_nosquash(
             'buildcache', os.path.join(subtree.output, 'cache'))
