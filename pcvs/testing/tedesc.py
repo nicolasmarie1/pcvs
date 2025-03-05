@@ -73,6 +73,13 @@ def validate_source_lang(langs, allowed_languages) -> Optional[str]:
                 return i
     return None
 
+def extract_compilers_envs():
+    envs = []
+    for compiler in MetaConfig.root.compiler:
+        envs += MetaConfig.root.compiler[compiler].envs
+    return envs
+
+
 def extract_compiler_config(lang, variants):
     """
     Build resource to compile based on language and variants involved.
@@ -407,8 +414,7 @@ class TEDescriptor:
             basepath = os.path.dirname(self._build.files[0])
             command.append("-f {}".format(" ".join(self._build.files)))
 
-        compiler, args, envs = extract_compiler_config(
-            "cc", self._build.variants)
+        envs = extract_compilers_envs()
         # build the 'make' command
         command.append(
             '-C {path} {target} '.format(
@@ -418,8 +424,9 @@ class TEDescriptor:
         )
         command += self._build['make'].get('args', [])
         envs += self._build['make'].get('envs', [])
-
-        return (" ".join(command), envs)
+        
+        cmd = (" ".join(command), envs)
+        return cmd
 
     def __build_from_cmake(self):
         """How to create build tests from a CMake project.
