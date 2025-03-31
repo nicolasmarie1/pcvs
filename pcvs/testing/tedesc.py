@@ -375,14 +375,14 @@ class TEDescriptor:
         if not self._build.sources.get("lang", None):
             langs = detect_source_lang(self._build.files)
             if langs is None:
-                raise TestException.TestExpressionError(self._build.files, reason="Unable to detect the compiler to use", )
+                raise TestException.TestExpressionError(self._build.files, reason="Unable to detect the compiler to use")
         else:
             langs = self._build.sources.lang
             if isinstance(langs, str):
                 langs = [langs]
 
         lang = validate_source_lang(langs, MetaConfig.root.compiler.keys())
-        
+
         if lang is None:
             raise TestException.TestExpressionError(langs, reason="Unable to find the right compiler")
 
