@@ -37,7 +37,7 @@ def detect_source_lang(array_of_files) -> str:
     for f in array_of_files:
         if re.search(r'\.(h|H|i|I|s|S|c|c90|c99|c11)$', f):
             detect.append('cc')
-        elif re.search(r'\.(C|cc|cxx|cpp|c\+\+)$', f):
+        elif re.search(r'\.(hpp|C|cc|cxx|cpp|c\+\+)$', f):
             detect.append('cxx')
         elif re.search(r'\.(f|F)(77)$', f):
             detect.append('f77')
@@ -51,6 +51,8 @@ def detect_source_lang(array_of_files) -> str:
             detect.append('f08')
         elif re.search(r'\.(f|F)$', f):
             detect.append('fc')
+        elif re.search(r'\.(cu|CU)$', f):
+            detect.append('accl')
     return detect
 
 def validate_source_lang(langs, allowed_languages) -> Optional[str]:
@@ -64,11 +66,16 @@ def validate_source_lang(langs, allowed_languages) -> Optional[str]:
                 return 'fc' if 'fc' in allowed_languages else None
             else:
                 return i
-    
     for i in ['cxx', 'cc']:
         if i in langs:
             if i not in allowed_languages:
                 return 'cc' if 'cc' in allowed_languages else None
+            else:
+                return i
+    for i in ['accl']:
+        if i in langs:
+            if i not in allowed_languages:
+                return 'accl' if 'accl' in allowed_languages else None
             else:
                 return i
     return None
