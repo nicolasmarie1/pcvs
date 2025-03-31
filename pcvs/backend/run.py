@@ -352,10 +352,14 @@ def process_files():
     errors += process_static_yaml_files(yaml_files)
 
     if len(errors):
-        # **{e[0]: e[1] for e in errors}
+        reasons = {}
+        for (f, e) in errors:
+            if hasattr(e, 'dbg'):
+                reasons[f] = e.dbg
+            else:
+                reasons[f] = e
         raise TestException.TestExpressionError(
-            reason="Test-suites failed to be parsed.",
-            **{e[0]: e[1].dbg for e in errors})
+            reason="Test-suites failed to be parsed.", **reasons)
 
 
 def process_spack():
@@ -539,7 +543,7 @@ def process_static_yaml_files(yaml_files):
             obj.flush_sh_file()
         except Exception as e:
             err.append((f, e))
-            io.console.info("{} (failed to parse): {}".format(f, e))
+            io.console.error("{} (failed to parse): {}".format(f, e))
     return err
 
 
