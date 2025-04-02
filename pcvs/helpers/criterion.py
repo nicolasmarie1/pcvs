@@ -162,13 +162,13 @@ class Criterion:
             self._values = None
             return
 
-        self._numeric = description.get('numeric', numeric) is True
+        self._numeric = description.get('numeric', numeric)
         self._prefix = description.get('option', '')
         self._after = description.get('position', 'after') == 'after'
         self._alias = description.get('aliases', {})
         self._is_env = description.get('type', 'argument') == 'environment'
         # this should be only set by per-TE criterion definition
-        self._local = local
+        self._local = description.get('local', local)
         self._str = description.get('subtitle', None)
         self._values = description.get('values', [])
         self._expanded = False

@@ -642,7 +642,7 @@ class TEDescriptor:
                     args=" ".join(args),
                     cmd=command
                 )
-
+            #print(repr(command))
             self._effective_cnt += 1
 
             yield Test(

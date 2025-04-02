@@ -156,6 +156,8 @@ patternProperties:
                         enum:
                           - argument
                           - environment
+                      local:
+                        type: boolean
                       position:
                         type: string
                         enum:
