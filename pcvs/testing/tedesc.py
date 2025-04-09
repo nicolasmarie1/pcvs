@@ -447,7 +447,7 @@ class TEDescriptor:
         else:
             command.append(self._srcdir)
 
-        _, args, envs = extract_compiler_config("cc", self._build.variants)
+        envs = extract_compilers_envs()
         command.append(
             r"-G 'Unix Makefiles' "
             r"-DCMAKE_BINARY_DIR='{build}' ".format(
@@ -486,7 +486,7 @@ class TEDescriptor:
             )
             command.append("{} && ".format(autogen_path))
 
-        _, _, envs = extract_compiler_config("cc", self._build.variants)
+        envs = extract_compilers_envs()
 
         command.append(r"{configure} ".format(configure=configure_path))
 
