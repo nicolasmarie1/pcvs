@@ -80,20 +80,19 @@ class DataRepresentation:
             })
             self.__insert_in_tree(test, node["__elems"][depth[0]], depth[1:])
 
-    def insert_session(self, sid, session_data):
+    def insert_session(self, sid: str, session_data):
         """Insert a new session into the tree.
 
         :param sid: the session id, will be the data key
-        :type sid: int
+        :type sid: str
         :param session_data: session basic infos (buildpath, state)
         :type session_data: dict
         """
 
         # if the SID already exist, a dummy one is generated.
-        # a negative value is used to identify such pattern
         if sid in self.rootree.keys():
             while sid in self.rootree.keys():
-                sid = random.randint(0, 10000) * (-1)
+                sid = str(random.randint(0, 10000))
 
         # initialize the subtree for this session
         self.rootree.setdefault(sid, {
@@ -121,24 +120,24 @@ class DataRepresentation:
             "path": session_data["buildpath"]
         })
 
-    def close_session(self, sid, session_data):
+    def close_session(self, sid: str, session_data):
         """Update the tree when the targeted session is completed.
 
         :param sid: targeted session id
-        :type sid: int
+        :type sid: str
         :param session_data: session infos (state)
         :type session_data: dict
         """
         assert (sid in self.rootree.keys())
         self.rootree[sid]["state"] = session_data["state"]
 
-    def insert_test(self, sid, test: Test):
+    def insert_test(self, sid: str, test: Test):
         """Insert a new test.
 
         This test is bound to a session.
 
         :param sid: session id
-        :type sid: int
+        :type sid: str
         :param test: test to insert
         :type test: class:`Test`
         :return: a boolean, True if test has been successfully inserted
@@ -178,51 +177,51 @@ class DataRepresentation:
         """
         return list(self.rootree.keys())
 
-    def get_tag_cnt(self, sid):
+    def get_tag_cnt(self, sid: str):
         """Get the number of tag for a given session.
 
         :param sid: session id
-        :type sid: int
+        :type sid: str
         :return: number of tags
         :rtype: int
         """
         return len(self.rootree[sid]['tags']['__elems'].keys())
 
-    def get_label_cnt(self, sid):
+    def get_label_cnt(self, sid: str):
         """Get the number of labels for a given session.
 
         :param sid: session id
-        :type sid: int
+        :type sid: str
         :return: number of labels
         :rtype: int
         """
         return len(self.rootree[sid]["fs-tree"]['__elems'].keys())
 
-    def get_test_cnt(self, sid):
+    def get_test_cnt(self, sid: str):
         """Get the numbe rof tests for a given session.
 
         :param sid: session id
-        :type sid: int
+        :type sid: str
         :return: number of tests
         :rtype: int
         """
         return sum(self.rootree[sid]['fs-tree']["__metadata"]["count"].values())
 
-    def get_root_path(self, sid):
+    def get_root_path(self, sid: str):
         """For a session, get the build path where data are stored.
 
         :param sid: session id
-        :type sid: int
+        :type sid: str
         :return: build path
         :rtype: str
         """
         return self.rootree[sid]["path"]
 
-    def get_token_content(self, sid, token):
+    def get_token_content(self, sid: str, token):
         """Advanced function to access partial data tree.
 
         :param sid: session id
-        :type sid: int
+        :type sid: str
         :param token: subtree name to access to
         :type token: str
         :return: the whole data tree segment, empty dict if not found
