@@ -1,16 +1,19 @@
 import json
 import os
 from datetime import datetime
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
+from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner
 from ruamel.yaml import YAML
 
 import pcvs
-from pcvs import NAME_BUILD_RESDIR, NAME_BUILDIR
+from pcvs import NAME_BUILD_RESDIR
+from pcvs import NAME_BUILDIR
 from pcvs.backend import bank as tested
-from pcvs.helpers import utils, git
+from pcvs.helpers import git
+from pcvs.helpers import utils
 from pcvs.helpers.system import MetaDict
 
 

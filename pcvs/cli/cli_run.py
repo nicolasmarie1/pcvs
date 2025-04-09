@@ -2,14 +2,19 @@ import os
 import sys
 from datetime import datetime
 
-from pcvs import NAME_BUILDFILE, NAME_RUN_CONFIG_FILE, io
-from pcvs.io import Verbosity
+from pcvs import io
+from pcvs import NAME_BUILDFILE
+from pcvs import NAME_RUN_CONFIG_FILE
 from pcvs.backend import bank as pvBank
 from pcvs.backend import profile as pvProfile
 from pcvs.backend import run as pvRun
 from pcvs.backend import session as pvSession
-from pcvs.cli import cli_bank, cli_profile
-from pcvs.helpers import exceptions, system, utils
+from pcvs.cli import cli_bank
+from pcvs.cli import cli_profile
+from pcvs.helpers import exceptions
+from pcvs.helpers import system
+from pcvs.helpers import utils
+from pcvs.io import Verbosity
 from pcvs.orchestration.publishers import BuildDirectoryManager
 
 try:
@@ -166,7 +171,7 @@ def run(ctx, profilename, output, detach, override, anon, settings_file,
     May also be provided as a list of directories as described by tests
     found in DIRS.
     """
-    
+
     io.console.info("PRE-RUN: start")
     # first, prepare raw arguments to be usable
     if output is not None:
@@ -295,6 +300,6 @@ def run(ctx, profilename, output, detach, override, anon, settings_file,
     else:
         sid = the_session.run(the_session)
         utils.unlock_file(buildfile)
-       
+
     final_rc = the_session.rc if only_success else 0
     sys.exit(final_rc)

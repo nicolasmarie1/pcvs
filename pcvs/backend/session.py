@@ -1,5 +1,5 @@
-import copy
 import os
+import hashlib
 from datetime import datetime
 from enum import IntEnum
 from multiprocessing import Process
@@ -7,34 +7,16 @@ from multiprocessing import Process
 from ruamel.yaml import YAML
 from ruamel.yaml.main import yaml_object
 
-from pcvs import PATH_SESSION, io
-from pcvs.helpers import log, utils
+from pcvs import io
+from pcvs import PATH_SESSION
+from pcvs.helpers import utils
 
 yml = YAML()
 
+def session_file_hash(session_infos):
+    return hashlib.sha1("{}:{}".format(session_infos["path"], session_infos["started"]).encode()).hexdigest()
 
-def unlock_session_file():
-    """Release the lock after manipulating the session.yml file.
-
-    The call won't fail if the lockfile is not taken before unlocking.
-    """
-    utils.unlock_file(PATH_SESSION)
-
-
-def lock_session_file(timeout=None):
-    """Acquire the lockfil before manipulating the session.yml file.
-
-    This ensure safety between multiple PCVS instances. Be sure to call
-    `unlock_session_file()` once completed
-
-    :param timeout: return from blocking once timeout is expired (raising
-        TimeoutError)
-    :type timeout: int
-    """
-    utils.lock_file(PATH_SESSION, timeout=timeout)
-
-
-def store_session_to_file(c):
+def store_session_to_file(c) -> int:
     """Save a new session into the session file (in HOME dir).
 
     :param c: session infos to store
@@ -42,40 +24,19 @@ def store_session_to_file(c):
     :return: the sid associated to new create session id.
     :rtype: int
     """
-    all_sessions = None
-    sid = -1
     global yml
 
-    lock_session_file()
+    if not os.path.exists(PATH_SESSION):
+        os.makedirs(PATH_SESSION)
+
+    shash = session_file_hash(c)
+    session_file = os.path.join(PATH_SESSION, "{}.yml".format(shash))
     try:
-        # to operate, PCVS needs to full-read and then full-write the whole file
-        if os.path.isfile(PATH_SESSION):
-            with open(PATH_SESSION, 'r') as fh:
-                all_sessions = yml.load(fh)
-
-        # compute the session id, incrementally done from the highest session id
-        # currently running and registered.
-        # Please not a session is not flushed away from logs until the user
-        # explicitly does it
-        if all_sessions is None:
-            all_sessions = {"__metadata": {"next": 0}}
-
-        # Lookup for an available session id number
-        sid = all_sessions["__metadata"]["next"]
-        while sid in all_sessions.keys() or sid == -1:
-            sid += 1
-
-        all_sessions["__metadata"]["next"] = (sid + 1) % 1000000
-
-        assert (sid not in all_sessions.keys())
-        all_sessions[sid] = c
-
-        # dump the file back
-        with open(PATH_SESSION, 'w') as fh:
-            yml.dump(all_sessions, fh)
-    finally:
-        unlock_session_file()
-    return sid
+        with open(session_file, "x") as fh:
+            yml.dump(c, fh)
+    except Exception as e:
+        raise e
+    return shash
 
 
 def update_session_from_file(sid, update):
@@ -89,22 +50,24 @@ def update_session_from_file(sid, update):
     :type: dict
     """
     global yml
-    lock_session_file()
-    try:
-        all_sessions = None
-        if os.path.isfile(PATH_SESSION):
-            with open(PATH_SESSION, 'r') as fh:
-                all_sessions = yml.load(fh)
-
-        if all_sessions is not None and sid in all_sessions:
+    
+    if not os.path.exists(PATH_SESSION):
+        os.makedirs(PATH_SESSION)
+    
+    for f in os.listdir(PATH_SESSION):
+        if f.startswith(sid):
+            with open(os.path.join(PATH_SESSION, f), "r") as fh:
+                data = yml.load(fh)
+            
             for k, v in update.items():
-                all_sessions[sid][k] = v
-            # only if editing is done, flush the file back
-            with open(PATH_SESSION, 'w') as fh:
-                yml.dump(all_sessions, fh)
-    finally:
-        unlock_session_file()
-
+                data[k] = v
+            
+            with open(os.path.join(PATH_SESSION, f), "w") as fh:
+                yml.dump(data, fh)
+        
+            return True
+        
+    return False
 
 def remove_session_from_file(sid):
     """clear a session from logs.
@@ -113,22 +76,12 @@ def remove_session_from_file(sid):
     :type sid: int
     """
     global yml
-    lock_session_file()
-    try:
-        all_sessions = None
-        if os.path.isfile(PATH_SESSION):
-            with open(PATH_SESSION, 'r') as fh:
-                all_sessions = yml.load(fh)
-
-        if all_sessions is not None and sid in all_sessions:
-            del all_sessions[sid]
-            with open(PATH_SESSION, 'w') as fh:
-                if len(all_sessions) > 0:
-                    yml.dump(all_sessions, fh)
-                # else, truncate the file to zero -> open(w) with no data
-    finally:
-        unlock_session_file()
-
+    
+    for f in os.listdir(PATH_SESSION):
+        if f.startswith(sid):
+            os.remove(os.path.join(PATH_SESSION, f))
+            return True
+    return False
 
 def list_alive_sessions():
     """Load and return the complete dict from session.yml file
@@ -137,17 +90,19 @@ def list_alive_sessions():
     :rtype: dict
     """
     global yml
-    lock_session_file(timeout=15)
-
-    try:
-        with open(PATH_SESSION, 'r') as fh:
-            all_sessions = yml.load(fh)
-            if all_sessions:
-                del all_sessions["__metadata"]
-    except FileNotFoundError as e:
-        all_sessions = {}
-    finally:
-        unlock_session_file()
+    if not os.path.exists(PATH_SESSION):
+        os.makedirs(PATH_SESSION)
+    
+    all_sessions = {}
+    
+    for f in os.listdir(PATH_SESSION):
+        assert(os.path.splitext(f) not in all_sessions)
+        try:
+            with open(os.path.join(PATH_SESSION, f), "r") as fh:
+                data = yml.load(fh)
+                all_sessions[os.path.splitext(f)[0]] = data
+        except:
+            continue
     return all_sessions
 
 
@@ -204,7 +159,7 @@ class Session:
     Despite the fact it is designed for manage concurrent runs,  it takes a
     callback and can be derived for other needs.
 
-    :param _func: user function to be called once the session starts 
+    :param _func: user function to be called once the session starts
     :type _func: Callable
     :param _sid: session id, automatically generated
     :type _sid: int
@@ -225,8 +180,8 @@ class Session:
             """Convert a Test.State to a valid YAML representation.
 
             A new tag is created: 'Session.State' as a scalar (str).
-            :param dumper: the YAML dumper object 
-            :type dumper: :class:`YAML().dumper`
+            :param representer: the YAML dumper object
+            :type representer: :class:`YAML().dumper`
             :param data: the object to represent
             :type data: class:`Session.State`
             :return: the YAML representation
@@ -239,8 +194,8 @@ class Session:
             """Construct a :class:`Session.State` from its YAML representation.
 
             Relies on the fact the node contains a 'Session.State' tag.
-            :param loader: the YAML loader
-            :type loader: :class:`yaml.FullLoader`
+            :param constructor: the YAML loader
+            :type constructor: :class:`yaml.FullLoader`
             :param node: the YAML representation
             :type node: Any
             :return: The session State as an object
@@ -369,7 +324,7 @@ class Session:
             # some sessions can have their starting time set directly when
             # initializing the object.
             # for instance for runs, elapsed time not session time but wall time"""
-            if self.property('started') == None:
+            if self.property('started') is None:
                 self._session_infos['started'] = datetime.now()
 
             # flag it as running & make the info public
@@ -382,7 +337,7 @@ class Session:
                             kwargs=kwargs)
 
             child.start()
-            
+
             return self._sid
 
     def run(self, *args, **kwargs):
@@ -395,10 +350,12 @@ class Session:
         :type args: tuple
         :param kwargs user function keyword-based arguments.
         :type kwargs: tuple
+        :return: the session ID for this run
+        :rtype: int
         """
         if self._func is not None:
             # same as above, shifted starting time or not
-            if self.property('started') == None:
+            if self.property('started') is None:
                 self._session_infos['started'] = datetime.now()
 
             self._session_infos['state'] = self.State.IN_PROGRESS

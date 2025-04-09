@@ -11,54 +11,49 @@ variables:
     - docker
     only:
     - master
+    - devel
     - merge_requests
     - web
 
 stages:
 - Installation
+- Deployment
 - Pytest
-- Formatting
 - Documentation
-- Static Analysis
+- Linting
 
-io-yaml:
+flake:
     <<: *scope
-    stage: Formatting
-    script:
-    - tox -e lint-yaml
-
-global-lint:
-    <<: *scope
-    stage: Static Analysis
+    stage: Linting
     allow_failure: true
     script:
-    - tox -e lint-generic
+    - tox -e lint-flake
 
-types:
+typing:
     <<: *scope
-    stage: Static Analysis
+    stage: Linting
     allow_failure: true
     script:
-    - tox -e lint-type
+    - tox -e lint-mypy
 
 build_doc:
     <<: *scope
     stage: Documentation
     script:
-    - tox -e docs
+    - tox -e doc
 
 test_doc:
     <<: *scope
-    allow_failure: true
     stage: Documentation
     script:
-    - tox -e lint-docs
+    - tox -e lint-doc
 
 imports:
     <<: *scope
-    stage: Static Analysis
+    stage: Linting
+    allow_failure: true
     script:
-    - tox -e lint-import
+    - tox -e lint-isort
 
 .pytest:
     <<: *scope
@@ -74,21 +69,30 @@ setuptools:
     script:
     - python3 setup.py build
     - python3 setup.py install
-    - pcvs
+    - pcvs --version
 
 pip:
     <<: *scope
     stage: Installation
     script:
     - pip3 install .
-    - pcvs
+    - pcvs --version
 
-Python3.5:
-    extends: .pytest
-    image: "python:3.5"
-Python3.6:
-    extends: .pytest
-    image: "python:3.6"
+pypi-package:
+    <<: *scope
+    stage: Deployment
+    script:
+    - pip3 install build twine
+    - python3 -m build
+    - python3 -m twine check dist/*
+
+
+      #Python3.5:
+      #    extends: .pytest
+      #    image: "python:3.5"
+      #Python3.6:
+      #    extends: .pytest
+      #    image: "python:3.6"
 Python3.7:
     extends: .pytest
     image: "python:3.7"

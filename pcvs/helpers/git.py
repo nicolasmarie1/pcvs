@@ -4,7 +4,9 @@ import hashlib
 import os
 import socket
 import time
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC
+from abc import abstractmethod
+from abc import abstractproperty
 from datetime import datetime
 
 import sh
@@ -54,7 +56,7 @@ class Branch(Reference):
     def __init__(self, repo, name='master'):
         super().__init__(repo)
         self._name = name
-    
+
     @property
     def name(self):
         return self._name

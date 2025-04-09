@@ -1,13 +1,14 @@
 import os
 import queue
 
-from pcvs import NAME_BUILD_RESDIR, io
+from pcvs import io
+from pcvs import NAME_BUILD_RESDIR
 from pcvs.backend import session
 from pcvs.helpers import log
 from pcvs.helpers.system import MetaConfig
 from pcvs.orchestration.manager import Manager
-from pcvs.orchestration.set import Set
 from pcvs.orchestration.runner import RunnerAdapter
+from pcvs.orchestration.set import Set
 from pcvs.plugins import Plugin
 from pcvs.testing.test import Test
 
@@ -98,7 +99,7 @@ class Orchestrator:
                     # create a new set, if not possible, returns None
                     new_set = self._manager.create_subset(nb_res)
                     if new_set is not None:
-                        assert(isinstance(nb_res, int))
+                        assert (isinstance(nb_res, int))
                         # schedule the set asynchronously
                         nb_res -= new_set.dim
                         io.console.debug("ORCH: send Set to queue (#{}, sz:{})".format(
@@ -151,7 +152,8 @@ class Orchestrator:
     def start_new_runner(self):
         """Start a new Runner thread & register comm queues."""
         RunnerAdapter.sched_in_progress = True
-        r = RunnerAdapter(buildir=MetaConfig.root.validation.output, ready=self._ready_q, complete=self._complete_q)
+        r = RunnerAdapter(buildir=MetaConfig.root.validation.output,
+                          ready=self._ready_q, complete=self._complete_q)
         r.start()
         self._runners.append(r)
 

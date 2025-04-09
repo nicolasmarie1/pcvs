@@ -1,19 +1,28 @@
+import enum
 import functools
 import logging
 import os
 import shutil
 import sys
-import enum
 from datetime import datetime
+from typing import Callable
+from typing import Dict
+from typing import Iterable
+from typing import List
+from typing import Optional
+
 import click
-import rich
 import rich.box as box
 from rich.console import Console
 from rich.live import Live
 from rich.logging import RichHandler
 from rich.panel import Panel
-from rich.progress import (BarColumn, Progress, SpinnerColumn, TextColumn,
-                           TimeElapsedColumn, track)
+from rich.progress import BarColumn
+from rich.progress import Progress
+from rich.progress import SpinnerColumn
+from rich.progress import TextColumn
+from rich.progress import TimeElapsedColumn
+from rich.progress import track
 from rich.table import Table
 from rich.theme import Theme
 
@@ -21,6 +30,11 @@ import pcvs
 
 
 class SpecialChar:
+    """
+    Class mapping special char display.
+
+    Enabled or disabled according to utf support.
+    """
     copy = '\u00A9'
     item = '\u27E2'
     sec = '\u2756'
@@ -34,7 +48,14 @@ class SpecialChar:
     sep_v = " \u237F "
     sep_h = "\u23BC"
 
-    def __init__(self, utf_support=True):
+    def __init__(self, utf_support: Optional[bool] = True) -> None:
+        """
+        Initialize a new char handler depending on utf support
+
+
+        :param utf_support: support for utf encoding, defaults to True
+        :type utf_support: bool, optional
+        """
         if not utf_support:
             self.copy = '(c)'
             self.item = '*'
@@ -49,23 +70,63 @@ class SpecialChar:
             self.sep_v = " | "
             self.sep_h = "-"
 
+
 class Verbosity(enum.IntEnum):
+    """
+    Enum to map a verbosity level to a more
+    convenient label.
+
+    * COMPACT: compact way, jobs are displayed packed per input YAML file.
+    * DETAILED: each job will output result on a one-line manner
+    * INFO: DETAILED & INFO messages will be logged
+    * DEBUG: DETAILED & INFO & DEBUG messages will be logged
+    """
     COMPACT = 0
     DETAILED = 1
     INFO = 2
     DEBUG = 3
     NB_LEVELS = enum.auto()
-    
-    def __str__(self):
-        return self.name
-    
-class TheConsole(Console):
 
-    def __init__(self, *args, **kwargs):
+    def __str__(self) -> str:
+        """
+        Convert object to human-readable string
+
+        :return: a verbosity as printable string
+        :rtype: str
+        """
+        return self.name
+
+
+class TheConsole(Console):
+    """
+    Main interface to print information to users.
+
+    Any output from the application should be handled by this Console.
+
+    :param Console: Rich base class
+    :type Console: Console
+    """
+
+    def __init__(self, *args: List[str], **kwargs) -> None:
+        """
+        Build a new Console.
+
+        Many options to configure the console:
+        - color: boolean (color support)
+        - verbose: boolean (verbose msg mode in log files)
+        - stderr: boolean (print to stdout by default)
+        Any other argument is considered a base class options.
+
+        :param args: any argument to be forwarded to Rich console, as list
+        :type args: list
+        :param kwargs: any argument to be forwared to Rich Console as dict
+        :type kwargs: dict
+        """
         self._color = "auto" if kwargs.get('color', True) else None
-        self._verbose = Verbosity(min(Verbosity.NB_LEVELS -1, kwargs.get('verbose', 0)))
+        self._verbose = Verbosity(
+            min(Verbosity.NB_LEVELS - 1, kwargs.get('verbose', 0)))
         self._debugfile = open(os.path.join(".", pcvs.NAME_DEBUG_FILE), "w")
-        self.summary_table = dict()
+        self.summary_table: Dict[str, Dict[str, Dict[str, int]]] = dict()
         err = kwargs.get('stderr', False)
         log_level = "DEBUG" if self._verbose else "INFO"
         theme = Theme({
@@ -81,44 +142,95 @@ class TheConsole(Console):
         logging.basicConfig(
             level=log_level, format="%(message)s",
             handlers=[RichHandler(
-                                  console=self._debugconsole,
-                                  omit_repeated_times=False,
-                                  rich_tracebacks=True,
-                                  show_level=True,
-                                  tracebacks_suppress=[click],
-                                  show_path=True)])
+                console=self._debugconsole,
+                omit_repeated_times=False,
+                rich_tracebacks=True,
+                show_level=True,
+                tracebacks_suppress=[click],
+                show_path=True)])
         self._loghdl = logging.getLogger("pcvs")
         self._chars = SpecialChar(utf_support=(
             self.encoding.startswith('utf')))
 
     @property
     def logfile(self):
+        """
+        Get the path to the logging file
+
+        :return: the logging file
+        :rtype: str
+        """
         return os.path.abspath(self._debugfile.name)
-    
+
     @property
     def outfile(self):
+        """
+        Get the path where the Console output is logged (disabled by default)
+
+        :return: the file path
+        :rtype: str
+        """
         return os.path.abspath(self.file.name)
+
     @property
     def verbose(self):
+        """
+        Get verbose status.
+
+        :return: the status
+        :rtype: integer
+        """
         return self._verbose
 
     def verb_level(self, level):
-        return self._verbose >= level 
-    
+        """
+        Test if a given level is logged by the current console
+
+        :param level: the targeted level
+        :type level: Verbosity
+        :return: True if this level is logged, false otherwise
+        :rtype: boolean
+        """
+        return self._verbose >= level
+
     @property
     def verb_compact(self):
+        """
+        Return true if at least COMPACT debug level is enabled.
+
+        :return: a boolean to check debug level
+        :rtype: boolean
+        """
         return self.verb_level(Verbosity.COMPACT)
-    
+
     @property
     def verb_detailed(self):
+        """
+        Return true if at least DETAILED debug level is enabled.
+
+        :return: a boolean to check debug level
+        :rtype: boolean
+        """
         return self.verb_level(Verbosity.DETAILED)
-    
+
     @property
     def verb_info(self):
+        """
+        Return true if at least INFO debug level is enabled.
+
+        :return: a boolean to check debug level
+        :rtype: boolean
+        """
         return self.verb_level(Verbosity.INFO)
-    
+
     @property
     def verb_debug(self):
+        """
+        Return true if at least DEBUG debug level is enabled.
+
+        :return: a boolean to check debug level
+        :rtype: boolean
+        """
         return self.verb_level(Verbosity.DEBUG)
 
     @verbose.setter
@@ -155,7 +267,8 @@ class TheConsole(Console):
     def print_box(self, txt, *args, **kwargs):
         self.print(Panel.fit(txt, *args, **kwargs))
 
-    def print_job(self, state, time, tlabel, tsubtree, tname, colorname="red", icon=None, content=None):
+    def print_job(self, state, time, tlabel, tsubtree, tname, colorname="red",
+                  icon=None, content=None):
         if icon is not None:
             icon = self.utf(icon)
 
@@ -176,7 +289,8 @@ class TheConsole(Console):
         else:
             self.summary_table.setdefault(tlabel, {})
             self.summary_table[tlabel].setdefault(tsubtree, {
-                l: 0 for l in ["SUCCESS", "FAILURE", "ERR_DEP", "ERR_OTHER"]
+                label: 0 for label in ["SUCCESS", "FAILURE",
+                                       "ERR_DEP", "ERR_OTHER"]
             })
 
             self.summary_table[tlabel][tsubtree][state] += 1
@@ -188,18 +302,18 @@ class TheConsole(Console):
                 table.add_column("FAILURE", justify="center")
                 table.add_column("ERROR", justify="center")
                 table.add_column("OTHER", justify="center")
-                for l, lv in self.summary_table.items():
-                    for s, sv in lv.items():
-                        if sum(sv.values()) == sv.get('SUCCESS', 0):
-                            c = "green"
-                        elif sv.get('FAILURE', 0) > 0:
-                            c = "red"
+                for label, lvalue in self.summary_table.items():
+                    for subtree, svalue in lvalue.items():
+                        if sum(svalue.values()) == svalue.get('SUCCESS', 0):
+                            colour = "green"
+                        elif svalue.get('FAILURE', 0) > 0:
+                            colour = "red"
                         else:
-                            c = "yellow"
+                            colour = "yellow"
                         columns_list = ["[{} bold]{}".format(
-                            c, x) for x in sv.values()]
+                            colour, x) for x in svalue.values()]
                         table.add_row(
-                            "[{} bold]{}{}".format(c, l, s),
+                            "[{} bold]{}{}".format(colour, label, subtree),
                             *columns_list
                         )
                 return table
@@ -229,20 +343,18 @@ class TheConsole(Console):
         self.live = Live(self._display_table, console=self)
         return self.live
 
-    def create_table(self, title, cols):
+    def create_table(self, title, cols) -> Table:
         return Table(*cols, title=title)
 
-    def progress_iter(self, it, **kwargs):
+    def progress_iter(self, it: Iterable, **kwargs) -> Iterable:
         """prints a progress bar using click
+
         :param it: iterable on which the progress bar has to iterate
-        :type it: iterable
-        :param print_func: method used to show the item next to the progress bar,
-            defaults to None
-        :type print_func: function, optional
-        :param man: manager used to describe the bullets, defaults to None
-        :type man: log.IOManager, optional
+        :type it: Iterable
+        :param kwargs: any extra info forwarded to click progress bar handler
+        :type kwargs: dict
         :return: a click progress bar (iterable)
-        :rtype: click.ProgressBar
+        :rtype: Iterable
         """
         global console
         return track(it, transient=True, console=console,
@@ -252,16 +364,28 @@ class TheConsole(Console):
                      description="[red]In Progress...[red]",
                      **kwargs)
 
-    def utf(self, k):
+    def utf(self, k) -> str:
+        """
+        Return the encoding supported by this session for the given key.
+
+        :param k: the key as defined by SpecialChar
+        :type k: str
+        :return: the associated printable sequence
+        :rtype: str
+        """
         return getattr(self._chars, k)
 
-    def print_banner(self):
+    def print_banner(self) -> None:
+        """
+        Print the PCVS logo fitting with current terminal size
+        """
 
         logo_minimal = [
             r"""[green]{}""".format(self.utf('star') * 19),
             r"""[yellow]     -- PCVS --  """,
             r"""[red]{} CEA {} 2017-{} {}""".format(
-                self.utf('star'), self.utf('copy'), datetime.now().year, self.utf('star')),
+                self.utf('star'), self.utf('copy'),
+                datetime.now().year, self.utf('star')),
             r"""[green]{}""".format(self.utf('star') * 19)
         ]
 
@@ -303,7 +427,7 @@ class TheConsole(Console):
             r"""[default]                                                                                             """,
         ]
         banner = logo
-        
+
         if self.size.width < 40:
             banner = logo_minimal
         elif self.size.width < 95:
@@ -322,7 +446,7 @@ class TheConsole(Console):
 
     def warn(self, fmt, *args, **kwargs):
         self.warning(fmt, *args, **kwargs)
-        #self.print(
+        # self.print(
         #    "[warning]WARN: {}[/warning]".format(fmt.format(*args, **kwargs)), )
 
     def error(self, fmt, *args, **kwargs):
@@ -345,6 +469,7 @@ class TheConsole(Console):
     def logger(self):
         return self._loghdl
 
+
 console = None
 
 
@@ -355,21 +480,26 @@ def init(color=True, verbose=0, *args, **kwargs):
 
 def detach_console():
     global console
-    logfile = os.path.join(os.path.dirname(console.logfile), pcvs.NAME_LOG_FILE)
+    logfile = os.path.join(os.path.dirname(
+        console.logfile), pcvs.NAME_LOG_FILE)
     console.file = open(logfile, 'w')
-    
 
-def capture_exception(e_type, user_func=None):
+
+def capture_exception(e_type, user_func: Optional[Callable[[Exception], None]] = None):
     """wraps functions to capture unhandled exceptions for high-level
         function not to crash.
-        :param *e_type: errors to be caught
+        :param e_type: errors to be caught
+        :type: e_type: Exception
+        :param user_func: Optional, a function to call to manage the exeption
+        :type: a function pointer
+        :return: function handler to manage exception
+        :rtype: function pointer
     """
     def inner_function(func):
         """wrapper for inner function using try/except to avoid crashing
 
         :param func: function to wrap
         :type func: function
-        :raises e: exceptions to catch
         :return: wrapper
         :rtype: function
         """
@@ -377,7 +507,10 @@ def capture_exception(e_type, user_func=None):
         def wrapper(*args, **kwargs):
             """functools wrapping function
 
-            :raises e: exception to catch
+            :param args: arguments forwarded to wrapped func
+            :type args: list
+            :param kwargs: arguments forwarded  to wrapped func
+            :type kwargs: dict
             :return: result of wrapped function
             :rtype: any
             """

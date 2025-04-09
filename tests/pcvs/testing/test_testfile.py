@@ -8,8 +8,11 @@ from click.testing import CliRunner
 from ruamel.yaml import YAML
 
 import pcvs
-from pcvs import NAME_BUILDIR, PATH_INSTDIR
-from pcvs.helpers import log, pm, system
+from pcvs import NAME_BUILDIR
+from pcvs import PATH_INSTDIR
+from pcvs.helpers import log
+from pcvs.helpers import pm
+from pcvs.helpers import system
 from pcvs.plugins import Collection
 from pcvs.testing import testfile as tested
 

@@ -2,13 +2,17 @@ import os
 
 import addict
 import jsonschema
-from ruamel.yaml import YAML, YAMLError
+from ruamel.yaml import YAML
+from ruamel.yaml import YAMLError
 
 import pcvs
-from pcvs import NAME_BUILDIR, PATH_INSTDIR
+from pcvs import NAME_BUILDIR
+from pcvs import PATH_INSTDIR
+from pcvs.helpers import git
+from pcvs.helpers import pm
+from pcvs.helpers.exceptions import CommonException
+from pcvs.helpers.exceptions import ValidationException
 from pcvs.io import Verbosity
-from pcvs.helpers import git, pm
-from pcvs.helpers.exceptions import CommonException, ValidationException
 
 
 ####################################
@@ -237,12 +241,12 @@ class MetaConfig(MetaDict):
 
         self[subnode].validate(subnode)
         return self[subnode]
-    
+
     def bootstrap_from_profile(self, pf_as_dict):
-        
+
         if not isinstance(pf_as_dict, MetaDict):
             pf_as_dict = MetaDict(pf_as_dict)
-            
+
         self.bootstrap_compiler(pf_as_dict.compiler)
         self.bootstrap_runtime(pf_as_dict.runtime)
         self.bootstrap_machine(pf_as_dict.machine)
@@ -344,7 +348,7 @@ class MetaConfig(MetaDict):
         subtree.set_nosquash('webreport', None)
         subtree.set_nosquash("only_success", False)
         subtree.set_nosquash("enable_report", False)
-        subtree.set_nosquash('job_timeout', 86400)
+        subtree.set_nosquash('job_timeout', 3600)
         subtree.set_nosquash('per_result_file_sz', 10 * 1024 * 1024)
         subtree.set_nosquash(
             'buildcache', os.path.join(subtree.output, 'cache'))

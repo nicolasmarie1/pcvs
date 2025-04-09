@@ -4,12 +4,15 @@ import sys
 from rich.table import Table
 from ruamel.yaml import YAML
 
-from pcvs import PATH_INSTDIR, io
+from pcvs import io
+from pcvs import PATH_INSTDIR
 from pcvs.backend import config as pvConfig
 from pcvs.backend import profile as pvProfile
 from pcvs.cli import cli_config
-from pcvs.helpers import log, utils
-from pcvs.helpers.exceptions import ProfileException, ValidationException
+from pcvs.helpers import log
+from pcvs.helpers import utils
+from pcvs.helpers.exceptions import ProfileException
+from pcvs.helpers.exceptions import ValidationException
 
 try:
     import rich_click as click
@@ -333,7 +336,7 @@ def profile_edit(ctx, token, edit_plugin):
                  short_help="Import a file as a profile")
 @click.argument("token", nargs=1, type=click.STRING,
                 shell_complete=compl_list_token)
-@click.option("-s", "--source", "src_file", type=click.File('r'), default=sys.stdin)
+@click.option("-s", "--source", "src_file", type=click.File('r'), default=sys.stdin, help="File to populate the profile from")
 @click.option("-f", "--force", "force", is_flag=True, default=False)
 @click.pass_context
 def profile_import(ctx, token, src_file, force):
@@ -353,7 +356,7 @@ def profile_import(ctx, token, src_file, force):
                  short_help="Export a profile to a file")
 @click.argument("token", nargs=1, type=click.STRING,
                 shell_complete=compl_list_token)
-@click.option("-o", "--output", "dest_file", type=click.File('w'), default=sys.stdout)
+@click.option("-o", "--output", "dest_file", type=click.File('w'), default=sys.stdout, help="YAML-formatted output file path")
 @click.pass_context
 def profile_export(ctx, token, dest_file):
     """Export a profile to a YAML. If '--output' is omitted, the standard output

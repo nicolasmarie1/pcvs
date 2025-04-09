@@ -1,28 +1,29 @@
-import subprocess
-import queue
-import time
-import os
-import signal
-import threading
 import json
+import os
+import queue
+import signal
+import subprocess
+import threading
+import time
 
 import pcvs
-from pcvs.testing.test import Test
 from pcvs import io
 from pcvs.helpers.exceptions import RunnerException
+from pcvs.helpers.system import MetaConfig
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.orchestration.set import Set
-from pcvs.helpers.system import MetaConfig
+from pcvs.testing.test import Test
 
 
 class RunnerAdapter(threading.Thread):
     sched_in_progress = True
+
     def __init__(self, buildir, context=None, ready=None, complete=None, *args, **kwargs):
         self._prefix = buildir
         self._ctx = context
         self._rq = ready
         self._cq = complete
-        
+
         super().__init__()
 
     def run(self):
@@ -44,7 +45,7 @@ class RunnerAdapter(threading.Thread):
             return self.local_exec(set)
         else:
             return self.remote_exec(set)
-    
+
     def local_exec(self, set) -> None:
         """Execute the Set and jobs within it.
 
@@ -60,7 +61,7 @@ class RunnerAdapter(threading.Thread):
                 start = time.time()
                 stdout, _ = p.communicate(timeout=job.timeout)
                 final = time.time() - start
-                
+
                 # Note: The return code here is coming from the script,
                 # not the test itself. It is transitively transmitted once the
                 # test complete, except if test used matchers to validate.
@@ -91,18 +92,20 @@ class RunnerAdapter(threading.Thread):
             jobman_cfg = MetaConfig.root.machine.job_manager.batch
 
         parallel = MetaConfig.root.validation.scheduling.get("parallel", 1)
-        
-        #TODO: Prepare exec context
+
+        # TODO: Prepare exec context
         wrapper = jobman_cfg.get('wrapper', "")
         env = os.environ.copy()
-        ctx_path = os.path.join(self._prefix, pcvs.NAME_BUILD_CONTEXTDIR, str(set.id))
+        ctx_path = os.path.join(
+            self._prefix, pcvs.NAME_BUILD_CONTEXTDIR, str(set.id))
         os.makedirs(ctx_path)
-        updated_env = {"PCVS_JOB_MANAGER_{}".format(i.upper()): jobman_cfg[i] for i in ['program', 'args'] if i in jobman_cfg}
+        updated_env = {"PCVS_JOB_MANAGER_{}".format(i.upper()): jobman_cfg[i] for i in [
+            'program', 'args'] if i in jobman_cfg}
         updated_env['PCVS_SET_DIM'] = str(set.dim)
         updated_env['PCVS_SET_CMD'] = jobman_cfg.program if jobman_cfg.program else ""
         updated_env['PCVS_SET_CMD_ARGS'] = jobman_cfg.args if jobman_cfg.args else ""
         env.update(updated_env)
-        
+
         cmd = "{script} pcvs remote-run -c {ctx} -p {parallel}".format(
             script=wrapper,
             ctx=ctx_path,
@@ -111,16 +114,18 @@ class RunnerAdapter(threading.Thread):
         try:
             ctx = RemoteContext(ctx_path)
             ctx.save_input_to_disk(set)
-            assert(ctx.check_input_avail())
+            assert (ctx.check_input_avail())
             self._process_hdl = subprocess.Popen(cmd, shell=True, env=env,
                                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = self._process_hdl.communicate()
             if err:
-                io.console.warning("Set {} - error output: {}".format(set.id, err.decode('utf-8')))
+                io.console.warning(
+                    "Set {} - error output: {}".format(set.id, err.decode('utf-8')))
             if ctx.check_output_avail():
                 ctx.load_result_from_disk(set)
             else:
-                io.console.warning("Set {} did not produce any output".format(set.id))
+                io.console.warning(
+                    "Set {} did not produce any output".format(set.id))
         except:
             raise RunnerException.LaunchError(
                 reason="Fail to start a remote Runner",
@@ -141,39 +146,41 @@ def progress_jobs(q, ctx, ev):
             raise e
     ev.set()
 
+
 class RunnerRemote:
-    
+
     def __init__(self, ctx_path):
         self._ctx_path = ctx_path
-    
+
     def connect_to_context(self):
         self._ctx = RemoteContext(self._ctx_path)
         self._set = self._ctx.load_input_from_disk()
-    
+
     def run(self, parallel=1):
-        
+
         self._ctx.mark_as_not_completed()
         thr_list = list()
         rq = queue.Queue()
         pq = queue.Queue()
         ev = threading.Event()
-        
-        progress = threading.Thread(target=progress_jobs, args=(pq, self._ctx, ev))
+
+        progress = threading.Thread(
+            target=progress_jobs, args=(pq, self._ctx, ev))
         progress.start()
-        
+
         for _ in range(0, parallel):
             thr = RunnerAdapter(self._ctx_path, ready=rq, complete=pq)
             thr.start()
             thr_list.append(thr)
-        
+
         for job in self._set.content:
             s = Set(execmode=Set.ExecMode.LOCAL)
             s.add(job)
             rq.put(s)
-        
+
         while not ev.is_set():
             time.sleep(1)
-        
+
         RunnerAdapter.sched_in_progress = False
         for thr in thr_list:
             thr.join()
@@ -181,13 +188,13 @@ class RunnerRemote:
 
 
 class RemoteContext:
-    
+
     MAGIC_TOKEN = "PCVS-MAGIC"
-    
+
     def __init__(self, prefix, set=None):
         self._path = prefix
         self._cnt = 0
-        
+
         if set:
             self._path = os.path.join(self._path, str(set.id))
         self._completed_file = os.path.join(prefix, ".completed")
@@ -195,10 +202,10 @@ class RemoteContext:
         if set:
             self.save_input_to_disk(set)
 
-        #inputs are flushed atomically, no need for a file handler
-        #outputs are stored incrementally to avoid data losses
+        # inputs are flushed atomically, no need for a file handler
+        # outputs are stored incrementally to avoid data losses
         self._outfile = None
-        
+
     @property
     def cnt(self):
         return self._cnt
@@ -216,7 +223,7 @@ class RemoteContext:
         return os.path.isfile(f)
 
     def load_input_from_disk(self):
-        assert(os.path.isdir(os.path.join(self._path)))
+        assert (os.path.isdir(os.path.join(self._path)))
         set = Set(execmode=Set.ExecMode.LOCAL)
         with open(os.path.join(self._path, "input.json"), "r") as f:
             data = json.load(f)
@@ -226,17 +233,18 @@ class RemoteContext:
                 set.add(cur)
                 self._cnt += 1
         return set
-    
+
     def save_result_to_disk(self, job: Test):
         if not self._outfile:
             self._outfile = open(os.path.join(self._path, "output.bin"), 'wb')
         data = job.encoded_output
         self._outfile.writelines([
-            "{}:{}:{}:{}:{}\n".format(self.MAGIC_TOKEN, job.jid, len(data), job.time, job.retcode).encode("utf-8"),
+            "{}:{}:{}:{}:{}\n".format(self.MAGIC_TOKEN, job.jid, len(
+                data), job.time, job.retcode).encode("utf-8"),
             data,
             "\n".encode('utf-8')
-            ])
-        
+        ])
+
     def load_result_from_disk(self, set):
         with open(os.path.join(self._path, "output.bin"), "rb") as fh:
             lines = fh.readlines()
@@ -245,16 +253,17 @@ class RemoteContext:
                 if lineum % 2 == 0:
                     # metadata:
                     try:
-                        magic, jobid, datalen, timexec, retcode = linedata.decode('utf-8').split(":")
+                        magic, jobid, datalen, timexec, retcode = linedata.decode(
+                            'utf-8').split(":")
                     except:
                         raise
-                    assert(magic == self.MAGIC_TOKEN)
+                    assert (magic == self.MAGIC_TOKEN)
                     datalen = int(datalen)
                     timexec = float(timexec)
                     retcode = int(retcode)
                     data = b""
                     job: Test = set.find(jobid)
-                    assert(job)
+                    assert (job)
                     if datalen > 0:
                         data = lines[lineum+1].strip()
                         job.encoded_output = data

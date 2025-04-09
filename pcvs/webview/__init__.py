@@ -3,7 +3,12 @@ import json
 import os
 import random
 
-from flask import Flask, abort, jsonify, render_template, request, sessions
+from flask import abort
+from flask import Flask
+from flask import jsonify
+from flask import render_template
+from flask import request
+from flask import sessions
 
 from pcvs import PATH_INSTDIR
 from pcvs.testing.test import Test
@@ -56,7 +61,7 @@ def create_app(iface):
         return render_template("main.html")
 
     @app.route("/run/<sid>")
-    def session_main(sid):
+    def session_main(sid: str):
         """Provide the per-session main page
 
         :param sid: session id
@@ -64,7 +69,7 @@ def create_app(iface):
         :return: page content
         :rtype: str
         """
-        sid = int(sid)
+        sid = sid
         if sid not in data_manager.session_ids:
             abort(404)
 
@@ -97,7 +102,7 @@ def create_app(iface):
         return render_template('tbw.html')
 
     @app.route("/run/<sid>/<selection>/list")
-    def get_list(sid, selection):
+    def get_list(sid: str, selection):
         """Get a listing.
 
         The response will depend on the request, which can be:
@@ -112,7 +117,7 @@ def create_app(iface):
         :return: web content
         :rtype: str
         """
-        sid = int(sid)
+        sid = sid
         if 'json' in request.args.get('render', []):
             out = list()
             infos = data_manager.single_session_get_view(
@@ -127,7 +132,7 @@ def create_app(iface):
         return render_template('list_view.html', sid=sid, selection=selection)
 
     @app.route("/run/<sid>/<selection>/detail")
-    def get_details(sid, selection):
+    def get_details(sid: str, selection):
         """Get a detailed view of a component.
 
         The response will depend on the request, which can be:
@@ -142,7 +147,7 @@ def create_app(iface):
         :return: web response
         :rtype: str
         """
-        sid = int(sid)
+        sid = sid
         out = list()
         request_item = request.args.get('name', None)
 

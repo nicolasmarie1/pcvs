@@ -1,18 +1,21 @@
 import base64
-import json
 import os
 import subprocess
 import tempfile
 
-from ruamel.yaml import YAML, YAMLError
+from ruamel.yaml import YAML
+from ruamel.yaml import YAMLError
 
-from pcvs import NAME_BUILDFILE, NAME_BUILDIR, io
-from pcvs.testing.testfile import TestFile
-from pcvs.backend import config, profile, run
-from pcvs.helpers import system, utils
+from pcvs import io
+from pcvs.backend import config
+from pcvs.backend import profile
+from pcvs.backend import run
+from pcvs.helpers import system
+from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ValidationException
 from pcvs.helpers.system import MetaDict
 from pcvs.orchestration.publishers import BuildDirectoryManager
+from pcvs.testing.testfile import TestFile
 
 
 def locate_scriptpaths(output=None):
@@ -57,7 +60,17 @@ def compute_scriptpath_from_testname(testname, output=None):
     )
 
 
-def get_logged_output(prefix, testname):
+def get_logged_output(prefix, testname) -> str:
+    """
+    Get job output from the given archive/build path.
+
+    :param prefix: the archive or directory to scan from
+    :type prefix: str
+    :param testname: the full test name
+    :type testname: str
+    :return: the raw output
+    :rtype: str
+    """
     if prefix is None:
         prefix = os.getcwd()
     buildir = utils.find_buildir_from_prefix(prefix)
@@ -66,8 +79,7 @@ def get_logged_output(prefix, testname):
         man = BuildDirectoryManager(build_dir=buildir)
         man.init_results()
         for test in man.results.retrieve_tests_by_name(name=testname):
-            s += "\n##### TEST OUTPUT #####\n### Testname: {}\n{}\n".format(
-                test.name, test.get_raw_output(encoding='utf-8'))
+            s += test.get_raw_output(encoding='utf-8')
         man.finalize()
     if not s:
         s = "No test named '{}' found here.".format(testname)
@@ -79,6 +91,8 @@ def process_check_configs(conversion=True):
     """Analyse available configurations to ensure their correctness relatively
     to their respective schemes.
 
+    :param conversion: allow legacy format for this check (True by default)
+    :type conversion: bool, optional
     :return: caught errors, as a dict, where the keys is the errmsg base64
     :rtype: dict"""
     errors = dict()
@@ -110,9 +124,11 @@ def process_check_profiles(conversion=True):
     """Analyse availables profiles and check their correctness relatively to the
     base scheme.
 
+    :param conversion: allow legacy format for this check (True by default)
+    :type conversion: bool, optional
     :return: list of caught errors as a dict, where keys are error msg base64
     :rtype: dict"""
-    t = io.console.create_table("Available Profile", ["valid", "ID"])
+    t = io.console.create_table("Available Profile", ["Valid", "ID"])
     errors = dict()
 
     for scope in utils.storage_order():
@@ -137,10 +153,12 @@ def process_check_profiles(conversion=True):
 def process_check_setup_file(root, prefix, run_configuration):
     """Check if a given pcvs.setup could be parsed if used in a regular process.
 
-    :param filename: the pcvs.setup filepath
-    :type filename: str
+    :param root: the pcvs.setup filepath
+    :type root: str
     :param prefix: the subtree the setup is extract from (used as argument)
     :type prefix: str
+    :param run_configuration: the system env to herit for this setup check
+    :type run_configuration: dict
     :return: a tuple (err msg, icon to print, parsed data)
     :rtype: tuple
     """
@@ -154,7 +172,7 @@ def process_check_setup_file(root, prefix, run_configuration):
         with utils.cwd(tdir):
             env['pcvs_src'] = root
             env['pcvs_testbuild'] = tdir
-            
+
             if not os.path.isdir(os.path.join(tdir, prefix)):
                 os.makedirs(os.path.join(tdir, prefix))
             if not prefix:
@@ -174,6 +192,7 @@ def process_check_setup_file(root, prefix, run_configuration):
         err_msg = base64.b64encode(str(e.stderr).encode('utf-8'))
 
     return (err_msg, data)
+
 
 def __set_token(token, nset=None) -> str:
     """Manage display token (job display) depending on given condition.
@@ -202,8 +221,12 @@ def __set_token(token, nset=None) -> str:
 def process_check_directory(dir, pf_name="default", conversion=True):
     """Analyze a directory to ensure defined test files are valid.
 
+    :param conversion: allow legacy format for this check (True by default)
+    :type conversion: bool, optional
     :param dir: the directory to process.
     :type dir: str
+    :param pf_name: profile name to be loaded, defaults to "default"
+    :type pf_name: str, defaults to "default"
     :return: a dict of caught errors
     :rtype: dict
     """
@@ -253,27 +276,28 @@ def process_check_directory(dir, pf_name="default", conversion=True):
             dflt = None
             err = None
             try:
-                cur = TestFile(file_in="", path_out="", label="", prefix=subprefix)
+                cur = TestFile(file_in="", path_out="",
+                               label="", prefix=subprefix)
                 cur.load_from_str(data)
-                converted = not(cur.validate(allow_conversion=conversion))
+                converted = not (cur.validate(allow_conversion=conversion))
                 nb_nodes = cur.nb_descs
                 total_nodes += nb_nodes
-                success=True
+                success = True
 
             except YAMLError as e:
                 err = base64.b64encode(str(e).encode('utf-8'))
-                success=False
+                success = False
             except ValidationException.FormatError as e:
                 err = base64.b64encode(str(e).encode('utf-8'))
-                success=False
-                
+                success = False
+
             if converted is True:
                 # yaml VALID but old syntax
                 # --> yellow
-                success=None
-                dflt = "{} {}".format(io.console.utf('succ'), io.console.utf('copy'))
+                success = None
+                dflt = "{} {}".format(io.console.utf(
+                    'succ'), io.console.utf('copy'))
             yaml_ok = __set_token(success, nset=dflt)
-            
 
         table.add_row(
             setup_ok,

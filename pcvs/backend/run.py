@@ -2,21 +2,30 @@ import fileinput
 import os
 import pprint
 import shutil
-import signal
 import subprocess
 import time
 from subprocess import CalledProcessError
 
 from ruamel.yaml import YAML
 
-from pcvs import (NAME_BUILD_CONF_FN, NAME_BUILD_CACHEDIR, NAME_BUILD_SCRATCH,
-                  NAME_BUILDFILE, NAME_BUILDIR, NAME_BUILD_CONF_SH, NAME_SRCDIR,
-                  io, testing)
+from pcvs import io
+from pcvs import NAME_BUILD_CACHEDIR
+from pcvs import NAME_BUILD_CONF_FN
+from pcvs import NAME_BUILD_CONF_SH
+from pcvs import NAME_BUILD_SCRATCH
+from pcvs import NAME_BUILDFILE
+from pcvs import NAME_BUILDIR
+from pcvs import NAME_SRCDIR
+from pcvs import testing
 from pcvs.backend import bank as pvBank
 from pcvs.backend import spack as pvSpack
-from pcvs.helpers import communications, criterion, utils
-from pcvs.helpers.exceptions import TestException, RunException
-from pcvs.helpers.system import MetaConfig, MetaDict
+from pcvs.helpers import communications
+from pcvs.helpers import criterion
+from pcvs.helpers import utils
+from pcvs.helpers.exceptions import RunException
+from pcvs.helpers.exceptions import TestException
+from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import MetaDict
 from pcvs.orchestration import Orchestrator
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.plugins import Plugin
@@ -34,11 +43,15 @@ def print_progbar_walker(elt):
     """
     if elt is None:
         return None
-    return "["+elt[0]+"] " + (elt[1] if elt[1] else "")
+    return "[" + elt[0] + "] " + (elt[1] if elt[1] else "")
 
 
 def display_summary(the_session):
-    """Display a summary for this run, based on profile & CLI arguments."""
+    """Display a summary for this run, based on profile & CLI arguments.
+
+    :param the_session: active session, for extra info to be displayed.
+    :type the_session: Session
+    """
     cfg = MetaConfig.root.validation
 
     io.console.print_section("Global Information")
@@ -76,6 +89,14 @@ def display_summary(the_session):
 
 
 def stop_pending_jobs(exc=None):
+    """
+    Called when PCVS is going to stop upon external request, stop the scheduler
+
+    :param exc: exception to raise, defaults to None
+    :type exc: Exception, optional
+    :raises exc: the exception to raise (this function is generally called when
+        a exception is raised, this do some actions without capturing the exeception)
+    """
     orch = MetaConfig.root.get_internal('orchestrator')
     if orch:
         orch.stop()
@@ -91,7 +112,9 @@ def process_main_workflow(the_session=None):
     active terminal or as a detached process.
 
     :param the_session: the session handler this run is connected to, defaults to None
-    :type the_session: :class:`Session`, optional
+    :type the_session: Session, optional
+    :return: the exit code
+    :rtype: int
     """
     io.console.info("RUN: Session start")
     global_config = MetaConfig.root
@@ -106,7 +129,7 @@ def process_main_workflow(the_session=None):
     io.console.print_header("Initialization")
     # prepare PCVS and third-party tools
     prepare()
-    assert(build_manager.config)
+    assert (build_manager.config)
 
     if valcfg.reused_build is not None:
         io.console.print_section("Reusing previously generated inputs")
@@ -119,7 +142,7 @@ def process_main_workflow(the_session=None):
             process_spack()
         end = time.time()
         io.console.print_section(
-            "===> Processing done in {:<.3f} sec(s)".format(end-start))
+            "===> Processing done in {:<.3f} sec(s)".format(end - start))
 
     io.console.print_header("Summary")
     display_summary(the_session)
@@ -152,11 +175,12 @@ def process_main_workflow(the_session=None):
                 " (@{})".format(pref_proj) if pref_proj else ""
             ))
 
-            bank.save_new_run_from_instance(None, build_manager, msg=valcfg.get('message', None))
-            #bank.save_from_buildir(
+            bank.save_new_run_from_instance(
+                None, build_manager, msg=valcfg.get('message', None))
+            # bank.save_from_buildir(
             #    None,
             #    os.path.join(valcfg.output)
-            #)
+            # )
 
     buildfile = os.path.join(valcfg.output, NAME_BUILDFILE)
     if utils.is_locked(buildfile):
@@ -177,8 +201,10 @@ def __check_defined_program_validity():
         MetaConfig.root.machine.job_manager.allocate.program)
     utils.check_valid_program(
         MetaConfig.root.machine.job_manager.allocate.wrapper)
-    utils.check_valid_program(MetaConfig.root.machine.job_manager.remote.program)
-    utils.check_valid_program(MetaConfig.root.machine.job_manager.remote.wrapper)
+    utils.check_valid_program(
+        MetaConfig.root.machine.job_manager.remote.program)
+    utils.check_valid_program(
+        MetaConfig.root.machine.job_manager.remote.wrapper)
     utils.check_valid_program(
         MetaConfig.root.machine.job_manager.batch.program)
     utils.check_valid_program(
@@ -211,7 +237,7 @@ def prepare():
     per_file_max_sz = 0
     try:
         per_file_max_sz = int(valcfg.per_result_file_sz)
-    except:
+    except (TypeError, ValueError):
         pass
     build_man.init_results(per_file_max_sz=per_file_max_sz)
 
@@ -222,7 +248,7 @@ def prepare():
 
     build_man.save_extras(NAME_BUILD_CACHEDIR, dir=True, export=False)
     valcfg.buildcache = os.path.join(build_man.prefix, NAME_BUILD_CACHEDIR)
-    
+
     io.console.print_item("Ensure user-defined programs exist")
     __check_defined_program_validity()
 
@@ -305,7 +331,7 @@ def process_files():
     It includes walking through user directories to find definitions AND
     generating the associated tests.
 
-    :raises TestUnfoldError: An error occured while processing files
+    :raises TestExpressionError: An error occured while processing files
     """
     io.console.print_item("Locate benchmarks from user directories")
     setup_files, yaml_files = find_files_to_process(
@@ -318,19 +344,28 @@ def process_files():
 
     errors = []
 
-    io.console.print_item("Extract tests from dynamic definitions ({} found)".format(len(setup_files)))
+    io.console.print_item(
+        "Extract tests from dynamic definitions ({} found)".format(len(setup_files)))
     errors += process_dyn_setup_scripts(setup_files)
-    io.console.print_item("Extract tests from static definitions ({} found)".format(len(yaml_files)))
+    io.console.print_item(
+        "Extract tests from static definitions ({} found)".format(len(yaml_files)))
     errors += process_static_yaml_files(yaml_files)
 
     if len(errors):
-        #**{e[0]: e[1] for e in errors}
+        reasons = {}
+        for (f, e) in errors:
+            if hasattr(e, 'dbg'):
+                reasons[f] = e.dbg
+            else:
+                reasons[f] = e
         raise TestException.TestExpressionError(
-                        reason="Test-suites failed to be parsed.",
-                        **{e[0]: e[1].dbg for e in errors})
+            reason="Test-suites failed to be parsed.", **reasons)
 
 
 def process_spack():
+    """
+    Build job to schedule from Spack recipes.
+    """
 
     if not shutil.which('spack'):
         io.console.warn(
@@ -343,11 +378,13 @@ def process_spack():
     build_man = MetaConfig.root.get_internal('build_manager')
 
     _, _, rbuild, _ = testing.generate_local_variables(label, '')
-    build_man.save_extras(os.path.relpath(rbuild, build_man.prefix), dir=True, export=False)
+    build_man.save_extras(os.path.relpath(
+        rbuild, build_man.prefix), dir=True, export=False)
 
     for spec in io.console.progress_iter(MetaConfig.root.validation.spack_recipe):
         _, _, _, cbuild = testing.generate_local_variables(label, spec)
-        build_man.save_extras(os.path.relpath(cbuild, build_man.prefix), dir=True, export=False)
+        build_man.save_extras(os.path.relpath(
+            cbuild, build_man.prefix), dir=True, export=False)
         pvSpack.generate_from_variants(spec, label, spec)
 
 
@@ -377,7 +414,7 @@ def build_env_from_configuration(current_node, parent_prefix="pcvs"):
             v = ''
         if isinstance(v, dict):
             env_dict.update(build_env_from_configuration(
-                v, parent_prefix+"_"+k))
+                v, parent_prefix + "_" + k))
             continue
         elif v is None:
             v = ''
@@ -399,6 +436,7 @@ def process_dyn_setup_scripts(setup_files):
 
     :param setup_files: list of tuples, each mapping a single pcvs.setup file
     :type setup_files: tuple
+    :raises NonZeroSetupScript: the Setup script doe not complete successfully
     :return: list of errors encountered while processing.
     :rtype: list
     """
@@ -407,7 +445,7 @@ def process_dyn_setup_scripts(setup_files):
     env = os.environ.copy()
     env_config = build_env_from_configuration(MetaConfig.root)
     env.update(env_config)
-    
+
     with open(os.path.join(MetaConfig.root.validation.output, NAME_BUILD_CONF_SH), 'w') as fh:
         fh.write(utils.str_dict_as_envvar(env_config))
         fh.close()
@@ -437,27 +475,28 @@ def process_dyn_setup_scripts(setup_files):
             fdout, fderr = fds.communicate()
 
             if fds.returncode != 0:
-                raise RunException.NonZeroSetupScript(rc=fds.returncode, err=fderr, file=f)
+                raise RunException.NonZeroSetupScript(
+                    rc=fds.returncode, err=fderr, file=f)
 
-            #### should be enabled only in debug mode
+            # should be enabled only in debug mode
             # flush the output to $BUILD/pcvs.yml
-            #out_file = os.path.join(cur_build, 'pcvs.yml')
-            #with open(out_file, 'w') as fh:
-                #fh.write(fdout.decode('utf-8'))
-        except CalledProcessError as e:
+            # out_file = os.path.join(cur_build, 'pcvs.yml')
+            # with open(out_file, 'w') as fh:
+                # fh.write(fdout.decode('utf-8'))
+        except CalledProcessError:
             err.append((f, RunException.ProgramError(file=f)))
             continue
         except RunException.NonZeroSetupScript as e:
             err.append((f, e))
-            io.console.info("Setup Failed ({}): {}".format(f, e.dbg['err'].decode('utf-8')))
+            io.console.info("Setup Failed ({}): {}".format(
+                f, e.dbg['err'].decode('utf-8')))
             continue
-        
+
         out = fdout.decode('utf-8')
         if not out:
             # pcvs.setup did not output anything
             continue
-        
-        
+
         # Now create the file handler
         MetaConfig.root.get_internal(
             "pColl").invoke_plugins(Plugin.Step.TFILE_BEFORE)
@@ -466,10 +505,10 @@ def process_dyn_setup_scripts(setup_files):
                        label=label,
                        prefix=subprefix
                        )
-        
+
         obj.load_from_str(out)
         obj.save_yaml()
-        
+
         obj.process()
         obj.flush_sh_file()
         MetaConfig.root.get_internal(
@@ -503,9 +542,8 @@ def process_static_yaml_files(yaml_files):
             obj.process()
             obj.flush_sh_file()
         except Exception as e:
-            #raise e
             err.append((f, e))
-            io.console.info("{} (failed to parse): {}".format(f, e))
+            io.console.error("{} (failed to parse): {}".format(f, e))
     return err
 
 
@@ -542,8 +580,6 @@ def terminate():
     """Finalize a validation run.
 
     This include generating & anonymizing (if needed) the archive.
-
-    :raises ProgramError: Problem occured while invoking the archive tool.
     """
     MetaConfig.root.get_internal(
         "pColl").invoke_plugins(Plugin.Step.END_BEFORE)
@@ -554,6 +590,7 @@ def terminate():
     io.console.print_section("Prepare results")
     io.console.move_debug_file(outdir)
     archive_path = build_man.create_archive()
+    io.console.print_item("Archive: {}".format(archive_path))
 
     # if MetaConfig.root.validation.anonymize:
     #    io.console.print_item("Anonymize data")
@@ -590,7 +627,8 @@ def dup_another_build(build_dir, outdir):
     # first, clear fields overridden by current run
     global_config.validation.output = outdir
     global_config.validation.reused_build = build_dir
-    global_config.validation.buildcache = os.path.join(outdir, NAME_BUILD_CACHEDIR)
+    global_config.validation.buildcache = os.path.join(
+        outdir, NAME_BUILD_CACHEDIR)
 
     # second, copy any xml/sh files to be reused
     for root, _, files, in os.walk(os.path.join(build_dir, "test_suite")):

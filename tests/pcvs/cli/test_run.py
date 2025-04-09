@@ -4,15 +4,14 @@ from unittest.mock import patch
 import pcvs
 from pcvs.backend import run as tested
 
-from .conftest import click_call, isolated_fs
+from .conftest import click_call
+from .conftest import isolated_fs
 
 
-@patch("pcvs.backend.session.lock_session_file", return_value={})
-@patch("pcvs.backend.session.unlock_session_file", return_value={})
 @patch("pcvs.backend.session.store_session_to_file", return_value={})
 @patch("pcvs.backend.session.update_session_from_file", return_value={})
 @patch("pcvs.backend.session.remove_session_from_file", return_value={})
-def test_big_integation(rs, us, ss, unlock, lock):
+def test_big_integation(rs, us, ss):
     with isolated_fs():
         res = click_call('profile', 'create', 'local.default')
         res = click_call('run')

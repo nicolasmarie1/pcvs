@@ -2,12 +2,21 @@
 import pkg_resources
 
 from pcvs import io
-from pcvs.backend import bank, config, profile
-from pcvs.cli import (cli_bank, cli_config, cli_profile, cli_report, cli_run,
-                      cli_session, cli_utilities, cli_remote_run)
+from pcvs.backend import bank
+from pcvs.backend import config
+from pcvs.backend import profile
+from pcvs.cli import cli_bank
+from pcvs.cli import cli_config
+from pcvs.cli import cli_profile
+from pcvs.cli import cli_remote_run
+from pcvs.cli import cli_report
+from pcvs.cli import cli_run
+from pcvs.cli import cli_session
+from pcvs.cli import cli_utilities
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import PluginException
-from pcvs.plugins import Collection, Plugin
+from pcvs.plugins import Collection
+from pcvs.plugins import Plugin
 
 try:
     import rich_click as click
@@ -39,9 +48,6 @@ def print_version(ctx, param, value):
     click.echo(
         'Parallel Computing Validation System (pcvs) -- version {}'.format(pkg_resources.require("pcvs")[0].version))
     ctx.exit()
-
-
-i = 0
 
 
 @click.group(context_settings=CONTEXT_SETTINGS, name="cli")

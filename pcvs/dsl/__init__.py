@@ -1,10 +1,13 @@
 import json
 import os
-from enum import Enum, IntEnum
-from typing import Dict, List
+from enum import Enum
+from enum import IntEnum
+from typing import Dict
+from typing import List
 
 from pcvs import io
-from pcvs.helpers import exceptions, git
+from pcvs.helpers import exceptions
+from pcvs.helpers import git
 from pcvs.testing.test import Test
 
 
@@ -117,7 +120,8 @@ class Run:
             data = data.to_json()
 
         if isinstance(data, dict):
-            data = json.dumps(data, default=lambda x: "Invalid type: {}".format(type(x)))
+            data = json.dumps(
+                data, default=lambda x: "Invalid type: {}".format(type(x)))
 
         self._stage[prefix] = data
 
@@ -289,7 +293,7 @@ class Bank:
             serie_name = self._repo.get_head().name
 
         branch = self._repo.get_branch_from_str(serie_name)
-    
+
         if not branch:
             return None
 
@@ -323,5 +327,6 @@ class Bank:
         :return: A list of available projects
         :rtype: list of str
         """
-        projects = [elt.name.split('/')[0] for elt in self._repo.branches if elt.name != "master"]
+        projects = [elt.name.split(
+            '/')[0] for elt in self._repo.branches if elt.name != "master"]
         return list(set(projects))

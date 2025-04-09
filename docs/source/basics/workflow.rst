@@ -8,7 +8,7 @@ Per-project test infrastructure
 Dedicated benchmark repository
 ##############################
 
-Benchmark decription
+Benchmark description
 ====================
 
 PCVS is a program built for current HPC structures, it allows the launch of
@@ -24,7 +24,7 @@ validation profile can be generated with the following command :
 
 .. code-block:: bash
 
-    pcvs profile build tutorial_profile
+    pcvs profile create tutorial_profile
 
 A pcvs profile is made of blocks that can be customized, you can export a
 profile to a file :

@@ -1,18 +1,21 @@
 import os
 import random
+from typing import Dict
+from typing import Iterable
+from typing import List
+from typing import Union
 
-from typing import List, Dict, Optional, Iterable, Union
-
-from flask import Flask
 from ruamel.yaml import YAML
 
 import pcvs
-from pcvs.backend.session import Session, list_alive_sessions
-from pcvs.helpers.exceptions import CommonException
+from pcvs.backend.session import list_alive_sessions
+from pcvs.backend.session import Session
 from pcvs.helpers import utils
+from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers.system import MetaDict
 from pcvs.orchestration.publishers import BuildDirectoryManager
-from pcvs.webview import create_app, data_manager
+from pcvs.webview import create_app
+from pcvs.webview import data_manager
 
 
 def upload_buildir_results(buildir) -> None:
@@ -36,7 +39,7 @@ def upload_buildir_results(buildir) -> None:
         'dirs': conf_yml.validation.dirs
     })
     for test in man.results.browse_tests():
-        hdl.save(test)
+        man.save(test)
         dataman.insert_test(sid, test)
 
     dataman.close_session(sid, {'state': Session.State.COMPLETED})
@@ -46,7 +49,7 @@ class Report:
     """
     Map a Report interface, to handle request from frontends.
     """
-    
+
     def __init__(self) -> None:
         """
         Initialize a new report (no args)
@@ -58,14 +61,14 @@ class Report:
     def __create_build_handler(self, path) -> BuildDirectoryManager:
         """
         Initialize a new handler to a build directory.
-        
+
         This object will be used to forward result requests.
 
         :param path: build directory path
         :type path: str
-        :raises Exception: Invalid path is provided
+        :raises NotPCVSRelated: Invalid path is provided
         :return: the actual handler
-        :rtype: class:`BuildDirectoryManager`
+        :rtype: BuildDirectoryManager
         """
         if utils.check_is_buildir(path):
             hdl = BuildDirectoryManager(path)
@@ -78,22 +81,25 @@ class Report:
             )
         return hdl
 
-    def add_session(self, path) -> None:
+    def add_session(self, path) -> BuildDirectoryManager:
         """
         Insert new session to be managed.
 
         :param path: the build path (root dir)
         :type path: str
+        :return: the session handler
+        :rtype: BuildDirectoryManager
         """
         hdl = self.__create_build_handler(path)
         hdl.load_config()
         hdl.init_results()
         self._sessions[hdl.sid] = hdl
+        return hdl
 
     def load_alive_sessions(self) -> None:
         """
         Load currently active sessions as reference in PATH_SESSION.
-        
+
         A issue with this function,  as invalid sessions are not managet yet.
         """
         self._alive_session_infos = list_alive_sessions()
@@ -124,37 +130,43 @@ class Report:
         return list(self._sessions.keys())
 
     @classmethod
-    def dict_convert_list_to_cnt(self, l: Dict[str, List[int]]) -> Dict[str, int]:
+    def dict_convert_list_to_cnt(self, arrays: Dict[str, List[int]]) -> Dict[str, int]:
         """
         Convert dict of arrays to a dict of array lengths.
-        
+
         Used to convert dict of per-status jobs to a summary of them.
 
-        :param l: the dict of arrays
-        :type l: dict
+        :param arrays: the dict of arrays
+        :type arrays: dict
         :return: a summary of given dict
         :rtype: dict
         """
-        return {k: len(v) for k, v in l.items()}
+        return {k: len(v) for k, v in arrays.items()}
 
     def session_infos(self) -> Iterable[Dict]:
         """
         Get sesion metadata for each session currently loaded into the instance.
-
-        :return: the list of metadata (as dict)
-        :rtype: list
+        :rtype: Iterator[Dict[str, Any]]
         """
         for sid, sdata in self._sessions.items():
             counts = self.dict_convert_list_to_cnt(
                 self.single_session_status(sid))
             state = self._alive_session_infos[sid]['state'] if sid in self._alive_session_infos else Session.State.COMPLETED
             yield {'sid': sid,
-                        'state': str(state),
-                        'count': counts,
-                        'path': sdata.prefix,
-                        'info': sdata.config.validation.get('message', 'No message')}
-        
+                   'state': str(state),
+                   'count': counts,
+                   'path': sdata.prefix,
+                   'info': sdata.config.validation.get('message', 'No message')}
+
     def single_session_config(self, sid) -> dict:
+        """
+        Get the configuration map from a single session.
+
+        :param sid: the sesion ID
+        :type sid: int
+        :return: the configuration node (=conf.yml)
+        :rtype: dict
+        """
         assert sid in self._sessions
         d = self._sessions[sid].get_config()
         d['runtime']['plugin'] = ''
@@ -182,7 +194,7 @@ class Report:
     def single_session_tags(self, sid) -> Dict[str, Dict]:
         """
         Get per-session available tags.
-        
+
         Outputs a per-status dict.
 
         :param sid: Session ID
@@ -208,7 +220,7 @@ class Report:
     def single_session_labels(self, sid) -> Dict[str, Dict]:
         """
         Get per-session available labels.
-        
+
         Outputs a per-status dict.
 
         :param sid: Session ID
@@ -241,7 +253,7 @@ class Report:
         :param jid: Job ID
         :type jid: int
         :return: the Actual test object
-        :rtype: class:`Test`
+        :rtype: Test
         """
         assert sid in self._sessions
         return self._sessions[sid].results.map_id(id=jid)
@@ -249,13 +261,13 @@ class Report:
     def single_session_get_view(self, sid, name, subset=None, summary=False) -> Dict[str, Dict]:
         """
         Get a specific view from a given session.
-        
+
         A view consists in a per-status split of jobs depending on the purpose
         of the stored view. PCVS currently provide automatically:
         * Per status
         * Per tags
         * Per labels
-        
+
         If `subset` is provided, only the nodes matching the key will be
         returned.
         If `summary` is True, a job count will be returned instead of actual
@@ -272,7 +284,7 @@ class Report:
         :return: the result dict
         :rtype: dict
         """
-        
+
         d = {}
         if name == "tags":
             d = self.single_session_tags(sid)
@@ -288,7 +300,6 @@ class Report:
             return {k: self.dict_convert_list_to_cnt(v) for k, v in d.items()}
         else:
             return d
-        
 
 
 def build_static_pages(buildir) -> None:
@@ -299,18 +310,18 @@ def build_static_pages(buildir) -> None:
 
     :param buildir: the build directory to load
     :type buildir: str
+    :raises WIPError: Not implemented yet
     """
     raise CommonException.WIPError()
 
-def start_server(report: Report) -> Flask:
+
+def start_server(report: Report):
     """Initialize the Flask server, default to 5000.
 
     A random port is picked if the default is already in use.
     :param report: The model to be used.
-    :type report: class:`Report`
-    :return: the application handler
-    :rtype: class:`Flask`
+    :type report: Report
     """
     app = create_app(report)
-    ret = app.run(host='0.0.0.0', port=int(
+    app.run(host='0.0.0.0', port=int(
         os.getenv("PCVS_REPORT_PORT", 5000)), debug=True)

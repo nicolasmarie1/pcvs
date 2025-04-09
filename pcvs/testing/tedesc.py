@@ -1,19 +1,29 @@
-import shutil
-import tempfile
 import copy
 import os
 import re
+import shutil
+import tempfile
+from typing import Optional
 
 import pcvs
 from pcvs import testing
 from pcvs.helpers import pm
-from pcvs.helpers.criterion import Criterion, Serie
-from pcvs.helpers.exceptions import TestException, ProfileException
-from pcvs.helpers.system import MetaConfig, MetaDict
+from pcvs.helpers.criterion import Criterion
+from pcvs.helpers.criterion import Serie
+from pcvs.helpers.exceptions import ProfileException
+from pcvs.helpers.exceptions import TestException
+from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import MetaDict
 from pcvs.testing.test import Test
 
+# now return the first valid language, according to settings
+# order matters: if sources contains multiple languages, the first
+# appearing in this list will be considered as the main language
 
-def detect_source_lang(array_of_files):
+
+
+
+def detect_source_lang(array_of_files) -> str:
     """Determine compilation language for a target file (or list of files).
 
     Only one language is detected at once.
@@ -27,7 +37,7 @@ def detect_source_lang(array_of_files):
     for f in array_of_files:
         if re.search(r'\.(h|H|i|I|s|S|c|c90|c99|c11)$', f):
             detect.append('cc')
-        elif re.search(r'\.(C|cc|cxx|cpp|c\+\+)$', f):
+        elif re.search(r'\.(hpp|C|cc|cxx|cpp|c\+\+)$', f):
             detect.append('cxx')
         elif re.search(r'\.(f|F)(77)$', f):
             detect.append('f77')
@@ -41,14 +51,40 @@ def detect_source_lang(array_of_files):
             detect.append('f08')
         elif re.search(r'\.(f|F)$', f):
             detect.append('fc')
+        elif re.search(r'\.(cu|CU)$', f):
+            detect.append('accl')
+    return detect
 
-    # now return the first valid language, according to settings
-    # order matters: if sources contains multiple languages, the first
-    # appearing in this list will be considered as the main language
-    for i in ['f08', 'f03', 'f95', 'f90', 'f77', 'fc', 'cxx', 'cc']:
-        if i in detect and i in MetaConfig.root.compiler:
-            return i
-    return 'cc'
+def validate_source_lang(langs, allowed_languages) -> Optional[str]:
+    #1. If fortran, select a compiler in that order
+    for i in ['f08', 'f03', 'f95', 'f90', 'f77', 'fc']:
+        if i in langs:
+            # fallback: if a requested language is not
+            # defined by compiler configuration,
+            # fallback to un-versioned compiler
+            if i not in allowed_languages:
+                return 'fc' if 'fc' in allowed_languages else None
+            else:
+                return i
+    for i in ['cxx', 'cc']:
+        if i in langs:
+            if i not in allowed_languages:
+                return 'cc' if 'cc' in allowed_languages else None
+            else:
+                return i
+    for i in ['accl']:
+        if i in langs:
+            if i not in allowed_languages:
+                return 'accl' if 'accl' in allowed_languages else None
+            else:
+                return i
+    return None
+
+def extract_compilers_envs():
+    envs = []
+    for compiler in MetaConfig.root.compiler:
+        envs += MetaConfig.root.compiler[compiler].envs
+    return envs
 
 
 def extract_compiler_config(lang, variants):
@@ -67,7 +103,7 @@ def extract_compiler_config(lang, variants):
             reason="Unknown language, not defined into Profile",
             dbg_info={"lang": lang, "list": MetaConfig.root.compiler.keys()}
         )
-    
+
     config = MetaConfig.root.compiler[lang]
     for v in variants:
         if v in config.variants:
@@ -79,7 +115,7 @@ def extract_compiler_config(lang, variants):
                     config[k] += v
         else:
             return (None, [], [])
-                    
+
     return (config.program, config.args, config.envs)
 
 
@@ -180,7 +216,7 @@ class TEDescriptor:
         """
         if not isinstance(node, dict):
             raise TestException.TestExpressionError(node)
-        
+
         self._te_name = name
         self._skipped = name.startswith('.')
         self._te_label = label
@@ -202,7 +238,7 @@ class TEDescriptor:
         self._run = MetaDict(node.get('run', None))
         self._validation = MetaDict(node.get('validate', None))
         self._artifacts = MetaDict(node.get('artifact', None))
-        self._metrics = MetaDict(node.get('metric', None))
+        self._metrics = MetaDict(node.get('metrics', None))
         self._attributes = MetaDict(node.get("attributes", None))
         self._template = node.get('group', None)
         self._debug = self._te_name+":\n"
@@ -275,7 +311,7 @@ class TEDescriptor:
                     self._build.binary = compat[k]
                 if self._run and 'program' not in self._run:
                     self._run.program = compat[k]
-        
+
         if 'cflags' in self._build and 'sources' in self._build:
             self._build['sources']['cflags'] = self._build['cflags']
         if 'ldflags' in self._build and 'sources' in self._build:
@@ -284,7 +320,6 @@ class TEDescriptor:
             self._build.autotools.args = self._build.autotools.params
         if 'vars' in self._build.get('cmake', {}):
             self._build.cmake.args = self._build.cmake.vars
-        
 
     def _configure_criterions(self):
         """Prepare the list of components this TE will be built against.
@@ -336,7 +371,21 @@ class TEDescriptor:
         :return: the command to be used.
         :rtype: str
         """
-        lang = detect_source_lang(self._build.files)
+        langs: Optional[str] = None
+        if not self._build.sources.get("lang", None):
+            langs = detect_source_lang(self._build.files)
+            if langs is None:
+                raise TestException.TestExpressionError(self._build.files, reason="Unable to detect the compiler to use")
+        else:
+            langs = self._build.sources.lang
+            if isinstance(langs, str):
+                langs = [langs]
+
+        lang = validate_source_lang(langs, MetaConfig.root.compiler.keys())
+
+        if lang is None:
+            raise TestException.TestExpressionError(langs, reason="Unable to find the right compiler")
+
         binary = self._te_name
         if self._build.sources.binary:
             binary = self._build.sources.binary
@@ -345,8 +394,9 @@ class TEDescriptor:
 
         self._build.sources.binary = binary
 
-        program, args, envs = extract_compiler_config(lang, self._build.variants)
-        
+        program, args, envs = extract_compiler_config(
+            lang, self._build.variants)
+
         command = "{cc} {cflags} {files} {ldflags} {args} {out}".format(
             cc=program,
             args=" ".join(args),
@@ -371,7 +421,7 @@ class TEDescriptor:
             basepath = os.path.dirname(self._build.files[0])
             command.append("-f {}".format(" ".join(self._build.files)))
 
-        compiler, args, envs = extract_compiler_config("cc", self._build.variants)
+        envs = extract_compilers_envs()
         # build the 'make' command
         command.append(
             '-C {path} {target} '.format(
@@ -379,11 +429,11 @@ class TEDescriptor:
                 target=self._build.make.get('target', '')
             )
         )
-        
-        command += " ".join(self._build['make'].get('args', []))
+        command += self._build['make'].get('args', [])
         envs += self._build['make'].get('envs', [])
-
-        return (" ".join(command), envs)
+        
+        cmd = (" ".join(command), envs)
+        return cmd
 
     def __build_from_cmake(self):
         """How to create build tests from a CMake project.
@@ -396,8 +446,8 @@ class TEDescriptor:
             command.append(self._build.files[0])
         else:
             command.append(self._srcdir)
-            
-        _, args, envs = extract_compiler_config("cc", self._build.variants)
+
+        envs = extract_compilers_envs()
         command.append(
             r"-G 'Unix Makefiles' "
             r"-DCMAKE_BINARY_DIR='{build}' ".format(
@@ -409,7 +459,7 @@ class TEDescriptor:
         envs += self._build['cmake'].get('envs', [])
 
         self._build.files = [os.path.join(self._buildir, "Makefile")]
-        tmp =  self.__build_from_makefile()
+        tmp = self.__build_from_makefile()
         next_command = tmp[0]
         envs += tmp[1]
         return (" && ".join([" ".join(command), next_command]), envs)
@@ -435,11 +485,11 @@ class TEDescriptor:
                 "autogen.sh"
             )
             command.append("{} && ".format(autogen_path))
-            
-        _, _, envs = extract_compiler_config("cc", self._build.variants)
+
+        envs = extract_compilers_envs()
 
         command.append(r"{configure} ".format(configure=configure_path))
-        
+
         command += self._build['autotools'].get('args', [])
         envs += self._build['autotools'].get('envs', [])
 
@@ -447,21 +497,21 @@ class TEDescriptor:
         tmp = self.__build_from_makefile()
         next_command = tmp[0]
         envs += tmp[1]
-        
+
         # TODO: why not creating another test, with a dep on this one ?
         return (" && ".join([" ".join(command), next_command]), envs)
 
     def __build_from_user_script(self):
         command = []
         env = []
-        
+
         command = self._build.custom.get('program', 'echo')
         # args not relevant as cflags/ldflags can be used instead
         env = self._build.custom.get('envs', [])
-        
+
         if not os.path.isabs(command):
             command = os.path.join(self._buildir, command)
-            
+
         return (". {} && {}".format(os.path.join(MetaConfig.root.validation.output, pcvs.NAME_BUILD_CONF_SH), command), env)
 
     def __build_exec_process(self):
@@ -564,10 +614,10 @@ class TEDescriptor:
             elif self._build.sources.binary:
                 program = self._build.sources.binary
 
-
             clone_outdir = self.get_attr('copy_output', False)
             if clone_outdir:
-                buildir = tempfile.mkdtemp(prefix="{}.".format(self._te_name), dir=self._buildir)
+                buildir = tempfile.mkdtemp(prefix="{}.".format(
+                    self._te_name), dir=self._buildir)
             else:
                 buildir = self._buildir
 
@@ -592,7 +642,7 @@ class TEDescriptor:
                     args=" ".join(args),
                     cmd=command
                 )
-
+            #print(repr(command))
             self._effective_cnt += 1
 
             yield Test(
@@ -627,18 +677,18 @@ class TEDescriptor:
         # if this TE does not lead to a single test, skip now
         if self._skipped:
             return
-        
+
         clone_indir = self.get_attr('copy_input', False)
-    
+
         if clone_indir:
-            isolation_path = tempfile.mkdtemp(prefix="{}.".format(self._te_name), dir=self._buildir)
+            isolation_path = tempfile.mkdtemp(
+                prefix="{}.".format(self._te_name), dir=self._buildir)
             old_src_dir = self._srcdir
             self._srcdir = os.path.join(isolation_path, "src")
             shutil.copytree(old_src_dir, self._srcdir)
             self._buildir = os.path.join(isolation_path, "build")
             os.mkdir(self._buildir)
-                
-            
+
         if self._build:
             yield from self.__construct_compil_tests()
         if self._run:
@@ -677,11 +727,11 @@ class TEDescriptor:
                 #user_cnt *= len(v.values)
 
         # store debug info
-        #self._debug_yaml['.stats'] = {
+        # self._debug_yaml['.stats'] = {
         #    'theoric': user_cnt * real_cnt,
         #    'program_factor': user_cnt,
         #    'effective': self._effective_cnt
-        #}
+        # }
 
         return self._debug_yaml
 

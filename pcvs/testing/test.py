@@ -1,16 +1,17 @@
 import base64
+import hashlib
 import json
-import zlib
 import os
 import re
 import shlex
 import sys
-import hashlib
+import zlib
 from enum import IntEnum
 
 from pcvs import io
 from pcvs.helpers.criterion import Combination
-from pcvs.helpers.system import MetaConfig, ValidationScheme
+from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import ValidationScheme
 from pcvs.helpers.utils import Program
 from pcvs.plugins import Plugin
 
@@ -106,10 +107,10 @@ class Test:
             self._id['te_name'],
             comb_str,
             suffix=kwargs.get('user_suffix'))
-        
+
         # only positive ids
         self._id['jid'] = self.get_jid_from_name(self.name)
-        
+
         self._execmd = kwargs.get('command', '')
 
         self._data = {
@@ -126,7 +127,7 @@ class Test:
             'time': kwargs.get('time', -1),
             'delta': kwargs.get('delta', 0),
         }
-        
+
         self._timeout = kwargs.get('kill_after', None)
 
         self._mod_deps = kwargs.get("mod_deps", [])
@@ -154,6 +155,7 @@ class Test:
     @property
     def basename(self) -> str:
         return Test.compute_fq_name(self._id['label'], self._id['subtree'], self._id['te_name'])
+
     @property
     def tags(self):
         """Getter for the full list of tags.
@@ -266,14 +268,14 @@ class Test:
         :rtype: list
         """
         return self._mod_deps
-    
+
     @classmethod
     def get_jid_from_name(self, name):
         if not isinstance(name, bytes):
             name = str(name).encode('utf-8')
-            
+
         return hashlib.md5(name).hexdigest()
-    
+
     def get_dep_graph(self):
         res = {}
         for d in self._deps:
@@ -338,7 +340,7 @@ class Test:
         :return: an integer if a timeout is defined, None otherwise
         :rtype: int or NoneType
         """
-        
+
         # timeout is (in order):
         # 1. explicitly defined
         # 2. OR extrapolated from defined result.mean
@@ -382,7 +384,9 @@ class Test:
 
         self.save_raw_run(rc=rc, out=out, time=time)
         self.save_status(state)
+        self.save_artifacts()
 
+    def save_artifacts(self):
         for elt_k, elt_v in self._data['artifacts'].items():
             if os.path.isfile(elt_v):
                 with open(elt_v, 'rb') as fh:
@@ -519,7 +523,7 @@ class Test:
     @property
     def encoded_output(self) -> bytes:
         return self._output
-    
+
     @encoded_output.setter
     def encoded_output(self, v) -> None:
         self._output = v
@@ -533,7 +537,7 @@ class Test:
     @property
     def output(self) -> str:
         return self.get_raw_output(encoding='utf-8')
-    
+
     @property
     def output_info(self) -> dict:
         return self._output_info
@@ -543,7 +547,7 @@ class Test:
         """TODO:
         """
         return self._exectime
-    
+
     @property
     def retcode(self):
         return self._rc
@@ -565,7 +569,7 @@ class Test:
             },
             "data": self._data
         }
-        
+
         return res
 
     def to_minimal_json(self):
@@ -573,14 +577,13 @@ class Test:
             "jid": self.jid,
             "invocation_cmd": self._invocation_cmd,
         }
-    
+
     def from_minimal_json(self, json: str):
         if isinstance(json, str):
             json = json.loads(json)
         self._invocation_cmd = json.get('invocation_cmd', "exit 1")
         self._id['jid'] = json.get('jid', "-1")
-        
-        
+
     def from_json(self, test_json: str) -> None:
         """Replace the whole Test structure based on input JSON.
 
@@ -645,8 +648,7 @@ class Test:
                 envs.append("{k}={v}; export {k}".format(k=shlex.quote(k),
                                                          v=shlex.quote(v)))
             env_code = "\n".join(envs)
-            
-                
+
         cmd_code = self._execmd
 
         return """

@@ -1,17 +1,19 @@
-import signal
+import enum
+import json
 import os
 import queue
+import signal
 import subprocess
 import threading
 import time
-import enum
 from typing import List
 
 from pcvs import io
-from pcvs.helpers import communications, log
+from pcvs.helpers import communications
+from pcvs.helpers import log
 from pcvs.helpers.system import MetaConfig
 from pcvs.testing.test import Test
-import json
+
 
 class Set:
     """Gather multiple jobs to be scheduled.
@@ -57,7 +59,7 @@ class Set:
         ALLOC = enum.auto()
         REMOTE = enum.auto()
         BATCH = enum.auto()
-        
+
     def __init__(self, execmode=ExecMode.LOCAL):
         """constructor method."""
         self._id = Set.global_increment
@@ -67,7 +69,7 @@ class Set:
         self._execmode: Set.ExecMode = execmode
         self._completed = False
         self._map = dict()
-        
+
         if not self.comman:
             if MetaConfig.root.get_internal('comman') is not None:
                 self.comman = MetaConfig.root.get_internal('comman')
@@ -76,15 +78,15 @@ class Set:
     def execmode(self) -> ExecMode:
         """
         Get execution mode for this Set.
-        
+
         See Set.ExecMode for more information.
-        
+
 
         :return: The current exec mode
         :rtype: class:`Set.ExecMode`
         """
         return self._execmode
-    
+
     @execmode.setter
     def execmode(self, v: ExecMode):
         """

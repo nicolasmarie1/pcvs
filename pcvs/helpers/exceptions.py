@@ -11,7 +11,7 @@ class GenericException(Exception):
         self._help_msg = help_msg
         self._dbg_info = dbg_info
         super().__init__("{} - {}".format(type(self).__name__, reason))
-        
+
     def __str__(self):
         """Stringify an exception for pretty-printing.
 
@@ -33,7 +33,7 @@ class GenericException(Exception):
         :return: only the error part
         :rtype: str"""
         return str(self)
-    
+
     @property
     def help(self):
         """returns the help part of the exceptions.
@@ -81,7 +81,7 @@ class CommonException:
             super().__init__(reason=reason,
                              help_msg="\n".join([
                                  "Note configuration, profiles & pcvs.* files can be ",
-                                 "verified through `pcvs check [-c|-p|-D <path>]`"]),
+                                 "verified through `pcvs check [-C|-P|-D <path>]`"]),
                              dbg_info=kwargs)
 
     class UnclassifiableError(GenericException):
@@ -138,13 +138,14 @@ class ValidationException(CommonException):
 
     class FormatError(GenericException):
         """The content does not comply the required format (schemes)."""
+
         def __init__(self, reason="Invalid format", **kwargs):
             """Updated constructor"""
             super().__init__(reason=reason,
                              help_msg="\n".join([
                                  "Input files may be checked with `pcvs check`"]),
                              dbg_info=kwargs)
-            
+
     class WrongTokenError(GenericException):
         """A unknown token is found in valided content"""
 
@@ -229,11 +230,13 @@ class OrchestratorException(CommonException):
         """Circular dep detected while processing job dep tree."""
         pass
 
+
 class RunnerException(CommonException):
     class LaunchError(GenericException):
         """Unable to run a remote container"""
         pass
-    
+
+
 class PublisherException(CommonException):
     class BadMagicTokenError(GenericException):
         """Issue with token stored to file to check consistency"""
@@ -242,11 +245,11 @@ class PublisherException(CommonException):
     class UnknownJobError(GenericException):
         """Unable to identify a job by its ID"""
         pass
-    
+
     class AlreadyExistJobError(GenericException):
         """A single ID leads to multiple jobs."""
         pass
-        
+
 
 class LockException(CommonException):
     """Lock-specific exceptions."""
@@ -270,6 +273,7 @@ class PluginException(CommonException):
 
     class LoadError(GenericException):
         """Unable to load plugin directory."""
+
         def __init__(self, reason="Issue(s) while loading plugin", **kwargs):
             """Updated constructor"""
             super().__init__(reason=reason,
@@ -282,4 +286,3 @@ class PluginException(CommonException):
 class GitException(CommonException):
     class BadEntryError(GenericException):
         pass
-

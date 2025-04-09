@@ -7,7 +7,7 @@ func()
 	printf "Done\n"
 }
 
-func isort "$@"
+func isort --sl --fass "$@"
 func autopep8 --recursive --in-place "$@"
 
 printf "\n====== POST-CHECK =====\n"

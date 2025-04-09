@@ -9,7 +9,9 @@ from datetime import datetime
 from rich.panel import Panel
 from rich.table import Table
 
-from pcvs import NAME_BUILD_ARCHIVE_DIR, NAME_BUILDFILE, io
+from pcvs import io
+from pcvs import NAME_BUILD_ARCHIVE_DIR
+from pcvs import NAME_BUILDFILE
 from pcvs.backend import utilities as pvUtils
 from pcvs.helpers import utils
 from pcvs.helpers.system import MetaConfig
@@ -54,7 +56,7 @@ def exec(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout, pall)
         penv = "env"
         pcmd = "cmd"
         pout = "out"
-    
+
     if pmod:
         display.add(pmod)
     if pcmd:
@@ -103,7 +105,7 @@ def exec(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout, pall)
     sys.exit(rc)
 
 
-@click.command(name="check", short_help="Ensure future input will be conformant to standards")
+@click.command(name="check", short_help="Ensure future input will be compliant with standards")
 @click.option("--encoding", "-E", "encoding", default=False, is_flag=True,
               help="Check capability to print utf-8 characters properly")
 @click.option("--colouring", "-X", "color", default=False, is_flag=True,
@@ -112,7 +114,7 @@ def exec(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout, pall)
               type=click.Path(exists=True, file_okay=False),
               help="Check correctness for pcvs.* files")
 @click.option("--configs", "-C", "configs", default=False, is_flag=True,
-              help="Check correctness for all registered configuation block")
+              help="Check correctness for all registered configuration blocks")
 @click.option("--profiles", "-P", "profiles", default=False, is_flag=True,
               help="Check correctness for all registered profiles")
 @click.option("--profile-model", "-p", "pf_name", default="default",
@@ -149,11 +151,13 @@ def check(ctx, dir, encoding, color, configs, profiles, pf_name, conversion):
 
     if configs:
         io.console.print_header("Configurations")
-        errors = {**errors, **pvUtils.process_check_configs(conversion=conversion)}
+        errors = {**errors, **
+                  pvUtils.process_check_configs(conversion=conversion)}
 
     if profiles:
         io.console.print_header("Profile(s)")
-        errors = {**errors, **pvUtils.process_check_profiles(conversion=conversion)}
+        errors = {**errors, **
+                  pvUtils.process_check_profiles(conversion=conversion)}
 
     if dir:
         io.console.print_header("Test directories")

@@ -74,6 +74,10 @@ patternProperties:
                 type: string
               ldflags:
                 type: string
+              lang:
+                OneOf:
+                - {type: string}
+                - {type: array, items: {type: string}}
             additionalProperties: false
           cmake:
             type: object
@@ -152,6 +156,8 @@ patternProperties:
                         enum:
                           - argument
                           - environment
+                      local:
+                        type: boolean
                       position:
                         type: string
                         enum:
