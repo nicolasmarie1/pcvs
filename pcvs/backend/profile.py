@@ -355,12 +355,12 @@ class Profile:
             manually edited, it may be submitted again through `pcvs profile
             import`.
         """
-        assert (self._file is not None)
+        assert self._file is not None
 
         if not os.path.exists(self._file):
             return
 
-        with open(self._file, 'r') as fh:
+        with open(self._file, 'r', encoding='utf-8') as fh:
             stream = fh.read()
 
         edited_stream = click.edit(stream, extension=".yml", require_save=True)
@@ -390,10 +390,10 @@ class Profile:
         self.load_from_disk()
 
         if 'plugin' in self._details['runtime'].keys():
-            plugin_code = base64.b64decode(
-                self._details['runtime']['plugin']).decode('utf-8')
+            plugin_code = self._details['runtime']['plugin'].decode('utf-8')
         else:
-            plugin_code = """import math
+            plugin_code = """
+import math
 from pcvs.plugins import Plugin
 
 class MyPlugin(Plugin):
@@ -409,8 +409,7 @@ class MyPlugin(Plugin):
                                      extension=".py",
                                      require_save=True)
             if edited_code is not None:
-                self._details['runtime']['plugin'] = base64.b64encode(
-                    edited_code.encode('utf-8'))
+                self._details['runtime']['plugin'] = edited_code.encode('utf-8')
                 self.flush_to_disk()
         except Exception as e:
             raise e

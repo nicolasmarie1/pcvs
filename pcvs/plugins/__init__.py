@@ -90,7 +90,7 @@ class Collection:
 
             self.register_plugin_by_package('contrib')
 
-        except:
+        except Exception:
             io.console.info(
                 "No 'contrib' package found for plugin autoloading")
 
@@ -234,4 +234,4 @@ class Collection:
                 submod = importlib.import_module(name)
                 self.register_plugin_by_module(submod, activate)
             except Exception as e:
-                raise PluginException.LoadError(name)
+                raise PluginException.LoadError(name) from e

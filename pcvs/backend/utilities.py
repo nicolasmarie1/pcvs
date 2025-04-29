@@ -105,7 +105,7 @@ def process_check_configs(conversion=True):
                     obj.check(allow_legacy=conversion)
                     token = io.console.utf('succ')
                 except ValidationException.FormatError as e:
-                    err_msg = base64.b64encode(str(e.dbg).encode('utf-8'))
+                    err_msg = str(e.dbg).encode('utf-8')
                     errors.setdefault(err_msg, 0)
                     errors[err_msg] += 1
                     io.console.debug(str(e))
@@ -135,7 +135,7 @@ def process_check_profiles(conversion=True):
                 obj.check(allow_legacy=conversion)
                 token = io.console.utf('succ')
             except ValidationException.FormatError as e:
-                err_msg = base64.b64encode(str(e.dbg).encode('utf-8'))
+                err_msg = str(e.dbg).encode('utf-8')
                 errors.setdefault(err_msg, 0)
                 errors[err_msg] += 1
                 io.console.debug(str(e))
@@ -183,11 +183,11 @@ def process_check_setup_file(root, prefix, run_configuration):
                 if not fderr:
                     fderr = "Non-zero status (no stderr): {}".format(
                         proc.returncode).encode('utf-8')
-                err_msg = base64.b64encode(fderr)
+                err_msg = fderr
             else:
                 data = fdout.decode('utf-8')
     except subprocess.CalledProcessError as e:
-        err_msg = base64.b64encode(str(e.stderr).encode('utf-8'))
+        err_msg = str(e.stderr).encode('utf-8')
 
     return (err_msg, data)
 
@@ -279,16 +279,16 @@ def process_check_directory(dir, pf_name="default", conversion=True):
                                label="",
                                prefix=subprefix)
                 cur.load_from_str(data)
-                converted = not (cur.validate(allow_conversion=conversion))
+                converted = not cur.validate(allow_conversion=conversion)
                 nb_nodes = cur.nb_descs
                 total_nodes += nb_nodes
                 success = True
 
             except YAMLError as e:
-                err = base64.b64encode(str(e).encode('utf-8'))
+                err = str(e).encode('utf-8')
                 success = False
             except ValidationException.FormatError as e:
-                err = base64.b64encode(str(e).encode('utf-8'))
+                err = str(e).encode('utf-8')
                 success = False
 
             if converted is True:
@@ -303,8 +303,7 @@ def process_check_directory(dir, pf_name="default", conversion=True):
                       "./" if not subprefix else subprefix)
 
         if err:
-            io.console.info("FAILED: {}".format(
-                base64.b64decode(err).decode('utf-8')))
+            io.console.info("FAILED: {}".format(err.decode('utf-8')))
             errors.setdefault(err, 0)
             errors[err] += 1
     io.console.print(table)
@@ -344,7 +343,7 @@ class BuildSystem:
 
         Nothing to do, by default.
         """
-        assert (False)
+        assert False
 
     def generate_file(self, filename="pcvs.yml", force=False):
         """Build the YAML test file, based on path introspection and build

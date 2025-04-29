@@ -401,7 +401,6 @@ class MyPlugin(Plugin):
                                  extension=".py",
                                  require_save=True)
         if edited_code is not None:
-            stream_yaml['plugin'] = base64.b64encode(
-                edited_code.encode('utf-8'))
-            with open(self._file, 'w') as fh:
+            stream_yaml['plugin'] = edited_code.encode('utf-8')
+            with open(self._file, 'w', encoding='utf-8') as fh:
                 YAML(typ='safe').dump(stream_yaml, fh)

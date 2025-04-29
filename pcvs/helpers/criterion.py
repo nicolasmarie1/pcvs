@@ -517,8 +517,8 @@ def valid_combination(dic):
         first = not first
 
         rt.pluginfile = os.path.join(val.buildcache, "rt-plugin.py")
-        with open(rt.pluginfile, 'w') as fh:
-            fh.write(base64.b64decode(rt.plugin).decode('utf-8'))
+        with open(rt.pluginfile, 'w', encoding='utf-8') as fh:
+            fh.write(rt.plugin.decode('utf-8'))
 
         pCollection.register_plugin_by_file(rt.pluginfile, activate=True)
 

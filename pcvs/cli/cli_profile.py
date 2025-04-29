@@ -360,16 +360,16 @@ def profile_edit(ctx, token, edit_plugin):
     if pf.is_found():
         if pf.scope == 'global' and label == 'local':
             raise click.BadArgumentUsage('Wrongly formatted profile token')
+
+        if edit_plugin:
+            pf.edit_plugin()
         else:
-            if edit_plugin:
-                pf.edit_plugin()
-            else:
-                pf.edit()
+            pf.edit()
     else:
-        raise click.BadArgumentUsage("\n".join([
-            "Profile '{}' not found!\n".format(label),
-            "Please check the 'list' command"
-        ]))
+        raise click.BadArgumentUsage(
+            f"Profile '{label}' not found!\n"
+            "Please check the 'list' command."
+        )
 
 
 @profile.command(name="import", short_help="Import a file as a profile")

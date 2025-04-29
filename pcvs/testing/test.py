@@ -389,8 +389,7 @@ class Test:
         for elt_k, elt_v in self._data['artifacts'].items():
             if os.path.isfile(elt_v):
                 with open(elt_v, 'rb') as fh:
-                    self._data['artifacts'][elt_k] = base64.b64encode(
-                        fh.read()).decode("utf-8")
+                    self._data['artifacts'][elt_k] = fh.read()
 
     def save_raw_run(self, out=None, rc=None, time=None):
         """TODO:
