@@ -10,7 +10,6 @@ from ruamel.yaml import YAML
 
 import pcvs
 from pcvs import io
-from pcvs.helpers import log
 from pcvs.helpers.exceptions import CommonException
 
 desc_dict = dict()
@@ -223,6 +222,7 @@ def replace_placeholder(tmp, refs) -> dict:
                     replacement.append(elt.replace(valid_k, refs[valid_k]))
             if not insert:
                 replacement.append(re.escape(elt))
+        # this backslash are needed, do not ask WHY.
         final["\|\|".join(replacement)] = new
     return final
 
@@ -348,7 +348,7 @@ def main(ctx, color, encoding, verbose, kind, input_file, out, scheme,
             io.console.print_item("Load template file: {}".format(template))
             stream = open(template, 'r').read() + stream
         data_to_convert = YAML(typ='safe').load(stream)
-    except yaml.composer.ComposerError as e:
+    except YAML.composer.ComposerError as e:
         CommonException.IOError(e, template)
 
     # load the scheme

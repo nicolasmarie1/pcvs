@@ -1,18 +1,7 @@
 import enum
-import json
-import os
-import queue
-import signal
-import subprocess
-import threading
-import time
-from typing import List
 
-from pcvs import io
 from pcvs.helpers import communications
-from pcvs.helpers import log
 from pcvs.helpers.system import MetaConfig
-from pcvs.testing.test import Test
 
 
 class Set:
@@ -97,15 +86,15 @@ class Set:
         """
         self._execmode = v
 
-    def add(self, l):
+    def add(self, jobs):
         """Add a job or a list of jobs to the current Set.
 
         :param l: a single or a list of jobs
         :type l: :class:`Test` or List[:class:`Test`]
         """
-        if not isinstance(l, list):
-            l = [l]
-        for j in l:
+        if not isinstance(jobs, list):
+            jobs = [jobs]
+        for j in jobs:
             self._map[j.jid] = j
         self._size = len(self._map.keys())
 

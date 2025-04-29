@@ -55,7 +55,7 @@ def detect_source_lang(array_of_files) -> str:
 
 
 def validate_source_lang(langs, allowed_languages) -> Optional[str]:
-    #1. If fortran, select a compiler in that order
+    # 1. If fortran, select a compiler in that order
     for i in ['f08', 'f03', 'f95', 'f90', 'f77', 'fc']:
         if i in langs:
             # fallback: if a requested language is not
@@ -628,7 +628,6 @@ class TEDescriptor:
                     runtime_args=MetaConfig.root.runtime.get('args', ''),
                     args=" ".join(args),
                     cmd=command)
-            #print(repr(command))
             self._effective_cnt += 1
 
             yield Test(te_name=self._te_name,
@@ -692,7 +691,7 @@ class TEDescriptor:
     def get_debug(self):
         """Build information debug for the current TE.
 
-        :return: the debug info 
+        :return: the debug info
         :rtype: dict
         """
         # if the current TE did not lead to a single test, skip now
@@ -706,20 +705,11 @@ class TEDescriptor:
             # for system-wide iterators, count max number of possibilites
             for k, v in self._criterion.items():
                 self._debug_yaml[k] = list(v.values)
-                #real_cnt *= len(v.values)
 
             # for program-lavel iterators, count number of possibilies
             self._debug_yaml['program'] = dict()
             for k, v in self._program_criterion.items():
                 self._debug_yaml['program'][k] = list(v.values)
-                #user_cnt *= len(v.values)
-
-        # store debug info
-        # self._debug_yaml['.stats'] = {
-        #    'theoric': user_cnt * real_cnt,
-        #    'program_factor': user_cnt,
-        #    'effective': self._effective_cnt
-        # }
 
         return self._debug_yaml
 

@@ -18,9 +18,9 @@ from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers.exceptions import LockException
 from pcvs.helpers.exceptions import RunException
 
-####################################
-##    STORAGE SCOPE MANAGEMENT    ##
-####################################
+# ###################################
+# #    STORAGE SCOPE MANAGEMENT    ##
+# ###################################
 STORAGES = {
     'global': PATH_INSTDIR,
     'user': PATH_HOMEDIR,
@@ -137,9 +137,9 @@ def set_local_path(path):
     STORAGES['local'] = found
 
 
-####################################
-####     PATH MANIPULATION      ####
-####################################
+# ###################################
+# ###     PATH MANIPULATION      ####
+# ###################################
 
 
 def create_or_clean_path(prefix, dir=False):
@@ -198,9 +198,9 @@ def copy_file(src, dest):
         pass
 
 
-####################################
-####           MISC.            ####
-####################################
+# ###################################
+# ###           MISC.            ####
+# ###################################
 
 
 def check_valid_program(p, succ=None, fail=None, raise_if_fail=True):
@@ -296,7 +296,7 @@ def unlock_file(f):
                 io.console.debug("Unlock {}".format(lf_name))
     except Exception as e:
         if io.console:
-            io.console.warning("Issue unlocking {}: {}".format(lf_name), e)
+            io.console.warning("Issue unlocking {}: {}".format(lf_name, e))
         pass
 
 
@@ -360,7 +360,7 @@ def trylock_file(f, reentrant=False):
             if io.console:
                 io.console.debug("Trylock {}".format(lockfile_name))
             return True
-    except OSError as e:
+    except OSError:
         try:
             hostname, pid = get_lock_owner(f)
             if pid == os.getpid() and hostname == socket.gethostname(
@@ -392,7 +392,7 @@ def is_locked(f):
             data = fh.read()
             if data:
                 return True
-    except:
+    except Exception:
         return False
 
 
@@ -418,7 +418,7 @@ def program_timeout(sig, frame):
     :param sig: signal number
     :type sig: int
     :param frame: the callee (unused)
-    :type f: 
+    :type f:
     :raises CommonException.TimeoutError: timeout is reached
     """
     assert (sig == signal.SIGALRM)
@@ -426,7 +426,7 @@ def program_timeout(sig, frame):
 
 
 def start_autokill(timeout=None):
-    """Initialize a new time to automatically stop the 
+    """Initialize a new time to automatically stop the
     current process once time is expired.
 
     :param timeout: value in seconds before the autokill will be raised

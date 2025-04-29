@@ -1,10 +1,7 @@
-import os
 import queue
 
 from pcvs import io
-from pcvs import NAME_BUILD_RESDIR
 from pcvs.backend import session
-from pcvs.helpers import log
 from pcvs.helpers.system import MetaConfig
 from pcvs.orchestration.manager import Manager
 from pcvs.orchestration.runner import RunnerAdapter

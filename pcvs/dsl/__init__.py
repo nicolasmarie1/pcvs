@@ -1,12 +1,9 @@
 import json
-import os
-from enum import Enum
 from enum import IntEnum
 from typing import Dict
 from typing import List
 
 from pcvs import io
-from pcvs.helpers import exceptions
 from pcvs.helpers import git
 from pcvs.testing.test import Test
 
@@ -233,7 +230,7 @@ class Serie:
         msg = "New run" if not msg else msg
         try:
             raw_metadata = json.dumps(metadata)
-        except:
+        except Exception:
             raw_metadata = ""
 
         commit_msg = """{}

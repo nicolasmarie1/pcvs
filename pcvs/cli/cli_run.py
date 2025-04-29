@@ -15,7 +15,6 @@ from pcvs.helpers import exceptions
 from pcvs.helpers import system
 from pcvs.helpers import utils
 from pcvs.io import Verbosity
-from pcvs.orchestration.publishers import BuildDirectoryManager
 
 try:
     import rich_click as click

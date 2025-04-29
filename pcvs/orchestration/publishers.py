@@ -18,8 +18,6 @@ from pcvs.helpers import utils
 from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers.exceptions import PublisherException
 from pcvs.helpers.system import MetaConfig
-from pcvs.helpers.system import ValidationScheme
-from pcvs.plugins import Plugin
 from pcvs.testing.test import Test
 
 
@@ -62,7 +60,7 @@ class ResultFile:
         try:
             if os.path.isfile(self._metadata_file):
                 self.load()
-        except:
+        except Exception:
             pass
 
         # no way to have a bz2 be opened R/W at once ? seems not :(
@@ -99,7 +97,7 @@ class ResultFile:
         :param output: raw output
         :type output: bytes
         """
-        assert (type(data) == dict)
+        assert (type(data) is dict)
         assert ('result' in data.keys())
         insert = {}
         start = 0
@@ -288,12 +286,12 @@ class ResultFileManager:
         """
         Load existing results from prefix.
         """
-        l = list(
+        jobs = list(
             filter(lambda x: x.startswith('jobs-') and x.endswith(".json"),
                    os.listdir(self._outdir)))
-        if len(l) > 0:
+        if len(jobs) > 0:
             curfile = None
-            for f in list(map(lambda x: os.path.join(self._outdir, x), l)):
+            for f in list(map(lambda x: os.path.join(self._outdir, x), jobs)):
                 p = os.path.dirname(f)
                 f = os.path.splitext(os.path.basename(f))[0]
                 curfile = ResultFile(p, f)
@@ -379,7 +377,7 @@ class ResultFileManager:
                 with open(path, 'r') as fh:
                     try:
                         return json.load(fh)
-                    except:
+                    except Exception:
                         return {}
             else:
                 return default
@@ -719,7 +717,7 @@ class BuildDirectoryManager:
 
     def init_results(self, per_file_max_sz=0):
         """
-        Initialize the result handler. 
+        Initialize the result handler.
 
         This function is not called directly from the __init__ method as this
         isntance may be used for both reading & writing into the destination

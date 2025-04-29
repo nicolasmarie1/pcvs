@@ -1,5 +1,5 @@
 def identify(pm_node):
-    """identifies where 
+    """identifies where
 
     :param pm_node: [description]
     :type pm_node: [type]

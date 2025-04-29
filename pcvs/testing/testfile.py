@@ -89,7 +89,7 @@ class TestFile:
 
     :param _in: YAML input file
     :type _in: str
-    :param _path_out: prefix where to store output artifacts 
+    :param _path_out: prefix where to store output artifacts
     :type _path_out: str
     :param _raw: stream to populate the TestFile rather than opening input file
     :type _raw: dict
@@ -150,7 +150,7 @@ class TestFile:
         stream = replace_special_token(data, source, build, self._prefix)
         try:
             self._raw = YAML(typ='safe').load(stream)
-        except YAMLError as e:
+        except YAMLError:
             raise ValidationException.FormatError(origin="<stream>")
 
     def save_yaml(self):
@@ -284,9 +284,9 @@ fi
 
 for arg in "$@"; do case $arg in
 """.format(simulated="sim"
-            if MetaConfig.root.validation.simulated is True else "",
-            pm_string="\n".join([TestFile.cc_pm_string,
-                                TestFile.rt_pm_string])))
+                if MetaConfig.root.validation.simulated is True else "",
+                pm_string="\n".join([TestFile.cc_pm_string,
+                                    TestFile.rt_pm_string])))
 
             for test in self._tests:
                 fh_sh.write(test.generate_script(fn_sh))
@@ -297,20 +297,20 @@ for arg in "$@"; do case $arg in
         *) printf "Invalid test-name \'$arg\'\\n"; exit 1;;
         esac
     done
-    
+
     if test -z "$PCVS_SHOW"; then
         eval "${{pcvs_load}}" || exit "$?"
         eval "${{pcvs_env}}" || exit "$?"
         eval "${{pcvs_cmd}}" || exit "$?"
         exit $?
-    else   
+    else
         if test -n "$PCVS_SHOW_MOD"; then
             test -n "$PCVS_VERBOSE" && echo "#### MODULE LOADED ####"
 cat<<EOF
 ${{pcvs_load}}
 EOF
         fi
-        
+
         if test -n "$PCVS_SHOW_ENV"; then
         test -n "$PCVS_VERBOSE" && echo "###### SETUP ENV ######"
 cat<<EOF

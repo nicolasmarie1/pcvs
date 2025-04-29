@@ -13,7 +13,6 @@ from pcvs import io
 from pcvs import NAME_BUILD_ARCHIVE_DIR
 from pcvs import NAME_BUILDFILE
 from pcvs.backend import utilities as pvUtils
-from pcvs.helpers import utils
 from pcvs.helpers.system import MetaConfig
 
 try:

@@ -1,15 +1,12 @@
-import os
 import sys
 
 from rich.table import Table
 from ruamel.yaml import YAML
 
 from pcvs import io
-from pcvs import PATH_INSTDIR
 from pcvs.backend import config as pvConfig
 from pcvs.backend import profile as pvProfile
 from pcvs.cli import cli_config
-from pcvs.helpers import log
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ProfileException
 from pcvs.helpers.exceptions import ValidationException
@@ -41,7 +38,7 @@ def compl_list_token(ctx, args, incomplete):  # pragma: no cover
 
 
 def compl_list_templates(ctx, args, incomplete):  # pragma: no cover
-    """ the profile template completion. 
+    """ the profile template completion.
 
     :param ctx: Click context
     :type ctx: :class:`Click.Context`

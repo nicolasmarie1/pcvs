@@ -1,6 +1,5 @@
 import os
 
-from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers.system import MetaConfig
 
 

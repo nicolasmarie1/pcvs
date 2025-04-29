@@ -9,7 +9,6 @@ from ruamel.yaml.main import yaml_object
 
 from pcvs import io
 from pcvs import PATH_SESSION
-from pcvs.helpers import utils
 
 yml = YAML()
 
@@ -106,7 +105,7 @@ def list_alive_sessions():
             with open(os.path.join(PATH_SESSION, f), "r") as fh:
                 data = yml.load(fh)
                 all_sessions[os.path.splitext(f)[0]] = data
-        except:
+        except Exception:
             continue
     return all_sessions
 

@@ -1,9 +1,6 @@
-import fcntl
 import getpass
 import hashlib
 import os
-import socket
-import time
 from abc import ABC
 from abc import abstractmethod
 from abc import abstractproperty
@@ -17,7 +14,7 @@ from pcvs.helpers.exceptions import GitException
 try:
     import pygit2
     has_pygit2 = True
-except ModuleNotFoundError as e:
+except ModuleNotFoundError:
     has_pygit2 = False
 
 
@@ -235,7 +232,7 @@ class GitByGeneric(ABC):
         pass
 
     @abstractmethod
-    def open(self):
+    def open_dir(self):
         """Open a new directory. Also lock to avoid races."""
         pass
 
@@ -271,7 +268,7 @@ class GitByGeneric(ABC):
     @abstractmethod
     def diff_tree(self, prefix, src_rev, dst_rev):
         """
-        Compare & return the list of patches 
+        Compare & return the list of patches
         """
         pass
 
@@ -515,10 +512,6 @@ class GitByAPI(GitByGeneric):
             dst_rev = self.revparse(dst_rev)
             assert (isinstance(dst_rev, pygit2.Object))
 
-            diff = src_rev.diff_to_tree(dst_rev)
-        else:
-            diff = src_rev.diff_to_tree()
-
     def list_commits(self, rev=None, since=None, until=None):
         res = []
         assert (not rev or isinstance(rev, Reference))
@@ -674,7 +667,6 @@ class GitByCLI(GitByGeneric):
         ]
 
     def iterate_over(self, ref):
-        res = []
         assert (isinstance(ref, Reference))
         for elt in self._git('rev-list', '--reverse', ref).strip().split("\n"):
             yield Commit(repo=self, obj=elt)
@@ -710,7 +702,7 @@ class GitByCLI(GitByGeneric):
     def __valid_object(self, hash):
         try:
             self._git("cat-file", "-e", hash)
-        except:
+        except Exception:
             return False
         return True
 
@@ -724,8 +716,6 @@ class GitByCLI(GitByGeneric):
                 assert (check == data_hash)
             treebuild.children.append(data_hash)
             return data_hash
-        else:
-            cur = path[0]
 
     def _create_tree(self, name, children):
         array = []
@@ -910,7 +900,7 @@ def get_current_username() -> str:
         u = request_git_attr('user.name')
         if u is None:
             u = getpass.getuser()
-    except Exception as e:
+    except Exception:
         pass
     finally:
         if u is None:
@@ -929,7 +919,7 @@ def get_current_usermail():
         m = request_git_attr('user.email')
         # if m is None:
         #    m = "{}@{}".format(get_current_username(), socket.getfqdn())
-    except Exception as e:
+    except Exception:
         pass
     finally:
         if m is None:

@@ -2,7 +2,6 @@ import sys
 
 from pcvs.backend.bank import Bank
 from pcvs.cli.cli_bank import compl_list_banks
-from pcvs.dsl.analysis import ResolverAnalysis
 from pcvs.helpers.system import MetaConfig
 
 try:

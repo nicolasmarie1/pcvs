@@ -212,7 +212,7 @@ class Criterion:
         """Update the calling Criterion with the interesection of the current
         range of possible values with the one given as a parameters.
 
-        This is used to refine overriden per-TE criterion according to 
+        This is used to refine overriden per-TE criterion according to
         system-wide's"""
         assert (isinstance(other, Criterion))
         assert (self._name == other._name)
@@ -225,7 +225,7 @@ class Criterion:
             self._values = set(self._values).intersection(other._values)
 
     def is_empty(self):
-        """Is the current set of values empty 
+        """Is the current set of values empty
         May lead to errors, as it may indicates no common values has been
         found between user and system specifications"""
         return self._values is not None and len(self._values) == 0

@@ -1,7 +1,6 @@
 import json
 import os
 import shutil
-import sys
 
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.testing.test import Test

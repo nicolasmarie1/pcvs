@@ -1,7 +1,5 @@
 from matplotlib import pyplot as plt
 
-from pcvs.dsl import Bank
-from pcvs.dsl.analysis import SimpleAnalysis
 from pcvs.testing.test import Test
 
 

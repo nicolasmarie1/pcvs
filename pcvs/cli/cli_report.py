@@ -1,7 +1,6 @@
 import os
 
 from pcvs import io
-from pcvs import NAME_BUILDFILE
 from pcvs import NAME_BUILDIR
 from pcvs.backend import report as pvReport
 from pcvs.helpers import utils

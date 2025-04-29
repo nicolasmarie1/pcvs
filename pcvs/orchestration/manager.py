@@ -1,4 +1,3 @@
-from pcvs.helpers import log
 from pcvs.helpers.exceptions import OrchestratorException
 from pcvs.helpers.system import MetaConfig
 from pcvs.helpers.system import MetaDict
@@ -23,7 +22,7 @@ class Manager:
     :ivar _publisher: the Formatter object, publishing results into files
     :type _publisher: :class:`ResultFileManager`
     :ivar _count: dict gathering various counters (total, executed...)
-    :type _count: dict 
+    :type _count: dict
     """
     job_hashes = dict()
     dep_rules = dict()
@@ -236,7 +235,6 @@ class Manager:
                 else:
                     # assert(self._builder.job_grabber)
                     job: Test = self._dims[k].pop(0)
-                    publish_job_args = {}
                     if job:
                         if job.been_executed(
                         ) or job.state == Test.State.IN_PROGRESS:
@@ -314,7 +312,6 @@ class Manager:
         :param set: the set handling jobs during the scheduling.
         :type set: :class:`Set`
         """
-        final = list()
         for job in set.content:
             if job.been_executed():
                 job.extract_metrics()

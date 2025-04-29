@@ -234,10 +234,10 @@ class PleaseWaitScreen(ModalScreen):
 class SessionInfoScreen(ModalScreen):
 
     def compose(self):
-        display = {
-            "datetime": Static("Date of run:"),
-            "pf_name": Static("Profile:"),
-        }
+        # display = {
+        #     "datetime": Static("Date of run:"),
+        #     "pf_name": Static("Profile:"),
+        # }
         config = self.app.model.active.config
         infolog = RichLog()
 
@@ -312,4 +312,4 @@ def start_app(p=None) -> int:
     :return: A return code from Textual Application
     :rtype: int
     """
-    app = ReportApplication(ReportModel(p)).run()
+    # app = ReportApplication(ReportModel(p)).run()

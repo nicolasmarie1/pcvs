@@ -15,13 +15,13 @@ from pcvs.helpers.exceptions import ValidationException
 from pcvs.io import Verbosity
 
 
-####################################
-####   YAML VALIDATION OBJECT   ####
-####################q################
+# ###################################
+# ###   YAML VALIDATION OBJECT   ####
+# ###################q################
 class ValidationScheme:
     """Object manipulating schemes (yaml) to enforce data formats.
     A validationScheme is instancied according to a 'model' (the format to
-    validate). This instance can be used multiple times to check multiple 
+    validate). This instance can be used multiple times to check multiple
     streams belonging to the same model.
     """
     avail_list = None
@@ -62,7 +62,7 @@ class ValidationScheme:
 
             :param content: json to validate
             :type content: dict
-            :param filepath: 
+            :param filepath:
             :raises ValidationException.FormatError: data are not valid
             :raises ValidationException.SchemeError: issue while applying scheme
         """
@@ -189,7 +189,7 @@ class Config(MetaDict):
             with open(filename, 'r') as fh:
                 d = YAML(typ='safe').load(fh)
                 self.from_dict(d)
-        except (IOError, YAMLError) as e:
+        except (IOError, YAMLError):
             raise CommonException.IOError(
                 "{} invalid or badly formatted".format(filename))
 
@@ -220,7 +220,7 @@ class MetaConfig(MetaDict):
         # to be published (like conf.yml, etc...). mainly one-time Python
         # objects
 
-        #self.__internal_config = Config()
+        # self.__internal_config = Config()
 
     def __setitem__(self, param, value):
         """Extend the default MetaDict setter mthod to reach the base class one"""
@@ -293,7 +293,7 @@ class MetaConfig(MetaDict):
 
             :param filepath: path to file to be validated
             :type filepath: os.path, str
-            :raises CommonException.IOError: file is not found or badly 
+            :raises CommonException.IOError: file is not found or badly
                 formatted
         """
         node = MetaDict()
@@ -304,9 +304,9 @@ class MetaConfig(MetaDict):
             try:
                 with open(filepath, 'r') as fh:
                     node = MetaDict(YAML(typ='safe').load(fh))
-            except (IOError, YAMLError) as e:
+            except (IOError, YAMLError):
                 raise CommonException.IOError(
-                    "Error(s) found while loading (}".format(filepath))
+                    "Error(s) found while loading {}".format(filepath))
 
         # some post-actions
         for field in ["output", "reused_build"]:

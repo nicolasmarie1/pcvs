@@ -4,8 +4,6 @@ import json
 import os
 import re
 import shlex
-import sys
-import zlib
 from enum import IntEnum
 
 from pcvs import io
