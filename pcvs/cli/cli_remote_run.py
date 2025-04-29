@@ -27,10 +27,26 @@ except ImportError:
     import click
 
 
-@click.command("remote-run", help="Internal command to re-run a PCVS instance. Should not be used directly")
-@click.option("-b", "--build", "buildir", help="target build directory", type=click.Path(exists=True))
-@click.option("-c", "--context-path", "ctx_path", help="Current Runner Context path", type=click.Path(exists=True))
-@click.option("-p", "--parallel", "parallel", default=1, type=int, help="Run jobs concurrently")
+@click.command(
+    "remote-run",
+    help=
+    "Internal command to re-run a PCVS instance. Should not be used directly")
+@click.option("-b",
+              "--build",
+              "buildir",
+              help="target build directory",
+              type=click.Path(exists=True))
+@click.option("-c",
+              "--context-path",
+              "ctx_path",
+              help="Current Runner Context path",
+              type=click.Path(exists=True))
+@click.option("-p",
+              "--parallel",
+              "parallel",
+              default=1,
+              type=int,
+              help="Run jobs concurrently")
 @click.pass_context
 def remote_run(ctx, buildir, ctx_path, parallel):
     """
@@ -39,8 +55,8 @@ def remote_run(ctx, buildir, ctx_path, parallel):
     """
 
     if not buildir:
-        buildir = os.path.abspath(os.path.dirname(
-            os.path.dirname(os.path.dirname(ctx_path))))
+        buildir = os.path.abspath(
+            os.path.dirname(os.path.dirname(os.path.dirname(ctx_path))))
 
     hdl = BuildDirectoryManager(build_dir=buildir)
     hdl.load_config()

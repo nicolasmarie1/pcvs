@@ -46,10 +46,7 @@ class Manager:
         self._dims = dict()
         self._max_size = max_size
         self._publisher = publisher
-        self._count = MetaDict({
-            "total": 0,
-            "executed": 0
-        })
+        self._count = MetaDict({"total": 0, "executed": 0})
 
     def get_dim(self, dim):
         """Get the list of jobs satisfying the given dimension.
@@ -200,8 +197,9 @@ class Manager:
                 removed_jobs = list()
                 for job in self._dims[k]:
                     if job.pick_count() > Test.SCHED_MAX_ATTEMPTS:
-                        self.publish_failed_to_run_job(
-                            job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
+                        self.publish_failed_to_run_job(job,
+                                                       Test.MAXATTEMPTS_STR,
+                                                       Test.State.ERR_OTHER)
                         removed_jobs.append(job)
                 for elt in removed_jobs:
                     self._dims[k].remove(elt)
@@ -230,8 +228,7 @@ class Manager:
                 Plugin.Step.SCHED_SET_EVAL,
                 jobman=self,
                 max_dim=max_dim,
-                max_job_limit=int(self._count.total / self._concurrent_level)
-            )
+                max_job_limit=int(self._count.total / self._concurrent_level))
         else:
             for k in sorted(self._dims.keys(), reverse=True):
                 if len(self._dims[k]) <= 0 or max_dim < k:
@@ -241,7 +238,8 @@ class Manager:
                     job: Test = self._dims[k].pop(0)
                     publish_job_args = {}
                     if job:
-                        if job.been_executed() or job.state == Test.State.IN_PROGRESS:
+                        if job.been_executed(
+                        ) or job.state == Test.State.IN_PROGRESS:
                             # skip job (only a pop() to do)
                             continue
 
@@ -298,21 +296,16 @@ class Manager:
                         else:
                             if job.not_picked():
                                 self.publish_failed_to_run_job(
-                                    job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
+                                    job, Test.MAXATTEMPTS_STR,
+                                    Test.State.ERR_OTHER)
                             else:
                                 self._dims[k].append(job)
         self._plugin.invoke_plugins(Plugin.Step.SCHED_SET_AFTER)
         return the_set
 
     def publish_failed_to_run_job(self, job, out, state):
-        publish_job_args = {
-            "rc": -1,
-            "time": 0.0,
-            "out": out,
-            "state": state
-        }
-        self.publish_job(
-            job, publish_args=publish_job_args)
+        publish_job_args = {"rc": -1, "time": 0.0, "out": out, "state": state}
+        self.publish_job(job, publish_args=publish_job_args)
         job.display()
 
     def merge_subset(self, set):
@@ -332,7 +325,7 @@ class Manager:
             else:
 
                 if job.not_picked():
-                    self.publish_failed_to_run_job(
-                        job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
+                    self.publish_failed_to_run_job(job, Test.MAXATTEMPTS_STR,
+                                                   Test.State.ERR_OTHER)
                 else:
                     self.add_job(job)

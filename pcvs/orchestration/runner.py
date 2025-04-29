@@ -18,7 +18,13 @@ from pcvs.testing.test import Test
 class RunnerAdapter(threading.Thread):
     sched_in_progress = True
 
-    def __init__(self, buildir, context=None, ready=None, complete=None, *args, **kwargs):
+    def __init__(self,
+                 buildir,
+                 context=None,
+                 ready=None,
+                 complete=None,
+                 *args,
+                 **kwargs):
         self._prefix = buildir
         self._ctx = context
         self._rq = ready
@@ -96,40 +102,43 @@ class RunnerAdapter(threading.Thread):
         # TODO: Prepare exec context
         wrapper = jobman_cfg.get('wrapper', "")
         env = os.environ.copy()
-        ctx_path = os.path.join(
-            self._prefix, pcvs.NAME_BUILD_CONTEXTDIR, str(set.id))
+        ctx_path = os.path.join(self._prefix, pcvs.NAME_BUILD_CONTEXTDIR,
+                                str(set.id))
         os.makedirs(ctx_path)
-        updated_env = {"PCVS_JOB_MANAGER_{}".format(i.upper()): jobman_cfg[i] for i in [
-            'program', 'args'] if i in jobman_cfg}
+        updated_env = {
+            "PCVS_JOB_MANAGER_{}".format(i.upper()): jobman_cfg[i]
+            for i in ['program', 'args'] if i in jobman_cfg
+        }
         updated_env['PCVS_SET_DIM'] = str(set.dim)
-        updated_env['PCVS_SET_CMD'] = jobman_cfg.program if jobman_cfg.program else ""
-        updated_env['PCVS_SET_CMD_ARGS'] = jobman_cfg.args if jobman_cfg.args else ""
+        updated_env[
+            'PCVS_SET_CMD'] = jobman_cfg.program if jobman_cfg.program else ""
+        updated_env[
+            'PCVS_SET_CMD_ARGS'] = jobman_cfg.args if jobman_cfg.args else ""
         env.update(updated_env)
 
         cmd = "{script} pcvs remote-run -c {ctx} -p {parallel}".format(
-            script=wrapper,
-            ctx=ctx_path,
-            parallel=parallel
-        )
+            script=wrapper, ctx=ctx_path, parallel=parallel)
         try:
             ctx = RemoteContext(ctx_path)
             ctx.save_input_to_disk(set)
             assert (ctx.check_input_avail())
-            self._process_hdl = subprocess.Popen(cmd, shell=True, env=env,
-                                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            self._process_hdl = subprocess.Popen(cmd,
+                                                 shell=True,
+                                                 env=env,
+                                                 stdout=subprocess.PIPE,
+                                                 stderr=subprocess.PIPE)
             out, err = self._process_hdl.communicate()
             if err:
-                io.console.warning(
-                    "Set {} - error output: {}".format(set.id, err.decode('utf-8')))
+                io.console.warning("Set {} - error output: {}".format(
+                    set.id, err.decode('utf-8')))
             if ctx.check_output_avail():
                 ctx.load_result_from_disk(set)
             else:
-                io.console.warning(
-                    "Set {} did not produce any output".format(set.id))
+                io.console.warning("Set {} did not produce any output".format(
+                    set.id))
         except:
             raise RunnerException.LaunchError(
-                reason="Fail to start a remote Runner",
-                dbg_info={'cmd': cmd})
+                reason="Fail to start a remote Runner", dbg_info={'cmd': cmd})
 
 
 def progress_jobs(q, ctx, ev):
@@ -164,8 +173,8 @@ class RunnerRemote:
         pq = queue.Queue()
         ev = threading.Event()
 
-        progress = threading.Thread(
-            target=progress_jobs, args=(pq, self._ctx, ev))
+        progress = threading.Thread(target=progress_jobs,
+                                    args=(pq, self._ctx, ev))
         progress.start()
 
         for _ in range(0, parallel):
@@ -212,7 +221,9 @@ class RemoteContext:
 
     def save_input_to_disk(self, set):
         with open(os.path.join(self._path, "input.json"), "w") as f:
-            f.write(json.dumps(list(map(lambda x: x.to_minimal_json(), set.content))))
+            f.write(
+                json.dumps(
+                    list(map(lambda x: x.to_minimal_json(), set.content))))
 
     def check_input_avail(self):
         f = os.path.join(self._path, "input.json")
@@ -239,10 +250,9 @@ class RemoteContext:
             self._outfile = open(os.path.join(self._path, "output.bin"), 'wb')
         data = job.encoded_output
         self._outfile.writelines([
-            "{}:{}:{}:{}:{}\n".format(self.MAGIC_TOKEN, job.jid, len(
-                data), job.time, job.retcode).encode("utf-8"),
-            data,
-            "\n".encode('utf-8')
+            "{}:{}:{}:{}:{}\n".format(self.MAGIC_TOKEN, job.jid, len(data),
+                                      job.time, job.retcode).encode("utf-8"),
+            data, "\n".encode('utf-8')
         ])
 
     def load_result_from_disk(self, set):
@@ -265,7 +275,7 @@ class RemoteContext:
                     job: Test = set.find(jobid)
                     assert (job)
                     if datalen > 0:
-                        data = lines[lineum+1].strip()
+                        data = lines[lineum + 1].strip()
                         job.encoded_output = data
                     job.save_raw_run(rc=retcode, time=timexec)
                     job.save_status(Test.State.EXECUTED)

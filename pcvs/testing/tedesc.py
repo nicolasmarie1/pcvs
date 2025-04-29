@@ -21,8 +21,6 @@ from pcvs.testing.test import Test
 # appearing in this list will be considered as the main language
 
 
-
-
 def detect_source_lang(array_of_files) -> str:
     """Determine compilation language for a target file (or list of files).
 
@@ -55,6 +53,7 @@ def detect_source_lang(array_of_files) -> str:
             detect.append('accl')
     return detect
 
+
 def validate_source_lang(langs, allowed_languages) -> Optional[str]:
     #1. If fortran, select a compiler in that order
     for i in ['f08', 'f03', 'f95', 'f90', 'f77', 'fc']:
@@ -80,6 +79,7 @@ def validate_source_lang(langs, allowed_languages) -> Optional[str]:
                 return i
     return None
 
+
 def extract_compilers_envs():
     envs = []
     for compiler in MetaConfig.root.compiler:
@@ -101,8 +101,10 @@ def extract_compiler_config(lang, variants):
     if not lang or lang not in MetaConfig.root.compiler:
         raise ProfileException.IncompleteError(
             reason="Unknown language, not defined into Profile",
-            dbg_info={"lang": lang, "list": MetaConfig.root.compiler.keys()}
-        )
+            dbg_info={
+                "lang": lang,
+                "list": MetaConfig.root.compiler.keys()
+            })
 
     config = MetaConfig.root.compiler[lang]
     for v in variants:
@@ -141,9 +143,8 @@ def build_job_deps(deps_node, pkg_label, pkg_prefix):
     """
     deps = list()
     for d in deps_node.get('depends_on', list()):
-        deps.append(
-            d if "/" in d else Test.compute_fq_name(pkg_label, pkg_prefix, d)
-        )
+        deps.append(d if "/" in
+                    d else Test.compute_fq_name(pkg_label, pkg_prefix, d))
     return deps
 
 
@@ -223,9 +224,7 @@ class TEDescriptor:
         self._te_subtree = subprefix
 
         _, self._srcdir, _, self._buildir = testing.generate_local_variables(
-            label,
-            subprefix
-        )
+            label, subprefix)
         # before doing anything w/ node:
         # arregate the 'group' definitions with the TE
         # to get all the fields in their final form
@@ -241,7 +240,7 @@ class TEDescriptor:
         self._metrics = MetaDict(node.get('metrics', None))
         self._attributes = MetaDict(node.get("attributes", None))
         self._template = node.get('group', None)
-        self._debug = self._te_name+":\n"
+        self._debug = self._te_name + ":\n"
         self._effective_cnt = 0
         self._tags = node.get('tag', list())
 
@@ -375,7 +374,9 @@ class TEDescriptor:
         if not self._build.sources.get("lang", None):
             langs = detect_source_lang(self._build.files)
             if langs is None:
-                raise TestException.TestExpressionError(self._build.files, reason="Unable to detect the compiler to use")
+                raise TestException.TestExpressionError(
+                    self._build.files,
+                    reason="Unable to detect the compiler to use")
         else:
             langs = self._build.sources.lang
             if isinstance(langs, str):
@@ -384,7 +385,8 @@ class TEDescriptor:
         lang = validate_source_lang(langs, MetaConfig.root.compiler.keys())
 
         if lang is None:
-            raise TestException.TestExpressionError(langs, reason="Unable to find the right compiler")
+            raise TestException.TestExpressionError(
+                langs, reason="Unable to find the right compiler")
 
         binary = self._te_name
         if self._build.sources.binary:
@@ -394,8 +396,8 @@ class TEDescriptor:
 
         self._build.sources.binary = binary
 
-        program, args, envs = extract_compiler_config(
-            lang, self._build.variants)
+        program, args, envs = extract_compiler_config(lang,
+                                                      self._build.variants)
 
         command = "{cc} {cflags} {files} {ldflags} {args} {out}".format(
             cc=program,
@@ -403,8 +405,7 @@ class TEDescriptor:
             cflags=self._build.sources.get('cflags', ''),
             files=" ".join(self._build.files),
             ldflags=self._build.sources.get('ldflags', ''),
-            out="-o {}".format(os.path.join(self._buildir, binary))
-        )
+            out="-o {}".format(os.path.join(self._buildir, binary)))
         return (command, envs)
 
     def __build_from_makefile(self):
@@ -423,15 +424,11 @@ class TEDescriptor:
 
         envs = extract_compilers_envs()
         # build the 'make' command
-        command.append(
-            '-C {path} {target} '.format(
-                path=basepath,
-                target=self._build.make.get('target', '')
-            )
-        )
+        command.append('-C {path} {target} '.format(
+            path=basepath, target=self._build.make.get('target', '')))
         command += self._build['make'].get('args', [])
         envs += self._build['make'].get('envs', [])
-        
+
         cmd = (" ".join(command), envs)
         return cmd
 
@@ -450,10 +447,7 @@ class TEDescriptor:
         envs = extract_compilers_envs()
         command.append(
             r"-G 'Unix Makefiles' "
-            r"-DCMAKE_BINARY_DIR='{build}' ".format(
-                build=self._buildir
-            )
-        )
+            r"-DCMAKE_BINARY_DIR='{build}' ".format(build=self._buildir))
 
         command += self._build['cmake'].get('args', [])
         envs += self._build['cmake'].get('envs', [])
@@ -480,10 +474,8 @@ class TEDescriptor:
             configure_path = os.path.join(self._srcdir, "configure")
 
         if self._build.autotools.get('autogen', False) is True:
-            autogen_path = os.path.join(
-                os.path.dirname(configure_path),
-                "autogen.sh"
-            )
+            autogen_path = os.path.join(os.path.dirname(configure_path),
+                                        "autogen.sh")
             command.append("{} && ".format(autogen_path))
 
         envs = extract_compilers_envs()
@@ -512,7 +504,9 @@ class TEDescriptor:
         if not os.path.isabs(command):
             command = os.path.join(self._buildir, command)
 
-        return (". {} && {}".format(os.path.join(MetaConfig.root.validation.output, pcvs.NAME_BUILD_CONF_SH), command), env)
+        return (". {} && {}".format(
+            os.path.join(MetaConfig.root.validation.output,
+                         pcvs.NAME_BUILD_CONF_SH), command), env)
 
     def __build_exec_process(self):
         """Drive compilation command generation based on TE format.
@@ -547,8 +541,8 @@ class TEDescriptor:
                         self._srcdir, self._build.files[i])
 
         # manage deps (tests, package_managers...)
-        job_deps = build_job_deps(
-            self._build, self._te_label, self._te_subtree)
+        job_deps = build_job_deps(self._build, self._te_label,
+                                  self._te_subtree)
         mod_deps = build_pm_deps(self._build)
 
         chdir = self._build.get('cwd')
@@ -562,38 +556,33 @@ class TEDescriptor:
         # count number of built tests
         self._effective_cnt += 1
 
-        yield Test(
-            te_name=self._te_name,
-            user_suffix="cc" if self._run else None,
-            label=self._te_label,
-            subtree=self._te_subtree,
-            command=command,
-            environment=env,
-            tags=tags,
-            job_deps=job_deps,
-            mod_deps=mod_deps,
-            time=self._validation.time.get("mean", -1),
-            delta=self._validation.time.get("tolerance", 0),
-            kill_after=self._validation.time.get('kill_after', None),
-            rc=self._validation.get("expect_exit", 0),
-            artifacts=self._artifacts,
-            analysis=self._validation.get("analysis", {}),
-            resources=1,
-            wd=chdir
-        )
+        yield Test(te_name=self._te_name,
+                   user_suffix="cc" if self._run else None,
+                   label=self._te_label,
+                   subtree=self._te_subtree,
+                   command=command,
+                   environment=env,
+                   tags=tags,
+                   job_deps=job_deps,
+                   mod_deps=mod_deps,
+                   time=self._validation.time.get("mean", -1),
+                   delta=self._validation.time.get("tolerance", 0),
+                   kill_after=self._validation.time.get('kill_after', None),
+                   rc=self._validation.get("expect_exit", 0),
+                   artifacts=self._artifacts,
+                   analysis=self._validation.get("analysis", {}),
+                   resources=1,
+                   wd=chdir)
 
     def __construct_runtime_tests(self):
         """Generate tests to be run by the runtime command."""
-        te_job_deps = build_job_deps(
-            self._run, self._te_label, self._te_subtree)
+        te_job_deps = build_job_deps(self._run, self._te_label,
+                                     self._te_subtree)
         te_mod_deps = build_pm_deps(self._run)
 
         if self._build:
-            fq_name = Test.compute_fq_name(
-                self._te_label,
-                self._te_subtree,
-                self._te_name,
-                'cc')
+            fq_name = Test.compute_fq_name(self._te_label, self._te_subtree,
+                                           self._te_name, 'cc')
             if fq_name not in te_job_deps:
                 te_job_deps.append(fq_name)
 
@@ -616,8 +605,8 @@ class TEDescriptor:
 
             clone_outdir = self.get_attr('copy_output', False)
             if clone_outdir:
-                buildir = tempfile.mkdtemp(prefix="{}.".format(
-                    self._te_name), dir=self._buildir)
+                buildir = tempfile.mkdtemp(prefix="{}.".format(self._te_name),
+                                           dir=self._buildir)
             else:
                 buildir = self._buildir
 
@@ -631,42 +620,38 @@ class TEDescriptor:
             if self.get_attr('path_resolution', True) is True:
                 program = os.path.abspath(os.path.join(self._buildir, program))
 
-            command = "{program} {params}".format(
-                program=program,
-                params=" ".join(params)
-            )
+            command = "{program} {params}".format(program=program,
+                                                  params=" ".join(params))
             if self.get_attr('command_wrap', True) is True:
                 command = "{runtime} {args} {runtime_args} {cmd}".format(
                     runtime=MetaConfig.root.runtime.get('program', ''),
                     runtime_args=MetaConfig.root.runtime.get('args', ''),
                     args=" ".join(args),
-                    cmd=command
-                )
+                    cmd=command)
             #print(repr(command))
             self._effective_cnt += 1
 
-            yield Test(
-                te_name=self._te_name,
-                label=self._te_label,
-                subtree=self._te_subtree,
-                command=command,
-                job_deps=te_job_deps,
-                mod_deps=te_mod_deps,
-                tags=self._tags,
-                metrics=self._metrics,
-                environment=env,
-                dim=comb.get('n_node', 1),
-                time=self._validation.time.get("mean", -1),
-                delta=self._validation.time.get("tolerance", 0),
-                kill_after=self._validation.time.get('kill_after', None),
-                rc=self._validation.get("expect_exit", 0),
-                valscript=self._validation.script.get('path', None),
-                analysis=self._validation.get("analysis", {}),
-                comb=comb,
-                wd=chdir,
-                artifacts=self._artifacts,
-                matchers=self._validation.get('match', None)
-            )
+            yield Test(te_name=self._te_name,
+                       label=self._te_label,
+                       subtree=self._te_subtree,
+                       command=command,
+                       job_deps=te_job_deps,
+                       mod_deps=te_mod_deps,
+                       tags=self._tags,
+                       metrics=self._metrics,
+                       environment=env,
+                       dim=comb.get('n_node', 1),
+                       time=self._validation.time.get("mean", -1),
+                       delta=self._validation.time.get("tolerance", 0),
+                       kill_after=self._validation.time.get(
+                           'kill_after', None),
+                       rc=self._validation.get("expect_exit", 0),
+                       valscript=self._validation.script.get('path', None),
+                       analysis=self._validation.get("analysis", {}),
+                       comb=comb,
+                       wd=chdir,
+                       artifacts=self._artifacts,
+                       matchers=self._validation.get('match', None))
 
     def construct_tests(self):
         """Construct a collection of tests (build & run) from a given TE.
@@ -681,8 +666,9 @@ class TEDescriptor:
         clone_indir = self.get_attr('copy_input', False)
 
         if clone_indir:
-            isolation_path = tempfile.mkdtemp(
-                prefix="{}.".format(self._te_name), dir=self._buildir)
+            isolation_path = tempfile.mkdtemp(prefix="{}.".format(
+                self._te_name),
+                                              dir=self._buildir)
             old_src_dir = self._srcdir
             self._srcdir = os.path.join(isolation_path, "src")
             shutil.copytree(old_src_dir, self._srcdir)
@@ -696,8 +682,10 @@ class TEDescriptor:
             if self.get_attr('command_wrap', True) is False:
                 self._serie = Serie({**self._program_criterion})
             else:
-                self._serie = Serie(
-                    {**self._criterion, **self._program_criterion})
+                self._serie = Serie({
+                    **self._criterion,
+                    **self._program_criterion
+                })
             yield from self.__construct_runtime_tests()
             del self._serie
 

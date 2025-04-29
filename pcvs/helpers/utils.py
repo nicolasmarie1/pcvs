@@ -72,7 +72,7 @@ def extract_infos_from_token(s, pair="right", single="right", maxsplit=3):
 
     array = s.split(".")
     if len(array) >= maxsplit:
-        return (array[0], array[1], ".".join(array[maxsplit-1:]))
+        return (array[0], array[1], ".".join(array[maxsplit - 1:]))
     elif len(array) == 2:
         # two cases: a.b or b.c
         if pair == 'left':
@@ -136,6 +136,7 @@ def set_local_path(path):
         found = os.path.join(path, NAME_SRCDIR)
     STORAGES['local'] = found
 
+
 ####################################
 ####     PATH MANIPULATION      ####
 ####################################
@@ -195,6 +196,7 @@ def copy_file(src, dest):
         shutil.copy(src, dest)
     except SameFileError:
         pass
+
 
 ####################################
 ####           MISC.            ####
@@ -297,6 +299,7 @@ def unlock_file(f):
             io.console.warning("Issue unlocking {}: {}".format(lf_name), e)
         pass
 
+
 def lock_file(f, reentrant=False, timeout=None, force=True):
     """Try to lock a directory.
 
@@ -339,32 +342,36 @@ def trylock_file(f, reentrant=False):
     :rtype: bool
     """
     lockfile_name = get_lockfile_name(f)
-    
+
     # touch the file if not exist, not care about FileExists.
     try:
         if not os.path.isfile(lockfile_name):
             open(lockfile_name, "x").close()
     except FileExistsError:
         pass
-    
+
     try:
         # attempt to acquire the lock
         with open(lockfile_name, "w") as fh:
             fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
             # from here, lock is taken
-            fh.write("{}||{}||{}".format(socket.gethostname(), os.getpid(), 42))
+            fh.write("{}||{}||{}".format(socket.gethostname(), os.getpid(),
+                                         42))
             if io.console:
                 io.console.debug("Trylock {}".format(lockfile_name))
             return True
     except OSError as e:
         try:
             hostname, pid = get_lock_owner(f)
-            if pid == os.getpid() and hostname == socket.gethostname() and reentrant:
-                io.console.debug("Already locked {} for this process".format(lockfile_name))
+            if pid == os.getpid() and hostname == socket.gethostname(
+            ) and reentrant:
+                io.console.debug(
+                    "Already locked {} for this process".format(lockfile_name))
                 return True
             if io.console:
-                io.console.debug("Not locked, owned by {}:{}".format(hostname, pid))
-            
+                io.console.debug("Not locked, owned by {}:{}".format(
+                    hostname, pid))
+
         except Exception:
             pass  # return False
 
@@ -401,7 +408,7 @@ def get_lock_owner(f):
     lf_name = get_lockfile_name(f)
     with open(lf_name, 'r') as fh:
         s = fh.read().strip().split('||')
-        assert(int(s[2]) == 42)
+        assert (int(s[2]) == 42)
         return s[0], int(s[1])
 
 
@@ -459,8 +466,10 @@ class Program:
         :rtype: integer
         """
         try:
-            s = subprocess.Popen(self._cmd, shell=shell,
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            s = subprocess.Popen(self._cmd,
+                                 shell=shell,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
             self._out = s.communicate(input=input)
             self._rc = s.returncode
         except Exception as e:
@@ -526,8 +535,14 @@ def check_is_build_or_archive(x):
 
 
 def list_valid_buildirs_in_dir(p):
-    return [os.path.join(root, d) for root, d, _ in os.walk(p) if check_is_buildir(p)]
+    return [
+        os.path.join(root, d) for root, d, _ in os.walk(p)
+        if check_is_buildir(p)
+    ]
 
 
 def list_valid_archive_in_dir(p):
-    return [os.path.join(root, f) for root, _, f in os.walk(p) if check_is_archive(f)]
+    return [
+        os.path.join(root, f) for root, _, f in os.walk(p)
+        if check_is_archive(f)
+    ]

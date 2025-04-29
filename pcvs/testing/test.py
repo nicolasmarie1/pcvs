@@ -135,11 +135,7 @@ class Test:
         self._deps = []
         self._invocation_cmd = self._execmd
         self._sched_cnt = 0
-        self._output_info = {
-            'file': None,
-            'offset': -1,
-            'length': 0
-        }
+        self._output_info = {'file': None, 'offset': -1, 'length': 0}
 
     @property
     def jid(self) -> str:
@@ -154,7 +150,8 @@ class Test:
 
     @property
     def basename(self) -> str:
-        return Test.compute_fq_name(self._id['label'], self._id['subtree'], self._id['te_name'])
+        return Test.compute_fq_name(self._id['label'], self._id['subtree'],
+                                    self._id['te_name'])
 
     @property
     def tags(self):
@@ -314,7 +311,10 @@ class Test:
         :return: True if at least one dep is shown a `Test.State.FAILURE` state.
         :rtype: bool
         """
-        return len([d for d in self._deps if d.state in [Test.State.ERR_DEP, Test.State.ERR_OTHER, Test.State.FAILURE]]) > 0
+        return len([
+            d for d in self._deps if d.state in
+            [Test.State.ERR_DEP, Test.State.ERR_OTHER, Test.State.FAILURE]
+        ]) > 0
 
     def first_incomplete_dep(self):
         """Retrive the first ready-for-schedule dep.
@@ -380,7 +380,8 @@ class Test:
         :type state: :class:`Test.State`, optional
         """
         if state is None:
-            state = Test.State.SUCCESS if self._validation['expect_rc'] == rc else Test.State.FAILURE
+            state = Test.State.SUCCESS if self._validation[
+                'expect_rc'] == rc else Test.State.FAILURE
 
         self.save_raw_run(rc=rc, out=out, time=time)
         self.save_status(state)
@@ -430,7 +431,8 @@ class Test:
         raw_output = self.output
 
         # if test should be validated through a matching regex
-        if state == Test.State.SUCCESS and self._validation['matchers'] is not None:
+        if state == Test.State.SUCCESS and self._validation[
+                'matchers'] is not None:
             for k, v in self._validation['matchers'].items():
                 expected = (v.get('expect', True) is True)
                 found = re.search(v['expr'], raw_output)
@@ -438,7 +440,8 @@ class Test:
                     state = Test.State.FAILURE
                     break
 
-        if state == Test.State.SUCCESS and self._validation['analysis'] is not None:
+        if state == Test.State.SUCCESS and self._validation[
+                'analysis'] is not None:
             analysis = self._validation['analysis']
             args = self._validation.get('args', {})
             s = MetaConfig.root.get_internal("pColl").invoke_plugins(
@@ -447,7 +450,8 @@ class Test:
                 state = s
 
         # if a custom script is provided
-        if state == Test.State.SUCCESS and self._validation['script'] is not None:
+        if state == Test.State.SUCCESS and self._validation[
+                'script'] is not None:
             p = Program(self._validation['script'])
             p.run()
             if self._validation['expect_rc'] != p.rc:
@@ -478,10 +482,15 @@ class Test:
              (self.state == Test.State.FAILURE) and MetaConfig.root.validation.print_level == 'errors'):
             raw_output = self.output
 
-        io.console.print_job(label, self._exectime, self.label,
-                             "/{}".format(self.subtree) if self.subtree else "",
-                             self.name,
-                             colorname=colorname, icon=icon, content=raw_output)
+        io.console.print_job(
+            label,
+            self._exectime,
+            self.label,
+            "/{}".format(self.subtree) if self.subtree else "",
+            self.name,
+            colorname=colorname,
+            icon=icon,
+            content=raw_output)
 
     def executed(self, state=None):
         """Set current Test as executed.
@@ -629,8 +638,8 @@ class Test:
         cmd_code = ""
         post_code = ""
 
-        self._invocation_cmd = 'bash {} {}'.format(
-            srcfile, self._id['fq_name'])
+        self._invocation_cmd = 'bash {} {}'.format(srcfile,
+                                                   self._id['fq_name'])
 
         # if changing directory is required by the test
         if self._cwd is not None:
@@ -657,25 +666,26 @@ class Test:
             pcvs_load={pm_code}
             pcvs_env={env_code}
             pcvs_cmd={cmd_code}
-            ;;""".format(
-            cmd_code="{}".format(shlex.quote(cmd_code)),
-            env_code="{}".format(shlex.quote(env_code)),
-            pm_code="{}".format(shlex.quote(pm_code)),
-            cd_code=cd_code,
-            name=self._id['fq_name']
-        )
+            ;;""".format(cmd_code="{}".format(shlex.quote(cmd_code)),
+                         env_code="{}".format(shlex.quote(env_code)),
+                         pm_code="{}".format(shlex.quote(pm_code)),
+                         cd_code=cd_code,
+                         name=self._id['fq_name'])
 
     @classmethod
-    def compute_fq_name(self, label, subtree, name, combination=None, suffix=None):
+    def compute_fq_name(self,
+                        label,
+                        subtree,
+                        name,
+                        combination=None,
+                        suffix=None):
         """Generate the fully-qualified (dq) name for a test, based on :
             - the label & subtree (original FS tree)
             - the name (the TE name it is originated)
             - a potential extra suffix
             - the combination PCVS computed for this iteration."""
-        return "_".join(filter(None, [
-            "/".join(filter(None, [
-                label,
-                subtree,
-                name])),
-            suffix,
-            combination]))
+        return "_".join(
+            filter(None, [
+                "/".join(filter(None, [label, subtree, name])), suffix,
+                combination
+            ]))

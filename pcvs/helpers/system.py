@@ -48,9 +48,10 @@ class ValidationScheme:
         self._name = name
 
         try:
-            with open(os.path.join(
-                    PATH_INSTDIR,
-                    'schemes/{}-scheme.yml'.format(name)), 'r') as fh:
+            with open(
+                    os.path.join(PATH_INSTDIR,
+                                 'schemes/{}-scheme.yml'.format(name)),
+                    'r') as fh:
                 self._scheme = YAML(typ='safe').load(fh)
         except (IOError, YAMLError):
             raise ValidationException.SchemeError(
@@ -72,12 +73,13 @@ class ValidationScheme:
             jsonschema.validate(instance=content, schema=self._scheme)
         except jsonschema.exceptions.ValidationError as e:
             raise ValidationException.FormatError(
-                reason="Failed to validate input file: {}".format(e.message), file=filepath, scheme=self._scheme)
+                reason="Failed to validate input file: {}".format(e.message),
+                file=filepath,
+                scheme=self._scheme)
         except jsonschema.exceptions.SchemaError as e:
-            raise ValidationException.SchemeError(
-                name=self._name,
-                content=self._scheme,
-                error=e)
+            raise ValidationException.SchemeError(name=self._name,
+                                                  content=self._scheme,
+                                                  error=e)
 
 
 class MetaDict(addict.Dict):
@@ -350,12 +352,14 @@ class MetaConfig(MetaDict):
         subtree.set_nosquash("enable_report", False)
         subtree.set_nosquash('job_timeout', 3600)
         subtree.set_nosquash('per_result_file_sz', 10 * 1024 * 1024)
-        subtree.set_nosquash(
-            'buildcache', os.path.join(subtree.output, 'cache'))
+        subtree.set_nosquash('buildcache',
+                             os.path.join(subtree.output, 'cache'))
         subtree.set_nosquash('result', {"format": ['json']})
-        subtree.set_nosquash('author', {
-            "name": git.get_current_username(),
-            "email": git.get_current_usermail()})
+        subtree.set_nosquash(
+            'author', {
+                "name": git.get_current_username(),
+                "email": git.get_current_usermail()
+            })
 
         # Annoying here:
         # self.result should be allowed even without the 'set_nosquash' above
@@ -388,14 +392,17 @@ class MetaConfig(MetaDict):
 
         # override default values by selected partition
         for elt in subtree.partitions:
-            if elt.get('name', subtree.default_partition) == subtree.default_partition:
+            if elt.get('name',
+                       subtree.default_partition) == subtree.default_partition:
                 subtree.update(elt)
                 break
 
         # redirect to direct programs if no wrapper is defined
         for kind in ['allocate', 'run', 'batch']:
-            if not subtree.job_manager[kind].wrapper and subtree.job_manager[kind].program:
-                subtree.job_manager[kind].wrapper = subtree.job_manager[kind].program
+            if not subtree.job_manager[kind].wrapper and subtree.job_manager[
+                    kind].program:
+                subtree.job_manager[kind].wrapper = subtree.job_manager[
+                    kind].program
         return subtree
 
     def bootstrap_criterion(self, node):

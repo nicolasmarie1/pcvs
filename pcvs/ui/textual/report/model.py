@@ -8,6 +8,7 @@ from pcvs.testing.test import Test
 
 
 class ReportModel(Report):
+
     def __init__(self, build_paths):
 
         assert (isinstance(build_paths, list))

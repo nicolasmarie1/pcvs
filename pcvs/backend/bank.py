@@ -160,8 +160,8 @@ class Bank(dsl.Bank):
         string = ["Projects contained in bank '{}':".format(self._path)]
         # browse references
         for project, series in self.list_all().items():
-            string.append(
-                "- {:<8}: {} distinct testsuite(s)".format(project, len(series)))
+            string.append("- {:<8}: {} distinct testsuite(s)".format(
+                project, len(series)))
             for s in series:
                 string.append("  * {}: {} run(s)".format(s.name, len(s)))
 
@@ -183,7 +183,10 @@ class Bank(dsl.Bank):
             self._name = os.path.basename(self._path).lower()
         add_banklink(self._name, self._path)
 
-    def save_from_buildir(self, tag: str, buildpath: str, msg: Optional[str] = None) -> None:
+    def save_from_buildir(self,
+                          tag: str,
+                          buildpath: str,
+                          msg: Optional[str] = None) -> None:
         """Extract results from the given build directory & store into the bank.
 
         :param tag: overridable default project (if different)
@@ -211,19 +214,22 @@ class Bank(dsl.Bank):
             metadata['cnt'][str(job.state)] += 1
             run.update(job.name, job.to_json())
 
-        self.set_id(
-            an=hdl.config.validation.author.name,
-            am=hdl.config.validation.author.email,
-            cn=git.get_current_username(),
-            cm=git.get_current_usermail()
-        )
+        self.set_id(an=hdl.config.validation.author.name,
+                    am=hdl.config.validation.author.email,
+                    cn=git.get_current_username(),
+                    cm=git.get_current_usermail())
 
         run.update(".pcvs-cache/conf.json", hdl.config.dump_for_export())
 
-        serie.commit(run, metadata=metadata, msg=msg, timestamp=int(
-            hdl.config.validation.datetime.timestamp()))
+        serie.commit(run,
+                     metadata=metadata,
+                     msg=msg,
+                     timestamp=int(hdl.config.validation.datetime.timestamp()))
 
-    def save_from_archive(self, tag: str, archivepath: str, msg: Optional[str] = None) -> None:
+    def save_from_archive(self,
+                          tag: str,
+                          archivepath: str,
+                          msg: Optional[str] = None) -> None:
         """Extract results from the archive, if used to export results.
 
         This is basically the same as :func:`BanK.save_from_buildir` except
@@ -244,7 +250,10 @@ class Bank(dsl.Bank):
             assert (len(d) == 1)
             self.save_from_buildir(tag, os.path.join(tarpath, d[0]), msg=msg)
 
-    def save_new_run_from_instance(self, target_project: str, hdl: BuildDirectoryManager, msg: Optional[str] = None) -> None:
+    def save_new_run_from_instance(self,
+                                   target_project: str,
+                                   hdl: BuildDirectoryManager,
+                                   msg: Optional[str] = None) -> None:
         """
         Create a new node into the bank for the given project, based on the open
         result handler.
@@ -283,17 +292,17 @@ class Bank(dsl.Bank):
 
         run.update_flatdict(d)
 
-        self.set_id(
-            an=hdl.config.validation.author.name,
-            am=hdl.config.validation.author.email,
-            cn=git.get_current_username(),
-            cm=git.get_current_usermail()
-        )
+        self.set_id(an=hdl.config.validation.author.name,
+                    am=hdl.config.validation.author.email,
+                    cn=git.get_current_username(),
+                    cm=git.get_current_usermail())
 
         run.update(".pcvs-cache/conf.json", hdl.config)
 
-        serie.commit(run, metadata=metadata, msg=msg, timestamp=int(
-            hdl.config.validation.datetime.timestamp()))
+        serie.commit(run,
+                     metadata=metadata,
+                     msg=msg,
+                     timestamp=int(hdl.config.validation.datetime.timestamp()))
 
     def save_new_run(self, target_project: str, path: str) -> None:
         """
@@ -309,8 +318,7 @@ class Bank(dsl.Bank):
         if not utils.check_is_build_or_archive(path):
             raise CommonException.NotPCVSRelated(
                 reason="Invalid path, not PCVS-related",
-                dbg_info={"path": path}
-            )
+                dbg_info={"path": path})
 
         if utils.check_is_archive(path):
             # convert to prefix
@@ -322,7 +330,9 @@ class Bank(dsl.Bank):
 
         self.save_new_run_from_instance(target_project, hdl)
 
-    def build_target_branch_name(self, tag: str = None, hash: Optional[str] = None) -> str:
+    def build_target_branch_name(self,
+                                 tag: str = None,
+                                 hash: Optional[str] = None) -> str:
         """Compute the target branch to store data.
 
         This is used to build the exact Git branch name based on:
@@ -349,10 +359,7 @@ class Bank(dsl.Bank):
         :return: a dict-based representation
         :rtype: dict
         """
-        return {
-            'rootpath': self._path,
-            'name': self._name
-        }
+        return {'rootpath': self._path, 'name': self._name}
 
     def get_count(self):
         """

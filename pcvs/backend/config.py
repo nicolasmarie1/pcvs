@@ -38,9 +38,8 @@ def init() -> None:
         priority_paths.reverse()
         for token in priority_paths:  # reverse order (overriding)
             CONFIG_EXISTING[block][token] = []
-            for config_file in glob.glob(os.path.join(utils.STORAGES[token],
-                                                      block,
-                                                      "*.yml")):
+            for config_file in glob.glob(
+                    os.path.join(utils.STORAGES[token], block, "*.yml")):
                 CONFIG_EXISTING[block][token].append(
                     (os.path.basename(config_file)[:-4], config_file))
     init.done = True
@@ -155,7 +154,8 @@ class ConfigurationBlock:
         """
         assert (self._kind in CONFIG_BLOCKS)
         scopes = utils.storage_order() if self._scope is None else [
-            self._scope]
+            self._scope
+        ]
 
         for sc in scopes:
             for pair in CONFIG_EXISTING[self._kind][sc]:
@@ -168,8 +168,8 @@ class ConfigurationBlock:
         # default file position when not found
         if self._scope is None:
             self._scope = 'local'
-        self._file = os.path.join(
-            utils.STORAGES[self._scope], self._kind, self._name + ".yml")
+        self._file = os.path.join(utils.STORAGES[self._scope], self._kind,
+                                  self._name + ".yml")
         if not os.path.isfile(self._file):
             self._exists = False
 
@@ -242,8 +242,8 @@ class ConfigurationBlock:
 
         :raises: ValidationException.SchemeError, ValidationException.FormatError
         """
-        system.ValidationScheme(self._kind).validate(
-            self._details, filepath=self.full_name)
+        system.ValidationScheme(self._kind).validate(self._details,
+                                                     filepath=self.full_name)
 
     def load_from_disk(self) -> None:
         """load the configuration file to populate the current object.
@@ -353,8 +353,7 @@ class ConfigurationBlock:
         with open(self._file, 'r') as fh:
             stream = fh.read()
 
-        edited_stream = click.edit(
-            stream, extension=".yml", require_save=True)
+        edited_stream = click.edit(stream, extension=".yml", require_save=True)
         if edited_stream is not None:
             edited_yaml = MetaDict(YAML(typ='safe').load(edited_stream))
             system.ValidationScheme(self._kind).validate(edited_yaml)
@@ -398,8 +397,9 @@ class MyPlugin(Plugin):
     return True
 """
 
-        edited_code = click.edit(
-            plugin_code, extension=".py", require_save=True)
+        edited_code = click.edit(plugin_code,
+                                 extension=".py",
+                                 require_save=True)
         if edited_code is not None:
             stream_yaml['plugin'] = base64.b64encode(
                 edited_code.encode('utf-8'))

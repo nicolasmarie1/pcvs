@@ -24,12 +24,10 @@ try:
 except ImportError:
     import click
 
-CONTEXT_SETTINGS = dict(
-    help_option_names=['-h', '--help', '-help'],
-    ignore_unknown_options=True,
-    allow_interspersed_args=False,
-    auto_envvar_prefix='PCVS'
-)
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-help'],
+                        ignore_unknown_options=True,
+                        allow_interspersed_args=False,
+                        auto_envvar_prefix='PCVS')
 
 
 def print_version(ctx, param, value):
@@ -46,39 +44,78 @@ def print_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
     click.echo(
-        'Parallel Computing Validation System (pcvs) -- version {}'.format(pkg_resources.require("pcvs")[0].version))
+        'Parallel Computing Validation System (pcvs) -- version {}'.format(
+            pkg_resources.require("pcvs")[0].version))
     ctx.exit()
 
 
 @click.group(context_settings=CONTEXT_SETTINGS, name="cli")
-@click.option("-v", "--verbose", "verbose", show_envvar=True,
-              count=True, default=0,
+@click.option("-v",
+              "--verbose",
+              "verbose",
+              show_envvar=True,
+              count=True,
+              default=0,
               help="Enable PCVS verbosity (cumulative)")
-@click.option("-d", "--debug", show_envvar=True, default=False,
-              help="Enable Debug mode (implies `-vvv`)", is_flag=True)
-@click.option("-c", "--color/--no-color", "color",
-              default=True, is_flag=True, show_envvar=True,
+@click.option("-d",
+              "--debug",
+              show_envvar=True,
+              default=False,
+              help="Enable Debug mode (implies `-vvv`)",
+              is_flag=True)
+@click.option("-c",
+              "--color/--no-color",
+              "color",
+              default=True,
+              is_flag=True,
+              show_envvar=True,
               help="Use colors to beautify the output")
-@click.option("-g", "--glyph/--no-glyph", "encoding",
-              default=True, is_flag=True, show_envvar=True,
+@click.option("-g",
+              "--glyph/--no-glyph",
+              "encoding",
+              default=True,
+              is_flag=True,
+              show_envvar=True,
               help="enable/disable Unicode glyphs")
-@click.option("-C", "--exec-path", "exec_path", show_envvar=True,
-              default=None, type=click.Path(exists=True, file_okay=False))
-@click.option("-V", "--version",
-              expose_value=False, is_eager=True, callback=print_version,
-              is_flag=True, help="Display current version")
-@click.option("-w", "--width", "width", type=int, default=None,
+@click.option("-C",
+              "--exec-path",
+              "exec_path",
+              show_envvar=True,
+              default=None,
+              type=click.Path(exists=True, file_okay=False))
+@click.option("-V",
+              "--version",
+              expose_value=False,
+              is_eager=True,
+              callback=print_version,
+              is_flag=True,
+              help="Display current version")
+@click.option("-w",
+              "--width",
+              "width",
+              type=int,
+              default=None,
               help="Terminal width (autodetection if omitted")
-@click.option("-P", "--plugin-path", "plugin_path", multiple=True,
-              type=click.Path(exists=True), show_envvar=True,
+@click.option("-P",
+              "--plugin-path",
+              "plugin_path",
+              multiple=True,
+              type=click.Path(exists=True),
+              show_envvar=True,
               help="Default Plugin path prefix")
 @click.option("-m", "--plugin", "select_plugins", multiple=True)
-@click.option("-t", "--tui", is_flag=True, default=False, show_envvar=True,
-              help="USe TUI-based interface instead of console (if applicable)")
+@click.option(
+    "-t",
+    "--tui",
+    is_flag=True,
+    default=False,
+    show_envvar=True,
+    help="USe TUI-based interface instead of console (if applicable)")
 @click.pass_context
 @io.capture_exception(PluginException.NotFoundError)
 @io.capture_exception(PluginException.LoadError)
-def cli(ctx, verbose, color, encoding, exec_path, width, plugin_path, select_plugins, tui, debug):
+def cli(ctx, verbose, color, encoding, exec_path, width, plugin_path,
+        select_plugins, tui, debug):
     """PCVS main program."""
     ctx.ensure_object(dict)
     ctx.obj['verbose'] = verbose if not debug else 10

@@ -32,16 +32,27 @@ def compl_session_token(ctx, args, incomplete) -> list:
     sessions = pvSession.list_alive_sessions()
     if sessions is None:
         return []
-    return [CompletionItem(k, help=str(pvSession.Session.State(v['state']))) for k, v in sessions.items() if incomplete in str(k)]
+    return [
+        CompletionItem(k, help=str(pvSession.Session.State(v['state'])))
+        for k, v in sessions.items() if incomplete in str(k)
+    ]
 
 
 @click.command(name="session", short_help="Manage multiple validations")
-@click.option('-c', '--clear', 'ack', type=int, default=None,
-              help="Clear a 'completed' remote session, for removing from logs")
-@click.option('-C', '--clear-all', 'ack_all', is_flag=True, default=False,
+@click.option(
+    '-c',
+    '--clear',
+    'ack',
+    type=int,
+    default=None,
+    help="Clear a 'completed' remote session, for removing from logs")
+@click.option('-C',
+              '--clear-all',
+              'ack_all',
+              is_flag=True,
+              default=False,
               help="Clear all completed sessions, for removing from logs")
-@click.option('-l', '--list', is_flag=True,
-              help="List detached sessions")
+@click.option('-l', '--list', is_flag=True, help="List detached sessions")
 @click.pass_context
 def session(ctx, ack, list, ack_all):
     """Manage sessions by listing or acknowledging their completion."""
@@ -51,18 +62,22 @@ def session(ctx, ack, list, ack_all):
 
     if ack_all is True:
         for session_id in sessions.keys():
-            if sessions[session_id]['state'] != pvSession.Session.State.IN_PROGRESS:
+            if sessions[session_id][
+                    'state'] != pvSession.Session.State.IN_PROGRESS:
                 pvSession.remove_session_from_file(session_id)
-                lockfile = os.path.join(
-                    sessions[session_id]['path'], NAME_BUILDFILE)
+                lockfile = os.path.join(sessions[session_id]['path'],
+                                        NAME_BUILDFILE)
                 utils.unlock_file(lockfile)
     elif ack is not None:
         if ack not in sessions.keys():
             raise click.BadOptionUsage(
                 '--ack', "No such Session id (see pcvs session)")
-        elif sessions[ack]['state'] not in [pvSession.Session.State.ERROR, pvSession.Session.State.COMPLETED]:
-            raise click.BadOptionUsage(
-                '--ack', "This session is not completed yet")
+        elif sessions[ack]['state'] not in [
+                pvSession.Session.State.ERROR,
+                pvSession.Session.State.COMPLETED
+        ]:
+            raise click.BadOptionUsage('--ack',
+                                       "This session is not completed yet")
 
         pvSession.remove_session_from_file(ack)
         lockfile = os.path.join(sessions[ack]['path'], NAME_BUILDFILE)
@@ -97,13 +112,14 @@ def session(ctx, ack, list, ack_all):
                 status = "Waiting"
                 line_style = "yellow"
 
-            table.add_row("[{}]{:0>6}".format(line_style, s.id),
-                          "[{}]{}".format(line_style, status),
-                          "[{}]{}".format(line_style, datetime.strftime(
-                              s.property("started"),
-                              "%Y-%m-%d %H:%M")),
-                          "[{}]{}".format("red bold" if duration.days > 0 else line_style,
-                                          timedelta(days=duration.days, seconds=duration.seconds)),
-                          "[{}]{}".format(line_style, s.property("path"))
-                          )
+            table.add_row(
+                "[{}]{:0>6}".format(line_style, s.id),
+                "[{}]{}".format(line_style, status), "[{}]{}".format(
+                    line_style,
+                    datetime.strftime(s.property("started"),
+                                      "%Y-%m-%d %H:%M")),
+                "[{}]{}".format(
+                    "red bold" if duration.days > 0 else line_style,
+                    timedelta(days=duration.days, seconds=duration.seconds)),
+                "[{}]{}".format(line_style, s.property("path")))
         io.console.print(table)

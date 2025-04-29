@@ -25,8 +25,9 @@ def create_app(iface):
     global data_manager
     data_manager = iface
 
-    app = Flask(__name__, template_folder=os.path.join(
-        PATH_INSTDIR, "webview/templates"))
+    app = Flask(__name__,
+                template_folder=os.path.join(PATH_INSTDIR,
+                                             "webview/templates"))
 
     # app.config.from_object(...)
     @app.route('/about')
@@ -78,19 +79,19 @@ def create_app(iface):
         jobs_cnt = data_manager.single_session_job_cnt(sid)
 
         if 'json' in request.args.get('render', []):
-            return jsonify({"tag": len(tags),
-                            "label": len(labels),
-                            "test": jobs_cnt,
-                            "config": data_manager.single_session_config(sid)
-                            })
-        return render_template('session_main.html',
-                               sid=sid,
-                               rootdir=data_manager.single_session_build_path(
-                                   sid),
-                               nb_tests=jobs_cnt,
-                               nb_labels=len(labels),
-                               nb_tags=len(tags)
-                               )
+            return jsonify({
+                "tag": len(tags),
+                "label": len(labels),
+                "test": jobs_cnt,
+                "config": data_manager.single_session_config(sid)
+            })
+        return render_template(
+            'session_main.html',
+            sid=sid,
+            rootdir=data_manager.single_session_build_path(sid),
+            nb_tests=jobs_cnt,
+            nb_labels=len(labels),
+            nb_tags=len(tags))
 
     @app.route('/compare')
     def compare():
@@ -120,13 +121,11 @@ def create_app(iface):
         sid = sid
         if 'json' in request.args.get('render', []):
             out = list()
-            infos = data_manager.single_session_get_view(
-                sid, selection, summary=True)
+            infos = data_manager.single_session_get_view(sid,
+                                                         selection,
+                                                         summary=True)
             for k, v in infos.items():
-                out.append({
-                    "name": k,
-                    "count": v
-                })
+                out.append({"name": k, "count": v})
             return jsonify(out)
 
         return render_template('list_view.html', sid=sid, selection=selection)

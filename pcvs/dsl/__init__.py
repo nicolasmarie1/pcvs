@@ -13,6 +13,7 @@ from pcvs.testing.test import Test
 
 class Job(Test):
     """Map a real job representation within a bank."""
+
     class Trend(IntEnum):
         REGRESSION = 0,
         PROGRESSION = 1,
@@ -151,6 +152,7 @@ class Run:
 class Serie:
     """TODO:
     """
+
     class Request(IntEnum):
         """TODO:
         """
@@ -207,8 +209,10 @@ class Serie:
         if op == self.Request.REGRESSIONS:
             job = Test()
             res = []
-            for raw_job in self._repo.diff_tree(tree=tree, src=self._hdl,
-                                                dst=None, since=since,
+            for raw_job in self._repo.diff_tree(tree=tree,
+                                                src=self._hdl,
+                                                dst=None,
+                                                since=since,
                                                 until=until):
                 job.from_json(raw_job)
                 if job.state != Test.State.SUCCESS:
@@ -216,7 +220,9 @@ class Serie:
 
         elif op == self.Request.RUNS:
             res = []
-            for elt in self._repo.list_commits(rev=self._hdl, since=since, until=until):
+            for elt in self._repo.list_commits(rev=self._hdl,
+                                               since=since,
+                                               until=until):
                 if elt.get_info()['message'] != "INIT":
                     res.append(Run(repo=self._repo, cid=elt))
         return res
@@ -236,8 +242,11 @@ class Serie:
 
         for k, v in run.changes.items():
             root_tree = self._repo.insert_tree(k, v, root_tree)
-        self._repo.commit(tree=root_tree, msg=commit_msg,
-                          parent=self._hdl, timestamp=timestamp, orphan=False)
+        self._repo.commit(tree=root_tree,
+                          msg=commit_msg,
+                          parent=self._hdl,
+                          timestamp=timestamp,
+                          orphan=False)
         # self._repo.gc()
 
 
@@ -255,16 +264,18 @@ class Bank:
             self._repo.set_head(head)
         else:
             first_branch = [
-                b for b in self._repo.branches if b.name != "master"]
+                b for b in self._repo.branches if b.name != "master"
+            ]
             if len(first_branch) <= 0:
-                io.console.warn(
-                    "This repository seems empty: {}".format(self._path))
+                io.console.warn("This repository seems empty: {}".format(
+                    self._path))
             else:
                 self._repo.set_head(first_branch[0].name)
 
         if not self._repo.get_branch_from_str('master'):
             t = self._repo.insert_tree(
-                'README', "This file is intended to be used as a branch bootstrap.")
+                'README',
+                "This file is intended to be used as a branch bootstrap.")
             c = self._repo.commit(t, "INIT", orphan=True)
             self._repo.set_branch(git.Branch(self._repo, 'master'), c)
 
@@ -327,6 +338,8 @@ class Bank:
         :return: A list of available projects
         :rtype: list of str
         """
-        projects = [elt.name.split(
-            '/')[0] for elt in self._repo.branches if elt.name != "master"]
+        projects = [
+            elt.name.split('/')[0] for elt in self._repo.branches
+            if elt.name != "master"
+        ]
         return list(set(projects))

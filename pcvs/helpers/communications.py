@@ -16,8 +16,7 @@ class GenericServer:
         self._metadata = {
             "rootdir": "remote server",
             "sid": session_id,
-            "count": {
-            }
+            "count": {}
         }
 
     @abstractmethod
@@ -58,12 +57,13 @@ class RemoteServer(GenericServer):
         self.open_connection()
 
     def open_connection(self):
-        self._json_send("/submit/session_init", {
-            "sid": self._metadata['sid'],
-            "state": Session.State.IN_PROGRESS,
-            "buildpath": MetaConfig.root.validation.output,
-            "dirs": MetaConfig.root.validation.dirs
-        })
+        self._json_send(
+            "/submit/session_init", {
+                "sid": self._metadata['sid'],
+                "state": Session.State.IN_PROGRESS,
+                "buildpath": MetaConfig.root.validation.output,
+                "dirs": MetaConfig.root.validation.dirs
+            })
 
     def close_connection(self):
         self._json_send("/submit/session_fini", {
@@ -89,9 +89,11 @@ class RemoteServer(GenericServer):
 
     def _send_unitary_test(self, test):
         assert (isinstance(test, Test))
-        to_send = {"metadata": self._metadata,
-                   "test_data": test.to_json(),
-                   "state": test.state}
+        to_send = {
+            "metadata": self._metadata,
+            "test_data": test.to_json(),
+            "state": test.state
+        }
         return self._json_send("/submit/test", to_send)
 
     def _json_send(self, prefix, json_data):

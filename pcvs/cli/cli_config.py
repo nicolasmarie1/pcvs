@@ -87,22 +87,28 @@ def config_list_single_kind(kind, scope) -> None:
             # aggregate names for each sccope
             names = sorted([elt[0] for elt in [array for array in blocks[sc]]])
             if not names:
-                io.console.print_item(
-                    "[bright_black]{: <6s}: None".format(sc.upper()))
+                io.console.print_item("[bright_black]{: <6s}: None".format(
+                    sc.upper()))
             else:
                 io.console.print_item("{: <6s}: {}".format(
-                    sc.upper(),
-                    ", ".join(names)))
+                    sc.upper(), ", ".join(names)))
     else:
         names = sorted([x[0] for x in blocks])
-        io.console.print_item("{: <6s}: {}".format(
-            scope.upper(), ", ".join(names)))
+        io.console.print_item("{: <6s}: {}".format(scope.upper(),
+                                                   ", ".join(names)))
 
 
 @config.command(name="list", short_help="List available configuration blocks")
-@click.argument("token", nargs=1, required=False,
-                type=click.STRING, shell_complete=compl_list_token)
-@click.option("-a", "--all", "all", is_flag=True, default=False,
+@click.argument("token",
+                nargs=1,
+                required=False,
+                type=click.STRING,
+                shell_complete=compl_list_token)
+@click.option("-a",
+              "--all",
+              "all",
+              is_flag=True,
+              default=False,
               help="Display extra resources (templates, etc.)")
 @click.pass_context
 def config_list(ctx, token, all) -> None:
@@ -117,8 +123,9 @@ def config_list(ctx, token, all) -> None:
     """
     (scope, kind, label) = (None, None, None)
     if token:
-        (scope, kind, label) = utils.extract_infos_from_token(
-            token, pair="left", single="center")
+        (scope, kind, label) = utils.extract_infos_from_token(token,
+                                                              pair="left",
+                                                              single="center")
     if label:
         io.console.warn("no LABEL required for this command")
 
@@ -141,19 +148,21 @@ def config_list(ctx, token, all) -> None:
     if all:
         io.console.print_section(
             "Available templates to create from (--base option):")
-        io.console.print_item(
-            ", ".join([x for x in sorted(pvConfig.list_templates())]))
+        io.console.print_item(", ".join(
+            [x for x in sorted(pvConfig.list_templates())]))
 
     # in case verbosity is enabled, add scope paths
     io.console.info("Scopes are ordered as follows:")
     for i, scope in enumerate(utils.storage_order()):
-        io.console.info("{}. {}: {}".format(
-            i+1, scope.upper(), utils.STORAGES[scope]))
+        io.console.info("{}. {}: {}".format(i + 1, scope.upper(),
+                                            utils.STORAGES[scope]))
 
 
 @config.command(name="show",
                 short_help="Show detailed view of the selected configuration")
-@click.argument("token", nargs=1, type=click.STRING,
+@click.argument("token",
+                nargs=1,
+                type=click.STRING,
                 shell_complete=compl_list_token)
 @click.pass_context
 def config_show(ctx, token) -> None:
@@ -172,20 +181,34 @@ def config_show(ctx, token) -> None:
     else:
         sc = scope
         sc = "any" if sc is None else sc
-        raise click.BadArgumentUsage("No '{}' configuration found at {} level!".format(
-            label, sc))
+        raise click.BadArgumentUsage(
+            "No '{}' configuration found at {} level!".format(label, sc))
 
 
 @config.command(name="create", short_help="Create/Clone a configuration block")
-@click.argument("token", nargs=1, type=click.STRING,
+@click.argument("token",
+                nargs=1,
+                type=click.STRING,
                 shell_complete=compl_list_token)
-@click.option("-c", "--clone", "clone",
-              default=None, type=str, show_envvar=True,
+@click.option("-c",
+              "--clone",
+              "clone",
+              default=None,
+              type=str,
+              show_envvar=True,
               help="Valid name to copy (may use scope, e.g. global.label)")
-@click.option("-T", "--base", "base", type=str, default=None, shell_complete=compl_list_templates,
+@click.option("-T",
+              "--base",
+              "base",
+              type=str,
+              default=None,
+              shell_complete=compl_list_templates,
               help="Specify a template to bootstrap the configuration.")
-@click.option("-i/-I", "--interactive/--no-interactive", "interactive",
-              default=False, is_flag=True,
+@click.option("-i/-I",
+              "--interactive/--no-interactive",
+              "interactive",
+              default=False,
+              is_flag=True,
               help="Directly open the created config block in $EDITOR")
 @click.pass_context
 def config_create(ctx, token, clone, base, interactive) -> None:
@@ -203,26 +226,26 @@ def config_create(ctx, token, clone, base, interactive) -> None:
     """
     if clone and base:
         raise click.BadOptionUsage(
-            "--clone/--base", "--clone & --base cannot be used simultaneously.")
+            "--clone/--base",
+            "--clone & --base cannot be used simultaneously.")
 
     (scope, kind, label) = utils.extract_infos_from_token(token)
 
     copy = pvConfig.ConfigurationBlock(kind, label, scope)
     if copy.is_found():
-        raise click.BadArgumentUsage("Configuration '{}' already exists!".format(
-            copy.full_name))
+        raise click.BadArgumentUsage(
+            "Configuration '{}' already exists!".format(copy.full_name))
 
     if clone is not None:
-        (c_scope, c_kind, c_label) = utils.extract_infos_from_token(
-            clone, pair='span')
+        (c_scope, c_kind,
+         c_label) = utils.extract_infos_from_token(clone, pair='span')
         if c_kind is not None and c_kind != kind:
             raise click.BadArgumentUsage(
                 "Can only clone from a conf. blocks with the same KIND!")
         cfg = pvConfig.ConfigurationBlock(kind, c_label, c_scope)
         if not cfg.is_found():
             raise click.BadArgumentUsage(
-                "There is no such conf.block named '{}'".format(clone)
-            )
+                "There is no such conf.block named '{}'".format(clone))
         cfg.load_from_disk()
         copy.clone(cfg)
     else:
@@ -236,10 +259,13 @@ def config_create(ctx, token, clone, base, interactive) -> None:
 
 
 @config.command(name="destroy", short_help="Remove a config block")
-@click.argument("token", nargs=1, type=click.STRING,
+@click.argument("token",
+                nargs=1,
+                type=click.STRING,
                 shell_complete=compl_list_token)
 @click.confirmation_option(
-    "-f", "--force",
+    "-f",
+    "--force",
     prompt="Are you sure you want to delete this config ?",
     help="Do not ask for confirmation before deletion")
 @click.pass_context
@@ -256,13 +282,20 @@ def config_destroy(ctx, token) -> None:
         c.delete()
     else:
         raise click.BadArgumentUsage(
-            "Configuration '{}' not found!\nPlease check the 'list' command".format(label))
+            "Configuration '{}' not found!\nPlease check the 'list' command".
+            format(label))
 
 
 @config.command(name="edit", short_help="edit the config block")
-@click.argument("token", nargs=1, type=click.STRING,
+@click.argument("token",
+                nargs=1,
+                type=click.STRING,
                 shell_complete=compl_list_token)
-@click.option("-p", "--edit-plugin", "edit_plugin", is_flag=True, default=False,
+@click.option("-p",
+              "--edit-plugin",
+              "edit_plugin",
+              is_flag=True,
+              default=False,
               help="runtime-only: edit plugin code instead of config file")
 @click.pass_context
 def config_edit(ctx, token, edit_plugin) -> None:
@@ -287,10 +320,20 @@ def config_edit(ctx, token, edit_plugin) -> None:
 
 
 @config.command(name="import", short_help="Import config from a file")
-@click.argument("token", nargs=1, type=click.STRING,
+@click.argument("token",
+                nargs=1,
+                type=click.STRING,
                 shell_complete=compl_list_token)
-@click.option("-s", "--source", "in_file", type=click.File('r'), default=sys.stdin)
-@click.option("-f", "--force", "force", is_flag=True, default=False,
+@click.option("-s",
+              "--source",
+              "in_file",
+              type=click.File('r'),
+              default=sys.stdin)
+@click.option("-f",
+              "--force",
+              "force",
+              is_flag=True,
+              default=False,
               help="Erase any previously existing config.")
 @click.pass_context
 def config_import(ctx, token, in_file, force) -> None:
@@ -312,9 +355,15 @@ def config_import(ctx, token, in_file, force) -> None:
 
 
 @config.command(name="export", short_help="Export config into a file")
-@click.argument("token", nargs=1, type=click.STRING,
+@click.argument("token",
+                nargs=1,
+                type=click.STRING,
                 shell_complete=compl_list_token)
-@click.option("-o", "--output", "out_file", type=click.File('w'), default=sys.stdout)
+@click.option("-o",
+              "--output",
+              "out_file",
+              type=click.File('w'),
+              default=sys.stdout)
 @click.pass_context
 def config_export(ctx, token, out_file):
     """

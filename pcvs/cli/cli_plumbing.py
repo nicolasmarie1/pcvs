@@ -13,11 +13,19 @@ except ImportError:
 
 
 @click.command(name="resolve", short_help="Resolve test status")
-@click.option("-b", "--bank", "bankname", shell_complete=compl_list_banks,
-              default=None, help="explicit bank name to use.")
-@click.option("-f", "--file", "file",
-              type=click.Path(exists=False), default=None,
-              is_flag=False, help="read from file instead of stdin")
+@click.option("-b",
+              "--bank",
+              "bankname",
+              shell_complete=compl_list_banks,
+              default=None,
+              help="explicit bank name to use.")
+@click.option("-f",
+              "--file",
+              "file",
+              type=click.Path(exists=False),
+              default=None,
+              is_flag=False,
+              help="read from file instead of stdin")
 @click.pass_context
 def resolve(ctx, file, bankname):
 

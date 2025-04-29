@@ -52,12 +52,7 @@ def compute_scriptpath_from_testname(testname, output=None):
 
     buildir = utils.find_buildir_from_prefix(output)
     prefix = os.path.dirname(testname)
-    return os.path.join(
-        buildir,
-        'test_suite',
-        prefix,
-        "list_of_tests.sh"
-    )
+    return os.path.join(buildir, 'test_suite', prefix, "list_of_tests.sh")
 
 
 def get_logged_output(prefix, testname) -> str:
@@ -178,7 +173,10 @@ def process_check_setup_file(root, prefix, run_configuration):
             if not prefix:
                 prefix = ''
             proc = subprocess.Popen(
-                [os.path.join(root, prefix, "pcvs.setup"), prefix], env=env, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+                [os.path.join(root, prefix, "pcvs.setup"), prefix],
+                env=env,
+                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE)
             fdout, fderr = proc.communicate()
 
             if proc.returncode != 0:
@@ -253,7 +251,8 @@ def process_check_directory(dir, pf_name="default", conversion=True):
     table.add_column("File Path", justify="left")
     # with io.console.pager():
     # with Live(table, refresh_per_second=4):
-    for _, subprefix, f in io.console.progress_iter([*setup_files, *yaml_files]):
+    for _, subprefix, f in io.console.progress_iter(
+        [*setup_files, *yaml_files]):
         setup_ok = __set_token(None)
         yaml_ok = __set_token(None)
         nb_nodes = __set_token(None, "----")
@@ -264,8 +263,7 @@ def process_check_directory(dir, pf_name="default", conversion=True):
             subprefix = ""
 
         if f.endswith("pcvs.setup"):
-            err, data = process_check_setup_file(
-                dir, subprefix, buildenv)
+            err, data = process_check_setup_file(dir, subprefix, buildenv)
             setup_ok = __set_token(err is None)
         else:
             with open(os.path.join(dir, subprefix, f), 'r') as fh:
@@ -276,8 +274,10 @@ def process_check_directory(dir, pf_name="default", conversion=True):
             dflt = None
             err = None
             try:
-                cur = TestFile(file_in="", path_out="",
-                               label="", prefix=subprefix)
+                cur = TestFile(file_in="",
+                               path_out="",
+                               label="",
+                               prefix=subprefix)
                 cur.load_from_str(data)
                 converted = not (cur.validate(allow_conversion=conversion))
                 nb_nodes = cur.nb_descs
@@ -295,15 +295,12 @@ def process_check_directory(dir, pf_name="default", conversion=True):
                 # yaml VALID but old syntax
                 # --> yellow
                 success = None
-                dflt = "{} {}".format(io.console.utf(
-                    'succ'), io.console.utf('copy'))
+                dflt = "{} {}".format(io.console.utf('succ'),
+                                      io.console.utf('copy'))
             yaml_ok = __set_token(success, nset=dflt)
 
-        table.add_row(
-            setup_ok,
-            yaml_ok,
-            "{:>4}" .format(nb_nodes),
-            "./" if not subprefix else subprefix)
+        table.add_row(setup_ok, yaml_ok, "{:>4}".format(nb_nodes),
+                      "./" if not subprefix else subprefix)
 
         if err:
             io.console.info("FAILED: {}".format(
@@ -374,8 +371,8 @@ class AutotoolsBuildSystem(BuildSystem):
         """Populate the dict relatively to the build system to build the proper
         YAML representation."""
         name = os.path.basename(self._root)
-        self._stream[name].build.autotools.autogen = (
-            'autogen.sh' in self._files)
+        self._stream[name].build.autotools.autogen = ('autogen.sh'
+                                                      in self._files)
         self._stream[name].build.files = os.path.join(self._root, 'configure')
         self._stream[name].build.autotools.params = ""
 
@@ -388,8 +385,8 @@ class CMakeBuildSystem(BuildSystem):
         YAML representation."""
         name = os.path.basename(self._root)
         self._stream[name].build.cmake.vars = "CMAKE_BUILD_TYPE=Debug"
-        self._stream[name].build.files = os.path.join(
-            self._root, 'CMakeLists.txt')
+        self._stream[name].build.files = os.path.join(self._root,
+                                                      'CMakeLists.txt')
 
 
 class MakefileBuildSystem(BuildSystem):

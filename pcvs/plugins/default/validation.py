@@ -24,7 +24,8 @@ class BankValidationPlugin(Plugin):
             self._bank_hdl = bank.Bank(path=None, token=bankname)
             self._bank_hdl.connect()
         self._serie = self._bank_hdl.get_serie(
-            self._bank_hdl.build_target_branch_name(hash=MetaConfig.root.validation.pf_hash))
+            self._bank_hdl.build_target_branch_name(
+                hash=MetaConfig.root.validation.pf_hash))
         if not self._serie:
             # no history, stop !
             return None
@@ -58,7 +59,7 @@ class BankValidationPlugin(Plugin):
             run = run.previous
             if run is None:
                 break
-        if cnt >= 0 and job.time >= (sum / cnt) * (1 + tolerance/100):
+        if cnt >= 0 and job.time >= (sum / cnt) * (1 + tolerance / 100):
             return Test.State.FAILURE
         else:
             return Test.State.SUCCESS

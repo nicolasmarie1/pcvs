@@ -37,8 +37,8 @@ def init_constant_tokens():
         '@USER@': getpass.getuser(),
     }
     for comp, comp_node in MetaConfig.root.compiler.items():
-        constant_tokens['@COMPILER_{}@'.format(comp.upper())
-                        ] = comp_node.get('program', "")
+        constant_tokens['@COMPILER_{}@'.format(comp.upper())] = comp_node.get(
+            'program', "")
 
     constant_tokens['@RUNTIME_PROGRAM@'] = MetaConfig.root.runtime.get(
         'program', "")
@@ -155,8 +155,7 @@ class TestFile:
 
     def save_yaml(self):
         src, _, build, curbuild = testing.generate_local_variables(
-            self._label,
-            self._prefix)
+            self._label, self._prefix)
 
         with open(os.path.join(curbuild, "pcvs.setup.yml"), "w") as fh:
             YAML(typ='safe').dump(self._raw, fh)
@@ -187,7 +186,8 @@ class TestFile:
             proc = subprocess.Popen(
                 "pcvs_convert {} --stdout -k te --skip-unknown -t '{}'".format(
                     tmpfile,
-                    os.path.join(PATH_INSTDIR, "templates/config/group-compat.yml")),
+                    os.path.join(PATH_INSTDIR,
+                                 "templates/config/group-compat.yml")),
                 stderr=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 shell=True)
@@ -216,8 +216,7 @@ class TestFile:
         try:
             """Load the YAML file and map YAML nodes to Test()."""
             src, _, build, _ = testing.generate_local_variables(
-                self._label,
-                self._prefix)
+                self._label, self._prefix)
 
             # if file hasn't be loaded yet
             if self._raw is None:
@@ -227,19 +226,20 @@ class TestFile:
 
             # main loop, parse each node to register tests
             for k, content, in self._raw.items():
-                MetaConfig.root.get_internal(
-                    "pColl").invoke_plugins(Plugin.Step.TDESC_BEFORE)
+                MetaConfig.root.get_internal("pColl").invoke_plugins(
+                    Plugin.Step.TDESC_BEFORE)
                 if content is None:
                     # skip empty nodes
                     continue
                 td = tedesc.TEDescriptor(k, content, self._label, self._prefix)
                 for test in td.construct_tests():
                     self._tests.append(test)
-                io.console.info("{}: {}".format(
-                    td.name, pprint.pformat(td.get_debug())))
+                io.console.info("{}: {}".format(td.name,
+                                                pprint.pformat(
+                                                    td.get_debug())))
 
-                MetaConfig.root.get_internal(
-                    "pColl").invoke_plugins(Plugin.Step.TDESC_AFTER)
+                MetaConfig.root.get_internal("pColl").invoke_plugins(
+                    Plugin.Step.TDESC_AFTER)
 
                 # register debug informations relative to the loaded TEs
                 self._debug[k] = td.get_debug()
@@ -249,23 +249,18 @@ class TestFile:
             io.console.error("Run test error: {}".format(e))
             exit(1)
 
-
     def flush_sh_file(self):
         """Store the given input file into their destination."""
         fn_sh = os.path.join(self._path_out, "list_of_tests.sh")
         cobj = MetaConfig.root.get_internal('cc_pm')
         if TestFile.cc_pm_string == "" and cobj:
-            TestFile.cc_pm_string = "\n".join([
-                e.get(load=True, install=False)
-                for e in cobj
-            ])
+            TestFile.cc_pm_string = "\n".join(
+                [e.get(load=True, install=False) for e in cobj])
 
         robj = MetaConfig.root.get_internal('rt_pm')
         if TestFile.rt_pm_string == "" and robj:
-            TestFile.rt_pm_string = "\n".join([
-                e.get(load=True, install=False)
-                for e in robj
-            ])
+            TestFile.rt_pm_string = "\n".join(
+                [e.get(load=True, install=False) for e in robj])
 
         with open(fn_sh, 'w') as fh_sh:
             fh_sh.write("""#!/bin/sh
@@ -288,11 +283,10 @@ EOF
 fi
 
 for arg in "$@"; do case $arg in
-""".format(simulated="sim" if MetaConfig.root.validation.simulated is True else "",
-                pm_string="\n".join([
-                        TestFile.cc_pm_string,
-                        TestFile.rt_pm_string
-                        ])))
+""".format(simulated="sim"
+            if MetaConfig.root.validation.simulated is True else "",
+            pm_string="\n".join([TestFile.cc_pm_string,
+                                TestFile.rt_pm_string])))
 
             for test in self._tests:
                 fh_sh.write(test.generate_script(fn_sh))
@@ -330,10 +324,8 @@ ${{pcvs_cmd}}
 EOF
         fi
     fi
-    exit $?\n""".format(list_of_tests="\n".join([
-                t.name
-                for t in self._tests
-            ])))
+    exit $?\n""".format(list_of_tests="\n".join([t.name
+                                                 for t in self._tests])))
 
         self.generate_debug_info()
 
@@ -342,13 +334,10 @@ EOF
         if len(self._debug) and io.console.verb_debug:
             with open(os.path.join(self._path_out, "dbg-pcvs.yml"), 'w') as fh:
                 # compute max number of combinations from system iterators
-                sys_cnt = functools.reduce(
-                    operator.mul,
-                    [
-                        len(v['values'])
-                        for v in MetaConfig.root.criterion.values()
-                    ]
-                )
+                sys_cnt = functools.reduce(operator.mul, [
+                    len(v['values'])
+                    for v in MetaConfig.root.criterion.values()
+                ])
                 self._debug.setdefault('.system-values', {})
                 self._debug['.system-values'].setdefault('stats', {})
 

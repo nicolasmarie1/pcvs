@@ -50,7 +50,9 @@ def compl_list_templates(ctx, args, incomplete):  # pragma: no cover
     :param incomplete: the user input
     :type incomplete: str
     """
-    return [name for name, path in pvProfile.list_templates() if incomplete in name]
+    return [
+        name for name, path in pvProfile.list_templates() if incomplete in name
+    ]
 
 
 @click.group(name="profile", short_help="Manage Profiles")
@@ -71,9 +73,16 @@ def profile(ctx):
 
 
 @profile.command(name="list", short_help="List available profiles")
-@click.argument("token", nargs=1, required=False,
-                type=click.STRING, shell_complete=compl_list_token)
-@click.option("-a", "--all", "all", is_flag=True, default=False,
+@click.argument("token",
+                nargs=1,
+                required=False,
+                type=click.STRING,
+                shell_complete=compl_list_token)
+@click.option("-a",
+              "--all",
+              "all",
+              is_flag=True,
+              default=False,
               help="Include any extra resources for profile (templates, etc.)")
 @click.pass_context
 def profile_list(ctx, token, all):
@@ -85,7 +94,8 @@ def profile_list(ctx, token, all):
     (scope, label) = (None, None)
     table = Table("Full name", "Location", title="Profiles", expand=True)
     if token:
-        (scope, _, label) = utils.extract_infos_from_token(token, single="left",
+        (scope, _, label) = utils.extract_infos_from_token(token,
+                                                           single="left",
                                                            maxsplit=2)
 
     if label:
@@ -111,21 +121,22 @@ def profile_list(ctx, token, all):
     if all:
         io.console.print_section(
             "Available templates to create from (--base option):")
-        io.console.print_item(
-            ", ".join([x[0] for x in pvProfile.list_templates()]))
+        io.console.print_item(", ".join(
+            [x[0] for x in pvProfile.list_templates()]))
 
     # in case verbosity is enabled, add scope paths
     io.console.info("Scopes are ordered as follows:")
     for i, scope in enumerate(utils.storage_order()):
-        io.console.info("{}. {}: {}".format(
-            i+1, scope.upper(), utils.STORAGES[scope]))
+        io.console.info("{}. {}: {}".format(i + 1, scope.upper(),
+                                            utils.STORAGES[scope]))
 
     io.console.print(table)
 
 
-@profile.command(name="show",
-                 short_help="Prints single profile details")
-@click.argument("token", nargs=1, type=click.STRING,
+@profile.command(name="show", short_help="Prints single profile details")
+@click.argument("token",
+                nargs=1,
+                type=click.STRING,
                 shell_complete=compl_list_token)
 @click.pass_context
 def profile_show(ctx, token):
@@ -166,8 +177,8 @@ def profile_interactive_select():
             io.console.print_item("{}: {}".format(i + 1, cell))
         while idx < 0 or len(choices) <= idx:
             idx = click.prompt("Your selection", default, type=int) - 1
-        (scope, _, label) = utils.extract_infos_from_token(
-            choices[idx], pair="span")
+        (scope, _, label) = utils.extract_infos_from_token(choices[idx],
+                                                           pair="span")
         composition[kind] = pvConfig.ConfigurationBlock(kind, label, scope)
 
     return composition
@@ -175,21 +186,39 @@ def profile_interactive_select():
 
 @profile.command(name="create",
                  short_help="Build/copy a profile from basic conf blocks")
-@click.option("-i", "--interactive", "interactive", show_envvar=True,
-              default=False, is_flag=True,
+@click.option("-i",
+              "--interactive",
+              "interactive",
+              show_envvar=True,
+              default=False,
+              is_flag=True,
               help="Build the profile by interactively selecting conf. blocks")
-@click.option("-b", "--block", "blocks", multiple=True,
-              default=None, show_envvar=True,
+@click.option("-b",
+              "--block",
+              "blocks",
+              multiple=True,
+              default=None,
+              show_envvar=True,
               shell_complete=cli_config.compl_list_token,
               help="non-interactive option to build a profile")
-@click.option("-c", "--clone", "clone", show_envvar=True,
-              default=None, type=click.STRING,
+@click.option("-c",
+              "--clone",
+              "clone",
+              show_envvar=True,
+              default=None,
+              type=click.STRING,
               shell_complete=compl_list_token,
               help="Another profile to herit from.")
-@click.option("-t", "--base", "base", type=str, default=None,
+@click.option("-t",
+              "--base",
+              "base",
+              type=str,
+              default=None,
               shell_complete=compl_list_templates,
               help="Select a template profile to herit from")
-@click.argument("token", nargs=1, type=click.STRING,
+@click.argument("token",
+                nargs=1,
+                type=click.STRING,
                 shell_complete=compl_list_token)
 @click.pass_context
 def profile_create(ctx, token, interactive, blocks, clone, base):
@@ -222,13 +251,14 @@ def profile_create(ctx, token, interactive, blocks, clone, base):
 
     pf = pvProfile.Profile(p_label, p_scope)
     if pf.is_found():
-        raise click.BadArgumentUsage("Profile named '{}' already exist!".format(
-            pf.full_name))
+        raise click.BadArgumentUsage(
+            "Profile named '{}' already exist!".format(pf.full_name))
 
     pf_blocks = {}
 
     if clone is not None:
-        (c_scope, _, c_label) = utils.extract_infos_from_token(clone, maxsplit=2)
+        (c_scope, _, c_label) = utils.extract_infos_from_token(clone,
+                                                               maxsplit=2)
         base = pvProfile.Profile(c_label, c_scope)
         base.load_from_disk()
         pf.clone(base)
@@ -242,14 +272,17 @@ def profile_create(ctx, token, interactive, blocks, clone, base):
         if len(blocks) > 0:
             for blocklist in blocks:
                 for block in blocklist.split(','):
-                    (b_sc, b_kind, b_label) = utils.extract_infos_from_token(block)
+                    (b_sc, b_kind,
+                     b_label) = utils.extract_infos_from_token(block)
                     cur = pvConfig.ConfigurationBlock(b_kind, b_label, b_sc)
                     if not cur.is_found():
                         raise click.BadOptionUsage(
-                            "--block", "'{}' config block does not exist".format(block))
+                            "--block",
+                            "'{}' config block does not exist".format(block))
                     elif b_kind in pf_blocks.keys():
                         raise click.BadOptionUsage(
-                            "--block", "'{}' config block set twice".format(b_kind))
+                            "--block",
+                            "'{}' config block set twice".format(b_kind))
                     pf_blocks[b_kind] = cur
             pf.fill(pf_blocks)
         else:
@@ -261,20 +294,24 @@ def profile_create(ctx, token, interactive, blocks, clone, base):
     pf.flush_to_disk()
     # pf.display()
 
-    io.console.print_section(
-        "final profile (registered as {})".format(pf.scope))
+    io.console.print_section("final profile (registered as {})".format(
+        pf.scope))
     for k, v in pf_blocks.items():
         io.console.print_item("{: >9s}: {}".format(
             k.upper(), ".".join([v.scope, v.short_name])))
 
 
-@profile.command(name="destroy",
-                 short_help="Delete a profile from disk")
+@profile.command(name="destroy", short_help="Delete a profile from disk")
 @click.confirmation_option(
-    "-f", "--force", "force", expose_value=False,
+    "-f",
+    "--force",
+    "force",
+    expose_value=False,
     prompt="Are you sure you want to delete this profile ?",
     help="Do not ask for confirmation")
-@click.argument("token", nargs=1, type=click.STRING,
+@click.argument("token",
+                nargs=1,
+                type=click.STRING,
                 shell_complete=compl_list_token)
 @click.pass_context
 def profile_destroy(ctx, token):
@@ -295,14 +332,20 @@ def profile_destroy(ctx, token):
         pf.delete()
     else:
         raise click.BadArgumentUsage(
-            "Profile '{}' not found! Please check the 'list' command".format(label),)
+            "Profile '{}' not found! Please check the 'list' command".format(
+                label), )
 
 
-@profile.command(name="edit",
-                 short_help="Edit an existing profile")
-@click.argument("token", nargs=1, type=click.STRING,
+@profile.command(name="edit", short_help="Edit an existing profile")
+@click.argument("token",
+                nargs=1,
+                type=click.STRING,
                 shell_complete=compl_list_token)
-@click.option("-p", "--edit-plugin", "edit_plugin", is_flag=True, default=False,
+@click.option("-p",
+              "--edit-plugin",
+              "edit_plugin",
+              is_flag=True,
+              default=False,
               help="Only edit the plugin code ('runtime')")
 @click.pass_context
 @io.capture_exception(ValidationException.FormatError)
@@ -326,17 +369,23 @@ def profile_edit(ctx, token, edit_plugin):
             else:
                 pf.edit()
     else:
-        raise click.BadArgumentUsage(
-            "\n".join([
-                "Profile '{}' not found!\n".format(label),
-                "Please check the 'list' command"]))
+        raise click.BadArgumentUsage("\n".join([
+            "Profile '{}' not found!\n".format(label),
+            "Please check the 'list' command"
+        ]))
 
 
-@profile.command(name="import",
-                 short_help="Import a file as a profile")
-@click.argument("token", nargs=1, type=click.STRING,
+@profile.command(name="import", short_help="Import a file as a profile")
+@click.argument("token",
+                nargs=1,
+                type=click.STRING,
                 shell_complete=compl_list_token)
-@click.option("-s", "--source", "src_file", type=click.File('r'), default=sys.stdin, help="File to populate the profile from")
+@click.option("-s",
+              "--source",
+              "src_file",
+              type=click.File('r'),
+              default=sys.stdin,
+              help="File to populate the profile from")
 @click.option("-f", "--force", "force", is_flag=True, default=False)
 @click.pass_context
 def profile_import(ctx, token, src_file, force):
@@ -352,11 +401,17 @@ def profile_import(ctx, token, src_file, force):
         raise ProfileException.AlreadyExistError("{}".format(pf.full_name))
 
 
-@profile.command(name="export",
-                 short_help="Export a profile to a file")
-@click.argument("token", nargs=1, type=click.STRING,
+@profile.command(name="export", short_help="Export a profile to a file")
+@click.argument("token",
+                nargs=1,
+                type=click.STRING,
                 shell_complete=compl_list_token)
-@click.option("-o", "--output", "dest_file", type=click.File('w'), default=sys.stdout, help="YAML-formatted output file path")
+@click.option("-o",
+              "--output",
+              "dest_file",
+              type=click.File('w'),
+              default=sys.stdout,
+              help="YAML-formatted output file path")
 @click.pass_context
 def profile_export(ctx, token, dest_file):
     """Export a profile to a YAML. If '--output' is omitted, the standard output
@@ -371,16 +426,29 @@ def profile_export(ctx, token, dest_file):
 
 @profile.command(name="split",
                  short_help="Recreate conf. blocks based on a profile")
-@click.argument("token", nargs=1, type=click.STRING,
+@click.argument("token",
+                nargs=1,
+                type=click.STRING,
                 shell_complete=compl_list_token)
-@click.option("-n", "--name", "name", default="default",
-              help="name of the basic block to create (should not exist!)"
-              )
-@click.option("-b", "--block", "block_opt", nargs=1, type=click.STRING,
-              help="Re-build only a profile subset", default="all")
-@click.option("-s", "--scope", "scope",
-              type=click.Choice(utils.storage_order()), default=None,
-              help="Default scope to store the split (default: same as profile)")
+@click.option("-n",
+              "--name",
+              "name",
+              default="default",
+              help="name of the basic block to create (should not exist!)")
+@click.option("-b",
+              "--block",
+              "block_opt",
+              nargs=1,
+              type=click.STRING,
+              help="Re-build only a profile subset",
+              default="all")
+@click.option(
+    "-s",
+    "--scope",
+    "scope",
+    type=click.Choice(utils.storage_order()),
+    default=None,
+    help="Default scope to store the split (default: same as profile)")
 @click.pass_context
 def profile_decompose_profile(ctx, token, name, block_opt, scope):
     """Build basic configuration blocks from a given profile. Every block name will

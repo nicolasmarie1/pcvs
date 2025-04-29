@@ -109,6 +109,7 @@ class Serie:
     which can be taken for each criterion to build test sets.
     A serie can be seen as the Combination generator for a given TEDescriptor
     """
+
     @classmethod
     def register_sys_criterion(cls, system_criterion):
         """copy/inherit the system-defined criterion (shortcut to global config)
@@ -136,10 +137,7 @@ class Serie:
             d = {self._keys[i]: val for i, val in enumerate(combination)}
             if not valid_combination(d):
                 continue
-            yield Combination(
-                self._dict,
-                d
-            )
+            yield Combination(self._dict, d)
 
 
 class Criterion:
@@ -191,8 +189,7 @@ class Criterion:
             if isinstance(v, list):
                 raise CommonException.UnclassifiableError(
                     reason="list elements should be scalar OR dict",
-                    dbg_info={"element": v}
-                )
+                    dbg_info={"element": v})
             if isinstance(v, dict):
                 for key in v.keys():
                     assert key in ['op', 'of', 'from', 'to']
@@ -374,12 +371,12 @@ class Criterion:
         op = node.get('op', 'seq').lower()
 
         if op in ['seq', 'arithmetic', 'ari']:
-            values = range(start, end+1, of)
+            values = range(start, end + 1, of)
         elif op in ['mul', 'geometric', 'geo']:
             if start == 0:
                 values.append(0)
             elif of in [-1, 0, 1]:
-                values.append(start ** of)
+                values.append(start**of)
             else:
                 cur = start
                 while cur <= end:
@@ -388,9 +385,9 @@ class Criterion:
         elif op in ['pow', 'powerof']:
             if of == 0:
                 values.append()
-            start = math.ceil(start**(1/of))
-            end = math.floor(end**(1/of))
-            for i in range(start, end+1):
+            start = math.ceil(start**(1 / of))
+            end = math.floor(end**(1 / of))
+            for i in range(start, end + 1):
                 values.append(i**of)
         else:
             io.console.warn("failure in Criterion sequence!")
@@ -432,8 +429,9 @@ class Criterion:
             for v in self._values:
 
                 if isinstance(v, dict):
-                    values += self.__convert_sequence_to_list(
-                        v, s=start, e=end)
+                    values += self.__convert_sequence_to_list(v,
+                                                              s=start,
+                                                              e=end)
                 elif isinstance(v, (int, float, str)):
                     values.append(v)
                 else:
@@ -480,8 +478,14 @@ def initialize_from_system():
 
         # register the new dict {criterion_name: Criterion object}
         # the criterion object gathers both information from runtime & criterion
-        MetaConfig.root.set_internal('crit_obj', {k: Criterion(
-            k, {**runtime_iterators[k], **criterion_iterators[k]}) for k in criterion_iterators.keys() if k not in it_to_remove})
+        MetaConfig.root.set_internal(
+            'crit_obj', {
+                k: Criterion(k, {
+                    **runtime_iterators[k],
+                    **criterion_iterators[k]
+                })
+                for k in criterion_iterators.keys() if k not in it_to_remove
+            })
 
     # convert any sequence into valid range of integers for
 

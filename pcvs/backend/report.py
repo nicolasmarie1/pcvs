@@ -33,11 +33,12 @@ def upload_buildir_results(buildir) -> None:
     dataman = data_manager
 
     man = BuildDirectoryManager(buildir)
-    dataman.insert_session(sid, {
-        'buildpath': buildir,
-        'state': Session.State.COMPLETED,
-        'dirs': conf_yml.validation.dirs
-    })
+    dataman.insert_session(
+        sid, {
+            'buildpath': buildir,
+            'state': Session.State.COMPLETED,
+            'dirs': conf_yml.validation.dirs
+        })
     for test in man.results.browse_tests():
         man.save(test)
         dataman.insert_test(sid, test)
@@ -77,8 +78,7 @@ class Report:
         else:
             raise CommonException.NotPCVSRelated(
                 reason="Given path is not PCVS build related",
-                dbg_info={"path": path}
-            )
+                dbg_info={"path": path})
         return hdl
 
     def add_session(self, path) -> BuildDirectoryManager:
@@ -130,7 +130,8 @@ class Report:
         return list(self._sessions.keys())
 
     @classmethod
-    def dict_convert_list_to_cnt(self, arrays: Dict[str, List[int]]) -> Dict[str, int]:
+    def dict_convert_list_to_cnt(
+            self, arrays: Dict[str, List[int]]) -> Dict[str, int]:
         """
         Convert dict of arrays to a dict of array lengths.
 
@@ -151,12 +152,15 @@ class Report:
         for sid, sdata in self._sessions.items():
             counts = self.dict_convert_list_to_cnt(
                 self.single_session_status(sid))
-            state = self._alive_session_infos[sid]['state'] if sid in self._alive_session_infos else Session.State.COMPLETED
-            yield {'sid': sid,
-                   'state': str(state),
-                   'count': counts,
-                   'path': sdata.prefix,
-                   'info': sdata.config.validation.get('message', 'No message')}
+            state = self._alive_session_infos[sid][
+                'state'] if sid in self._alive_session_infos else Session.State.COMPLETED
+            yield {
+                'sid': sid,
+                'state': str(state),
+                'count': counts,
+                'path': sdata.prefix,
+                'info': sdata.config.validation.get('message', 'No message')
+            }
 
     def single_session_config(self, sid) -> dict:
         """
@@ -230,7 +234,10 @@ class Report:
         """
         assert sid in self._sessions
         labels_info = self._sessions[sid].results.tree_view
-        return {label: labels_info[label] for label in self._sessions[sid].config.validation.dirs.keys()}
+        return {
+            label: labels_info[label]
+            for label in self._sessions[sid].config.validation.dirs.keys()
+        }
 
     def single_session_build_path(self, sid) -> str:
         """
@@ -258,7 +265,11 @@ class Report:
         assert sid in self._sessions
         return self._sessions[sid].results.map_id(id=jid)
 
-    def single_session_get_view(self, sid, name, subset=None, summary=False) -> Dict[str, Dict]:
+    def single_session_get_view(self,
+                                sid,
+                                name,
+                                subset=None,
+                                summary=False) -> Dict[str, Dict]:
         """
         Get a specific view from a given session.
 
@@ -323,5 +334,6 @@ def start_server(report: Report):
     :type report: Report
     """
     app = create_app(report)
-    app.run(host='0.0.0.0', port=int(
-        os.getenv("PCVS_REPORT_PORT", 5000)), debug=True)
+    app.run(host='0.0.0.0',
+            port=int(os.getenv("PCVS_REPORT_PORT", 5000)),
+            debug=True)

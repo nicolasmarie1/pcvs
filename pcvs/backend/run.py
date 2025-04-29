@@ -57,24 +57,22 @@ def display_summary(the_session):
     io.console.print_section("Global Information")
     io.console.print_item("Date of execution: {}".format(
         MetaConfig.root.validation.datetime.strftime("%c")))
-    io.console.print_item("Run by: {} <{}>".format(
-        cfg.author.name, cfg.author.email))
+    io.console.print_item("Run by: {} <{}>".format(cfg.author.name,
+                                                   cfg.author.email))
     io.console.print_item("Active session ID: {}".format(the_session.id))
     io.console.print_item("Loaded profile: '{}'".format(cfg.pf_name))
     io.console.print_item("Build stored to: {}".format(cfg.output))
     io.console.print_item("Criterion matrix size per job: {}".format(
-        MetaConfig.root.get_internal("comb_cnt")
-    ))
+        MetaConfig.root.get_internal("comb_cnt")))
 
     if cfg.target_bank:
         io.console.print_item("Bank Management: {}".format(cfg.target_bank))
     io.console.print_section("User directories:")
     width = max([0] + [len(i) for i in cfg.dirs])
     for k, v in cfg.dirs.items():
-        io.console.print_item("{:<{width}}: {:<{width}}".format(
-            k.upper(),
-            v,
-            width=width))
+        io.console.print_item("{:<{width}}: {:<{width}}".format(k.upper(),
+                                                                v,
+                                                                width=width))
 
     io.console.print_section("Globally loaded plugins:")
     MetaConfig.root.get_internal("pColl").show_enabled_plugins()
@@ -85,7 +83,9 @@ def display_summary(the_session):
     if cfg.simulated is True:
         io.console.print_box("\n".join([
             "[red bold]DRY-RUN:[yellow] TEST EXECUTION IS [underline]EMULATED[/] <<<<",
-            "[yellow italic]>>>> Dry run enabled for setup checking purposes."]), title="WARNING")
+            "[yellow italic]>>>> Dry run enabled for setup checking purposes."
+        ]),
+                             title="WARNING")
 
 
 def stop_pending_jobs(exc=None):
@@ -148,13 +148,13 @@ def process_main_workflow(the_session=None):
     display_summary(the_session)
 
     if valcfg.onlygen:
-        io.console.warn(
-            ["====================================================",
-             "Tests won't be run. This program will now stop.",
-             "You may list runnable tests with `pcvs exec --list`",
-             "or execute one with `pcvs exec <testname>`",
-             "===================================================="
-             ])
+        io.console.warn([
+            "====================================================",
+            "Tests won't be run. This program will now stop.",
+            "You may list runnable tests with `pcvs exec --list`",
+            "or execute one with `pcvs exec <testname>`",
+            "===================================================="
+        ])
         return 0
 
     io.console.print_header("Execution")
@@ -172,11 +172,11 @@ def process_main_workflow(the_session=None):
         if bank.exists():
             io.console.print_item("Upload results to bank: '{}{}'".format(
                 bank.name.upper(),
-                " (@{})".format(pref_proj) if pref_proj else ""
-            ))
+                " (@{})".format(pref_proj) if pref_proj else ""))
 
-            bank.save_new_run_from_instance(
-                None, build_manager, msg=valcfg.get('message', None))
+            bank.save_new_run_from_instance(None,
+                                            build_manager,
+                                            msg=valcfg.get('message', None))
             # bank.save_from_buildir(
             #    None,
             #    os.path.join(valcfg.output)
@@ -266,8 +266,8 @@ def prepare():
             comman = communications.EmbeddedServer(valcfg.sid)
             io.console.print_item("Running a local instance")
         else:
-            comman = communications.RemoteServer(
-                valcfg.sid, valcfg.report_addr)
+            comman = communications.RemoteServer(valcfg.sid,
+                                                 valcfg.report_addr)
             io.console.print_item("Listening on {}".format(comman.endpoint))
         MetaConfig.root.set_internal('comman', comman)
 
@@ -345,10 +345,12 @@ def process_files():
     errors = []
 
     io.console.print_item(
-        "Extract tests from dynamic definitions ({} found)".format(len(setup_files)))
+        "Extract tests from dynamic definitions ({} found)".format(
+            len(setup_files)))
     errors += process_dyn_setup_scripts(setup_files)
     io.console.print_item(
-        "Extract tests from static definitions ({} found)".format(len(yaml_files)))
+        "Extract tests from static definitions ({} found)".format(
+            len(yaml_files)))
     errors += process_static_yaml_files(yaml_files)
 
     if len(errors):
@@ -378,13 +380,16 @@ def process_spack():
     build_man = MetaConfig.root.get_internal('build_manager')
 
     _, _, rbuild, _ = testing.generate_local_variables(label, '')
-    build_man.save_extras(os.path.relpath(
-        rbuild, build_man.prefix), dir=True, export=False)
+    build_man.save_extras(os.path.relpath(rbuild, build_man.prefix),
+                          dir=True,
+                          export=False)
 
-    for spec in io.console.progress_iter(MetaConfig.root.validation.spack_recipe):
+    for spec in io.console.progress_iter(
+            MetaConfig.root.validation.spack_recipe):
         _, _, _, cbuild = testing.generate_local_variables(label, spec)
-        build_man.save_extras(os.path.relpath(
-            cbuild, build_man.prefix), dir=True, export=False)
+        build_man.save_extras(os.path.relpath(cbuild, build_man.prefix),
+                              dir=True,
+                              export=False)
         pvSpack.generate_from_variants(spec, label, spec)
 
 
@@ -413,8 +418,8 @@ def build_env_from_configuration(current_node, parent_prefix="pcvs"):
         if v is None:
             v = ''
         if isinstance(v, dict):
-            env_dict.update(build_env_from_configuration(
-                v, parent_prefix + "_" + k))
+            env_dict.update(
+                build_env_from_configuration(v, parent_prefix + "_" + k))
             continue
         elif v is None:
             v = ''
@@ -446,7 +451,9 @@ def process_dyn_setup_scripts(setup_files):
     env_config = build_env_from_configuration(MetaConfig.root)
     env.update(env_config)
 
-    with open(os.path.join(MetaConfig.root.validation.output, NAME_BUILD_CONF_SH), 'w') as fh:
+    with open(
+            os.path.join(MetaConfig.root.validation.output,
+                         NAME_BUILD_CONF_SH), 'w') as fh:
         fh.write(utils.str_dict_as_envvar(env_config))
         fh.close()
 
@@ -469,20 +476,22 @@ def process_dyn_setup_scripts(setup_files):
             subprefix = ""
         # Run the script
         try:
-            fds = subprocess.Popen([f, subprefix], env=env,
+            fds = subprocess.Popen([f, subprefix],
+                                   env=env,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
             fdout, fderr = fds.communicate()
 
             if fds.returncode != 0:
-                raise RunException.NonZeroSetupScript(
-                    rc=fds.returncode, err=fderr, file=f)
+                raise RunException.NonZeroSetupScript(rc=fds.returncode,
+                                                      err=fderr,
+                                                      file=f)
 
             # should be enabled only in debug mode
             # flush the output to $BUILD/pcvs.yml
             # out_file = os.path.join(cur_build, 'pcvs.yml')
             # with open(out_file, 'w') as fh:
-                # fh.write(fdout.decode('utf-8'))
+            # fh.write(fdout.decode('utf-8'))
         except CalledProcessError:
             err.append((f, RunException.ProgramError(file=f)))
             continue
@@ -498,21 +507,20 @@ def process_dyn_setup_scripts(setup_files):
             continue
 
         # Now create the file handler
-        MetaConfig.root.get_internal(
-            "pColl").invoke_plugins(Plugin.Step.TFILE_BEFORE)
+        MetaConfig.root.get_internal("pColl").invoke_plugins(
+            Plugin.Step.TFILE_BEFORE)
         obj = TestFile(file_in="<stream>",
                        path_out=cur_build,
                        label=label,
-                       prefix=subprefix
-                       )
+                       prefix=subprefix)
 
         obj.load_from_str(out)
         obj.save_yaml()
 
         obj.process()
         obj.flush_sh_file()
-        MetaConfig.root.get_internal(
-            "pColl").invoke_plugins(Plugin.Step.TFILE_AFTER)
+        MetaConfig.root.get_internal("pColl").invoke_plugins(
+            Plugin.Step.TFILE_AFTER)
     return err
 
 
@@ -537,8 +545,7 @@ def process_static_yaml_files(yaml_files):
             obj = TestFile(file_in=f,
                            path_out=cur_build,
                            label=label,
-                           prefix=subprefix
-                           )
+                           prefix=subprefix)
             obj.process()
             obj.flush_sh_file()
         except Exception as e:
@@ -561,19 +568,20 @@ def anonymize_archive():
     outdir = config.output
     for root, _, files in os.walk(config.output):
         for f in files:
-            if not f.endswith(('.xml', '.json', '.yml',
-                               '.txt', '.md', '.html')):
+            if not f.endswith(
+                ('.xml', '.json', '.yml', '.txt', '.md', '.html')):
                 continue
             with fileinput.FileInput(os.path.join(root, f),
                                      inplace=True,
                                      backup=".raw") as fh:
                 for line in fh:
                     # TODO: add more patterns (user-defined ? )
-                    print(
-                        line.replace(outdir, '${PCVS_RUN_DIRECTORY}')
-                            .replace(os.environ['HOME'], '${HOME}')
-                            .replace(os.environ['USER'], '${USER}'),
-                        end='')
+                    print(line.replace(outdir,
+                                       '${PCVS_RUN_DIRECTORY}').replace(
+                                           os.environ['HOME'],
+                                           '${HOME}').replace(
+                                               os.environ['USER'], '${USER}'),
+                          end='')
 
 
 def terminate():
@@ -581,8 +589,8 @@ def terminate():
 
     This include generating & anonymizing (if needed) the archive.
     """
-    MetaConfig.root.get_internal(
-        "pColl").invoke_plugins(Plugin.Step.END_BEFORE)
+    MetaConfig.root.get_internal("pColl").invoke_plugins(
+        Plugin.Step.END_BEFORE)
 
     build_man = MetaConfig.root.get_internal('build_manager')
     outdir = MetaConfig.root.validation.output
@@ -627,30 +635,25 @@ def dup_another_build(build_dir, outdir):
     # first, clear fields overridden by current run
     global_config.validation.output = outdir
     global_config.validation.reused_build = build_dir
-    global_config.validation.buildcache = os.path.join(
-        outdir, NAME_BUILD_CACHEDIR)
+    global_config.validation.buildcache = os.path.join(outdir,
+                                                       NAME_BUILD_CACHEDIR)
 
     # second, copy any xml/sh files to be reused
     for root, _, files, in os.walk(os.path.join(build_dir, "test_suite")):
         for f in files:
             if f in ('dbg-pcvs.yml', 'list_of_tests.sh'):
                 src = os.path.join(root, f)
-                dest = os.path.join(outdir,
-                                    os.path.relpath(
-                                        src,
-                                        start=os.path.abspath(build_dir))
-                                    )
+                dest = os.path.join(
+                    outdir,
+                    os.path.relpath(src, start=os.path.abspath(build_dir)))
 
                 utils.copy_file(src, dest)
 
     # other files
     for f in (NAME_BUILD_CONF_SH):
         src = os.path.join(build_dir, f)
-        dest = os.path.join(outdir,
-                            os.path.relpath(
-                                src,
-                                start=os.path.abspath(build_dir))
-                            )
+        dest = os.path.join(
+            outdir, os.path.relpath(src, start=os.path.abspath(build_dir)))
         if not os.path.isfile(src):
             continue
 

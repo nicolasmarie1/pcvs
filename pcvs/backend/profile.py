@@ -31,7 +31,8 @@ def init():
     priority_paths.reverse()
     for token in priority_paths:  # reverse order (overriding)
         PROFILE_EXISTING[token] = []
-        for pfile in glob.glob(os.path.join(utils.STORAGES[token], 'profile', "*.yml")):
+        for pfile in glob.glob(
+                os.path.join(utils.STORAGES[token], 'profile', "*.yml")):
             PROFILE_EXISTING[token].append(
                 (os.path.basename(pfile)[:-4], pfile))
 
@@ -138,8 +139,8 @@ class Profile:
         # otherwise the for loop above would have trigger a profile
         # in that case, _file is computed through path concatenation
         # but the _exists is set to False
-        self._file = os.path.join(
-            utils.STORAGES[self._scope], 'profile', self._name + ".yml")
+        self._file = os.path.join(utils.STORAGES[self._scope], 'profile',
+                                  self._name + ".yml")
         self._exists = False
 
     def get_unique_id(self):
@@ -236,11 +237,12 @@ class Profile:
         """
         self._exists = True
         self._file = None
-        filepath = os.path.join(
-            PATH_INSTDIR, "templates", "profile", name) + ".yml"
+        filepath = os.path.join(PATH_INSTDIR, "templates", "profile",
+                                name) + ".yml"
         if not os.path.isfile(filepath):
             raise ProfileException.NotFoundError(
-                "{} is not a valid base name.\nPlease use pcvs profile list --all".format(name))
+                "{} is not a valid base name.\nPlease use pcvs profile list --all"
+                .format(name))
 
         with open(filepath, "r") as fh:
             self.fill(YAML(typ='safe').load(fh))
@@ -269,8 +271,8 @@ class Profile:
                 # if kind not in self._details:
                 #    raise ValidationException.FormatError(
                 #        "Missing '{}' in profile".format(kind))
-                system.ValidationScheme(kind).validate(
-                    self._details[kind], filepath=self._name)
+                system.ValidationScheme(kind).validate(self._details[kind],
+                                                       filepath=self._name)
         except ValidationException.FormatError:
             if not allow_legacy:
                 raise
@@ -289,8 +291,8 @@ class Profile:
             converted_data = YAML(typ='safe').load(fds[0].decode('utf-8'))
             self.fill(converted_data)
             self.check(allow_legacy=False)
-            io.console.warning(
-                "Legacy format for profile '{}'".format(self._name))
+            io.console.warning("Legacy format for profile '{}'".format(
+                self._name))
             io.console.warning(
                 "Please consider updating it with `pcvs_convert -k profile`")
 
@@ -361,8 +363,7 @@ class Profile:
         with open(self._file, 'r') as fh:
             stream = fh.read()
 
-        edited_stream = click.edit(
-            stream, extension=".yml", require_save=True)
+        edited_stream = click.edit(stream, extension=".yml", require_save=True)
         if edited_stream is not None:
             edited_yaml = MetaDict(YAML(typ='safe').load(edited_stream))
             self.fill(edited_yaml)
@@ -404,8 +405,9 @@ class MyPlugin(Plugin):
     return True
 """
         try:
-            edited_code = click.edit(
-                plugin_code, extension=".py", require_save=True)
+            edited_code = click.edit(plugin_code,
+                                     extension=".py",
+                                     require_save=True)
             if edited_code is not None:
                 self._details['runtime']['plugin'] = base64.b64encode(
                     edited_code.encode('utf-8'))

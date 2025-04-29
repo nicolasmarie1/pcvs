@@ -118,18 +118,14 @@ class ResultFile:
             }
 
         else:
-            insert = {
-                'file': "",
-                'offset': -1,
-                'length': 0
-            }
+            insert = {'file': "", 'offset': -1, 'length': 0}
 
         data['result']['output'] = insert
 
         assert (id not in self._data.keys())
         self._data[id] = data
         self._cnt += 1
-        self._sz = max(start+length, self._sz + len(json.dumps(data)))
+        self._sz = max(start + length, self._sz + len(json.dumps(data)))
 
         if self._cnt % 10 == 0:
             self.flush()
@@ -194,7 +190,8 @@ class ResultFile:
                 lookup_table = [self._data[id]]
         elif name is not None:
             lookup_table = list(
-                filter(lambda x: name in x['id']['fq_name'], self._data.values()))
+                filter(lambda x: name in x['id']['fq_name'],
+                       self._data.values()))
 
         res = []
         for elt in lookup_table:
@@ -293,9 +290,7 @@ class ResultFileManager:
         """
         l = list(
             filter(lambda x: x.startswith('jobs-') and x.endswith(".json"),
-                   os.listdir(self._outdir)
-                   )
-        )
+                   os.listdir(self._outdir)))
         if len(l) > 0:
             curfile = None
             for f in list(map(lambda x: os.path.join(self._outdir, x), l)):
@@ -342,12 +337,15 @@ class ResultFileManager:
             if job.subtree:
                 nodes = job.subtree.split('/')
                 nb_nodes = len(nodes)
-                for i in range(1, nb_nodes+1):
+                for i in range(1, nb_nodes + 1):
                     name = "/".join([job.label] + nodes[:i])
                     self.register_view_item('tree', name)
                     self._viewdata['tree'][name][state].append(id)
 
-    def __init__(self, prefix=".", per_file_max_ent=0, per_file_max_sz=0) -> None:
+    def __init__(self,
+                 prefix=".",
+                 per_file_max_ent=0,
+                 per_file_max_sz=0) -> None:
         """
         Initialize a new instance to manage results in a build directory.
 
@@ -388,9 +386,10 @@ class ResultFileManager:
 
         self._mapdata = preload_if_exist(map_filename, {})
         self._mapdata_rev = {}
-        self._viewdata = preload_if_exist(view_filename, {
-            'status': self._ret_state_split_dict(),
-        })
+        self._viewdata = preload_if_exist(
+            view_filename, {
+                'status': self._ret_state_split_dict(),
+            })
 
         self._max_entries = per_file_max_ent
         self._max_size = per_file_max_sz
@@ -448,7 +447,7 @@ class ResultFileManager:
         if job.subtree:
             nodes = job.subtree.split('/')
             nb_nodes = len(nodes)
-            for i in range(1, nb_nodes+1):
+            for i in range(1, nb_nodes + 1):
                 name = "/".join([job.label] + nodes[:i])
                 self.register_view_item('tree', name)
                 self._viewdata['tree'][name][state].append(id)
@@ -484,8 +483,7 @@ class ResultFileManager:
                     dbg_info={
                         "data": id,
                         'matches': res
-                    }
-                )
+                    })
             else:
                 return res[0]
         else:
@@ -704,8 +702,7 @@ class BuildDirectoryManager:
         if not os.path.isdir(build_dir):
             raise CommonException.NotFoundError(
                 reason="Invalid build directory, should exist *before* init.",
-                dbg_info={"build prefix": build_dir}
-            )
+                dbg_info={"build prefix": build_dir})
 
         self._path = build_dir
         self._extras = list()
@@ -805,7 +802,8 @@ class BuildDirectoryManager:
         :return: the loaded config
         :rtype: class:`MetaConfig`
         """
-        with open(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN), 'r') as fh:
+        with open(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN),
+                  'r') as fh:
             self._config = MetaConfig(YAML(typ='safe').load(fh))
 
         return self._config
@@ -823,7 +821,8 @@ class BuildDirectoryManager:
         if not isinstance(config, MetaConfig):
             config = MetaConfig(config)
         self._config = config
-        with open(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN), 'w') as fh:
+        with open(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN),
+                  'w') as fh:
             h = YAML(typ='safe')
             h.default_flow_style = None
             h.dump(config.dump_for_export(), fh)
@@ -860,7 +859,11 @@ class BuildDirectoryManager:
     def get_cache_entry(self, idx=0):
         return os.path.join(self._path, pcvs.NAME_BUILD_CONTEXTDIR, str(idx))
 
-    def save_extras(self, rel_filename, data="", dir=False, export=False) -> None:
+    def save_extras(self,
+                    rel_filename,
+                    data="",
+                    dir=False,
+                    export=False) -> None:
         """
         Register a specific build-relative path, to be saved into the directory.
 
@@ -889,7 +892,8 @@ class BuildDirectoryManager:
                 os.makedirs(os.path.join(self._path, rel_filename))
             except FileExistsError:
                 io.console.warn(
-                    "subprefix {} existed before registering".format(rel_filename))
+                    "subprefix {} existed before registering".format(
+                        rel_filename))
         else:
             d = os.path.dirname(rel_filename)
             if not os.path.isdir(d):
@@ -917,6 +921,7 @@ class BuildDirectoryManager:
                 os.remove(p)
             elif os.path.isdir(p):
                 shutil.rmtree(p)
+
         if args:
             for p in args:
 
@@ -936,8 +941,9 @@ class BuildDirectoryManager:
         for f in os.listdir(self._path):
             current = os.path.join(self._path, f)
             if utils.check_is_archive(current):
-                shutil.move(current,
-                            os.path.join(self._path, pcvs.NAME_BUILD_ARCHIVE_DIR, f))
+                shutil.move(
+                    current,
+                    os.path.join(self._path, pcvs.NAME_BUILD_ARCHIVE_DIR, f))
 
     def create_archive(self, timestamp=None) -> str:
         """
@@ -957,16 +963,15 @@ class BuildDirectoryManager:
         if not timestamp:
             timestamp = datetime.datetime.now()
         str_timestamp = timestamp.strftime('%Y%m%d%H%M%S')
-        archive_file = os.path.join(
-            self._path,
-            "pcvsrun_{}.tar.gz".format(str_timestamp)
-        )
+        archive_file = os.path.join(self._path,
+                                    "pcvsrun_{}.tar.gz".format(str_timestamp))
         archive = tarfile.open(archive_file, mode='w:gz')
 
         def __relative_add(path, recursive=False):
             archive.add(path,
-                        arcname=os.path.join("pcvsrun_{}".format(str_timestamp),
-                                             os.path.relpath(path, self._path)),
+                        arcname=os.path.join(
+                            "pcvsrun_{}".format(str_timestamp),
+                            os.path.relpath(path, self._path)),
                         recursive=recursive)
 
         # copy results
@@ -985,8 +990,7 @@ class BuildDirectoryManager:
         if len(not_found_files) > 0:
             raise CommonException.NotFoundError(
                 reason="Extra files to be stored to archive do not exist",
-                dbg_info={"Failed paths": not_found_files}
-            )
+                dbg_info={"Failed paths": not_found_files})
 
         archive.close()
         return archive_file

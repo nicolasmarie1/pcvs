@@ -129,28 +129,27 @@ class TheConsole(Console):
         self.summary_table: Dict[str, Dict[str, Dict[str, int]]] = dict()
         err = kwargs.get('stderr', False)
         log_level = "DEBUG" if self._verbose else "INFO"
-        theme = Theme({
-            "warning": "bold yellow",
-            "danger": "bold red"
-        })
+        theme = Theme({"warning": "bold yellow", "danger": "bold red"})
 
         super().__init__(color_system=self._color, theme=theme, stderr=err)
-        self._debugconsole = Console(file=self._debugfile, theme=theme,
+        self._debugconsole = Console(file=self._debugfile,
+                                     theme=theme,
                                      color_system=self._color,
                                      markup=self._color is not None)
 
-        logging.basicConfig(
-            level=log_level, format="%(message)s",
-            handlers=[RichHandler(
-                console=self._debugconsole,
-                omit_repeated_times=False,
-                rich_tracebacks=True,
-                show_level=True,
-                tracebacks_suppress=[click],
-                show_path=True)])
+        logging.basicConfig(level=log_level,
+                            format="%(message)s",
+                            handlers=[
+                                RichHandler(console=self._debugconsole,
+                                            omit_repeated_times=False,
+                                            rich_tracebacks=True,
+                                            show_level=True,
+                                            tracebacks_suppress=[click],
+                                            show_path=True)
+                            ])
         self._loghdl = logging.getLogger("pcvs")
-        self._chars = SpecialChar(utf_support=(
-            self.encoding.startswith('utf')))
+        self._chars = SpecialChar(
+            utf_support=(self.encoding.startswith('utf')))
 
     @property
     def logfile(self):
@@ -245,8 +244,8 @@ class TheConsole(Console):
     def move_debug_file(self, newdir):
         assert (os.path.isdir(newdir))
         if self._debugfile:
-            shutil.move(self._debugfile.name, os.path.join(
-                newdir, pcvs.NAME_DEBUG_FILE))
+            shutil.move(self._debugfile.name,
+                        os.path.join(newdir, pcvs.NAME_DEBUG_FILE))
         else:
             self.warning("No '{}' file found for this Console".format(
                 pcvs.NAME_DEBUG_FILE))
@@ -260,38 +259,41 @@ class TheConsole(Console):
         self.info("[DISPLAY] ------- {} ------".format(txt))
 
     def print_item(self, txt, depth=1):
-        self.print("[red bold]{}{}[/] {}".format(" " *
-                   (depth*2), self.utf('item'), txt))
+        self.print("[red bold]{}{}[/] {}".format(" " * (depth * 2),
+                                                 self.utf('item'), txt))
         self.info("[DISPLAY] * {}".format(txt))
 
     def print_box(self, txt, *args, **kwargs):
         self.print(Panel.fit(txt, *args, **kwargs))
 
-    def print_job(self, state, time, tlabel, tsubtree, tname, colorname="red",
-                  icon=None, content=None):
+    def print_job(self,
+                  state,
+                  time,
+                  tlabel,
+                  tsubtree,
+                  tname,
+                  colorname="red",
+                  icon=None,
+                  content=None):
         if icon is not None:
             icon = self.utf(icon)
 
         if self._verbose >= Verbosity.DETAILED:
             self.print("[{} bold]   {} {:8.2f}s{}{:7}{}{}".format(
-                colorname,
-                icon,
-                time,
-                self.utf("sep_v"),
-                state,
-                self.utf("sep_v"),
-                tname)
-            )
+                colorname, icon, time, self.utf("sep_v"), state,
+                self.utf("sep_v"), tname))
             if content:
                 # print raw input
                 # parsing on uncontrolled output may lead to errors
                 self.out(content)
         else:
             self.summary_table.setdefault(tlabel, {})
-            self.summary_table[tlabel].setdefault(tsubtree, {
-                label: 0 for label in ["SUCCESS", "FAILURE",
-                                       "ERR_DEP", "ERR_OTHER"]
-            })
+            self.summary_table[tlabel].setdefault(
+                tsubtree, {
+                    label: 0
+                    for label in
+                    ["SUCCESS", "FAILURE", "ERR_DEP", "ERR_OTHER"]
+                })
 
             self.summary_table[tlabel][tsubtree][state] += 1
 
@@ -310,12 +312,13 @@ class TheConsole(Console):
                             colour = "red"
                         else:
                             colour = "yellow"
-                        columns_list = ["[{} bold]{}".format(
-                            colour, x) for x in svalue.values()]
+                        columns_list = [
+                            "[{} bold]{}".format(colour, x)
+                            for x in svalue.values()
+                        ]
                         table.add_row(
                             "[{} bold]{}{}".format(colour, label, subtree),
-                            *columns_list
-                        )
+                            *columns_list)
                 return table
 
             self._reset_display_table(regenerate_table())
@@ -331,13 +334,14 @@ class TheConsole(Console):
         self._progress = Progress(
             TimeElapsedColumn(),
             "Progress",
-            BarColumn(bar_width=None, complete_style="yellow",
+            BarColumn(bar_width=None,
+                      complete_style="yellow",
                       finished_style="green"),
             TextColumn("[progress.percentage]{task.percentage:>3.1f}%"),
             SpinnerColumn(speed=0.5),
             expand=True)
-        self._singletask = self._progress.add_task(
-            "Progress", total=int(total))
+        self._singletask = self._progress.add_task("Progress",
+                                                   total=int(total))
 
         self._reset_display_table(Table())
         self.live = Live(self._display_table, console=self)
@@ -357,7 +361,9 @@ class TheConsole(Console):
         :rtype: Iterable
         """
         global console
-        return track(it, transient=True, console=console,
+        return track(it,
+                     transient=True,
+                     console=console,
                      complete_style="cyan",
                      pulse_style="green",
                      refresh_per_second=4,
@@ -383,9 +389,10 @@ class TheConsole(Console):
         logo_minimal = [
             r"""[green]{}""".format(self.utf('star') * 19),
             r"""[yellow]     -- PCVS --  """,
-            r"""[red]{} CEA {} 2017-{} {}""".format(
-                self.utf('star'), self.utf('copy'),
-                datetime.now().year, self.utf('star')),
+            r"""[red]{} CEA {} 2017-{} {}""".format(self.utf('star'),
+                                                    self.utf('copy'),
+                                                    datetime.now().year,
+                                                    self.utf('star')),
             r"""[green]{}""".format(self.utf('star') * 19)
         ]
 
@@ -398,8 +405,8 @@ class TheConsole(Console):
             r"""[red    ]                                   """,
             r"""[default] Parallel Computing -- Validation System""",
             r"""[default] Copyright {} 2017-{} -- CEA""".format(
-                self.utf('copy'), datetime.now().year),
-            r""""""
+                self.utf('copy'),
+                datetime.now().year), r""""""
         ]
 
         logo = [
@@ -409,8 +416,8 @@ class TheConsole(Console):
             r"""[green  ]  / ____/ /_/ / /  / /_/ / / /  __/ /  / /___/ /_/ / / / / / / /_/ / /_/ / /_/ / / / / /_/ /  """,
             r"""[green  ] /_/    \__,_/_/   \__,_/_/_/\___/_/   \____/\____/_/ /_/ /_/ .___/\__,_/\__/_/_/ /_/\__, /   """,
             r"""[green  ]                                                           /_/                     /____/     """,
-            r"""[default]                                            {} ([link=https://pcvs.io]PCVS[/link]) {}""".format(
-                self.utf('star'), self.utf('star')),
+            r"""[default]                                            {} ([link=https://pcvs.io]PCVS[/link]) {}"""
+            .format(self.utf('star'), self.utf('star')),
             r"""[green  ]    _    __      ___     __      __  _                _____            __                    """,
             r"""[green  ]   | |  / /___ _/ (_)___/ /___ _/ /_(_)___  ____     / ___/__  _______/ /____  ____ ___      """,
             r"""[green  ]   | | / / __ `/ / / __  / __ `/ __/ / __ \/ __ \    \__ \/ / / / ___/ __/ _ \/ __ `__ \     """,
@@ -418,8 +425,9 @@ class TheConsole(Console):
             r"""[red    ]   |___/\__,_/_/_/\__,_/\__,_/\__/_/\____/_/ /_/   /____/\__, /____/\__/\___/_/ /_/ /_/      """,
             r"""[red    ]                                                        /____/                               """,
             r"""[red    ]                                                                                             """,
-            r"""[default]  Copyright {} 2017-{} Commissariat à l'Énergie Atomique et aux Énergies Alternatives ([link=https://cea.fr]CEA[/link])""".format(
-                self.utf('copy'), datetime.now().year),
+            r"""[default]  Copyright {} 2017-{} Commissariat à l'Énergie Atomique et aux Énergies Alternatives ([link=https://cea.fr]CEA[/link])"""
+            .format(self.utf('copy'),
+                    datetime.now().year),
             r"""[default]                                                                                             """,
             r"""[default]  This program comes with ABSOLUTELY NO WARRANTY;""",
             r"""[default]  This is free software, and you are welcome to redistribute it""",
@@ -451,13 +459,13 @@ class TheConsole(Console):
 
     def error(self, fmt, *args, **kwargs):
         self._loghdl.error(fmt, *args, **kwargs)
-        self.print(
-            "[danger]ERROR: {}[/danger]".format(fmt.format(*args, **kwargs)))
+        self.print("[danger]ERROR: {}[/danger]".format(
+            fmt.format(*args, **kwargs)))
 
     def critical(self, fmt, *args, **kwargs):
         self._loghdl.critical(fmt, *args, **kwargs)
-        self.print(
-            "[danger]CRITICAL: {}[/danger]".format(fmt.format(*args, **kwargs)))
+        self.print("[danger]CRITICAL: {}[/danger]".format(
+            fmt.format(*args, **kwargs)))
         sys.exit(42)
 
     def exception(self, e: BaseException, *args, **kwargs):
@@ -480,12 +488,13 @@ def init(color=True, verbose=0, *args, **kwargs):
 
 def detach_console():
     global console
-    logfile = os.path.join(os.path.dirname(
-        console.logfile), pcvs.NAME_LOG_FILE)
+    logfile = os.path.join(os.path.dirname(console.logfile),
+                           pcvs.NAME_LOG_FILE)
     console.file = open(logfile, 'w')
 
 
-def capture_exception(e_type, user_func: Optional[Callable[[Exception], None]] = None):
+def capture_exception(e_type,
+                      user_func: Optional[Callable[[Exception], None]] = None):
     """wraps functions to capture unhandled exceptions for high-level
         function not to crash.
         :param e_type: errors to be caught
@@ -495,6 +504,7 @@ def capture_exception(e_type, user_func: Optional[Callable[[Exception], None]] =
         :return: function handler to manage exception
         :rtype: function pointer
     """
+
     def inner_function(func):
         """wrapper for inner function using try/except to avoid crashing
 
@@ -503,6 +513,7 @@ def capture_exception(e_type, user_func: Optional[Callable[[Exception], None]] =
         :return: wrapper
         :rtype: function
         """
+
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             """functools wrapping function
@@ -524,9 +535,12 @@ def capture_exception(e_type, user_func: Optional[Callable[[Exception], None]] =
                     console.exception(e)
                     console.print("[red bold]Exception: {}[/]".format(e))
                     console.print(
-                        "[red bold]See '{}' or rerun with -vv for more details[/]".format(pcvs.NAME_DEBUG_FILE))
+                        "[red bold]See '{}' or rerun with -vv for more details[/]"
+                        .format(pcvs.NAME_DEBUG_FILE))
                     sys.exit(1)
                 else:
                     user_func(e)
+
         return wrapper
+
     return inner_function

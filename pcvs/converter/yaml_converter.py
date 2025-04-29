@@ -62,10 +62,13 @@ def flatten(dd, prefix='') -> dict:
     are chained in a tuple. for instance:
     {'a': {'b': {'c': value}}} --> {('a', 'b', 'c'): value}
     """
-    return {prefix + "||" + k if prefix else k: v
-            for kk, vv in dd.items()
-            for k, v in flatten(vv, kk).items()
-            } if isinstance(dd, dict) else {prefix: dd}
+    return {
+        prefix + "||" + k if prefix else k: v
+        for kk, vv in dd.items()
+        for k, v in flatten(vv, kk).items()
+    } if isinstance(dd, dict) else {
+        prefix: dd
+    }
 
 
 def compute_new_key(k, v, m) -> str:
@@ -91,17 +94,17 @@ def compute_new_key(k, v, m) -> str:
     if k.startswith('call:'):
         # basic replace the whole string with any placeholder
         for elt in m.groupdict().keys():
-            k = k.replace("<"+elt+">", m.group(elt))
+            k = k.replace("<" + elt + ">", m.group(elt))
 
         env = {'k': k, 'v': v, 'm': m}
         # the 'k' & 'm' vars are exposed to evaluated code
-        exec("import re\n"+k.split("call:")[1], env)
+        exec("import re\n" + k.split("call:")[1], env)
         # the 'k' is retrieved and used as a whole
         replacement = env['k']
     else:
         # basic replace the whole string with any placeholder
         for elt in m.groupdict().keys():
-            k = k.replace(".", "||").replace("<"+elt+">", m.group(elt))
+            k = k.replace(".", "||").replace("<" + elt + ">", m.group(elt))
 
         replacement = k
     return replacement
@@ -167,8 +170,8 @@ def process(data, ref_array=None, warn_if_missing=True) -> dict:
                     continue
                 # if a split is required
                 for token in ['|+|', '|=|']:
-                    (final_k, final_v) = separate_key_and_value(elt_dest_k,
-                                                                token)
+                    (final_k,
+                     final_v) = separate_key_and_value(elt_dest_k, token)
                     # the split() succeeded ? stop
                     if final_v:
                         break
@@ -228,46 +231,88 @@ def print_version(ctx, param, value) -> None:
     """print converter version number, tied to PCVS version number """
     if not value or ctx.resilient_parsing:
         return
-    click.echo(
-        'PCVS Dynamic Converter (pcvs) -- version {}'.format(pkg_resources.require("pcvs")[0].version))
+    click.echo('PCVS Dynamic Converter (pcvs) -- version {}'.format(
+        pkg_resources.require("pcvs")[0].version))
     ctx.exit()
 
 
 @click.command("pcvs_convert", short_help="YAML to YAML converter")
-@click.option("-k", "--kind", "kind",
-              type=click.Choice(['compiler', 'runtime', 'environment', 'te', "profile"],
-                                case_sensitive=False),
-              required=True, help="Select a kind to apply for the file")
-@click.option("-t", "--template", "template",
+@click.option("-k",
+              "--kind",
+              "kind",
+              type=click.Choice(
+                  ['compiler', 'runtime', 'environment', 'te', "profile"],
+                  case_sensitive=False),
+              required=True,
+              help="Select a kind to apply for the file")
+@click.option("-t",
+              "--template",
+              "template",
               type=click.Path(exists=True, dir_okay=False, readable=True),
-              required=False, default=None,
+              required=False,
+              default=None,
               help="Optional template file (=group) to resolve aliases")
-@click.option("-s", "--scheme", "scheme", required=False, default=None,
+@click.option("-s",
+              "--scheme",
+              "scheme",
+              required=False,
+              default=None,
               type=click.Path(exists=True, dir_okay=False, readable=True),
               help="Override default spec by custom one")
-@click.option("-v", "--verbose", count=True,
+@click.option("-v",
+              "--verbose",
+              count=True,
               help="Enable up to 3-level log messages")
-@click.option("-V", "--version", expose_value=False, callback=print_version,
-              is_eager=True, help="Print version", is_flag=True)
-@click.option("-c", "--color/--no-color", "color",
-              default=True, is_flag=True, show_envvar=True,
+@click.option("-V",
+              "--version",
+              expose_value=False,
+              callback=print_version,
+              is_eager=True,
+              help="Print version",
+              is_flag=True)
+@click.option("-c",
+              "--color/--no-color",
+              "color",
+              default=True,
+              is_flag=True,
+              show_envvar=True,
               help="Use colors to beautify the output")
-@click.option("-g", "--glyph/--no-glyph", "encoding",
-              default=True, is_flag=True, show_envvar=True,
+@click.option("-g",
+              "--glyph/--no-glyph",
+              "encoding",
+              default=True,
+              is_flag=True,
+              show_envvar=True,
               help="enable/disable Unicode glyphs")
-@click.option("-o", "--output", "out", default=None,
+@click.option("-o",
+              "--output",
+              "out",
+              default=None,
               type=click.Path(exists=False, dir_okay=False),
               help="Filepath where to put the converted YAML")
-@click.option("--stdout", "stdout", is_flag=True, default=False,
+@click.option("--stdout",
+              "stdout",
+              is_flag=True,
+              default=False,
               help="Print the stdout nothing but the converted data")
-@click.option("--skip-unknown", "skip_unknown", default=False, is_flag=True,
+@click.option("--skip-unknown",
+              "skip_unknown",
+              default=False,
+              is_flag=True,
               help="Missing keys are ignored and kept as is in final output")
-@click.option("--in-place", "in_place", is_flag=True, default=False,
+@click.option("--in-place",
+              "in_place",
+              is_flag=True,
+              default=False,
               help="Write conversion back to the original file (DESTRUCTIVE)")
-@click.argument("input_file", type=click.Path(exists=True, dir_okay=False,
-                                              readable=True, allow_dash=True))
+@click.argument("input_file",
+                type=click.Path(exists=True,
+                                dir_okay=False,
+                                readable=True,
+                                allow_dash=True))
 @click.pass_context
-def main(ctx, color, encoding, verbose, kind, input_file, out, scheme, template, stdout, skip_unknown, in_place) -> None:
+def main(ctx, color, encoding, verbose, kind, input_file, out, scheme,
+         template, stdout, skip_unknown, in_place) -> None:
     """
     Process the conversion from one YAML format to another.
     Conversion specifications are described by the SCHEME file.
@@ -280,7 +325,9 @@ def main(ctx, color, encoding, verbose, kind, input_file, out, scheme, template,
 
     if in_place and (stdout or out is not None):
         raise click.BadOptionUsage(
-            "--stdout/--in-place", "Cannot use --in-place option with any other output options (--output/--stdout)")
+            "--stdout/--in-place",
+            "Cannot use --in-place option with any other output options (--output/--stdout)"
+        )
     elif in_place:
         out = input_file
 
@@ -288,7 +335,8 @@ def main(ctx, color, encoding, verbose, kind, input_file, out, scheme, template,
         io.console.warn("\n".join([
             "If the TE file contains YAML aliases, the conversion may",
             "fail. Use the '--template' option to provide the YAML file",
-            "containing these aliases"]))
+            "containing these aliases"
+        ]))
     if kind == "profile":
         kind = ""
     # load the input file
@@ -305,8 +353,8 @@ def main(ctx, color, encoding, verbose, kind, input_file, out, scheme, template,
 
     # load the scheme
     if not scheme:
-        scheme = open(os.path.join(
-            pcvs.PATH_INSTDIR, "converter/convert.json"))
+        scheme = open(os.path.join(pcvs.PATH_INSTDIR,
+                                   "converter/convert.json"))
     io.console.print_item("Load scheme file: {}".format(scheme.name))
     tmp = json.load(scheme)
 
@@ -314,11 +362,12 @@ def main(ctx, color, encoding, verbose, kind, input_file, out, scheme, template,
     if '__modifiers' in tmp.keys():
         desc_dict['first'] = replace_placeholder(tmp['__modifiers'],
                                                  tmp['__tokens'])
-    desc_dict['second'] = replace_placeholder(tmp,
-                                              tmp['__tokens'])
+    desc_dict['second'] = replace_placeholder(tmp, tmp['__tokens'])
 
-    io.console.info(["Conversion list {old_key -> new_key):",
-                     "{}".format(pprint.pformat(desc_dict))])
+    io.console.info([
+        "Conversion list {old_key -> new_key):",
+        "{}".format(pprint.pformat(desc_dict))
+    ])
 
     # first, "flattening" the original array: {(1, 2, 3): "val"}
     data_to_convert = flatten(data_to_convert, kind)
@@ -339,19 +388,18 @@ def main(ctx, color, encoding, verbose, kind, input_file, out, scheme, template,
     # remove template key from the output to avoid polluting the caller
     io.console.print_item("Pruning templates from the final data")
     invalid_nodes = [k for k in final_data.keys() if k.startswith('pcvst_')]
-    io.console.info(["Prune the following:", "{}".format(
-        pprint.pformat(invalid_nodes))])
+    io.console.info(
+        ["Prune the following:", "{}".format(pprint.pformat(invalid_nodes))])
     [final_data.pop(x, None) for x in invalid_nodes + ["pcvs_missing"]]
 
-    io.console.info(
-        ["Final layout:", "{}".format(pprint.pformat(final_data))])
+    io.console.info(["Final layout:", "{}".format(pprint.pformat(final_data))])
 
     if stdout:
         f = sys.stdout
     else:
         if out is None:
-            prefix, base = os.path.split(
-                "./file.yml" if input_file == "-" else input_file)
+            prefix, base = os.path.split("./file.yml" if input_file ==
+                                         "-" else input_file)
             out = os.path.join(prefix, "convert-" + base)
         f = open(out, "w")
 

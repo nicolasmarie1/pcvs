@@ -56,7 +56,10 @@ def generate_from_variants(package, label, prefix):
 
     _, src, _, build = testing.generate_local_variables(label, prefix)
 
-    t = TestFile(file_in=src, path_out=build,
-                 data=data, label=label, prefix=prefix)
+    t = TestFile(file_in=src,
+                 path_out=build,
+                 data=data,
+                 label=label,
+                 prefix=prefix)
     t.process()
     t.flush_sh_file()

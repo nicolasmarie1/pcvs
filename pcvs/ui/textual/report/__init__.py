@@ -39,8 +39,7 @@ class ActiveSessionList(Widget):
         yield self.items
         yield Horizontal(
             Button(label="Done", variant="primary", id="session-pick-done"),
-            Button(label="Cancel", variant="error", id="session-pick-cancel")
-        )
+            Button(label="Cancel", variant="error", id="session-pick-cancel"))
 
     def init_list(self):
         item_names = self.app.model.session_prefixes
@@ -70,8 +69,12 @@ class FileBrowser(Widget):
     log = reactive(Static(id="error-log"))
 
     class CustomDirectoryTree(DirectoryTree):
+
         def filter_paths(self, paths: Iterable[Path]) -> Iterable[Path]:
-            return [path for path in paths if check_is_build_or_archive(path) or os.path.isdir(path)]
+            return [
+                path for path in paths
+                if check_is_build_or_archive(path) or os.path.isdir(path)
+            ]
 
     def compose(self):
         yield Static("File Browser:")
@@ -88,12 +91,11 @@ class FileBrowser(Widget):
 
 
 class SessionPickScreen(ModalScreen):
+
     def compose(self):
-        yield Grid(
-            ActiveSessionList(),
-            FileBrowser(),
-            id="session-list-screen"
-        )
+        yield Grid(ActiveSessionList(),
+                   FileBrowser(),
+                   id="session-list-screen")
 
     class SwitchAnotherSession(Message):
         pass
@@ -148,7 +150,8 @@ class JobListViewer(Widget):
 
     def update_table(self):
         self.table.clear()
-        for state, jobs in self.app.model.single_session_status(self.app.model.active_id).items():
+        for state, jobs in self.app.model.single_session_status(
+                self.app.model.active_id).items():
             for jobid in jobs:
                 obj = self.app.model.single_session_map_id(
                     self.app.model.active_id, jobid)
@@ -156,10 +159,8 @@ class JobListViewer(Widget):
                 color = self.app.model.pick_color_on_status(obj.state)
 
                 self.table.add_row(
-                    obj.name,
-                    "[{c}]{i}[/{c}]".format(c=color, i=obj.state),
-                    obj.time
-                )
+                    obj.name, "[{c}]{i}[/{c}]".format(c=color, i=obj.state),
+                    obj.time)
                 self.jobgroup[obj.name] = obj
         self.table.sort(self.name_colkey)
 
@@ -180,6 +181,7 @@ class SingleJobViewer(Widget):
 
 
 class MainScreen(Screen):
+
     def compose(self):
         # with TabbedContent():
         #    with TabPane("main", id="main"):
@@ -192,8 +194,8 @@ class MainScreen(Screen):
     @on(DataTable.RowSelected)
     def selected_row(self, event: DataTable.RowSelected):
         name_colkey = self.query_one(JobListViewer).name_colkey
-        jobname = self.query_one(DataTable).get_cell(
-            event.row_key, name_colkey)
+        jobname = self.query_one(DataTable).get_cell(event.row_key,
+                                                     name_colkey)
 
         obj = self.query_one(JobListViewer).jobgroup[jobname]
         data = "** No Output **" if not obj.output else obj.output
@@ -205,6 +207,7 @@ class MainScreen(Screen):
 
 
 class ExitConfirmScreen(ModalScreen):
+
     def compose(self):
         yield Grid(
             Static("Are you sure you want to quit?", id="question"),
@@ -222,12 +225,14 @@ class ExitConfirmScreen(ModalScreen):
 
 
 class PleaseWaitScreen(ModalScreen):
+
     def compose(self):
         yield Static("Please Wait...")
         yield LoadingIndicator()
 
 
 class SessionInfoScreen(ModalScreen):
+
     def compose(self):
         display = {
             "datetime": Static("Date of run:"),
@@ -238,16 +243,14 @@ class SessionInfoScreen(ModalScreen):
 
         infolog.write(pprint.pformat(config))
 
-        yield Container(
-            Horizontal(
-                Static('File Path:'),
-                Static(self.app.model.active.prefix),
-            ),
-            Static('Configuration:'),
-            infolog,
-            Button("Done"),
-            id="session-infos"
-        )
+        yield Container(Horizontal(
+            Static('File Path:'),
+            Static(self.app.model.active.prefix),
+        ),
+                        Static('Configuration:'),
+                        infolog,
+                        Button("Done"),
+                        id="session-infos")
 
     @on(Button.Pressed)
     def quit_infos(self, ev):
@@ -266,13 +269,10 @@ class ReportApplication(App):
         "session_list": SessionPickScreen(),
         "session_infos": SessionInfoScreen()
     }
-    BINDINGS = {
-        ('q', 'push_screen("exit")', 'Exit'),
-        ('o', 'push_screen("session_list")', 'Open'),
-        ('t', 'toggle_dark', 'Dark mode'),
-        ("c", "push_screen('session_infos')", 'Infos')
-
-    }
+    BINDINGS = {('q', 'push_screen("exit")', 'Exit'),
+                ('o', 'push_screen("session_list")', 'Open'),
+                ('t', 'toggle_dark', 'Dark mode'),
+                ("c", "push_screen('session_infos')", 'Infos')}
     CSS_PATH = "main.css"
 
     @on(SessionPickScreen.SwitchAnotherSession)
