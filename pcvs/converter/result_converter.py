@@ -56,8 +56,8 @@ def main(source, dest, force):
             assert ('tests' in data.keys())
             for test_data in data['tests']:
                 job = Test()
-                job.from_json(test_data)
-                results.save(id_incr, job)
+                job.from_json(test_data, None)
+                results.save(job)
                 id_incr += 1
 
 

@@ -142,7 +142,7 @@ class ResultFile:
     def content(self):
         for name, data in self._data.items():
             elt = Test()
-            elt.from_json(data)
+            elt.from_json(data, None)
 
             offset = data['result']['output']['offset']
             length = data['result']['output']['length']
@@ -201,7 +201,7 @@ class ResultFile:
                 rawout = self.extract_output(offset, length)
 
             eltt = Test()
-            eltt.from_json(elt)
+            eltt.from_json(elt, None)
             eltt.encoded_output = rawout
             res.append(eltt)
 

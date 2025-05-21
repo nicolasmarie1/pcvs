@@ -219,7 +219,7 @@ def check(ctx, dir, encoding, color, configs, profiles, pf_name, conversion):
         io.console.print_section("Prepare the environment")
         # first, replace build dir with a temp one
         settings = MetaConfig()
-        cfg_val = settings.bootstrap_validation({})
+        cfg_val = settings.bootstrap_validation({}, None)
         cfg_val.set_ifdef('output', "/tmp/test")
         errors = {
             **errors,

@@ -509,7 +509,7 @@ def process_dyn_setup_scripts(setup_files):
         # Now create the file handler
         MetaConfig.root.get_internal("pColl").invoke_plugins(
             Plugin.Step.TFILE_BEFORE)
-        obj = TestFile(file_in="<stream>",
+        obj = TestFile(file_in=f,
                        path_out=cur_build,
                        label=label,
                        prefix=subprefix)

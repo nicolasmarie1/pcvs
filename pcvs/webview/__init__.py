@@ -205,7 +205,7 @@ def create_app(iface):
 
         test_sid = json_str["metadata"]["sid"]
         test_obj = Test()
-        test_obj.from_json(json_str["test_data"])
+        test_obj.from_json(json_str["test_data"], None)
 
         ok = data_manager.insert_test(test_sid, test_obj)
 

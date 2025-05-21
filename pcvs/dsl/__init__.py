@@ -16,10 +16,10 @@ class Job(Test):
         PROGRESSION = 1,
         STABLE = 2
 
-    def __init__(self, s=None) -> None:
+    def __init__(self, s=None, filepath: str = None) -> None:
         super().__init__()
         if isinstance(s, dict):
-            self.from_json(s)
+            self.from_json(s, filepath)
 
     def get_state(self) -> Test.State:
         """Retrieve job state as stored in the Run.
@@ -29,13 +29,13 @@ class Job(Test):
         """
         return self._state
 
-    def load(self, s="") -> None:
+    def load(self, s="", filepath: str = None) -> None:
         """Populate the job with given data.
 
         :param s: A Job's data dict representation
         :type s: dict
         """
-        self.from_json(s)
+        self.from_json(s, filepath)
 
     def dump(self) -> dict:
         """Return serialied job data.
@@ -110,7 +110,7 @@ class Run:
         if not data:
             return data
 
-        res.from_json(str(data))
+        res.from_json(str(data), None)
         return res
 
     def update(self, prefix, data):
@@ -211,7 +211,7 @@ class Serie:
                                                 dst=None,
                                                 since=since,
                                                 until=until):
-                job.from_json(raw_job)
+                job.from_json(raw_job, None)
                 if job.state != Test.State.SUCCESS:
                     res.append(job)
 

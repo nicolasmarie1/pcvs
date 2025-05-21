@@ -356,7 +356,7 @@ class ConfigurationBlock:
         edited_stream = click.edit(stream, extension=".yml", require_save=True)
         if edited_stream is not None:
             edited_yaml = MetaDict(YAML(typ='safe').load(edited_stream))
-            system.ValidationScheme(self._kind).validate(edited_yaml)
+            system.ValidationScheme(self._kind).validate(edited_yaml, self._file)
             self.fill(edited_yaml)
             self.flush_to_disk()
             try:

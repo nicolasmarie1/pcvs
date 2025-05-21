@@ -590,7 +590,7 @@ class Test:
         self._invocation_cmd = json.get('invocation_cmd', "exit 1")
         self._id['jid'] = json.get('jid', "-1")
 
-    def from_json(self, test_json: str) -> None:
+    def from_json(self, test_json: str, filepath: str) -> None:
         """Replace the whole Test structure based on input JSON.
 
         :param json: the json used to set this Test
@@ -600,8 +600,8 @@ class Test:
         if isinstance(test_json, str):
             test_json = json.loads(test_json)
 
-        assert (isinstance(test_json, dict))
-        self.res_scheme.validate(test_json)
+        assert isinstance(test_json, dict)
+        self.res_scheme.validate(test_json, filepath)
 
         self._id = test_json.get("id", -1)
         self._comb = Combination({}, self._id.get('comb', {}))
@@ -614,7 +614,7 @@ class Test:
         self._exectime = res.get("time", 0)
         self._output_info = res.get("output", {})
         self._output = self._output_info.get('raw', b"")
-        if type(self._output) == str:
+        if self._output is str:
             # should only be managed as bytes (as produced by b64 encoding)
             self._output = self._output.encode('utf-8')
 

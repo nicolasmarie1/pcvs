@@ -1,5 +1,7 @@
 import os
 
+from typing import List
+
 import addict
 import jsonschema
 from ruamel.yaml import YAML
@@ -13,7 +15,7 @@ from pcvs.helpers import pm
 from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers.exceptions import ValidationException
 from pcvs.io import Verbosity
-
+from pcvs import io
 
 # ###################################
 # ###   YAML VALIDATION OBJECT   ####
@@ -24,15 +26,15 @@ class ValidationScheme:
     validate). This instance can be used multiple times to check multiple
     streams belonging to the same model.
     """
-    avail_list = None
+    avail_list = []
 
     @classmethod
-    def available_schemes(cls):
-        """return list of currently supported formats to be validated. The list
-        is extracted from INSTALL/schemes/<model>-scheme.yml
+    def available_schemes(cls) -> List:
+        """return list of currently supported formats to be validated.
+        The list is extracted from INSTALL/schemes/<model>-scheme.yml
         """
-        if cls.avail_list is None:
-            cls.avail_list = list()
+        if not cls.avail_list:
+            cls.avail_list = []
             for f in os.listdir(os.path.join(PATH_INSTDIR, 'schemes/')):
                 cls.avail_list.append(f.replace('-scheme.yml', ''))
 
@@ -45,19 +47,18 @@ class ValidationScheme:
             ValidationException.SchemeError: file is not found OR unable to load
             the YAML scheme file.
         """
-        self._name = name
+        self.schema_name = name  # the name of the schema
+        self.schema = None       # the content of the schema
 
         try:
-            with open(
-                    os.path.join(PATH_INSTDIR,
-                                 'schemes/{}-scheme.yml'.format(name)),
-                    'r') as fh:
-                self._scheme = YAML(typ='safe').load(fh)
-        except (IOError, YAMLError):
+            path = os.path.join(PATH_INSTDIR, f'schemes/{name}-scheme.yml')
+            with open(path, 'r', encoding='utf-8') as fh:
+                self.schema = YAML(typ='safe').load(fh)
+        except (IOError, YAMLError) as er:
             raise ValidationException.SchemeError(
-                "Unable to load scheme {}".format(name))
+                f"Unable to load scheme {name}") from er
 
-    def validate(self, content, filepath=None):
+    def validate(self, content, filepath):
         """Validate a given datastructure (dict) agasint the loaded scheme.
 
             :param content: json to validate
@@ -66,20 +67,24 @@ class ValidationScheme:
             :raises ValidationException.FormatError: data are not valid
             :raises ValidationException.SchemeError: issue while applying scheme
         """
+        if not filepath:
+            io.console.warn("Validation operated on unknown file.")
+        # assert filepath
+        # template are use to validate default configuration
+        # even if the file has not been created
+        # assert os.path.isfile(filepath)
         try:
-            if filepath is None:
-                filepath = "'data stream'"
-
-            jsonschema.validate(instance=content, schema=self._scheme)
+            jsonschema.validate(instance=content, schema=self.schema)
         except jsonschema.exceptions.ValidationError as e:
             raise ValidationException.FormatError(
-                reason="Failed to validate input file: {}".format(e.message),
-                file=filepath,
-                scheme=self._scheme)
+                reason=f"Failed to validate input file: '{filepath}'\n"
+                       f"Validation against schema '{self.schema_name}'\n"
+                       f"Schema is: \n {self.schema}\n"
+                       f"Validation error message is:\n {e.message}\n"
+                ) from e
         except jsonschema.exceptions.SchemaError as e:
-            raise ValidationException.SchemeError(name=self._name,
-                                                  content=self._scheme,
-                                                  error=e)
+            raise ValidationException.SchemeError(
+                    name=self.schema_name, content=self.schema, error=e) from e
 
 
 class MetaDict(addict.Dict):
@@ -122,16 +127,19 @@ class Config(MetaDict):
         for n in d:
             self.__setitem__(n, d[n])
 
-    def validate(self, kw):
+    def validate(self, kw, filepath: str):
         """Check if the Config instance matches the expected format as declared
         in schemes/. As the 'category' is not carried by the object itself, it
         is provided by the function argument.
 
         :param kw: keyword describing the configuration to be validated (scheme)
         :type kw: str
+        :param filepath: file path of the yaml being passed
+        :type filepath: str
         """
-        assert (kw in ValidationScheme.available_schemes())
-        ValidationScheme(kw).validate(self)
+        assert filepath
+        assert kw in ValidationScheme.available_schemes()
+        ValidationScheme(kw).validate(self, filepath)
 
     def __setitem__(self, param, value):
         """extend it to handle dict initialization (needs MetaDict conversion)
@@ -207,77 +215,58 @@ class MetaConfig(MetaDict):
     root = None
     validation_default_file = pcvs.PATH_VALCFG
 
-    def __init__(self, *args, **kwargs):
-        """constructor method.
-
-        :param args: list of positional arguments
-        :type args: tuple
-        :param kwargs: list of keyword-based arguments
-        """
-        super().__init__(*args, **kwargs)
-
-        # The 'internal' node is a special one. Put here anything not requiring
-        # to be published (like conf.yml, etc...). mainly one-time Python
-        # objects
-
-        # self.__internal_config = Config()
-
-    def __setitem__(self, param, value):
-        """Extend the default MetaDict setter mthod to reach the base class one"""
-        super().__setitem__(param, value)
-
-    def bootstrap_generic(self, subnode, node):
+    def bootstrap_generic(self, subnode_name: str, node: dict, filepath: str):
         """"Initialize a Config() object and store it under name 'node'
-        :param subnode: node name
-        :type subnode: str
+        :param subnode_name: node name
+        :type subnode_name: str
         :param node: node to initialize and add
         :type node: dict
         :return: added subnode
         :rtype: dict"""
 
-        if subnode not in self:
-            self[subnode] = Config()
+        if subnode_name not in self:
+            self[subnode_name] = Config(node)
 
-        for k, v in node.items():
-            self[subnode][k] = v
+        # for k, v in node.items():
+        #     self[subnode_name][k] = v
 
-        self[subnode].validate(subnode)
-        return self[subnode]
+        self[subnode_name].validate(subnode_name, filepath)
+        return self[subnode_name]
 
-    def bootstrap_from_profile(self, pf_as_dict):
-
+    def bootstrap_from_profile(self, pf_as_dict, filepath: str):
+        """Bootstrap profile from dict"""
         if not isinstance(pf_as_dict, MetaDict):
             pf_as_dict = MetaDict(pf_as_dict)
 
-        self.bootstrap_compiler(pf_as_dict.compiler)
-        self.bootstrap_runtime(pf_as_dict.runtime)
-        self.bootstrap_machine(pf_as_dict.machine)
-        self.bootstrap_criterion(pf_as_dict.criterion)
-        self.bootstrap_group(pf_as_dict.group)
+        self.bootstrap_compiler(pf_as_dict.compiler, filepath)
+        self.bootstrap_runtime(pf_as_dict.runtime, filepath)
+        self.bootstrap_machine(pf_as_dict.machine, filepath)
+        self.bootstrap_criterion(pf_as_dict.criterion, filepath)
+        self.bootstrap_group(pf_as_dict.group, filepath)
 
-    def bootstrap_compiler(self, node):
+    def bootstrap_compiler(self, node, filepath: str):
         """"Specific initialize for compiler config block
         :param node: compiler block to initialize
         :type node: dict
         :return: added node
         :rtype: dict"""
-        subtree = self.bootstrap_generic('compiler', node)
+        subtree = self.bootstrap_generic('compiler', node, filepath)
         if 'package_manager' in subtree:
             self.set_internal('cc_pm', pm.identify(subtree.package_manager))
         return subtree
 
-    def bootstrap_runtime(self, node):
+    def bootstrap_runtime(self, node, filepath: str):
         """"Specific initialize for runtime config block
         :param node: runtime block to initialize
         :type node: dict
         :return: added node
         :rtype: dict"""
-        subtree = self.bootstrap_generic('runtime', node)
+        subtree = self.bootstrap_generic('runtime', node, filepath)
         if 'package_manager' in subtree:
             self.set_internal('rt_pm', pm.identify(subtree.package_manager))
         return subtree
 
-    def bootstrap_group(self, node):
+    def bootstrap_group(self, node, filepath: str):
         """"Specific initialize for group config block.
         There is currently nothing to here but calling bootstrap_generic()
         :param node: runtime block to initialize
@@ -285,9 +274,9 @@ class MetaConfig(MetaDict):
         :return: added node
         :rtype: dict
         """
-        return self.bootstrap_generic('group', node)
+        return self.bootstrap_generic('group', node, filepath)
 
-    def bootstrap_validation_from_file(self, filepath):
+    def bootstrap_validation_from_file(self, filepath: str):
         """Specific initialize for validation config block. This function loads
             a file containing the validation dict.
 
@@ -302,11 +291,11 @@ class MetaConfig(MetaDict):
 
         if os.path.isfile(filepath):
             try:
-                with open(filepath, 'r') as fh:
+                with open(filepath, 'r', encoding='utf-8') as fh:
                     node = MetaDict(YAML(typ='safe').load(fh))
-            except (IOError, YAMLError):
+            except (IOError, YAMLError) as e:
                 raise CommonException.IOError(
-                    "Error(s) found while loading {}".format(filepath))
+                    f"Error(s) found while loading {filepath}") from e
 
         # some post-actions
         for field in ["output", "reused_build"]:
@@ -316,20 +305,15 @@ class MetaConfig(MetaDict):
         if node.dirs:
             node.dirs = {k: os.path.abspath(v) for k, v in node.dirs.items()}
 
-        return self.bootstrap_validation(node)
+        return self.bootstrap_validation(node, filepath)
 
-    def bootstrap_subnode(root_node, *default_subnode_dict):
-        for k, v in default_subnode_dict:
-            if k not in root_node:
-                root_node[k] = v
-
-    def bootstrap_validation(self, node):
+    def bootstrap_validation(self, node, filepath: str):
         """"Specific initialize for validation config block
         :param node: validation block to initialize
         :type node: dict
         :return: initialized node
         :rtype: dict"""
-        subtree = self.bootstrap_generic('validation', node)
+        subtree = self.bootstrap_generic('validation', node, filepath)
 
         # Initialize default values when not set by user or default files
         subtree.set_nosquash('verbose', str(Verbosity.COMPACT))
@@ -375,13 +359,13 @@ class MetaConfig(MetaDict):
 
         return subtree
 
-    def bootstrap_machine(self, node):
+    def bootstrap_machine(self, node, filepath: str):
         """"Specific initialize for machine config block
         :param node: machine block to initialize
         :type node: dict
         :return: initialized node
         :rtype: dict"""
-        subtree = self.bootstrap_generic('machine', node)
+        subtree = self.bootstrap_generic('machine', node, filepath)
         subtree.set_nosquash('name', 'default')
         subtree.set_nosquash('nodes', 1)
         subtree.set_nosquash('cores_per_node', 1)
@@ -405,13 +389,13 @@ class MetaConfig(MetaDict):
                     kind].program
         return subtree
 
-    def bootstrap_criterion(self, node):
+    def bootstrap_criterion(self, node, filepath: str):
         """"Specific initialize for criterion config block
         :param node: criterion block to initialize
         :type node: dict
         :return: initialized node
         :rtype: dict"""
-        return self.bootstrap_generic('criterion', node)
+        return self.bootstrap_generic('criterion', node, filepath)
 
     def set_internal(self, k, v):
         """manipulate the internal MetaConfig() node to store not-exportable data
@@ -432,8 +416,7 @@ class MetaConfig(MetaDict):
 
         if k in self.__internal_config:
             return self.__internal_config[k]
-        else:
-            return None
+        return None
 
     def dump_for_export(self):
         """Export the whole configuration as a dict. Prune any __internal node

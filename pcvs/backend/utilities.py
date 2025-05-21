@@ -237,7 +237,7 @@ def process_check_directory(dir, pf_name="default", conversion=True):
         pf.load_from_disk()
         pf.check(allow_legacy=conversion)
     system.MetaConfig.root = system.MetaConfig()
-    system.MetaConfig.root.bootstrap_from_profile(pf.dump())
+    system.MetaConfig.root.bootstrap_from_profile(pf.dump(), pf.full_name)
     system.MetaConfig.root.validation.output = "/tmp"
     buildenv = run.build_env_from_configuration(pf.dump())
     setup_files, yaml_files = run.find_files_to_process(

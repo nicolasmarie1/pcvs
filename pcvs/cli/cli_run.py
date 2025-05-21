@@ -343,7 +343,7 @@ def run(ctx, profilename, output, detach, override, anon, settings_file,
 
         val_cfg.set_ifdef('pf_name', pf.full_name)
         val_cfg.set_ifdef('pf_hash', pf.get_unique_id())
-        global_config.bootstrap_from_profile(pf.dump())
+        global_config.bootstrap_from_profile(pf.dump(), pf.full_name)
 
     the_session = pvSession.Session(val_cfg.datetime, val_cfg.output)
     the_session.register_callback(callback=pvRun.process_main_workflow)
