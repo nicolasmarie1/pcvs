@@ -442,7 +442,7 @@ class Criterion:
         # now ensure values are unique
         self._values = set(values)
         self._expanded = True
-        io.console.debug("EXPANDED {}: {}".format(self.name, self._values))
+        io.console.debug(f"EXPANDED {self.name}: {self._values}")
         # TODO: handle criterion dependency (ex: n_mpi: ['n_node * 2'])
 
 

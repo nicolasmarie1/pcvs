@@ -11,7 +11,7 @@ try:
     version += "+{}".format(sh.git("rev-parse", "HEAD").strip()[:8])
     if sh.git('--no-pager', 'diff', 'HEAD'):
         version += ".dirty"
-except:
+except Exception:
     pass
 
 with open("README.md", 'r') as f:
@@ -45,8 +45,6 @@ setuptools.setup(
     entry_points='''
         [console_scripts]
         pcvs=pcvs.main:cli
-        pcvs_convert=pcvs.converter.yaml_converter:main
-        pcvs_result_convert=pcvs.converter.result_converter:main
     ''',
 
     project_urls={

@@ -45,7 +45,9 @@ class Manager:
         self._dims = dict()
         self._max_size = max_size
         self._publisher = publisher
-        self._count = MetaDict({"total": 0, "executed": 0})
+        self._count = MetaDict()
+        self._count.total = 0
+        self._count.executed = 0
 
     def get_dim(self, dim):
         """Get the list of jobs satisfying the given dimension.

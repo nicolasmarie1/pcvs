@@ -218,8 +218,7 @@ def check_valid_program(p, succ=None, fail=None, raise_if_fail=True):
     :return: True if p is a program, False otherwise
     :rtype: bool
     """
-    if not p:
-        return
+    assert p
     try:
         filepath = shutil.which(p)
         res = os.access(filepath, mode=os.X_OK)
@@ -227,11 +226,12 @@ def check_valid_program(p, succ=None, fail=None, raise_if_fail=True):
         res = False
 
     if res is True and succ is not None:
-        succ("'{}' found at '{}'".format(os.path.basename(p), filepath))
+        basename = os.path.basename(p)
+        succ(f"'{basename}' found at '{filepath}'")
 
     if res is False:
         if fail is not None:
-            fail("{} not found or not an executable".format(p))
+            fail(f"'{p}' not found or not an executable")
         if raise_if_fail:
             raise RunException.ProgramError(p)
 

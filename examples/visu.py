@@ -11,7 +11,7 @@ import time
 s = time.time()
 data = a.generate_weighted_divergence(l[1].name)
 e = time.time()
-print("Took {} sec(s)".format(float(e-s))
+print("Took {} sec(s)".format(float(e-s)))
 data = a.generate_serie_trend(l[1].name)
 
 x = []

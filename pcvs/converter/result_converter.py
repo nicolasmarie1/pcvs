@@ -53,7 +53,7 @@ def main(source, dest, force):
     for f in os.listdir(json_filepath):
         with open(os.path.join(json_filepath, f), 'r') as fh:
             data = json.load(fh)
-            assert ('tests' in data.keys())
+            assert 'tests' in data.keys()
             for test_data in data['tests']:
                 job = Test()
                 job.from_json(test_data, None)
@@ -62,4 +62,5 @@ def main(source, dest, force):
 
 
 if __name__ == '__main__':
-    main()
+    pass
+    # main()

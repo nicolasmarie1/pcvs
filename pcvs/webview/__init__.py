@@ -66,7 +66,6 @@ def create_app(iface):
         :return: page content
         :rtype: str
         """
-        sid = sid
         if sid not in data_manager.session_ids:
             abort(404)
 
@@ -150,7 +149,7 @@ def create_app(iface):
             # special case
             if selection == "status":
                 job_list = data_manager.single_session_status(
-                    sid, filter=request_item)
+                    sid, status_filter=request_item)
             else:
                 struct = data_manager.single_session_get_view(
                     sid, selection, subset=request_item, summary=False)

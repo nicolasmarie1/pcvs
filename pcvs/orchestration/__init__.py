@@ -97,7 +97,7 @@ class Orchestrator:
                     # create a new set, if not possible, returns None
                     new_set = self._manager.create_subset(nb_res)
                     if new_set is not None:
-                        assert (isinstance(nb_res, int))
+                        assert isinstance(nb_res, int)
                         # schedule the set asynchronously
                         nb_res -= new_set.dim
                         io.console.nodebug(

@@ -26,7 +26,7 @@ def upload_buildir_results(buildir) -> None:
     """
 
     # first, need to determine the session ID -> conf.yml
-    with open(os.path.join(buildir, "conf.yml"), 'r') as fh:
+    with open(os.path.join(buildir, "conf.yml"), 'r', encoding='utf-8') as fh:
         conf_yml = MetaDict(YAML().load(fh))
 
     sid = conf_yml.validation.sid
@@ -40,7 +40,8 @@ def upload_buildir_results(buildir) -> None:
             'dirs': conf_yml.validation.dirs
         })
     for test in man.results.browse_tests():
-        man.save(test)
+        # FIXME: this function does not exist any more
+        # man.save(test)
         dataman.insert_test(sid, test)
 
     dataman.close_session(sid, {'state': Session.State.COMPLETED})
@@ -55,10 +56,9 @@ class Report:
         """
         Initialize a new report (no args)
         """
-        self._sessions = dict()
-        self._alive_session_infos = dict()
+        self._sessions = {}
+        self._alive_session_infos = {}
 
-    @classmethod
     def __create_build_handler(self, path) -> BuildDirectoryManager:
         """
         Initialize a new handler to a build directory.
@@ -129,7 +129,6 @@ class Report:
         """
         return list(self._sessions.keys())
 
-    @classmethod
     def dict_convert_list_to_cnt(
             self, arrays: Dict[str, List[int]]) -> Dict[str, int]:
         """
@@ -176,7 +175,7 @@ class Report:
         d['runtime']['plugin'] = ''
         return d
 
-    def single_session_status(self, sid, filter=None) -> Union[Dict, List]:
+    def single_session_status(self, sid, status_filter=None) -> Union[Dict, List]:
         """
         Get per-session status infos
 
@@ -189,11 +188,10 @@ class Report:
         """
         assert sid in self._sessions
         statuses = self._sessions[sid].results.status_view
-        if filter:
-            assert (filter in statuses)
-            return statuses[filter]
-        else:
-            return statuses
+        if status_filter:
+            assert status_filter in statuses
+            return statuses[status_filter]
+        return statuses
 
     def single_session_tags(self, sid) -> Dict[str, Dict]:
         """
@@ -309,8 +307,7 @@ class Report:
 
         if d and summary:
             return {k: self.dict_convert_list_to_cnt(v) for k, v in d.items()}
-        else:
-            return d
+        return d
 
 
 def build_static_pages(buildir) -> None:
@@ -335,5 +332,5 @@ def start_server(report: Report):
     """
     app = create_app(report)
     app.run(host='0.0.0.0',
-            port=int(os.getenv("PCVS_REPORT_PORT", 5000)),
+            port=int(os.getenv("PCVS_REPORT_PORT", str(5000))),
             debug=True)

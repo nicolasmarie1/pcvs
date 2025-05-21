@@ -13,6 +13,7 @@ from pcvs.cli import cli_report
 from pcvs.cli import cli_run
 from pcvs.cli import cli_session
 from pcvs.cli import cli_utilities
+from pcvs.cli import cli_convert
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import PluginException
 from pcvs.plugins import Collection
@@ -168,6 +169,8 @@ cli.add_command(cli_utilities.discover)
 cli.add_command(cli_report.report)
 cli.add_command(cli_remote_run.remote_run)
 # cli.add_command(cli_plumbing.resolve)
+cli.add_command(cli_convert.convert)
 
-if __name__ == "__main__":
-    cli()
+
+# if __name__ == "__main__":
+#     cli()

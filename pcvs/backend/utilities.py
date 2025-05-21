@@ -102,7 +102,7 @@ def process_check_configs(conversion=True):
                 obj.load_from_disk()
 
                 try:
-                    obj.check(allow_legacy=conversion)
+                    obj.check()
                     token = io.console.utf('succ')
                 except ValidationException.FormatError as e:
                     err_msg = str(e.dbg).encode('utf-8')
@@ -410,7 +410,7 @@ def process_discover_directory(path, override=False, force=False):
     :type force: bool
     """
     for root, dirs, files in os.walk(path):
-        obj = None
+        obj, n = None, None
         if 'configure' in files:
             n = "[yello bold]Autotools[/]"
             obj = AutotoolsBuildSystem(root, dirs, files)
@@ -423,7 +423,7 @@ def process_discover_directory(path, override=False, force=False):
 
         if obj is not None:
             dirs[:] = []
-            io.console.print_item("{} [{}]".format(root, n))
+            io.console.print_item(f"{root} [{n}]")
             obj.fill()
             if override:
                 obj.generate_file(filename="pcvs.yml", force=force)

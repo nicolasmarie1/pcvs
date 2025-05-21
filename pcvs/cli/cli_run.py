@@ -51,8 +51,8 @@ def iterate_dirs(ctx, param, value) -> dict:
                 label = os.path.basename(testpath)
 
             # if label already used for a different path
-            if label in list_of_dirs.keys(
-            ) and testpath != list_of_dirs[label]:
+            if (label in list_of_dirs.keys()
+                    and testpath != list_of_dirs[label]):
                 err_msg += "- '{}': Used more than once\n".format(
                     label.upper())
             elif not os.path.isdir(testpath):
@@ -97,7 +97,9 @@ def handle_build_lockfile(exc=None):
     :param exc: The raising exception.
     :type exc: Exception
     """
-    if system.MetaConfig.root:
+    if (system.MetaConfig.root
+            and system.MetaConfig.root.validation
+            and "output" in system.MetaConfig.root.validation):
         prefix = os.path.join(system.MetaConfig.root.validation.output,
                               NAME_BUILDFILE)
         if utils.is_locked(prefix):

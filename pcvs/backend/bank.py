@@ -359,7 +359,7 @@ class Bank(dsl.Bank):
         :return: a dict-based representation
         :rtype: dict
         """
-        return {'rootpath': self._path, 'name': self._name}
+        return repr({'rootpath': self._path, 'name': self._name})
 
     def get_count(self):
         """
