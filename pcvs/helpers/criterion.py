@@ -520,7 +520,19 @@ def valid_combination(dic):
         with open(rt.pluginfile, 'w', encoding='utf-8') as fh:
             fh.write(rt.plugin.decode('utf-8'))
 
-        pCollection.register_plugin_by_file(rt.pluginfile, activate=True)
+        try:
+            pCollection.register_plugin_by_file(rt.pluginfile, activate=True)
+        except SyntaxError as e:
+            os.unlink(rt.pluginfile)
+            with open(rt.pluginfile, 'w', encoding='utf-8') as fh2:
+                fh2.write(base64.b64decode(rt.plugin).decode('utf-8'))
+            try:
+                pCollection.register_plugin_by_file(rt.pluginfile, activate=True)
+            except SyntaxError as er2:
+                raise e from er2
+            io.console.warning("Profile file doubly encoded, "
+                               "consider updating plugin in profile file"
+                               "base64 -d <<< \"<plugin>\"")
 
     ret = pCollection.invoke_plugins(Plugin.Step.TEST_EVAL,
                                      config=MetaConfig.root,
