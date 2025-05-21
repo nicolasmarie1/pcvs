@@ -1,7 +1,6 @@
-import base64
 import glob
 import os
-import subprocess
+import tempfile
 from typing import Optional
 
 import click
@@ -17,6 +16,7 @@ from pcvs.helpers.exceptions import ConfigException
 from pcvs.helpers.exceptions import ProfileException
 from pcvs.helpers.exceptions import ValidationException
 from pcvs.helpers.system import MetaDict
+from pcvs.converter import yaml_converter
 
 PROFILE_EXISTING = dict()
 
@@ -161,7 +161,7 @@ class Profile:
         :type raw: dict
         """
         # some checks
-        assert (isinstance(raw, dict))
+        assert isinstance(raw, dict)
 
         # fill is called either from 'build' (dict of configurationBlock)
         # of from 'clone' (dict of raw file inputs)
@@ -222,8 +222,8 @@ class Profile:
         if not os.path.isfile(self._file):
             raise ProfileException.NotFoundError(self._file)
 
-        io.console.debug("Load {} ({})".format(self._name, self._scope))
-        with open(self._file) as f:
+        io.console.debug(f"Load {self._name} ({self._scope})")
+        with open(self._file, 'r', encoding='utf-8') as f:
             self._details = MetaDict(YAML(typ='safe').load(f))
 
     def load_template(self, name="default"):
@@ -241,10 +241,10 @@ class Profile:
                                 name) + ".yml"
         if not os.path.isfile(filepath):
             raise ProfileException.NotFoundError(
-                "{} is not a valid base name.\nPlease use pcvs profile list --all"
-                .format(name))
+                f"{name} is not a valid base name.\n"
+                "Please use pcvs profile list --all")
 
-        with open(filepath, "r") as fh:
+        with open(filepath, 'r', encoding='utf-8') as fh:
             self.fill(YAML(typ='safe').load(fh))
 
     def check(self, allow_legacy: Optional[bool] = True):
@@ -259,7 +259,7 @@ class Profile:
         :raises ValidationException.FormatError: incorrect profile.
         """
         try:
-            err_dbg = list()
+            err_dbg = []
             for k in self._details.keys():
                 if k not in config.CONFIG_BLOCKS:
                     err_dbg.append(k)
@@ -273,26 +273,23 @@ class Profile:
                 #        "Missing '{}' in profile".format(kind))
                 system.ValidationScheme(kind).validate(self._details[kind],
                                                        filepath=self._name)
-        except ValidationException.FormatError:
+        except ValidationException.FormatError as parsing_error:
             if not allow_legacy:
-                raise
-            # Is the profile a legacy format ?
-            # Attempt to convert it on the fly
-            proc = subprocess.Popen(
-                "pcvs_convert '{}' --stdout -k profile --skip-unknown".format(
-                    self._file),
-                stderr=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                shell=True)
+                raise parsing_error
 
-            fds = proc.communicate()
-            if proc.returncode != 0:
-                raise
-            converted_data = YAML(typ='safe').load(fds[0].decode('utf-8'))
-            self.fill(converted_data)
+            tmpfile = tempfile.mkstemp()[1]
+            try:
+                yaml_converter.convert(None, self._file, 'profile', None,
+                                       None, tmpfile, False, True, False)
+            except Exception as convert_error:
+                io.console.error("An error occure when trying "
+                                 f"to update profile: {self._file}")
+                raise convert_error from parsing_error
+
+            with open(tmpfile, 'r', encoding='utf-8') as f:
+                self._details = MetaDict(YAML(typ='safe').load(f))
             self.check(allow_legacy=False)
-            io.console.warning("Legacy format for profile '{}'".format(
-                self._name))
+            io.console.warning(f"Legacy format for profile '{self._name}'")
             io.console.warning(
                 "Please consider updating it with `pcvs_convert -k profile`")
 
@@ -310,7 +307,7 @@ class Profile:
         if not os.path.isdir(prefix_file):
             os.makedirs(prefix_file, exist_ok=True)
 
-        with open(self._file, 'w') as f:
+        with open(self._file, 'w', encoding='utf-8') as f:
             YAML(typ='safe').dump(self._details.to_dict(), f)
 
     def clone(self, clone):

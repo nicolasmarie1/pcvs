@@ -236,83 +236,8 @@ def print_version(ctx, param, value) -> None:
     ctx.exit()
 
 
-@click.command("pcvs_convert", short_help="YAML to YAML converter")
-@click.option("-k",
-              "--kind",
-              "kind",
-              type=click.Choice(
-                  ['compiler', 'runtime', 'environment', 'te', "profile"],
-                  case_sensitive=False),
-              required=True,
-              help="Select a kind to apply for the file")
-@click.option("-t",
-              "--template",
-              "template",
-              type=click.Path(exists=True, dir_okay=False, readable=True),
-              required=False,
-              default=None,
-              help="Optional template file (=group) to resolve aliases")
-@click.option("-s",
-              "--scheme",
-              "scheme",
-              required=False,
-              default=None,
-              type=click.Path(exists=True, dir_okay=False, readable=True),
-              help="Override default spec by custom one")
-@click.option("-v",
-              "--verbose",
-              count=True,
-              help="Enable up to 3-level log messages")
-@click.option("-V",
-              "--version",
-              expose_value=False,
-              callback=print_version,
-              is_eager=True,
-              help="Print version",
-              is_flag=True)
-@click.option("-c",
-              "--color/--no-color",
-              "color",
-              default=True,
-              is_flag=True,
-              show_envvar=True,
-              help="Use colors to beautify the output")
-@click.option("-g",
-              "--glyph/--no-glyph",
-              "encoding",
-              default=True,
-              is_flag=True,
-              show_envvar=True,
-              help="enable/disable Unicode glyphs")
-@click.option("-o",
-              "--output",
-              "out",
-              default=None,
-              type=click.Path(exists=False, dir_okay=False),
-              help="Filepath where to put the converted YAML")
-@click.option("--stdout",
-              "stdout",
-              is_flag=True,
-              default=False,
-              help="Print the stdout nothing but the converted data")
-@click.option("--skip-unknown",
-              "skip_unknown",
-              default=False,
-              is_flag=True,
-              help="Missing keys are ignored and kept as is in final output")
-@click.option("--in-place",
-              "in_place",
-              is_flag=True,
-              default=False,
-              help="Write conversion back to the original file (DESTRUCTIVE)")
-@click.argument("input_file",
-                type=click.Path(exists=True,
-                                dir_okay=False,
-                                readable=True,
-                                allow_dash=True))
-@click.pass_context
-def main(ctx, color, encoding, verbose, kind, input_file, out, scheme,
-         template, stdout, skip_unknown, in_place) -> None:
+def convert(ctx, input_file, kind, template, scheme, out,
+            stdout, skip_unknown, in_place) -> None:
     """
     Process the conversion from one YAML format to another.
     Conversion specifications are described by the SCHEME file.
@@ -363,7 +288,7 @@ def main(ctx, color, encoding, verbose, kind, input_file, out, scheme,
 
     io.console.info([
         "Conversion list {old_key -> new_key):",
-        "{}".format(pprint.pformat(desc_dict))
+        f"{tmp}"
     ])
 
     # first, "flattening" the original array: {(1, 2, 3): "val"}
@@ -378,7 +303,7 @@ def main(ctx, color, encoding, verbose, kind, input_file, out, scheme,
 
     # Finally, convert the original data to the final yaml dict
     io.console.print_item("Process the data")
-    final_data = process(data_to_convert, warn_if_missing=not (skip_unknown))
+    final_data = process(data_to_convert, warn_if_missing=not skip_unknown)
 
     # remove appended kind (if any)
     final_data = final_data.get(kind, final_data)

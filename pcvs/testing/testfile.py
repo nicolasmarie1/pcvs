@@ -5,7 +5,6 @@ import os
 import pathlib
 import pprint
 import re
-import subprocess
 import tempfile
 
 from ruamel.yaml import YAML
@@ -14,6 +13,7 @@ from ruamel.yaml import YAMLError
 from pcvs import io
 from pcvs import PATH_INSTDIR
 from pcvs import testing
+from pcvs.converter import yaml_converter
 from pcvs.helpers import system
 from pcvs.helpers.exceptions import TestException
 from pcvs.helpers.exceptions import ValidationException
@@ -183,24 +183,22 @@ class TestFile:
                 raise e
 
             tmpfile = tempfile.mkstemp()[1]
-            with open(tmpfile, 'w') as fh:
+            with open(tmpfile, 'w', encoding='utf-8') as fh:
                 YAML(typ='safe').dump(self._raw, fh)
-            proc = subprocess.Popen(
-                "pcvs_convert {} --stdout -k te --skip-unknown -t '{}'".format(
-                    tmpfile,
-                    os.path.join(PATH_INSTDIR,
-                                 "templates/config/group-compat.yml")),
-                stderr=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                shell=True)
 
-            fds = proc.communicate()
-            os.remove(tmpfile)
-            if proc.returncode != 0:
-                raise e
-            converted_data = YAML(typ='safe').load(fds[0].decode('utf-8'))
-            # keep only TE conversion
-            # anything else is dropped when converting on-the-fly
+            try:
+                template = os.path.join(PATH_INSTDIR,
+                                        "templates/config/group-compat.yml")
+                yaml_converter.convert(None, tmpfile, "te", template,
+                                       None, None, False, True, True)
+            except Exception as er:
+                io.console.error(
+                    f"An error occure when trying to update file {self._in}.")
+                raise er from e
+
+            with open(tmpfile, 'r', encoding='utf-8') as fh:
+                converted_data = YAML(typ='safe').load(fh)
+
             self._raw = converted_data
             self.validate(allow_conversion=False)
             io.console.warning("\t--> Legacy syntax for: {}".format(self._in))
