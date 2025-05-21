@@ -196,28 +196,31 @@ def __check_defined_program_validity():
     Only system-wide commands are assessed here (compiler, runtime, etc...) not
     test-wide, as some resource may not be available at the time.
     """
-    # exhaustive list of user-defined program to exist before starting:
-    utils.check_valid_program(
-        MetaConfig.root.machine.job_manager.allocate.program)
-    utils.check_valid_program(
-        MetaConfig.root.machine.job_manager.allocate.wrapper)
-    utils.check_valid_program(
-        MetaConfig.root.machine.job_manager.remote.program)
-    utils.check_valid_program(
-        MetaConfig.root.machine.job_manager.remote.wrapper)
-    utils.check_valid_program(
-        MetaConfig.root.machine.job_manager.batch.program)
-    utils.check_valid_program(
-        MetaConfig.root.machine.job_manager.batch.wrapper)
-    return
+    assert MetaConfig.root.machine
+    if "job_manager" in MetaConfig.root.machine:
+        # exhaustive list of user-defined program to exist before starting:
+        utils.check_valid_program(
+            MetaConfig.root.machine.job_manager.allocate.program)
+        utils.check_valid_program(
+            MetaConfig.root.machine.job_manager.allocate.wrapper)
+        utils.check_valid_program(
+            MetaConfig.root.machine.job_manager.remote.program)
+        utils.check_valid_program(
+            MetaConfig.root.machine.job_manager.remote.wrapper)
+        utils.check_valid_program(
+            MetaConfig.root.machine.job_manager.batch.program)
+        utils.check_valid_program(
+            MetaConfig.root.machine.job_manager.batch.wrapper)
+
+    for compiler_name in MetaConfig.root.compiler.compilers:
+        compiler = MetaConfig.root.compiler.compilers[compiler_name]
+        utils.check_valid_program(compiler.program, fail=io.console.warning, raise_if_fail=False)
+
+    utils.check_valid_program(MetaConfig.root.runtime.program)
+
     # TODO: need to handle package_manager commands to process below
     # maybe a dummy testfile should be used
-    utils.check_valid_program(MetaConfig.root.compiler.cc.program)
-    utils.check_valid_program(MetaConfig.root.compiler.cxx.program)
-    utils.check_valid_program(MetaConfig.root.compiler.fc.program)
-    utils.check_valid_program(MetaConfig.root.compiler.f77.program)
-    utils.check_valid_program(MetaConfig.root.compiler.f90.program)
-    utils.check_valid_program(MetaConfig.root.runtime.program)
+    return
 
 
 def prepare():

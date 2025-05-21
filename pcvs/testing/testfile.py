@@ -36,7 +36,7 @@ def init_constant_tokens():
         '@HOME@': str(pathlib.Path.home()),
         '@USER@': getpass.getuser(),
     }
-    for comp, comp_node in MetaConfig.root.compiler.items():
+    for comp, comp_node in MetaConfig.root.compiler.compilers.items():
         constant_tokens['@COMPILER_{}@'.format(comp.upper())] = comp_node.get(
             'program', "")
 

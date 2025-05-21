@@ -21,69 +21,28 @@ from pcvs.testing.test import Test
 # appearing in this list will be considered as the main language
 
 
-def detect_source_lang(array_of_files) -> str:
-    """Determine compilation language for a target file (or list of files).
-
-    Only one language is detected at once.
+def detect_compiler(array_of_files) -> str:
+    """Determine compilers to use for a target file (or list of files).
 
     :param array_of_files: list of files to identify
-    :type array_of_files: list
-    :return: the language code
-    :rtype: str
+    :return the chosen compilers
     """
-    detect = list()
+    detect = []
     for f in array_of_files:
-        if re.search(r'\.(h|H|i|I|s|S|c|c90|c99|c11)$', f):
-            detect.append('cc')
-        elif re.search(r'\.(hpp|C|cc|cxx|cpp|c\+\+)$', f):
-            detect.append('cxx')
-        elif re.search(r'\.(f|F)(77)$', f):
-            detect.append('f77')
-        elif re.search(r'\.(f|F)90$', f):
-            detect.append('f90')
-        elif re.search(r'\.(f|F)95$', f):
-            detect.append('f95')
-        elif re.search(r'\.(f|F)(20)*03$', f):
-            detect.append('f03')
-        elif re.search(r'\.(f|F)(20)*08$', f):
-            detect.append('f08')
-        elif re.search(r'\.(f|F)$', f):
-            detect.append('fc')
-        elif re.search(r'\.(cu|CU)$', f):
-            detect.append('accl')
+        for compiler_name in MetaConfig.root.compiler.compilers:
+            compiler = MetaConfig.root.compiler.compilers[compiler_name]
+            if compiler.extension and re.search(compiler.extension, f):
+                detect.append(compiler_name)
+                break
+        else:
+            detect.append(None)
     return detect
-
-
-def validate_source_lang(langs, allowed_languages) -> Optional[str]:
-    # 1. If fortran, select a compiler in that order
-    for i in ['f08', 'f03', 'f95', 'f90', 'f77', 'fc']:
-        if i in langs:
-            # fallback: if a requested language is not
-            # defined by compiler configuration,
-            # fallback to un-versioned compiler
-            if i not in allowed_languages:
-                return 'fc' if 'fc' in allowed_languages else None
-            else:
-                return i
-    for i in ['cxx', 'cc']:
-        if i in langs:
-            if i not in allowed_languages:
-                return 'cc' if 'cc' in allowed_languages else None
-            else:
-                return i
-    for i in ['accl']:
-        if i in langs:
-            if i not in allowed_languages:
-                return 'accl' if 'accl' in allowed_languages else None
-            else:
-                return i
-    return None
 
 
 def extract_compilers_envs():
     envs = []
-    for compiler in MetaConfig.root.compiler:
-        envs += MetaConfig.root.compiler[compiler].envs
+    for compiler_name in MetaConfig.root.compiler.compilers:
+        envs += MetaConfig.root.compiler.compilers[compiler_name].envs
     return envs
 
 
@@ -91,29 +50,29 @@ def extract_compiler_config(lang, variants):
     """
     Build resource to compile based on language and variants involved.
 
-    :param lang: target language
+    :param lang: target compiler name
     :type lang: str
     :param variants: list of enabled variants
     :type variants: list
     :return: the program, its args and env modifiers (in that order)
     :rtype: tuple
     """
-    if not lang or lang not in MetaConfig.root.compiler:
+    if not lang or lang not in MetaConfig.root.compiler.compilers:
         raise ProfileException.IncompleteError(
-            reason="Unknown language, not defined into Profile",
+            reason="Unknown compiler, not defined into Profile",
             dbg_info={
                 "lang": lang,
-                "list": MetaConfig.root.compiler.keys()
+                "list": MetaConfig.root.compiler.compilers.keys()
             })
 
-    config = MetaConfig.root.compiler[lang]
+    config = MetaConfig.root.compiler.compilers[lang]
     for v in variants:
         if v in config.variants:
             for k, v in config.variants[v].items():
                 if k == 'program':
                     config[k] = v
                 else:
-                    config.setdefault(k, list())
+                    config.setdefault(k, [])
                     config[k] += v
         else:
             return (None, [], [])
@@ -141,8 +100,8 @@ def build_job_deps(deps_node, pkg_label, pkg_prefix):
     :return: a list of dependencies, either as depnames or PManager objects
     :rtype: list
     """
-    deps = list()
-    for d in deps_node.get('depends_on', list()):
+    deps = []
+    for d in deps_node.get('depends_on', []):
         deps.append(d if "/" in
                     d else Test.compute_fq_name(pkg_label, pkg_prefix, d))
     return deps
@@ -270,6 +229,18 @@ class TEDescriptor:
         # apply retro-compatibility w/ old syntax
         self._compatibility_support(node.get('_compat', None))
 
+    def get_binary_name(self):
+        """ Get the binary name for the file at the output of the compiler.
+        If a binary name is already defined by the test, use it.
+        If a program name is given, use it.
+        If none are defined, use the test name.
+        """
+        if self._build.sources.binary:
+            return self._build.sources.binary
+        if self._run.program:
+            return self._run.program
+        return self._te_name
+
     def get_attr(self, name, dflt=None):
         if name in self._attributes:
             return self._attributes[name]
@@ -370,42 +341,28 @@ class TEDescriptor:
         :return: the command to be used.
         :rtype: str
         """
-        langs: Optional[str] = None
-        if not self._build.sources.get("lang", None):
-            langs = detect_source_lang(self._build.files)
-            if langs is None:
-                raise TestException.TestExpressionError(
-                    self._build.files,
-                    reason="Unable to detect the compiler to use")
-        else:
-            langs = self._build.sources.lang
-            if isinstance(langs, str):
-                langs = [langs]
-
-        lang = validate_source_lang(langs, MetaConfig.root.compiler.keys())
-
-        if lang is None:
+        compilers = detect_compiler(self._build.files)
+        if len(compilers) < 1 or compilers[0] is None:
             raise TestException.TestExpressionError(
-                langs, reason="Unable to find the right compiler")
+                    self._build.files,
+                    "Unable to dect compilers for files")
 
-        binary = self._te_name
-        if self._build.sources.binary:
-            binary = self._build.sources.binary
-        elif self._run.program:
-            binary = self._run.program
+        compiler = compilers[0]
+        program, args, envs = extract_compiler_config(compiler, self._build.variants)
 
+        binary = self.get_binary_name()
+
+        # used to run the test later
         self._build.sources.binary = binary
-
-        program, args, envs = extract_compiler_config(lang,
-                                                      self._build.variants)
+        output_path = os.path.join(self._buildir, binary)
 
         command = "{cc} {cflags} {files} {ldflags} {args} {out}".format(
             cc=program,
-            args=" ".join(args),
             cflags=self._build.sources.get('cflags', ''),
             files=" ".join(self._build.files),
             ldflags=self._build.sources.get('ldflags', ''),
-            out="-o {}".format(os.path.join(self._buildir, binary)))
+            args=" ".join(args),
+            out=f"-o {output_path}")
         return (command, envs)
 
     def __build_from_makefile(self):
@@ -595,13 +552,7 @@ class TEDescriptor:
             # the runtime argument to propagate
             # the program parameters to forward
             env, args, params = comb.translate_to_command()
-
-            # attempt to compute program/binary name
-            program = self._te_name
-            if self._run.program:
-                program = self._run.program
-            elif self._build.sources.binary:
-                program = self._build.sources.binary
+            program = self.get_binary_name()
 
             clone_outdir = self.get_attr('copy_output', False)
             if clone_outdir:
