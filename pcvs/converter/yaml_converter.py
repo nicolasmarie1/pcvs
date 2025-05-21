@@ -317,10 +317,7 @@ def main(ctx, color, encoding, verbose, kind, input_file, out, scheme,
     Process the conversion from one YAML format to another.
     Conversion specifications are described by the SCHEME file.
     """
-    # Click specific-related²
-    ctx.color = color
     kind = kind.lower()
-    io.init(stderr=True)
     io.console.print_header("YAML Conversion")
 
     if in_place and (stdout or out is not None):

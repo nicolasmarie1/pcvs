@@ -25,6 +25,7 @@ from rich.progress import TimeElapsedColumn
 from rich.progress import track
 from rich.table import Table
 from rich.theme import Theme
+from rich.style import Style
 
 import pcvs
 
@@ -125,11 +126,16 @@ class TheConsole(Console):
         self._color = "auto" if kwargs.get('color', True) else None
         self._verbose = Verbosity(
             min(Verbosity.NB_LEVELS - 1, kwargs.get('verbose', 0)))
-        self._debugfile = open(os.path.join(".", pcvs.NAME_DEBUG_FILE), "w")
-        self.summary_table: Dict[str, Dict[str, Dict[str, int]]] = dict()
+        self._debugfile = open(os.path.join(".", pcvs.NAME_DEBUG_FILE), "w", encoding='utf-8')
+        self.summary_table: Dict[str, Dict[str, Dict[str, int]]] = {}
         err = kwargs.get('stderr', False)
         log_level = "DEBUG" if self._verbose else "INFO"
-        theme = Theme({"warning": "bold yellow", "danger": "bold red"})
+        # https://rich.readthedocs.io/en/stable/appendix/colors.html#appendix-colors
+        theme = Theme({"debug": Style(color="bright_black"),
+                       "info": Style(color="white"),
+                       "warning": Style(color="yellow", bold=True),
+                       "danger": Style(color="red", bold=True)
+                       })
 
         super().__init__(color_system=self._color, theme=theme, stderr=err)
         self._debugconsole = Console(file=self._debugfile,
@@ -149,7 +155,7 @@ class TheConsole(Console):
                             ])
         self._loghdl = logging.getLogger("pcvs")
         self._chars = SpecialChar(
-            utf_support=(self.encoding.startswith('utf')))
+            utf_support=self.encoding.startswith('utf'))
 
     @property
     def logfile(self):
@@ -242,7 +248,7 @@ class TheConsole(Console):
             self._debugfile = None
 
     def move_debug_file(self, newdir):
-        assert (os.path.isdir(newdir))
+        assert os.path.isdir(newdir)
         if self._debugfile:
             shutil.move(self._debugfile.name,
                         os.path.join(newdir, pcvs.NAME_DEBUG_FILE))
@@ -252,16 +258,16 @@ class TheConsole(Console):
 
     def print_section(self, txt):
         self.print("[yellow bold]{} {}[/]".format(self.utf('sec'), txt))
-        self.info("[DISPLAY] ======= {} ======".format(txt))
+        self._loghdl.info("[DISPLAY] ======= %s ======", txt)
 
     def print_header(self, txt):
         self.rule("[green bold]{}[/]".format(txt.upper()))
-        self.info("[DISPLAY] ------- {} ------".format(txt))
+        self._loghdl.info("[DISPLAY] ------- %s ------", txt)
 
     def print_item(self, txt, depth=1):
         self.print("[red bold]{}{}[/] {}".format(" " * (depth * 2),
                                                  self.utf('item'), txt))
-        self.info("[DISPLAY] * {}".format(txt))
+        self._loghdl.info("[DISPLAY] * %s", txt)
 
     def print_box(self, txt, *args, **kwargs):
         self.print(Panel.fit(txt, *args, **kwargs))
@@ -443,34 +449,52 @@ class TheConsole(Console):
 
         self.print("\n".join(banner))
 
-    def info(self, fmt, *args, **kwargs):
-        self._loghdl.info(fmt, *args, **kwargs)
+    def nodebug(self, fmt, *args, **kwargs):
+        """do nothing"""
 
     def debug(self, fmt, *args, **kwargs):
+        """print & log debug"""
         self._loghdl.debug(fmt, *args, **kwargs)
+        if self._verbose >= Verbosity.DEBUG:
+            user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
+            self.print(f"[debug]\\[debug]: {user_fmt}[/debug]")
+
+    def info(self, fmt, *args, **kwargs, ):
+        """print & log info"""
+        self._loghdl.info(fmt, *args, **kwargs)
+        if self._verbose >= Verbosity.INFO:
+            user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
+            self.print(f"[info]\\[info]: {user_fmt}[/info]")
 
     def warning(self, fmt, *args, **kwargs):
+        """print & log warning"""
         self._loghdl.warning(fmt, *args, **kwargs)
+        user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
+        self.print(f"[warning]\\[warning]: {user_fmt}[/warning]")
 
     def warn(self, fmt, *args, **kwargs):
+        """short for warning"""
         self.warning(fmt, *args, **kwargs)
-        # self.print(
-        #    "[warning]WARN: {}[/warning]".format(fmt.format(*args, **kwargs)), )
 
     def error(self, fmt, *args, **kwargs):
+        """print a log error"""
         self._loghdl.error(fmt, *args, **kwargs)
-        self.print("[danger]ERROR: {}[/danger]".format(
-            fmt.format(*args, **kwargs)))
+        user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
+        self.print(f"[danger]\\[error]: {user_fmt}[/danger]")
 
     def critical(self, fmt, *args, **kwargs):
+        """print a log critical error then exit"""
         self._loghdl.critical(fmt, *args, **kwargs)
-        self.print("[danger]CRITICAL: {}[/danger]".format(
-            fmt.format(*args, **kwargs)))
+        user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
+        self.print(f"[danger]\\[CRITICAL]: {user_fmt}[/danger]")
         sys.exit(42)
 
-    def exception(self, e: BaseException, *args, **kwargs):
-        if self._verbose >= Verbosity.INFO:
-            self.print_exception(suppress=['click'])
+    def exception(self, e: BaseException):
+        """print errors"""
+        if self._verbose >= Verbosity.DEBUG:
+            self.print_exception(word_wrap=True, show_locals=True)
+        else:
+            self.print_exception(extra_lines=0)
         self._loghdl.exception(e)
 
     @property

@@ -14,7 +14,6 @@ from pcvs.cli import cli_profile
 from pcvs.helpers import exceptions
 from pcvs.helpers import system
 from pcvs.helpers import utils
-from pcvs.io import Verbosity
 
 try:
     import rich_click as click
@@ -239,12 +238,6 @@ def run(ctx, profilename, output, detach, override, anon, settings_file,
     if output is not None:
         output = os.path.abspath(output)
 
-    if print_level and print_level != "none":
-        # any --print option will imply to disable packed rich console view
-        # --> enable verbose mode
-        io.console.verbose = Verbosity.DETAILED
-        ctx.obj['verbose'] = str(io.console.verbose)
-
     global_config = system.MetaConfig()
     system.MetaConfig.root = global_config
     global_config.set_internal("pColl", ctx.obj['plugins'])
@@ -260,7 +253,6 @@ def run(ctx, profilename, output, detach, override, anon, settings_file,
 
     # save 'run' parameters into global configuration
     val_cfg.set_ifdef('datetime', datetime.now())
-    val_cfg.set_ifdef('verbose', ctx.obj['verbose'])
     val_cfg.set_ifdef('print_level', print_level)
     val_cfg.set_ifdef('color', ctx.obj['color'])
     val_cfg.set_ifdef('output', output)

@@ -55,7 +55,7 @@ class RunnerAdapter(threading.Thread):
         """Execute the Set and jobs within it.
 
         :raises Exception: Something occured while running a test"""
-        io.console.debug('{}: [LOCAL] Set start'.format(self.ident))
+        io.console.nodebug('{}: [LOCAL] Set start'.format(self.ident))
         for job in set.content:
             try:
                 p = subprocess.Popen('{}'.format(job.invocation_command),

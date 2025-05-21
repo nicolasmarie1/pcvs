@@ -100,7 +100,7 @@ class Orchestrator:
                         assert (isinstance(nb_res, int))
                         # schedule the set asynchronously
                         nb_res -= new_set.dim
-                        io.console.debug(
+                        io.console.nodebug(
                             "ORCH: send Set to queue (#{}, sz:{})".format(
                                 new_set.id, new_set.size))
                         self._ready_q.put(new_set)
@@ -110,7 +110,7 @@ class Orchestrator:
                 # Now, look for a completion
                 try:
                     set = self._complete_q.get(block=False, timeout=2)
-                    io.console.debug(
+                    io.console.nodebug(
                         "ORCH: recv Set from queue (#{}, sz:{})".format(
                             set.id, set.size))
                     nb_res += set.dim
@@ -130,7 +130,7 @@ class Orchestrator:
                     # TODO: Publish results periodically
                     # 1. on file system
                     # 2. directly into the selected bank
-                    io.console.debug("ORCH: Flush a new progression file")
+                    io.console.nodebug("ORCH: Flush a new progression file")
                     self._publisher.flush()
                     last_progress = current_progress
                     if the_session is not None:
