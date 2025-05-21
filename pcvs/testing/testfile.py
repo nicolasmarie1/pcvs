@@ -160,7 +160,9 @@ class TestFile:
         with open(os.path.join(curbuild, "pcvs.setup.yml"), "w") as fh:
             YAML(typ='safe').dump(self._raw, fh)
 
+    @io.capture_exception(Exception, doexit=True)
     def validate(self, allow_conversion=True) -> bool:
+        """Test file validation"""
         try:
             if self._raw:
                 TestFile.val_scheme.validate(self._raw, filepath=self._in)
@@ -213,41 +215,35 @@ class TestFile:
         return len(self._raw.keys())
 
     def process(self):
-        try:
-            """Load the YAML file and map YAML nodes to Test()."""
-            src, _, build, _ = testing.generate_local_variables(
-                self._label, self._prefix)
+        """Load the YAML file and map YAML nodes to Test()."""
+        # _, _, _, _ = testing.generate_local_variables(
+        #     self._label, self._prefix)
 
-            # if file hasn't be loaded yet
-            if self._raw is None:
-                self.load_from_file(self._in)
+        # if file hasn't be loaded yet
+        if self._raw is None:
+            self.load_from_file(self._in)
 
-            self.validate()
+        self.validate()
 
-            # main loop, parse each node to register tests
-            for k, content, in self._raw.items():
-                MetaConfig.root.get_internal("pColl").invoke_plugins(
-                    Plugin.Step.TDESC_BEFORE)
-                if content is None:
-                    # skip empty nodes
-                    continue
-                td = tedesc.TEDescriptor(k, content, self._label, self._prefix)
-                for test in td.construct_tests():
-                    self._tests.append(test)
-                io.console.info("{}: {}".format(td.name,
-                                                pprint.pformat(
-                                                    td.get_debug())))
+        # main loop, parse each node to register tests
+        for k, content, in self._raw.items():
+            MetaConfig.root.get_internal("pColl").invoke_plugins(
+                Plugin.Step.TDESC_BEFORE)
+            if content is None:
+                # skip empty nodes
+                continue
+            td = tedesc.TEDescriptor(k, content, self._label, self._prefix)
+            for test in td.construct_tests():
+                self._tests.append(test)
+            io.console.info("{}: {}".format(
+                                td.name,
+                                pprint.pformat(td.get_debug())))
 
-                MetaConfig.root.get_internal("pColl").invoke_plugins(
-                    Plugin.Step.TDESC_AFTER)
+            MetaConfig.root.get_internal("pColl").invoke_plugins(
+                Plugin.Step.TDESC_AFTER)
 
-                # register debug informations relative to the loaded TEs
-                self._debug[k] = td.get_debug()
-        except Exception as e:
-            import traceback
-            print(traceback.format_exc())
-            io.console.error("Run test error: {}".format(e))
-            exit(1)
+            # register debug informations relative to the loaded TEs
+            self._debug[k] = td.get_debug()
 
     def flush_sh_file(self):
         """Store the given input file into their destination."""

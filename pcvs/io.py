@@ -511,14 +511,14 @@ def init(color=True, verbose=0, *args, **kwargs):
 
 
 def detach_console():
-    global console
     logfile = os.path.join(os.path.dirname(console.logfile),
                            pcvs.NAME_LOG_FILE)
-    console.file = open(logfile, 'w')
+    console.file = open(logfile, 'w', encoding='utf-8')
 
 
 def capture_exception(e_type,
-                      user_func: Optional[Callable[[Exception], None]] = None):
+                      user_func: Optional[Callable[[Exception], None]] = None,
+                      doexit: bool = True):
     """wraps functions to capture unhandled exceptions for high-level
         function not to crash.
         :param e_type: errors to be caught
@@ -553,15 +553,14 @@ def capture_exception(e_type,
                 return func(*args, **kwargs)
             except e_type as e:
                 if user_func is None:
-                    global console
-                    if not console:
-                        console = TheConsole()
+                    assert console
                     console.exception(e)
-                    console.print("[red bold]Exception: {}[/]".format(e))
+                    console.print(f"[red bold]Exception: {e}[/]")
                     console.print(
-                        "[red bold]See '{}' or rerun with -vv for more details[/]"
-                        .format(pcvs.NAME_DEBUG_FILE))
-                    sys.exit(1)
+                            f"[red bold]See '{pcvs.NAME_DEBUG_FILE}'"
+                            f" or rerun with -vv for more details[/]")
+                    if doexit:
+                        sys.exit(1)
                 else:
                     user_func(e)
 

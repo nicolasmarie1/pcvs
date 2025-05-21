@@ -68,7 +68,7 @@ initially.
         ])
 
 
-class CommonException:
+class CommonException(BaseException):
     """Gathers exceptions commonly encountered by more specific namespaces."""
 
     class NotPCVSRelated(GenericException):
@@ -232,14 +232,16 @@ class TestException(CommonException):
     class TestExpressionError(GenericException):
         """Test description is wrongly formatted."""
 
-        def __init__(self,
+        def __init__(self, input_files,
                      reason="Issue(s) while parsing a Test Descriptor",
                      **kwargs):
             """Updated constructor"""
             super().__init__(reason=reason,
                              help_msg="\n".join([
-                                 "Please check input files with `pcvs check`"
-                             ]),
+                                "Please check input files with `pcvs check`",
+                                "Invalide files are:"
+                                "{}"
+                             ]).format("\n".join(input_files)),
                              dbg_info=kwargs)
 
 
@@ -248,33 +250,29 @@ class OrchestratorException(CommonException):
 
     class UndefDependencyError(GenericException):
         """Declared job dep cannot be fully qualified, not defined."""
-        pass
 
     class CircularDependencyError(GenericException):
         """Circular dep detected while processing job dep tree."""
-        pass
 
 
 class RunnerException(CommonException):
+    """RunnerException"""
 
     class LaunchError(GenericException):
         """Unable to run a remote container"""
-        pass
 
 
 class PublisherException(CommonException):
+    """PublisherException"""
 
     class BadMagicTokenError(GenericException):
         """Issue with token stored to file to check consistency"""
-        pass
 
     class UnknownJobError(GenericException):
         """Unable to identify a job by its ID"""
-        pass
 
     class AlreadyExistJobError(GenericException):
         """A single ID leads to multiple jobs."""
-        pass
 
 
 class LockException(CommonException):
@@ -283,11 +281,9 @@ class LockException(CommonException):
     class BadOwnerError(GenericException):
         """Attempt to manipulate the lock while the current process is not the
         owner."""
-        pass
 
     class TimeoutError(GenericException):
         """Timeout reached before lock."""
-        pass
 
 
 class PluginException(CommonException):
@@ -295,7 +291,6 @@ class PluginException(CommonException):
 
     class BadStepError(GenericException):
         """targeted pass does not exist."""
-        pass
 
     class LoadError(GenericException):
         """Unable to load plugin directory."""
@@ -311,6 +306,7 @@ class PluginException(CommonException):
 
 
 class GitException(CommonException):
+    """GitException"""
 
     class BadEntryError(GenericException):
-        pass
+        """BadEntryError"""

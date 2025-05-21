@@ -3,9 +3,9 @@ import os
 import re
 import shutil
 import tempfile
-from typing import Optional
 
 import pcvs
+from pcvs import io
 from pcvs import testing
 from pcvs.helpers import pm
 from pcvs.helpers.criterion import Criterion
@@ -652,6 +652,7 @@ class TEDescriptor:
                        artifacts=self._artifacts,
                        matchers=self._validation.get('match', None))
 
+    @io.capture_exception(Exception, doexit=True)
     def construct_tests(self):
         """Construct a collection of tests (build & run) from a given TE.
 
@@ -677,7 +678,6 @@ class TEDescriptor:
         if self._build:
             yield from self.__construct_compil_tests()
         if self._run:
-
             if self.get_attr('command_wrap', True) is False:
                 self._serie = Serie({**self._program_criterion})
             else:
