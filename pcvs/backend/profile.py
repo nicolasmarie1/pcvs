@@ -91,22 +91,29 @@ class Profile:
     :type _file: str
     """
 
-    def __init__(self, name, scope=None):
+    def __init__(self, name: str = None, profilepath: str = None, scope=None):
         """Constructor method.
 
         :param name: profile name
         :type name: str
+        :param profilepath: profile file path
         :param scope: desired scope, automatically set if not provided
         :type scope: str, optional
         """
-        utils.check_valid_scope(scope)
-        self._name = name
-        self._scope = scope
         self._details = MetaDict()
-        self._exists = False
-        self._file = None
 
-        self._retrieve_file()
+        if profilepath:
+            self._name = os.path.basename(profilepath.split('\\.')[0])
+            self._scope = 'local'
+            self._exists = True
+            self._file = profilepath
+        else:
+            utils.check_valid_scope(scope)
+            self._name = name
+            self._scope = scope
+            self._exists = False
+            self._file = None
+            self._retrieve_file()
 
     def _retrieve_file(self):
         """From current representation, determine the profile file path.
@@ -217,7 +224,6 @@ class Profile:
 
         if not self._exists:
             raise ProfileException.NotFoundError(self._name)
-        self._retrieve_file()
 
         if not os.path.isfile(self._file):
             raise ProfileException.NotFoundError(self._file)

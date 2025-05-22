@@ -119,6 +119,13 @@ def handle_build_lockfile(exc=None):
               type=str,
               show_envvar=True,
               help="Existing and valid profile supporting this run")
+@click.option("--profile-path",
+              "profilepath",
+              default=None,
+              type=click.Path(exists=True, file_okay=True,
+                              dir_okay=False, readable=True),
+              help="Path to and Existing and valid profile for this run. (override -p if defined)"
+              )
 @click.option("-o",
               "--output",
               "output",
@@ -187,13 +194,12 @@ def handle_build_lockfile(exc=None):
               default=None,
               type=str,
               help="Override default Server address")
-@click.option(
-    "-g",
-    "--generate-only",
-    "generate_only",
-    is_flag=True,
-    default=None,
-    help="Rebuild the test-base, populating resources for `pcvs exec`")
+@click.option("-g",
+              "--generate-only",
+              "generate_only",
+              is_flag=True,
+              default=None,
+              help="Rebuild the test-base, populating resources for `pcvs exec`")
 @click.option('-t',
               "--timeout",
               "timeout",
@@ -224,7 +230,7 @@ def handle_build_lockfile(exc=None):
 @io.capture_exception(Exception)
 @io.capture_exception(Exception, handle_build_lockfile)
 @io.capture_exception(KeyboardInterrupt, handle_build_lockfile)
-def run(ctx, profilename, output, detach, override, anon, settings_file,
+def run(ctx, profilename, profilepath, output, detach, override, anon, settings_file,
         generate_only, spack_recipe, print_level, simulated, bank, msg, dup,
         dirs, enable_report, report_addr, only_success, timeout) -> None:
     """
@@ -329,17 +335,21 @@ def run(ctx, profilename, output, detach, override, anon, settings_file,
                 "--duplicate", "{} is not a valid build directory!".format(
                     val_cfg.reused_build))
     else:
-        # otherwise create own settings command block
-        io.console.info("PRE-RUN: Profile lookup: {}".format(
-            val_cfg.default_profile))
-        (scope, _,
-         label) = utils.extract_infos_from_token(val_cfg.default_profile,
-                                                 maxsplit=2)
-        pf = pvProfile.Profile(label, scope)
-        if not pf.is_found():
-            raise click.BadOptionUsage(
-                "--profile",
-                "Profile '{}' not found".format(val_cfg.default_profile))
+        pf = None
+        if profilepath:
+            io.console.info(f"PRE-RUN: Profile lookup: {profilepath}")
+            pf = pvProfile.Profile(profilepath=profilepath)
+        else:
+            # otherwise create own settings command block
+            io.console.info("PRE-RUN: Profile lookup: {val_cfg.default_profile}")
+            (scope, _,
+             label) = utils.extract_infos_from_token(val_cfg.default_profile,
+                                                     maxsplit=2)
+            pf = pvProfile.Profile(label, scope)
+            if not pf.is_found():
+                raise click.BadOptionUsage(
+                    "--profile",
+                    f"Profile '{val_cfg.default_profile}' not found")
         pf.load_from_disk()
         pf.check()
 
