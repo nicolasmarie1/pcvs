@@ -23,7 +23,6 @@ from pcvs.helpers import communications
 from pcvs.helpers import criterion
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import RunException
-from pcvs.helpers.exceptions import TestException
 from pcvs.helpers.system import MetaConfig
 from pcvs.helpers.system import MetaDict
 from pcvs.orchestration import Orchestrator
@@ -340,31 +339,15 @@ def process_files():
     setup_files, yaml_files = find_files_to_process(
         MetaConfig.root.validation.dirs)
 
-    io.console.debug("Found setup files: {}".format(
-        pprint.pformat(setup_files)))
-    io.console.debug("Found static files: {}".format(
-        pprint.pformat(yaml_files)))
-
-    errors = []
+    io.console.debug(f"Found setup files: {pprint.pformat(setup_files)}")
+    io.console.debug(f"Found static files: {pprint.pformat(yaml_files)}")
 
     io.console.print_item(
-        "Extract tests from dynamic definitions ({} found)".format(
-            len(setup_files)))
-    errors += process_dyn_setup_scripts(setup_files)
+        f"Extract tests from dynamic definitions ({len(setup_files)} found)")
+    process_dyn_setup_scripts(setup_files)
     io.console.print_item(
-        "Extract tests from static definitions ({} found)".format(
-            len(yaml_files)))
-    errors += process_static_yaml_files(yaml_files)
-
-    if len(errors):
-        reasons = {}
-        for (f, e) in errors:
-            if hasattr(e, 'dbg'):
-                reasons[f] = e.dbg
-            else:
-                reasons[f] = e
-        raise TestException.TestExpressionError(
-            reason="Test-suites failed to be parsed.", **reasons)
+        f"Extract tests from static definitions ({len(yaml_files)} found)")
+    process_static_yaml_files(yaml_files)
 
 
 def process_spack():
@@ -435,6 +418,7 @@ def build_env_from_configuration(current_node, parent_prefix="pcvs"):
     return env_dict
 
 
+@io.capture_exception(Exception, doexit=False)
 def process_dyn_setup_scripts(setup_files):
     """Process dynamic test files and generate associated tests.
 
@@ -448,21 +432,19 @@ def process_dyn_setup_scripts(setup_files):
     :return: list of errors encountered while processing.
     :rtype: list
     """
-    err = []
     io.console.info("Convert configuration to Shell variables")
     env = os.environ.copy()
     env_config = build_env_from_configuration(MetaConfig.root)
     env.update(env_config)
 
-    with open(
-            os.path.join(MetaConfig.root.validation.output,
-                         NAME_BUILD_CONF_SH), 'w') as fh:
+    with open(os.path.join(MetaConfig.root.validation.output,
+                           NAME_BUILD_CONF_SH), 'w', encoding='utf-8') as fh:
         fh.write(utils.str_dict_as_envvar(env_config))
         fh.close()
 
     io.console.info("Iteration over files")
     for label, subprefix, fname in io.console.progress_iter(setup_files):
-        io.console.debug("process {} ({})".format(subprefix, label))
+        io.console.debug(f"process {subprefix} ({label})")
         base_src, cur_src, base_build, cur_build = testing.generate_local_variables(
             label, subprefix)
         # prepre to exec pcvs.setup script
@@ -489,20 +471,19 @@ def process_dyn_setup_scripts(setup_files):
                 raise RunException.NonZeroSetupScript(rc=fds.returncode,
                                                       err=fderr,
                                                       file=f)
-
             # should be enabled only in debug mode
             # flush the output to $BUILD/pcvs.yml
             # out_file = os.path.join(cur_build, 'pcvs.yml')
             # with open(out_file, 'w') as fh:
             # fh.write(fdout.decode('utf-8'))
-        except CalledProcessError:
-            err.append((f, RunException.ProgramError(file=f)))
-            continue
-        except RunException.NonZeroSetupScript as e:
-            err.append((f, e))
-            io.console.info("Setup Failed ({}): {}".format(
-                f, e.dbg['err'].decode('utf-8')))
-            continue
+        except CalledProcessError as callerror:
+            io.console.error(
+                    f"{f}: Error when lauching setup script: {callerror}")
+            raise callerror
+        except RunException.NonZeroSetupScript as runerror:
+            io.console.error(
+                    f"{f}: Error durring the execution of setup script: {runerror}")
+            raise runerror
 
         out = fdout.decode('utf-8')
         if not out:
@@ -512,21 +493,27 @@ def process_dyn_setup_scripts(setup_files):
         # Now create the file handler
         MetaConfig.root.get_internal("pColl").invoke_plugins(
             Plugin.Step.TFILE_BEFORE)
-        obj = TestFile(file_in=f,
-                       path_out=cur_build,
-                       label=label,
-                       prefix=subprefix)
 
-        obj.load_from_str(out)
-        obj.save_yaml()
+        try:
+            obj = TestFile(file_in=f,
+                           path_out=cur_build,
+                           label=label,
+                           prefix=subprefix)
 
-        obj.process()
-        obj.flush_sh_file()
+            obj.load_from_str(out)
+            obj.save_yaml()
+
+            obj.process()
+            obj.flush_sh_file()
+        except Exception as e:
+            io.console.error(f"{f} (failed to parse): {e}")
+            raise e
+
         MetaConfig.root.get_internal("pColl").invoke_plugins(
             Plugin.Step.TFILE_AFTER)
-    return err
 
 
+@io.capture_exception(Exception, doexit=False)
 def process_static_yaml_files(yaml_files):
     """Process 'pcvs.yml' files to contruct the test base.
 
@@ -535,7 +522,6 @@ def process_static_yaml_files(yaml_files):
     :return: list of encountered errors while processing
     :rtype: list
     """
-    err = []
     io.console.info("Iteration over files")
     for label, subprefix, fname in io.console.progress_iter(yaml_files):
         _, cur_src, _, cur_build = testing.generate_local_variables(
@@ -552,9 +538,8 @@ def process_static_yaml_files(yaml_files):
             obj.process()
             obj.flush_sh_file()
         except Exception as e:
-            err.append((f, e))
-            io.console.error("{} (failed to parse): {}".format(f, e))
-    return err
+            io.console.error(f"{f} (failed to parse): {e}")
+            raise e
 
 
 def anonymize_archive():
