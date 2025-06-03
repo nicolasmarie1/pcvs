@@ -444,7 +444,8 @@ def process_dyn_setup_scripts(setup_files):
 
     io.console.info("Iteration over files")
     for label, subprefix, fname in io.console.progress_iter(setup_files):
-        io.console.debug(f"process {subprefix} ({label})")
+        io.console.info(f"Processing {subprefix} dynamic script. ({label})")
+        start_time = time.time()
         base_src, cur_src, base_build, cur_build = testing.generate_local_variables(
             label, subprefix)
         # prepre to exec pcvs.setup script
@@ -484,6 +485,9 @@ def process_dyn_setup_scripts(setup_files):
             io.console.error(
                     f"{f}: Error durring the execution of setup script: {runerror}")
             raise runerror
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        io.console.info(f"Subscript {subprefix} done in {elapsed_time:.3f} seconds.")
 
         out = fdout.decode('utf-8')
         if not out:
@@ -505,6 +509,7 @@ def process_dyn_setup_scripts(setup_files):
 
             obj.process()
             obj.flush_sh_file()
+            io.console.info(f"Adding {obj.nb_tests} tests from {f}.")
         except Exception as e:
             io.console.error(f"{f} (failed to parse): {e}")
             raise e
@@ -536,6 +541,7 @@ def process_static_yaml_files(yaml_files):
                            label=label,
                            prefix=subprefix)
             obj.process()
+            io.console.info(f"Adding {obj.nb_tests} tests from {f}.")
             obj.flush_sh_file()
         except Exception as e:
             io.console.error(f"{f} (failed to parse): {e}")

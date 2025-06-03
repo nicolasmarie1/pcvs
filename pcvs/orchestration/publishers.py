@@ -497,8 +497,7 @@ class ResultFileManager:
         :rtype: Iterator[Test]
         """
         for hdl in self._opened_files.values():
-            for j in hdl.content:
-                yield j
+            yield from hdl.content
 
     def retrieve_tests_by_name(self, name) -> List[Test]:
         """

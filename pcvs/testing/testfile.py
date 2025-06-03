@@ -126,8 +126,8 @@ class TestFile:
         self._raw = data
         self._label = label
         self._prefix = prefix
-        self._tests = list()
-        self._debug = dict()
+        self._tests = []
+        self._debug = {}
         if TestFile.val_scheme is None:
             TestFile.val_scheme = system.ValidationScheme('te')
 
@@ -212,6 +212,12 @@ class TestFile:
             return 0
         return len(self._raw.keys())
 
+    @property
+    def nb_tests(self):
+        if self._tests is None:
+            return 0
+        return len(self._tests)
+
     def process(self):
         """Load the YAML file and map YAML nodes to Test()."""
         # _, _, _, _ = testing.generate_local_variables(
@@ -233,7 +239,7 @@ class TestFile:
             td = tedesc.TEDescriptor(k, content, self._label, self._prefix)
             for test in td.construct_tests():
                 self._tests.append(test)
-            io.console.info("{}: {}".format(
+            io.console.debug("Test descriptor: {}: {}".format(
                                 td.name,
                                 pprint.pformat(td.get_debug())))
 
