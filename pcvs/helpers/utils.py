@@ -32,7 +32,10 @@ def create_home_dir():
     """Create a home directory
     """
     if not os.path.exists(PATH_HOMEDIR):
-        os.makedirs(PATH_HOMEDIR)
+        # exist_ok=True is important here to avoid race condition
+        # when launching multiples tests in parallel
+        # with a gitlab runner for example.
+        os.makedirs(PATH_HOMEDIR, exist_ok=True)
 
 
 def storage_order():
