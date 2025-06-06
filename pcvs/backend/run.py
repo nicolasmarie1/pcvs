@@ -318,8 +318,6 @@ def find_files_to_process(path_dict):
             for f in list_files:
                 # [1:] to remove extra '/'
                 subtree = os.path.relpath(root, path)
-                if subtree == ".":
-                    subtree = None
                 if 'pcvs.setup' == f:
                     setup_files.append((label, subtree, f))
                 elif 'pcvs.yml' == f or 'pcvs.yml.in' == f:
