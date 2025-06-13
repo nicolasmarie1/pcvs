@@ -2,8 +2,8 @@ from unittest.mock import patch
 
 from pcvs.backend import run as tested
 
-from .conftest import click_call
-from .conftest import isolated_fs
+from ..conftest import click_call
+from ..conftest import isolated_fs
 
 
 @patch("pcvs.backend.session.store_session_to_file", return_value={})
@@ -13,7 +13,6 @@ def test_big_integation(rs, us, ss):
     with isolated_fs():
         res = click_call('profile', 'create', 'local.default')
         res = click_call('run')
-        print(res.stderr)
         assert res.exit_code == 0
 
 

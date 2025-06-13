@@ -1,11 +1,6 @@
-from unittest.mock import Mock
 from unittest.mock import patch
 
-import pytest
-
-import pcvs
-
-from .conftest import click_call
+from ..conftest import click_call
 
 
 @patch('pcvs.backend.profile.PROFILE_EXISTING', {
@@ -20,9 +15,10 @@ def test_check_profiles(mock_pf):
     instance.full_name = "test-name"
 
     res = click_call('check', '--profiles')
-    
-    assert("Valid" in res.stdout)
-    assert("Everything is OK!" in res.stdout)
+
+    assert "Valid" in res.stdout
+    assert "Everything is OK!" in res.stdout
+
 
 @patch('pcvs.backend.config.CONFIG_EXISTING', {k: {
         'local': [('default', "/path/to/default.yml")],
@@ -37,9 +33,9 @@ def test_check_configs(mock_config):
     instance.full_name = "test-name"
 
     res = click_call('check', '--configs')
-    print(res.stdout)
-    assert("Valid" in res.stdout)
-    assert("Everything is OK!" in res.stdout)
-    
+    assert "Valid" in res.stdout
+    assert "Everything is OK!" in res.stdout
+
+
 def test_check_directory():
     res = click_call('check', '--directory', '.')

@@ -1,7 +1,7 @@
 from unittest.mock import patch
 from importlib.metadata import version
 
-from .conftest import click_call
+from ..conftest import click_call
 
 
 def test_cmd():

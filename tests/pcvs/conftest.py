@@ -1,7 +1,8 @@
-from click.testing import CliRunner
 from importlib.metadata import version
 
-from pcvs import main
+from click.testing import CliRunner
+
+from pcvs.main import cli
 
 if version("click") >= "8.2.0":
     runner = CliRunner()
@@ -10,7 +11,7 @@ else:
 
 
 def click_call(*cmd):
-    return runner.invoke(main.cli, ["--no-color", *cmd], catch_exceptions=False, prog_name="pcvs")
+    return runner.invoke(cli, ["--no-color", *cmd], catch_exceptions=False)
 
 
 def isolated_fs():
