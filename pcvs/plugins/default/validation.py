@@ -25,7 +25,7 @@ class BankValidationPlugin(Plugin):
             self._bank_hdl.connect()
         self._serie = self._bank_hdl.get_serie(
             self._bank_hdl.build_target_branch_name(
-                hash=MetaConfig.root.validation.pf_hash))
+                hashid=MetaConfig.root.validation.pf_hash))
         if not self._serie:
             # no history, stop !
             return None

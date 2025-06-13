@@ -160,7 +160,7 @@ class TestFile:
         with open(os.path.join(curbuild, "pcvs.setup.yml"), "w") as fh:
             YAML(typ='safe').dump(self._raw, fh)
 
-    @io.capture_exception(Exception, doexit=True)
+    @io.capture_exception(Exception, doexit=False)
     def validate(self, allow_conversion=True) -> bool:
         """Test file validation"""
         try:

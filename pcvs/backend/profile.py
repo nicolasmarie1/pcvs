@@ -22,8 +22,7 @@ PROFILE_EXISTING = dict()
 
 
 def init():
-    """Initialization callback, loading available profiles on disk.
-    """
+    """Initialize callback, loading available profiles on disk."""
     global PROFILE_EXISTING
     PROFILE_EXISTING = {}
     # this first loop defines configuration order
@@ -91,14 +90,14 @@ class Profile:
     :type _file: str
     """
 
-    def __init__(self, name: str = None, profilepath: str = None, scope=None):
+    def __init__(self, name: str = None, scope: str = None, profilepath: str = None):
         """Constructor method.
 
         :param name: profile name
         :type name: str
         :param profilepath: profile file path
         :param scope: desired scope, automatically set if not provided
-        :type scope: str, optional
+        :type scope: str
         """
         self._details = MetaDict()
 

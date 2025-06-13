@@ -1,7 +1,8 @@
 ---
-cc: {program: gcc, variants: &var {openmp: {args: ["-fopenmp"]}}}
-cxx: {program: g++, variants: *var}
-f77: {program: gfortran, variants: *var}
-f90: {program: gfortran, variants: *var}
-f08: {program: gfortran, variants: *var}
-fc: {program: gfortran, variants: *var}
+compilers:
+  cc: {program: gcc, variants: &var {openmp: {args: ["-fopenmp"]}}}
+  cxx: {program: g++, variants: *var}
+  f77: {program: gfortran, variants: *var}
+  f90: {program: gfortran, variants: *var}
+  f08: {program: gfortran, variants: *var}
+  fc: {program: gfortran, variants: *var}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import pkg_resources
+from importlib.metadata import version
 
 from pcvs import io
 from pcvs.backend import bank
@@ -44,9 +44,9 @@ def print_version(ctx, param, value):
     """
     if not value or ctx.resilient_parsing:
         return
+    pcvs_version = version("pcvs")
     click.echo(
-        'Parallel Computing Validation System (pcvs) -- version {}'.format(
-            pkg_resources.require("pcvs")[0].version))
+        f'Parallel Computing Validation System (pcvs) -- version {pcvs_version}')
     ctx.exit()
 
 
@@ -105,13 +105,12 @@ def print_version(ctx, param, value):
               show_envvar=True,
               help="Default Plugin path prefix")
 @click.option("-m", "--plugin", "select_plugins", multiple=True)
-@click.option(
-    "-t",
-    "--tui",
-    is_flag=True,
-    default=False,
-    show_envvar=True,
-    help="USe TUI-based interface instead of console (if applicable)")
+@click.option("-t",
+              "--tui",
+              is_flag=True,
+              default=False,
+              show_envvar=True,
+              help="USe TUI-based interface instead of console (if applicable)")
 @click.pass_context
 @io.capture_exception(PluginException.NotFoundError)
 @io.capture_exception(PluginException.LoadError)

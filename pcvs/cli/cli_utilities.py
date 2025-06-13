@@ -129,9 +129,8 @@ def exec(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout,
     sys.exit(rc)
 
 
-@click.command(
-    name="check",
-    short_help="Ensure future input will be compliant with standards")
+@click.command(name="check",
+               short_help="Ensure future input will be compliant with standards")
 @click.option("--encoding",
               "-E",
               "encoding",
@@ -146,7 +145,7 @@ def exec(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout,
               help="Check capability to print coloured characters properly")
 @click.option("--directory",
               "-D",
-              "dir",
+              "directory",
               default=None,
               type=click.Path(exists=True, file_okay=False),
               help="Check correctness for pcvs.* files")
@@ -174,7 +173,7 @@ def exec(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout,
               default=True,
               help="Enable/Disable auto-conversion through `pcvs_convert`")
 @click.pass_context
-def check(ctx, dir, encoding, color, configs, profiles, pf_name, conversion):
+def check(ctx, directory, encoding, color, configs, profiles, pf_name, conversion):
     """Global input/output analyzer, validating configuration, profiles &
     terminal supports."""
     io.console.print_banner()
@@ -214,16 +213,16 @@ def check(ctx, dir, encoding, color, configs, profiles, pf_name, conversion):
             **pvUtils.process_check_profiles(conversion=conversion)
         }
 
-    if dir:
+    if directory:
         io.console.print_header("Test directories")
         io.console.print_section("Prepare the environment")
         # first, replace build dir with a temp one
         settings = MetaConfig()
-        cfg_val = settings.bootstrap_validation({}, None)
+        cfg_val = settings.bootstrap_validation({}, filepath=str(__file__))
         cfg_val.set_ifdef('output', "/tmp/test")
         errors = {
             **errors,
-            **pvUtils.process_check_directory(os.path.abspath(dir),
+            **pvUtils.process_check_directory(os.path.abspath(directory),
                                               pf_name,
                                               conversion=conversion)
         }

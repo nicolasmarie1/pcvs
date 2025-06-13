@@ -12,8 +12,8 @@ class Job(Test):
     """Map a real job representation within a bank."""
 
     class Trend(IntEnum):
-        REGRESSION = 0,
-        PROGRESSION = 1,
+        REGRESSION = 0
+        PROGRESSION = 1
         STABLE = 2
 
     def __init__(self, s=None, filepath: str = None) -> None:
@@ -261,7 +261,7 @@ class Bank:
             self._repo.set_head(head)
         else:
             first_branch = [
-                b for b in self._repo.branches if b.name != "master"
+                b for b in self._repo.branches() if b.name != "master"
             ]
             if len(first_branch) <= 0:
                 io.console.warn("This repository seems empty: {}".format(
@@ -311,7 +311,7 @@ class Bank:
         """TODO:
         """
         res = []
-        for elt in self._repo.branches:
+        for elt in self._repo.branches():
             array = elt.name.split('/')
             if project is None or array[0].lower() == project.lower():
                 res.append(Serie(elt))
@@ -336,7 +336,7 @@ class Bank:
         :rtype: list of str
         """
         projects = [
-            elt.name.split('/')[0] for elt in self._repo.branches
+            elt.name.split('/')[0] for elt in self._repo.branches()
             if elt.name != "master"
         ]
         return list(set(projects))

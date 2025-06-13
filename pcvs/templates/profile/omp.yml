@@ -1,10 +1,11 @@
 compiler:
-  cc: {program: gcc}
-  cxx: {program: g++}
-  f77: {program: gfortran}
-  f90: {program: gfortran}
-  f08: {program: gfortran}
-  fc: {program: gfortran}
+  compilers:
+    cc: {program: gcc}
+    cxx: {program: g++}
+    f77: {program: gfortran}
+    f90: {program: gfortran}
+    f08: {program: gfortran}
+    fc: {program: gfortran}
 criterion:
   n_omp:
     subtitle: o

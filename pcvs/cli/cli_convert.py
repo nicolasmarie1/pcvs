@@ -7,7 +7,7 @@ except ImportError:
     import click
 
 
-@click.command("convert", short_help="YAML to YAML converter")
+@click.command(name="convert", short_help="YAML to YAML converter")
 @click.option("-k",
               "--kind",
               "kind",

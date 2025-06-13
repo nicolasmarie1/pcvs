@@ -242,12 +242,12 @@ class Bank(dsl.Bank):
         :param msg: the custom message to attach to this run (=commit msg)
         :type msg: str, optional
         """
-        assert (os.path.isfile(archivepath))
+        assert os.path.isfile(archivepath)
 
         with tempfile.TemporaryDirectory() as tarpath:
             tarfile.open(os.path.join(archivepath)).extractall(tarpath)
             d = [x for x in os.listdir(tarpath) if x.startswith("pcvsrun_")]
-            assert (len(d) == 1)
+            assert len(d) == 1
             self.save_from_buildir(tag, os.path.join(tarpath, d[0]), msg=msg)
 
     def save_new_run_from_instance(self,
@@ -332,7 +332,7 @@ class Bank(dsl.Bank):
 
     def build_target_branch_name(self,
                                  tag: str = None,
-                                 hash: Optional[str] = None) -> str:
+                                 hashid: Optional[str] = None) -> str:
         """Compute the target branch to store data.
 
         This is used to build the exact Git branch name based on:
@@ -351,7 +351,7 @@ class Bank(dsl.Bank):
         # TODO: compute the proper name for the current test-suite
         if tag is None:
             tag = self.default_project
-        return "{}/{}".format(tag, hash)
+        return "{}/{}".format(tag, hashid)
 
     def __repr__(self) -> dict:
         """Bank representation.
@@ -378,13 +378,13 @@ def init() -> None:
     """
     global BANKS
     try:
-        with open(PATH_BANK, 'r') as f:
+        with open(PATH_BANK, 'r', encoding='utf-8') as f:
             BANKS = YAML(typ='safe').load(f)
     except FileNotFoundError:
         # nothing to do, file may not exist
         pass
     if BANKS is None:
-        BANKS = dict()
+        BANKS = {}
 
 
 def list_banks() -> dict:
@@ -431,7 +431,7 @@ def flush_to_disk() -> None:
         prefix_file = os.path.dirname(PATH_BANK)
         if not os.path.isdir(prefix_file):
             os.makedirs(prefix_file, exist_ok=True)
-        with open(PATH_BANK, 'w+') as f:
+        with open(PATH_BANK, 'w+', encoding='utf-8') as f:
             YAML(typ='safe').dump(BANKS, f)
     except IOError as e:
         raise BankException.IOError(e)

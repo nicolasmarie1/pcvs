@@ -5,7 +5,6 @@ import re
 import sys
 
 import click
-import pkg_resources
 from ruamel.yaml import YAML
 
 import pcvs
@@ -176,7 +175,7 @@ def process(data, ref_array=None, warn_if_missing=True) -> dict:
                         break
 
                 # special case to handle the "+" operator to append a value
-                should_append = (token == '+')
+                should_append = token == '+'
                 # if none of the split() succeeded, just keep the old value
                 final_v = v if not final_v else final_v
                 # set the new key with the new value
@@ -223,17 +222,8 @@ def replace_placeholder(tmp, refs) -> dict:
             if not insert:
                 replacement.append(re.escape(elt))
         # this backslash are needed, do not ask WHY.
-        final["\|\|".join(replacement)] = new
+        final[r"\|\|".join(replacement)] = new
     return final
-
-
-def print_version(ctx, param, value) -> None:
-    """print converter version number, tied to PCVS version number """
-    if not value or ctx.resilient_parsing:
-        return
-    click.echo('PCVS Dynamic Converter (pcvs) -- version {}'.format(
-        pkg_resources.require("pcvs")[0].version))
-    ctx.exit()
 
 
 def convert(ctx, input_file, kind, template, scheme, out,
@@ -333,9 +323,9 @@ def convert(ctx, input_file, kind, template, scheme, out,
         f.close()
 
 
-"""
-MISSING:
-- compiler.package_manager
-- runtime.package_manager
-- te.package_manager
-"""
+# FIXEME:
+# MISSING:
+# - compiler.package_manager
+# - runtime.package_manager
+# - te.package_manager
+# """

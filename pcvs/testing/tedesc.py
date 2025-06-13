@@ -345,7 +345,7 @@ class TEDescriptor:
         if len(compilers) < 1 or compilers[0] is None:
             raise TestException.TestExpressionError(
                     self._build.files,
-                    "Unable to dect compilers for files")
+                    f"Unable to dect compilers for files: {self._build.files}")
 
         compiler = compilers[0]
         program, args, envs = extract_compiler_config(compiler, self._build.variants)

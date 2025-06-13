@@ -216,7 +216,7 @@ def __set_token(token, nset=None) -> str:
         return "[red bold]{}[/]".format(io.console.utf("fail"))
 
 
-def process_check_directory(dir, pf_name="default", conversion=True):
+def process_check_directory(directory, pf_name="default", conversion=True):
     """Analyze a directory to ensure defined test files are valid.
 
     :param conversion: allow legacy format for this check (True by default)
@@ -241,7 +241,7 @@ def process_check_directory(dir, pf_name="default", conversion=True):
     system.MetaConfig.root.validation.output = "/tmp"
     buildenv = run.build_env_from_configuration(pf.dump())
     setup_files, yaml_files = run.find_files_to_process(
-        {os.path.basename(dir): dir})
+        {os.path.basename(directory): directory})
 
     from rich.table import Table
     table = Table(title="Results", expand=True, row_styles=["dim", ""])
@@ -252,7 +252,7 @@ def process_check_directory(dir, pf_name="default", conversion=True):
     # with io.console.pager():
     # with Live(table, refresh_per_second=4):
     for _, subprefix, f in io.console.progress_iter(
-        [*setup_files, *yaml_files]):
+            [*setup_files, *yaml_files]):
         setup_ok = __set_token(None)
         yaml_ok = __set_token(None)
         nb_nodes = __set_token(None, "----")
@@ -263,10 +263,10 @@ def process_check_directory(dir, pf_name="default", conversion=True):
             subprefix = ""
 
         if f.endswith("pcvs.setup"):
-            err, data = process_check_setup_file(dir, subprefix, buildenv)
+            err, data = process_check_setup_file(directory, subprefix, buildenv)
             setup_ok = __set_token(err is None)
         else:
-            with open(os.path.join(dir, subprefix, f), 'r') as fh:
+            with open(os.path.join(directory, subprefix, f), 'r') as fh:
                 data = fh.read()
 
         if not err:

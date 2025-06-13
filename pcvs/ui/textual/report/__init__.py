@@ -263,11 +263,11 @@ class ReportApplication(App):
     """
     TITLE = "PCVS Job Result Viewer"
     SCREENS = {
-        "main": MainScreen(),
-        "exit": ExitConfirmScreen(),
-        "wait": PleaseWaitScreen(),
-        "session_list": SessionPickScreen(),
-        "session_infos": SessionInfoScreen()
+        "main": MainScreen,
+        "exit": ExitConfirmScreen,
+        "wait": PleaseWaitScreen,
+        "session_list": SessionPickScreen,
+        "session_infos": SessionInfoScreen
     }
     BINDINGS = {('q', 'push_screen("exit")', 'Exit'),
                 ('o', 'push_screen("session_list")', 'Open'),
