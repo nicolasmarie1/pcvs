@@ -1,7 +1,5 @@
-import os
 from unittest.mock import patch
 
-import pcvs
 from pcvs.backend import run as tested
 
 from .conftest import click_call
@@ -16,7 +14,7 @@ def test_big_integation(rs, us, ss):
         res = click_call('profile', 'create', 'local.default')
         res = click_call('run')
         print(res.stderr)
-        assert(res.exit_code == 0)
+        assert res.exit_code == 0
 
 
 @patch('pcvs.backend.session')
@@ -26,11 +24,11 @@ def test_big_integation(rs, us, ss):
 def override(mock_sys, mock_bank, mock_pf, mock_run, caplog):
     with isolated_fs():
         res = click_call('run', '.')
-        assert(res.exit_code == 0)
+        assert res.exit_code == 0
 
         res = click_call('run', '.')
-        assert(res.exit_code != 0)    
-        assert ("Previous run artifacts found" in caplog.text)
+        assert res.exit_code != 0
+        assert "Previous run artifacts found" in caplog.text
 
         caplog.clear()
         _ = click_call('run', '.', '--override')
