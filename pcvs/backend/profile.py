@@ -324,8 +324,8 @@ class Profile:
         self._retrieve_file()
 
         io.console.info("Compute target prefix: {}".format(self._file))
-        assert (not os.path.isfile(self._file))
-        self._details = clone._details
+        assert not os.path.isfile(self._file)
+        self._details = clone.details
 
     def delete(self):
         """Remove the current profile from disk.
@@ -493,3 +493,12 @@ class MyPlugin(Plugin):
         :rtype: dict
         """
         return self._details['machine']
+
+    @property
+    def details(self) -> dict:
+        """Access all the object details.
+
+        :return: all the details object
+        :rtype: dict
+        """
+        return self._details

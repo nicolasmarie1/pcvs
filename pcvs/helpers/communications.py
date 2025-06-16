@@ -30,10 +30,7 @@ class GenericServer:
 
 class EmbeddedServer(GenericServer):
 
-    def __init__(self, sid):
-        super().__init__(sid)
-
-    def send(self):
+    def send(self, data):
         pass
 
     def recv(self):
@@ -75,11 +72,11 @@ class RemoteServer(GenericServer):
     def endpoint(self):
         return self._serv
 
-    def send(self, test):
-        if self._send_unitary_test(test):
+    def send(self, data):
+        if self._send_unitary_test(data):
             self.retry_pending()
         else:
-            self._waitlist.append(test)
+            self._waitlist.append(data)
 
     def retry_pending(self):
         while len(self._waitlist) > 0:
@@ -102,3 +99,6 @@ class RemoteServer(GenericServer):
             return True
         except requests.exceptions.ConnectionError:
             return False
+
+    def recv(self):
+        pass

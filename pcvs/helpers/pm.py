@@ -31,7 +31,6 @@ class PManager:
         :param spec: specifications for this Package Manager, defaults to None
         :type spec: str, optional
         """
-        pass
 
     def get(self, load, install):
         """Get specified packages for this manager
@@ -41,7 +40,6 @@ class PManager:
         :param install: True to install the package
         :type install: bool
         """
-        pass
 
     def install(self):
         """install specified packages

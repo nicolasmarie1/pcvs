@@ -308,13 +308,13 @@ class Manager:
         self.publish_job(job, publish_args=publish_job_args)
         job.display()
 
-    def merge_subset(self, set):
+    def merge_subset(self, subset):
         """After completion, process the Set to publish test results.
 
         :param set: the set handling jobs during the scheduling.
         :type set: :class:`Set`
         """
-        for job in set.content:
+        for job in subset.content:
             if job.been_executed():
                 job.extract_metrics()
                 job.save_artifacts()

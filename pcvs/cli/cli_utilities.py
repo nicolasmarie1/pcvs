@@ -68,7 +68,7 @@ except ImportError:
               help="Dedicated option to print everything")
 @click.argument("argument", type=str, required=False)
 @click.pass_context
-def exec(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout,
+def exec_cli(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout,
          pall) -> None:
     """ Run a unit test as it would have been through the whole engine (for
     reproducing purposes) from the command line."""
@@ -203,7 +203,7 @@ def check(ctx, directory, encoding, color, configs, profiles, pf_name, conversio
         io.console.print_header("Configurations")
         errors = {
             **errors,
-            **pvUtils.process_check_configs(conversion=conversion)
+            **pvUtils.process_check_configs()
         }
 
     if profiles:
@@ -324,10 +324,10 @@ def clean(ctx, force, fake, paths, remove_build_dir, interactive):
 @click.command(name="scan",
                short_help="Analyze directories to build up test conf. files")
 @click.argument("paths", default=None, nargs=-1)
-@click.option("-c/-l", "--create/--list", "set", is_flag=True, default=False)
+@click.option("-c/-l", "--create/--list", "create", is_flag=True, default=False)
 @click.option("-f", "--force", "force", is_flag=True, default=False)
 @click.pass_context
-def discover(ctx, paths, set, force):
+def discover(ctx, paths, create, force):
     """Discover & integrate new benchmarks to PCVS format."""
     if not paths:
         paths = [os.getcwd()]
@@ -336,4 +336,4 @@ def discover(ctx, paths, set, force):
 
     for p in paths:
         io.console.print_section("{}".format(p))
-        pvUtils.process_discover_directory(p, set, force)
+        pvUtils.process_discover_directory(p, create, force)

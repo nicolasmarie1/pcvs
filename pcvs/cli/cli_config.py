@@ -106,12 +106,12 @@ def config_list_single_kind(kind, scope) -> None:
                 shell_complete=compl_list_token)
 @click.option("-a",
               "--all",
-              "all",
+              "all_configs",
               is_flag=True,
               default=False,
               help="Display extra resources (templates, etc.)")
 @click.pass_context
-def config_list(ctx, token, all) -> None:
+def config_list(ctx, token, all_configs) -> None:
     """List available configurations on the system. The list can be
     filtered by applying a KIND. Possible values for KIND are documented
     through the `pcvs config --help` command.
@@ -145,7 +145,7 @@ def config_list(ctx, token, all) -> None:
         io.console.print_section("Kind '{}'".format(k.upper()))
         config_list_single_kind(k, scope)
 
-    if all:
+    if all_configs:
         io.console.print_section(
             "Available templates to create from (--base option):")
         io.console.print_item(", ".join(

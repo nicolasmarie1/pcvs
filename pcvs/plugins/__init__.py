@@ -100,7 +100,7 @@ class Collection:
 
         :param name: the plugin name.
         :type name: str"""
-        for step, plugins in self._plugins.items():
+        for _, plugins in self._plugins.items():
             for p in plugins:
                 if name.lower() == type(p).__name__.lower():
                     io.console.debug("Activate {}".format(name))

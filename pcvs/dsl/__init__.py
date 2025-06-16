@@ -154,10 +154,9 @@ class Serie:
         """TODO:
         """
         REGRESSIONS = 0
-        RUNS = 1,
+        RUNS = 1
 
-    """Depicts an history of runs for a given project/profile.
-    """
+    #Depicts an history of runs for a given project/profile.
 
     def __init__(self, branch):
         """TODO:

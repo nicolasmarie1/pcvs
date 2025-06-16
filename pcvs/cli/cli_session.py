@@ -52,9 +52,9 @@ def compl_session_token(ctx, args, incomplete) -> list:
               is_flag=True,
               default=False,
               help="Clear all completed sessions, for removing from logs")
-@click.option('-l', '--list', is_flag=True, help="List detached sessions")
+@click.option('-l', '--list', 'list_sessions', is_flag=True, help="List detached sessions")
 @click.pass_context
-def session(ctx, ack, list, ack_all):
+def session(ctx, ack, list_sessions, ack_all):
     """Manage sessions by listing or acknowledging their completion."""
     sessions = pvSession.list_alive_sessions()
     if sessions is None:

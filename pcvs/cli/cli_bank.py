@@ -12,7 +12,7 @@ try:
 except ImportError:
     import click
 
-
+#nopylint: disable=unused-argument
 def compl_list_banks(ctx, args, incomplete):
     """bank name completion function.
 
@@ -44,13 +44,13 @@ def compl_bank_projects(ctx, args, incomplete):
     :type incomplete: str
     """
     pvBank.init()
-    array = list()
+    array = []
     for bankname, bankpath in compl_list_banks(None, None, ''):
-        bank = pvBank.Bank(token=bankname)
-        bank.connect()
-        for project in bank.list_projects():
+        result_bank = pvBank.Bank(token=bankname)
+        result_bank.connect()
+        for project in result_bank.list_projects():
             array.append((bankname + "@" + project, bankpath))
-        bank.disconnect()
+        result_bank.disconnect()
 
     return [
         CompletionItem(elt[0], help=elt[1]) for elt in array
@@ -62,7 +62,6 @@ def compl_bank_projects(ctx, args, incomplete):
 @click.pass_context
 def bank(ctx):
     """Bank entry-point."""
-    pass
 
 
 @bank.command(name="list", short_help="List known repositories")

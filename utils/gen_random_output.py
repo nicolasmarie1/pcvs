@@ -1,14 +1,9 @@
-
-import base64
-import json
 import os
 import random
 from rich.progress import track
 import shutil
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.testing.test import Test
-
-import jsonschema
 
 test_count = 10000
 prefix = os.path.join(os.getcwd(), "fake_build")

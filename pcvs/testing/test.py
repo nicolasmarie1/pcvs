@@ -350,15 +350,12 @@ class Test:
         else:
             return MetaConfig.root.validation.job_timeout
 
-    def get_dim(self, unit="n_node"):
+    def get_dim(self):
         """Return the orch-dimension value for this test.
 
         The dimension can be defined by the user and let the orchestrator knows
         what resource are, and how to 'count' them'. This accessor allow the
         orchestrator to exract the information, based on the key name.
-
-        :param unit: the resource label, such label should exist within the test
-        :type unit: str
 
         :return: The number of resource this Test is requesting.
         :rtype: int
@@ -430,7 +427,7 @@ class Test:
         # if test should be validated through a matching regex
         if state == Test.State.SUCCESS and self._validation[
                 'matchers'] is not None:
-            for k, v in self._validation['matchers'].items():
+            for _, v in self._validation['matchers'].items():
                 expected = (v.get('expect', True) is True)
                 found = re.search(v['expr'], raw_output)
                 if (found and not expected) or (not found and expected):
@@ -440,7 +437,6 @@ class Test:
         if state == Test.State.SUCCESS and self._validation[
                 'analysis'] is not None:
             analysis = self._validation['analysis']
-            args = self._validation.get('args', {})
             s = MetaConfig.root.get_internal("pColl").invoke_plugins(
                 Plugin.Step.TEST_RESULT_EVAL, analysis=analysis, job=self)
             if s is not None:
@@ -584,11 +580,11 @@ class Test:
             "invocation_cmd": self._invocation_cmd,
         }
 
-    def from_minimal_json(self, json: str):
-        if isinstance(json, str):
-            json = json.loads(json)
-        self._invocation_cmd = json.get('invocation_cmd', "exit 1")
-        self._id['jid'] = json.get('jid', "-1")
+    def from_minimal_json(self, jsonstr: str):
+        if isinstance(jsonstr, str):
+            jsonstr = json.loads(jsonstr)
+        self._invocation_cmd = jsonstr.get('invocation_cmd', "exit 1")
+        self._id['jid'] = jsonstr.get('jid', "-1")
 
     def from_json(self, test_json: str, filepath: str) -> None:
         """Replace the whole Test structure based on input JSON.
@@ -633,7 +629,6 @@ class Test:
         cd_code = ""
         env_code = ""
         cmd_code = ""
-        post_code = ""
 
         self._invocation_cmd = 'bash {} {}'.format(srcfile,
                                                    self._id['fq_name'])

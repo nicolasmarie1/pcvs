@@ -31,16 +31,16 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-help'],
                         auto_envvar_prefix='PCVS')
 
 
+# pylint: disable=unused-argument
 def print_version(ctx, param, value):
     """Print current version.
 
     This is used as an option formatter, PCVS is not event loaded yet.
 
+    :param value: whether -v was pass and we should print the value.
+    :type value: bool
     :param ctx: Click Context.
     :type ctx: :class:`Click.Context`
-    :param param: the option triggering the callback (unused here)
-    :type param: str
-    :param value: the value provided with the option (unused here)
     """
     if not value or ctx.resilient_parsing:
         return
@@ -160,7 +160,7 @@ cli.add_command(cli_profile.profile)
 cli.add_command(cli_run.run)
 cli.add_command(cli_bank.bank)
 cli.add_command(cli_session.session)
-cli.add_command(cli_utilities.exec)
+cli.add_command(cli_utilities.exec_cli)
 cli.add_command(cli_utilities.check)
 cli.add_command(cli_utilities.clean)
 cli.add_command(cli_utilities.discover)

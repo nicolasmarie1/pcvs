@@ -113,9 +113,8 @@ def create_app(iface):
         :return: web content
         :rtype: str
         """
-        sid = sid
         if 'json' in request.args.get('render', []):
-            out = list()
+            out = []
             infos = data_manager.single_session_get_view(sid,
                                                          selection,
                                                          summary=True)
@@ -141,8 +140,7 @@ def create_app(iface):
         :return: web response
         :rtype: str
         """
-        sid = sid
-        out = list()
+        out = []
         request_item = request.args.get('name', None)
 
         if 'json' in request.args.get('render', []):
@@ -155,9 +153,9 @@ def create_app(iface):
                     sid, selection, subset=request_item, summary=False)
                 # jobs are returned split into 3 lists, depending on their status
                 # -> browse all three lists
-                job_list = list()
-                for e, m in struct.items():
-                    for sn, s in m.items():
+                job_list = []
+                for _, m in struct.items():
+                    for _, s in m.items():
                         job_list += s
             for elt in job_list:
                 cur: Test = data_manager.single_session_map_id(sid, elt)
@@ -199,7 +197,6 @@ def create_app(iface):
         :return: OK
         :rtype: HTTP request
         """
-        return "OK!", 200
         json_str = request.get_json()
 
         test_sid = json_str["metadata"]["sid"]
@@ -210,8 +207,7 @@ def create_app(iface):
 
         if not ok:
             return "", 406
-        else:
-            return "OK!", 200
+        return "OK!", 200
 
     @app.errorhandler(404)
     def page_not_found(e):

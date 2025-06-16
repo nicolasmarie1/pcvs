@@ -17,9 +17,6 @@ class SimpleAnalysis(BaseAnalysis):
     """TODO:
     """
 
-    def __init__(self, bank):
-        super().__init__(bank)
-
     def generate_serie_trend(self, serie, start=None, end=None):
         """TODO:
         """

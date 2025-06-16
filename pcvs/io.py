@@ -8,7 +8,6 @@ from datetime import datetime
 from typing import Callable
 from typing import Dict
 from typing import Iterable
-from typing import List
 from typing import Optional
 
 import click
@@ -108,7 +107,7 @@ class TheConsole(Console):
     :type Console: Console
     """
 
-    def __init__(self, *args: List[str], **kwargs) -> None:
+    def __init__(self, **kwargs) -> None:
         """
         Build a new Console.
 
@@ -123,6 +122,11 @@ class TheConsole(Console):
         :param kwargs: any argument to be forwared to Rich Console as dict
         :type kwargs: dict
         """
+        self._display_table = None
+        self._progress = None
+        self._singletask = None
+        self.live = None
+
         self._color = "auto" if kwargs.get('color', True) else None
         self._verbose = Verbosity(
             min(Verbosity.NB_LEVELS - 1, kwargs.get('verbose', 0)))
@@ -450,47 +454,85 @@ class TheConsole(Console):
         self.print("\n".join(banner))
 
     def nodebug(self, fmt, *args, **kwargs):
-        """do nothing"""
+        """Do nothing.
+
+        :param fmt: fmt
+        :param *args: args
+        :param **kwargs: kwargs
+        """
 
     def debug(self, fmt, *args, **kwargs):
-        """print & log debug"""
+        """Print & log debug.
+
+        :param fmt: fmt
+        :param *args: args
+        :param **kwargs: kwargs
+        """
         self._loghdl.debug(fmt, *args, **kwargs)
         if self._verbose >= Verbosity.DEBUG:
             user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
             self.print(f"[debug]\\[debug]: {user_fmt}[/debug]")
 
     def info(self, fmt, *args, **kwargs, ):
-        """print & log info"""
+        """Print & log info.
+
+        :param fmt: fmt
+        :param *args: args
+        :param **kwargs: kwargs
+        """
         self._loghdl.info(fmt, *args, **kwargs)
         if self._verbose >= Verbosity.INFO:
             user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
             self.print(f"[info]\\[info]: {user_fmt}[/info]")
 
     def warning(self, fmt, *args, **kwargs):
-        """print & log warning"""
+        """Print & log warning.
+
+        :param fmt: fmt
+        :param *args: args
+        :param **kwargs: kwargs
+        """
         self._loghdl.warning(fmt, *args, **kwargs)
         user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
         self.print(f"[warning]\\[warning]: {user_fmt}[/warning]")
 
     def warn(self, fmt, *args, **kwargs):
-        """short for warning"""
+        """Short for warning.
+
+        :param fmt: fmt
+        :param *args: args
+        :param **kwargs: kwargs
+        """
         self.warning(fmt, *args, **kwargs)
 
     def error(self, fmt, *args, **kwargs):
-        """print a log error"""
+        """Print a log error.
+
+        :param fmt: fmt
+        :param *args: args
+        :param **kwargs: kwargs
+        """
         self._loghdl.error(fmt, *args, **kwargs)
         user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
         self.print(f"[danger]\\[error]: {user_fmt}[/danger]")
 
     def critical(self, fmt, *args, **kwargs):
-        """print a log critical error then exit"""
+        """Print a log critical error then exit.
+
+        :param fmt: fmt
+        :param *args: args
+        :param **kwargs: kwargs
+        """
         self._loghdl.critical(fmt, *args, **kwargs)
         user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
         self.print(f"[danger]\\[CRITICAL]: {user_fmt}[/danger]")
         sys.exit(42)
 
     def exception(self, e: BaseException):
-        """print errors"""
+        """Print errors.
+
+        :param e: the error to display
+        """
         if self._verbose >= Verbosity.DEBUG:
             self.print_exception(word_wrap=True, show_locals=True)
         else:

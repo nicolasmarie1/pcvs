@@ -44,7 +44,7 @@ def init_constant_tokens():
         'program', "")
 
 
-def replace_special_token(content, src, build, prefix, list=False):
+def replace_special_token(content, src, build, prefix):
     output = []
     errors = []
 
@@ -150,11 +150,11 @@ class TestFile:
         stream = replace_special_token(data, source, build, self._prefix)
         try:
             self._raw = YAML(typ='safe').load(stream)
-        except YAMLError:
-            raise ValidationException.FormatError(origin="<stream>")
+        except YAMLError as ye:
+            raise ValidationException.FormatError(origin="<stream>") from ye
 
     def save_yaml(self):
-        src, _, build, curbuild = testing.generate_local_variables(
+        _, _, _, curbuild = testing.generate_local_variables(
             self._label, self._prefix)
 
         with open(os.path.join(curbuild, "pcvs.setup.yml"), "w") as fh:

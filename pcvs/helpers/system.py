@@ -59,13 +59,15 @@ class ValidationScheme:
                 f"Unable to load scheme {name}") from er
 
     def validate(self, content, filepath):
-        """Validate a given datastructure (dict) agasint the loaded scheme.
+        """
+        Validate a given datastructure (dict) agasint the loaded scheme.
 
-            :param content: json to validate
-            :type content: dict
-            :param filepath:
-            :raises ValidationException.FormatError: data are not valid
-            :raises ValidationException.SchemeError: issue while applying scheme
+        :param content: json to validate
+        :type content: dict
+        :param filepath: the path of the file content come from
+        :type filepath: str
+        :raises ValidationException.FormatError: data are not valid
+        :raises ValidationException.SchemeError: issue while applying scheme
         """
         if not filepath:
             io.console.warn("Validation operated on unknown file.")
@@ -99,14 +101,6 @@ class MetaDict(addict.Dict):
     remove this adherence.
     """
 
-    def to_dict(self):
-        """Convert the object to a regular dict.
-
-        :return: a regular Python dict
-        :rtype: Dict
-        """
-        return super().to_dict()
-
 
 class Config(MetaDict):
     """a 'Config' is a dict extension (an MetaDict), used to manage all
@@ -119,8 +113,8 @@ class Config(MetaDict):
         """Init the object and propagate properly the init to MetaDict() object
         :param d: items of the configuration
         :type d: dict
-        :param *arg: items of the configuration
-        :type *arg: tuple
+        :param *args: items of the configuration
+        :type *args: tuple
         :param **kwargs: items of the configuration
         :type **kwargs: dict"""
         super().__init__(*args, **kwargs)
@@ -134,7 +128,7 @@ class Config(MetaDict):
 
         :param kw: keyword describing the configuration to be validated (scheme)
         :type kw: str
-        :param filepath: file path of the yaml being passed
+        :param filepath: the path of the file kw come from
         :type filepath: str
         """
         assert filepath
@@ -197,9 +191,9 @@ class Config(MetaDict):
             with open(filename, 'r') as fh:
                 d = YAML(typ='safe').load(fh)
                 self.from_dict(d)
-        except (IOError, YAMLError):
+        except (IOError, YAMLError) as error:
             raise CommonException.IOError(
-                "{} invalid or badly formatted".format(filename))
+                "{} invalid or badly formatted".format(filename)) from error
 
 
 class MetaConfig(MetaDict):
@@ -221,6 +215,8 @@ class MetaConfig(MetaDict):
         :type subnode_name: str
         :param node: node to initialize and add
         :type node: dict
+        :param filepath: the path of the file subnode_name come from
+        :type filepath: str
         :return: added subnode
         :rtype: dict"""
 
@@ -248,6 +244,8 @@ class MetaConfig(MetaDict):
         """"Specific initialize for compiler config block
         :param node: compiler block to initialize
         :type node: dict
+        :param filepath: the path of the file node comme from
+        :type filepath: str
         :return: added node
         :rtype: dict"""
         subtree = self.bootstrap_generic('compiler', node, filepath)
@@ -259,6 +257,8 @@ class MetaConfig(MetaDict):
         """"Specific initialize for runtime config block
         :param node: runtime block to initialize
         :type node: dict
+        :param filepath: the path of the file node comme from
+        :type filepath: str
         :return: added node
         :rtype: dict"""
         subtree = self.bootstrap_generic('runtime', node, filepath)
@@ -271,19 +271,23 @@ class MetaConfig(MetaDict):
         There is currently nothing to here but calling bootstrap_generic()
         :param node: runtime block to initialize
         :type node: dict
+        :param filepath: the path of the file node comme from
+        :type filepath: str
         :return: added node
         :rtype: dict
         """
         return self.bootstrap_generic('group', node, filepath)
 
     def bootstrap_validation_from_file(self, filepath: str):
-        """Specific initialize for validation config block. This function loads
-            a file containing the validation dict.
+        """
+        Specific initialize for validation config block.
 
-            :param filepath: path to file to be validated
-            :type filepath: os.path, str
-            :raises CommonException.IOError: file is not found or badly
-                formatted
+        This function loads a file containing the validation dict.
+        :param filepath: path to file to be validated
+        :type filepath: str
+        :return:
+        :rtype:
+        :raises IOError: file is not found or badly formatted
         """
         node = MetaDict()
         if filepath is None:
@@ -308,11 +312,16 @@ class MetaConfig(MetaDict):
         return self.bootstrap_validation(node, filepath)
 
     def bootstrap_validation(self, node, filepath: str):
-        """"Specific initialize for validation config block
+        """
+        Specific initialize for validation config block.
+
         :param node: validation block to initialize
         :type node: dict
+        :param filepath: path of the file node come from
+        :type filepath: str
         :return: initialized node
-        :rtype: dict"""
+        :rtype: dict
+        """
         subtree = self.bootstrap_generic('validation', node, filepath)
 
         # Initialize default values when not set by user or default files
@@ -360,11 +369,16 @@ class MetaConfig(MetaDict):
         return subtree
 
     def bootstrap_machine(self, node, filepath: str):
-        """"Specific initialize for machine config block
+        """
+        Specific initialize for machine config block.
+
         :param node: machine block to initialize
         :type node: dict
+        :param filepath: path of the file node come from
+        :type filepath: str
         :return: initialized node
-        :rtype: dict"""
+        :rtype: dict
+        """
         subtree = self.bootstrap_generic('machine', node, filepath)
         subtree.set_nosquash('name', 'default')
         subtree.set_nosquash('nodes', 1)
@@ -403,7 +417,7 @@ class MetaConfig(MetaDict):
         :type k: str
         :param v: value to add
         :type v: str"""
-        if not hasattr(self, "__internal_config"):
+        if not self.__internal_config:
             self.__internal_config = {}
         self.__internal_config[k] = v
 
@@ -411,23 +425,21 @@ class MetaConfig(MetaDict):
         """manipulate the internal MetaConfig() node to load not-exportable data
         :param k: value to get
         :type k: str"""
-        if not hasattr(self, "__internal_config"):
+        if not self.__internal_config:
             return None
 
         if k in self.__internal_config:
             return self.__internal_config[k]
         return None
 
-    def dump_for_export(self):
+    def dump_for_export(self) -> dict:
         """Export the whole configuration as a dict. Prune any __internal node
         beforehand.
         """
-        if self.__internal_config:
-            not_exported = self.__internal_config
-            del self.__internal_config
-            res = MetaDict(self.to_dict())
-            self.__internal_config = not_exported
-        else:
-            res = self
-
-        return res.to_dict()
+        # there is a metadict inside a dict inside a meta dict
+        # so we need to do that ...
+        # TODO: Please fixe this
+        export_dict = MetaDict(self.to_dict()).to_dict()
+        export_dict.pop("__internal_config", None)
+        export_dict.pop("_MetaConfig__internal_config", None)
+        return export_dict

@@ -76,36 +76,12 @@ def compute_new_key(k, v, m) -> str:
     This function will also expand the placeholder if 'call:' token is used to
     execute python code on the fly (complex transformation)
     """
-    replacement = ""
 
-    # A tricky thing here. Recently we realised users may use a dot as a
-    # TE name, also used as a split pattern.
-    # To make the converter work again, any dot used to flatten the dict
-    # is replaced with a "||".
-    # BUT dots in user-defined input & regexes should not be touched
-    # This is why the replacement is done BEFORE applying regex results.
-    # EXCEPTION: dynamic conversion through code execution cannot be parsed
-    # automatically and "||" need to be manually inserted (hard to say which dots
-    # are relevant).
+    # basic replace the whole string with any placeholder
+    for elt in m.groupdict().keys():
+        k = k.replace(".", "||").replace("<" + elt + ">", m.group(elt))
 
-    # if this key is a special python expression to process:
-    if k.startswith('call:'):
-        # basic replace the whole string with any placeholder
-        for elt in m.groupdict().keys():
-            k = k.replace("<" + elt + ">", m.group(elt))
-
-        env = {'k': k, 'v': v, 'm': m}
-        # the 'k' & 'm' vars are exposed to evaluated code
-        exec("import re\n" + k.split("call:")[1], env)
-        # the 'k' is retrieved and used as a whole
-        replacement = env['k']
-    else:
-        # basic replace the whole string with any placeholder
-        for elt in m.groupdict().keys():
-            k = k.replace(".", "||").replace("<" + elt + ">", m.group(elt))
-
-        replacement = k
-    return replacement
+    return k
 
 
 def check_if_key_matches(key, value, ref_array) -> tuple:
@@ -261,7 +237,7 @@ def convert(ctx, input_file, kind, template, scheme, out,
             stream = open(template, 'r').read() + stream
         data_to_convert = YAML(typ='safe').load(stream)
     except YAML.composer.ComposerError as e:
-        CommonException.IOError(e, template)
+        raise CommonException.IOError(e, template) from e
 
     # load the scheme
     if not scheme:
@@ -302,7 +278,9 @@ def convert(ctx, input_file, kind, template, scheme, out,
     invalid_nodes = [k for k in final_data.keys() if k.startswith('pcvst_')]
     io.console.info(
         ["Prune the following:", "{}".format(pprint.pformat(invalid_nodes))])
-    [final_data.pop(x, None) for x in invalid_nodes + ["pcvs_missing"]]
+
+    for x in invalid_nodes + ["pcvs_missing"]:
+        final_data.pop(x, None)
 
     io.console.info(["Final layout:", "{}".format(pprint.pformat(final_data))])
 

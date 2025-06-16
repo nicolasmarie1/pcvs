@@ -193,7 +193,7 @@ class Session:
             :rtype: Any
             """
             return representer.represent_scalar(
-                u'!State', u'{}||{}'.format(data.name, data.value))
+                '!State', '{}||{}'.format(data.name, data.value))
 
         @classmethod
         def from_yaml(cls, constructor, node):

@@ -1,4 +1,3 @@
-import base64
 import os
 import subprocess
 import tempfile
@@ -82,15 +81,15 @@ def get_logged_output(prefix, testname) -> str:
     return s
 
 
-def process_check_configs(conversion=True):
-    """Analyse available configurations to ensure their correctness relatively
-    to their respective schemes.
+def process_check_configs():
+    """Analyse available configurations.
 
-    :param conversion: allow legacy format for this check (True by default)
-    :type conversion: bool, optional
+    To ensure their correctness relatively to their respective schemes.
+
     :return: caught errors, as a dict, where the keys is the errmsg base64
-    :rtype: dict"""
-    errors = dict()
+    :rtype: dict
+    """
+    errors = {}
     t = io.console.create_table("Configurations", ["Valid", "ID"])
 
     for kind in config.CONFIG_BLOCKS:
@@ -116,15 +115,17 @@ def process_check_configs(conversion=True):
 
 
 def process_check_profiles(conversion=True):
-    """Analyse availables profiles and check their correctness relatively to the
-    base scheme.
+    """Analyse availables profiles and check their correctness.
+
+    Relatively to the base scheme.
 
     :param conversion: allow legacy format for this check (True by default)
     :type conversion: bool, optional
     :return: list of caught errors as a dict, where keys are error msg base64
-    :rtype: dict"""
+    :rtype: dict
+    """
     t = io.console.create_table("Available Profile", ["Valid", "ID"])
-    errors = dict()
+    errors = {}
 
     for scope in utils.storage_order():
         for blob in profile.list_profiles(scope):

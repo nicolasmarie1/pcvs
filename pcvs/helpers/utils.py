@@ -145,16 +145,16 @@ def set_local_path(path):
 # ###################################
 
 
-def create_or_clean_path(prefix, dir=False):
+def create_or_clean_path(prefix, directory=False):
     """Create a path or cleans it if it already exists.
 
     :param prefix: prefix of the path to create
     :type prefix: os.path, str
-    :param dir: True if the path is a directory, defaults to False
-    :type dir: bool, optional
+    :param directory: True if the path is a directory, defaults to False
+    :type directory: bool, optional
     """
     if not os.path.exists(prefix):
-        if dir:
+        if directory:
             os.mkdir(prefix)
         else:
             assert (os.path.isdir(os.path.dirname(prefix)))
@@ -300,7 +300,6 @@ def unlock_file(f):
     except Exception as e:
         if io.console:
             io.console.warning("Issue unlocking {}: {}".format(lf_name, e))
-        pass
 
 
 def lock_file(f, reentrant=False, timeout=None, force=True):
@@ -415,16 +414,14 @@ def get_lock_owner(f):
         return s[0], int(s[1])
 
 
-def program_timeout(sig, frame):
+def program_timeout(sig):
     """Timeout handler, called when a SIGALRM is received.
 
     :param sig: signal number
     :type sig: int
-    :param frame: the callee (unused)
-    :type f:
-    :raises CommonException.TimeoutError: timeout is reached
+    :raises TimeoutError: timeout is reached
     """
-    assert (sig == signal.SIGALRM)
+    assert sig == signal.SIGALRM
     raise CommonException.TimeoutError("Timeout reached")
 
 
@@ -455,7 +452,7 @@ class Program:
         self._rc = None
         self._except = None
 
-    def run(self, input="", shell=False, timeout=0):
+    def run(self, process_input="", shell=False):
         """Run the given program and capture I/Os
 
         :param input: raw data to be used as stdin
@@ -473,7 +470,7 @@ class Program:
                                  shell=shell,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
-            self._out = s.communicate(input=input)
+            self._out = s.communicate(input=process_input)
             self._rc = s.returncode
         except Exception as e:
             self._except = e

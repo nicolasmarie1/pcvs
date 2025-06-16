@@ -33,6 +33,10 @@ class ActiveSessionList(Widget):
     items = reactive(OptionList())
     selected = None
 
+    def __init__(self, *args, **kwargs):
+        self.item_list = []
+        super().__init__(*args, **kwargs)
+
     def compose(self):
         self.init_list()
         yield Static("Loaded Sessions:")
@@ -46,7 +50,6 @@ class ActiveSessionList(Widget):
         active = self.app.model.active.prefix
         assert (active in item_names)
 
-        self.item_list = list()
         for name in item_names:
             self.item_list.append(Option(name))
 
@@ -150,7 +153,7 @@ class JobListViewer(Widget):
 
     def update_table(self):
         self.table.clear()
-        for state, jobs in self.app.model.single_session_status(
+        for _, jobs in self.app.model.single_session_status(
                 self.app.model.active_id).items():
             for jobid in jobs:
                 obj = self.app.model.single_session_map_id(

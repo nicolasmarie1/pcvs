@@ -183,7 +183,7 @@ class ConfigurationBlock:
 
     @property
     def full_name(self) -> str:
-        """Return complete block label (scope + kind + name)
+        """Return complete block label (scope + kind + name).
 
         :return: the fully-qualified name.
         :rtype: str
@@ -216,6 +216,24 @@ class ConfigurationBlock:
         :rtype: str
         """
         return self._name
+
+    @property
+    def kind(self) -> str:
+        """Return the block kind only.
+
+        :return: the kind of config
+        :rtype: str
+        """
+        return self._kind
+
+    @property
+    def details(self) -> dict:
+        """Return all the class details.
+
+        :return: the _details attribute.
+        :rtype: dict
+        """
+        return self._details
 
     def fill(self, raw) -> None:
         """Populate the block content with parameters.
@@ -311,21 +329,21 @@ class ConfigurationBlock:
         :param clone: the object to mirror
         :type clone: :class:`ConfigurationBlock`
         """
-        assert (isinstance(clone, ConfigurationBlock))
-        assert (clone._kind == self._kind)
-        assert (not self.is_found())
-        assert (clone.is_found())
+        assert isinstance(clone, ConfigurationBlock)
+        assert clone.kind == self._kind
+        assert not self.is_found()
+        assert clone.is_found()
 
         self.retrieve_file()
-        assert (not os.path.isfile(self._file))
+        assert not os.path.isfile(self._file)
 
         io.console.info("Compute target prefix: {}".format(self._file))
-        self._details = clone._details
+        self._details = clone.details
 
     def delete(self) -> None:
         """Delete a configuration block from disk"""
-        assert (self.is_found())
-        assert (os.path.isfile(self._file))
+        assert self.is_found()
+        assert os.path.isfile(self._file)
 
         io.console.info("remove {} from '{} ({})'".format(
             self._name, self._kind, self._scope))

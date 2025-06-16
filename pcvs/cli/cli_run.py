@@ -78,11 +78,6 @@ def compl_list_dirs(ctx, args, incomplete) -> list:  # pragma: no cover
     :param incomplete: the user input
     :type incomplete: str
     """
-    abspath = os.path.abspath(incomplete)
-
-    if ":" in incomplete:
-        label, path = incomplete.split(":", 1)
-        label += ":"
     obj = click.Path(exists=True, dir_okay=True, file_okay=False)
     obj.shell_complete(ctx, args, incomplete)
 
@@ -330,10 +325,10 @@ def run(ctx, profilename, profilepath, output, detach, override, anon, settings_
                                                     val_cfg.output)
             # TODO: Currently nothing can be overriden from cloned build except:
             # - 'output'
-        except FileNotFoundError:
+        except FileNotFoundError as fnfe:
             raise click.BadOptionUsage(
                 "--duplicate", "{} is not a valid build directory!".format(
-                    val_cfg.reused_build))
+                    val_cfg.reused_build)) from fnfe
     else:
         pf = None
         if profilepath:

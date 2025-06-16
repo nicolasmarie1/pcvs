@@ -1,13 +1,15 @@
 # add -dirty if staged area is not empty
 import os
 import setuptools
-loc = {}
+import re
+
 with open(os.path.join("pcvs/version.py")) as fh:
-    exec(fh.read(), None, loc)
-version = loc['__version__']
+    version = re.findall('__version__ = "(.*)"', fh.read())[0]
 
 try:
     import sh
+    # pylint: disable=too-many-function-args
+    # pylint fail to parse sh.git function correctly
     version += "+{}".format(sh.git("rev-parse", "HEAD").strip()[:8])
     if sh.git('--no-pager', 'diff', 'HEAD'):
         version += ".dirty"

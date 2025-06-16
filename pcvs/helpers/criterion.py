@@ -60,7 +60,7 @@ class Combination:
         for n in sorted(self._combination.keys()):
             subtitle = c[n].subtitle
             if subtitle is None:
-                subtitle = "{}".format(n)
+                subtitle = f"{n}"
 
             string.append(subtitle +
                           str(self._combination[n]).replace(" ", "-"))
@@ -126,8 +126,8 @@ class Serie:
         # this has to be saved, need to be forwarded to each combination
         self._dict = dict_of_criterion
         for name, node in dict_of_criterion.items():
-            assert (isinstance(node, Criterion))
-            assert (name == node.name)
+            assert isinstance(node, Criterion)
+            assert name == node.name
             self._values.append(node.values)
             self._keys.append(node.name)
 
@@ -214,15 +214,15 @@ class Criterion:
 
         This is used to refine overriden per-TE criterion according to
         system-wide's"""
-        assert (isinstance(other, Criterion))
-        assert (self._name == other._name)
+        assert isinstance(other, Criterion)
+        assert self._name == other.name
 
         # None is special value meaning, discard this criterion because
         # irrelevant
-        if self._values is None or other._values is None:
+        if self._values is None or other.values is None:
             self._values = None
         else:
-            self._values = set(self._values).intersection(other._values)
+            self._values = set(self._values).intersection(other.values)
 
     def is_empty(self):
         """Is the current set of values empty
@@ -241,14 +241,6 @@ class Criterion:
     def is_env(self):
         """Is this criterion targeting a component used as an env var ?"""
         return self._is_env
-
-    @staticmethod
-    def __convert_str_to_int(str_elt):
-        """Convert a sequence (as a string) into a valid range of values.
-
-        This is used to build criterion numeric-only possible values"""
-        # TODO: write sequence conversion for numeric values
-        return 0
 
     @property
     def values(self):
@@ -358,8 +350,8 @@ class Criterion:
                         return int(n)
                     else:
                         return n
-                except ValueError:
-                    raise CommonException.BadTokenError(val)
+                except ValueError as ve:
+                    raise CommonException.BadTokenError(val) from ve
 
             else:
                 return val
@@ -400,12 +392,12 @@ class Criterion:
 
     @property
     def min_value(self):
-        assert (self.expanded)
+        assert self.expanded
         return min(self._values)
 
     @property
     def max_value(self):
-        assert (self.expanded)
+        assert self.expanded
         return max(self._values)
 
     def expand_values(self, reference=None):

@@ -17,7 +17,8 @@ class GenericException(Exception):
         """Stringify an exception for pretty-printing.
 
         :return: the string.
-        :type: str"""
+        :type: str
+        """
         dbg_str = ""
         if self._dbg_info:
             dbg_str = "\n\nAdditional notes:\n" + self.dbg_str
@@ -25,26 +26,29 @@ class GenericException(Exception):
 
     @property
     def err(self):
-        """returns the error part of the exceptions.
+        """Returns the error part of the exceptions.
 
         :return: only the error part
-        :rtype: str"""
+        :rtype: str
+        """
         return str(self)
 
     @property
     def help(self):
-        """returns the help part of the exceptions.
+        """Returns the help part of the exceptions.
 
         :return: only the help part
-        :rtype: str"""
+        :rtype: str
+        """
         return self._help_msg
 
     @property
     def dbg(self):
-        """returns the extra infos of the exceptions (if any).
+        """Returns the extra infos of the exceptions (if any).
 
         :return: only the debug infos.
-        :rtype: str"""
+        :rtype: str
+        """
         return self._dbg_info
 
     def add_dbg(self, **kwargs):
@@ -89,31 +93,24 @@ class CommonException(BaseException):
 
     class UnclassifiableError(GenericException):
         """Unable to classify this common error."""
-        pass
 
     class NotFoundError(GenericException):
         """Content haven't been found based on specifications."""
-        pass
 
     class IOError(GenericException):
         """Communication error (FS, process) while processing data."""
-        pass
 
     class BadTokenError(GenericException):
         """Badly formatted string, unable to parse."""
-        pass
 
     class WIPError(GenericException):
         """Work in Progress, not a real error."""
-        pass
 
     class TimeoutError(GenericException):
         """The parent class timeout error."""
-        pass
 
     class NotImplementedError(GenericException):
         """Missing implementation for this particular feature."""
-        pass
 
 
 class BankException(CommonException):
@@ -121,12 +118,10 @@ class BankException(CommonException):
 
     class ProjectNameError(GenericException):
         """name is not a valid project under the given bank."""
-        pass
 
 
 class ConfigException(CommonException):
     """Config-specific exceptions."""
-    pass
 
 
 class ProfileException(CommonException):
@@ -134,7 +129,6 @@ class ProfileException(CommonException):
 
     class IncompleteError(GenericException):
         """A configuration block is missing to build the profile."""
-        pass
 
 
 class ValidationException(CommonException):

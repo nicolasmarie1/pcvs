@@ -86,19 +86,19 @@ class ResultFile:
         if self._rawout:
             self._rawout.flush()
 
-    def save(self, id, data, output):
+    def save(self, job_id, data, output):
         """
         Save a new job to this instance.
 
-        :param id: job id
-        :type id: int
+        :param job_id: job id
+        :type job_id: int
         :param data: metadata
         :type data: dict
         :param output: raw output
         :type output: bytes
         """
-        assert (type(data) is dict)
-        assert ('result' in data.keys())
+        assert isinstance(data, dict)
+        assert 'result' in data.keys()
         insert = {}
         start = 0
         length = 0
@@ -120,8 +120,8 @@ class ResultFile:
 
         data['result']['output'] = insert
 
-        assert (id not in self._data.keys())
-        self._data[id] = data
+        assert job_id not in self._data.keys()
+        self._data[job_id] = data
         self._cnt += 1
         self._sz = max(start + length, self._sz + len(json.dumps(data)))
 
@@ -140,7 +140,7 @@ class ResultFile:
 
     @property
     def content(self):
-        for name, data in self._data.items():
+        for _, data in self._data.items():
             elt = Test()
             elt.from_json(data, None)
 
@@ -822,7 +822,9 @@ class BuildDirectoryManager:
                   'w') as fh:
             h = YAML(typ='safe')
             h.default_flow_style = None
-            h.dump(config.dump_for_export(), fh)
+            conf = config.dump_for_export()
+            print(conf)
+            h.dump(conf, fh)
 
     def get_config(self) -> dict:
         """

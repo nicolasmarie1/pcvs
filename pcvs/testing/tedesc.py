@@ -531,7 +531,7 @@ class TEDescriptor:
                    resources=1,
                    wd=chdir)
 
-    def __construct_runtime_tests(self):
+    def __construct_runtime_tests(self, serie):
         """Generate tests to be run by the runtime command."""
         te_job_deps = build_job_deps(self._run, self._te_label,
                                      self._te_subtree)
@@ -544,7 +544,7 @@ class TEDescriptor:
                 te_job_deps.append(fq_name)
 
         # for each combination generated from the collection of criterions
-        for comb in self._serie.generate():
+        for comb in serie.generate():
             chdir = None
 
             # start to build the proper command, three parts:
@@ -630,14 +630,13 @@ class TEDescriptor:
             yield from self.__construct_compil_tests()
         if self._run:
             if self.get_attr('command_wrap', True) is False:
-                self._serie = Serie({**self._program_criterion})
+                serie = Serie({**self._program_criterion})
             else:
-                self._serie = Serie({
+                serie = Serie({
                     **self._criterion,
                     **self._program_criterion
                 })
-            yield from self.__construct_runtime_tests()
-            del self._serie
+            yield from self.__construct_runtime_tests(serie)
 
     def get_debug(self):
         """Build information debug for the current TE.
@@ -649,20 +648,20 @@ class TEDescriptor:
         if self._skipped:
             return {}
 
-        self._debug_yaml = dict()
+        debug_yaml = {}
 
         # count actual tests built
         if self._run:
             # for system-wide iterators, count max number of possibilites
             for k, v in self._criterion.items():
-                self._debug_yaml[k] = list(v.values)
+                debug_yaml[k] = list(v.values)
 
             # for program-lavel iterators, count number of possibilies
-            self._debug_yaml['program'] = dict()
+            debug_yaml['program'] = dict()
             for k, v in self._program_criterion.items():
-                self._debug_yaml['program'][k] = list(v.values)
+                debug_yaml['program'][k] = list(v.values)
 
-        return self._debug_yaml
+        return debug_yaml
 
     @property
     def name(self):

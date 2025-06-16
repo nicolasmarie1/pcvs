@@ -77,12 +77,12 @@ def profile(ctx):
                 shell_complete=compl_list_token)
 @click.option("-a",
               "--all",
-              "all",
+              "all_profiles",
               is_flag=True,
               default=False,
               help="Include any extra resources for profile (templates, etc.)")
 @click.pass_context
-def profile_list(ctx, token, all):
+def profile_list(ctx, token, all_profiles):
     """
     List all known profiles to be used as part of a validation process. The
     list can be filtered out depending on the '--scope' option to only print
@@ -112,10 +112,10 @@ def profile_list(ctx, token, all):
         io.console.print_item("None")
         return
 
-    for profile in profiles:
-        table.add_row(*profile)
+    for prof in profiles:
+        table.add_row(*prof)
 
-    if all:
+    if all_profiles:
         io.console.print_section(
             "Available templates to create from (--base option):")
         io.console.print_item(", ".join(
@@ -145,7 +145,6 @@ def profile_show(ctx, token):
         pf.display()
     else:
         raise click.BadArgumentUsage("Profile '{}' not found!".format(token))
-    pass
 
 
 def profile_interactive_select():
@@ -464,10 +463,9 @@ def profile_decompose_profile(ctx, token, name, block_opt, scope):
 
     pf = pvProfile.Profile(label, scope)
     if not pf.is_found():
-        click.BadArgumentUsage(
+        raise click.BadArgumentUsage(
             "Cannot decompose an non-existent profile: '{}'".format(token))
-    else:
-        pf.load_from_disk()
+    pf.load_from_disk()
 
     io.console.print_section('"Create the subsequent configuration blocks:')
     for c in pf.split_into_configs(name, blocks, scope):

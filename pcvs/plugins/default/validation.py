@@ -11,6 +11,7 @@ class BankValidationPlugin(Plugin):
 
     def __init__(self):
         super().__init__()
+        self._serie = None
         self._bank_hdl = None
 
     def run(self, *args, **kwargs):
@@ -48,18 +49,17 @@ class BankValidationPlugin(Plugin):
 
         max_runs = args.get('history_depth', 1)
         tolerance = args.get('tolerance', 0)
-        sum = 0
+        total_time = 0
         cnt = 0
         run = self._serie.last
         while cnt < max_runs:
             res = run.get_data(job.name)
             if res and res.state == Test.State.SUCCESS:
-                sum += res.time
+                total_time += res.time
                 cnt += 1
             run = run.previous
             if run is None:
                 break
-        if cnt >= 0 and job.time >= (sum / cnt) * (1 + tolerance / 100):
+        if cnt >= 0 and job.time >= (total_time / cnt) * (1 + tolerance / 100):
             return Test.State.FAILURE
-        else:
-            return Test.State.SUCCESS
+        return Test.State.SUCCESS

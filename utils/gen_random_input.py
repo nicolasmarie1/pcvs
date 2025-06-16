@@ -1,4 +1,3 @@
-import shutil
 import os
 
 NB_FILES = 2
