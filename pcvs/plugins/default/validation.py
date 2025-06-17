@@ -1,5 +1,5 @@
 from pcvs.backend import bank
-from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import GlobalConfig
 from pcvs.plugins import Plugin
 from pcvs.testing.test import Test
 

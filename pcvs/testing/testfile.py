@@ -17,7 +17,7 @@ from pcvs.converter import yaml_converter
 from pcvs.helpers import system
 from pcvs.helpers.exceptions import TestException
 from pcvs.helpers.exceptions import ValidationException
-from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import GlobalConfig
 from pcvs.plugins import Plugin
 from pcvs.testing import tedesc
 

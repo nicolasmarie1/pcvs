@@ -2,7 +2,7 @@ import queue
 
 from pcvs import io
 from pcvs.backend import session
-from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import GlobalConfig
 from pcvs.orchestration.manager import Manager
 from pcvs.orchestration.runner import RunnerAdapter
 from pcvs.orchestration.set import Set

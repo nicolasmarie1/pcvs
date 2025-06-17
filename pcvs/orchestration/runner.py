@@ -9,7 +9,7 @@ import time
 import pcvs
 from pcvs import io
 from pcvs.helpers.exceptions import RunnerException
-from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import GlobalConfig
 from pcvs.orchestration.set import Set
 from pcvs.testing.test import Test
 

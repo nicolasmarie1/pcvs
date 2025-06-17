@@ -5,7 +5,7 @@ import os
 
 from pcvs import io
 from pcvs.helpers.exceptions import CommonException
-from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import GlobalConfig
 from pcvs.plugins import Plugin
 
 

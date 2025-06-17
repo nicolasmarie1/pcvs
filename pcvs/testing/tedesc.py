@@ -12,7 +12,7 @@ from pcvs.helpers.criterion import Criterion
 from pcvs.helpers.criterion import Serie
 from pcvs.helpers.exceptions import ProfileException
 from pcvs.helpers.exceptions import TestException
-from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import GlobalConfig
 from pcvs.testing.test import Test
 
 # now return the first valid language, according to settings
