@@ -33,7 +33,7 @@ class Bank(dsl.Bank):
     :param repo: the Pygit2 handle
     :type repo:  :class:`Pygit2.Repository`
     :param config: when set, configuration file of the just-submitted archive
-    :type config: :class:`MetaDict`
+    :type config: : dict
     :param rootree: When set, root handler to the next commit to insert
     :type rootree: :class:`Pygit2.Object`
     :param locked: Serialize Bank manipulation among multiple processes
@@ -201,7 +201,7 @@ class Bank(dsl.Bank):
         hdl.init_results()
 
         seriename = self.build_target_branch_name(
-            tag, hdl.config.validation.pf_hash)
+            tag, hdl.config['validation']['pf_hash'])
         serie = self.get_serie(seriename)
         if serie is None:
             serie = self.new_serie(seriename)
@@ -214,8 +214,8 @@ class Bank(dsl.Bank):
             metadata['cnt'][str(job.state)] += 1
             run.update(job.name, job.to_json())
 
-        self.set_id(an=hdl.config.validation.author.name,
-                    am=hdl.config.validation.author.email,
+        self.set_id(an=hdl.config['validation']['author']['name'],
+                    am=hdl.config['validation']['author']['email'],
                     cn=git.get_current_username(),
                     cm=git.get_current_usermail())
 
@@ -224,7 +224,7 @@ class Bank(dsl.Bank):
         serie.commit(run,
                      metadata=metadata,
                      msg=msg,
-                     timestamp=int(hdl.config.validation.datetime.timestamp()))
+                     timestamp=int(hdl.config['validation']['datetime'].timestamp()))
 
     def save_from_archive(self,
                           tag: str,
@@ -266,7 +266,7 @@ class Bank(dsl.Bank):
         :type msg: str, optional
         """
         seriename = self.build_target_branch_name(
-            target_project, hdl.config.validation.pf_hash)
+            target_project, hdl.config.validation['pf_hash'])
         serie = self.get_serie(seriename)
         metadata = {'cnt': {}}
 
@@ -292,8 +292,8 @@ class Bank(dsl.Bank):
 
         run.update_flatdict(d)
 
-        self.set_id(an=hdl.config.validation.author.name,
-                    am=hdl.config.validation.author.email,
+        self.set_id(an=hdl.config['validation']['author']['name'],
+                    am=hdl.config['validation']['author']['email'],
                     cn=git.get_current_username(),
                     cm=git.get_current_usermail())
 
@@ -302,7 +302,7 @@ class Bank(dsl.Bank):
         serie.commit(run,
                      metadata=metadata,
                      msg=msg,
-                     timestamp=int(hdl.config.validation.datetime.timestamp()))
+                     timestamp=int(hdl.config['validation']['datetime'].timestamp()))
 
     def save_new_run(self, target_project: str, path: str) -> None:
         """

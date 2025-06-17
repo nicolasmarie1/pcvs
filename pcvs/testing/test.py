@@ -348,7 +348,7 @@ class Test:
         elif self._validation['time'] > 0:
             return (self._validation['time'] + self._validation['delta']) * 1.5
         else:
-            return MetaConfig.root.validation.job_timeout
+            return MetaConfig.root['validation']['job_timeout']
 
     def get_dim(self):
         """Return the orch-dimension value for this test.
@@ -471,8 +471,8 @@ class Test:
             icon = "fail"
 
         if self._output and \
-            (MetaConfig.root.validation.print_level == 'all' or
-             (self.state == Test.State.FAILURE) and MetaConfig.root.validation.print_level == 'errors'):
+            (MetaConfig.root['validation']['print_level'] == 'all' or
+             (self.state == Test.State.FAILURE) and MetaConfig.root['validation']['print_level'] == 'errors'):
             raw_output = self.output
 
         io.console.print_job(

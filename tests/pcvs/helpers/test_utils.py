@@ -6,7 +6,6 @@ from click.testing import CliRunner
 
 from pcvs.helpers import utils as tested
 from pcvs.helpers.exceptions import RunException
-from pcvs.helpers.system import MetaDict
 
 
 @pytest.mark.parametrize("token", ["test1", "test/test1"])
@@ -55,12 +54,12 @@ def test_cwd_manager(wd_dir):
             assert(os.getcwd() == ref_path)
 
 
-@patch("pcvs.helpers.system.MetaConfig.root", MetaDict({
+@patch("pcvs.helpers.system.GlobalConfig.root", {
         "validation": {
             'output': "/prefix_build",
             "dirs": {'LABEL1': '/prefix1', 'LABEL2': "/prefix2"}
         }
-    })
+    }
 )
 @pytest.mark.parametrize("program", ["ls", "/bin/sh"])
 def test_check_program(program):

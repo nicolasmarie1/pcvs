@@ -1,8 +1,8 @@
 import os
+import copy
 
 from typing import List
 
-import addict
 import jsonschema
 from ruamel.yaml import YAML
 from ruamel.yaml import YAMLError
@@ -17,21 +17,28 @@ from pcvs.helpers.exceptions import ValidationException
 from pcvs.io import Verbosity
 from pcvs import io
 
+
 # ###################################
 # ###   YAML VALIDATION OBJECT   ####
 # ###################q################
 class ValidationScheme:
-    """Object manipulating schemes (yaml) to enforce data formats.
+    """
+    Object manipulating schemes (yaml) to enforce data formats.
+
     A validationScheme is instancied according to a 'model' (the format to
     validate). This instance can be used multiple times to check multiple
     streams belonging to the same model.
     """
+
     avail_list = []
 
     @classmethod
     def available_schemes(cls) -> List:
-        """return list of currently supported formats to be validated.
+        """
+        Return list of currently supported formats to be validated.
+
         The list is extracted from INSTALL/schemes/<model>-scheme.yml
+        :return: List of available schemes.
         """
         if not cls.avail_list:
             cls.avail_list = []
@@ -41,11 +48,13 @@ class ValidationScheme:
         return cls.avail_list
 
     def __init__(self, name):
-        """Create a new ValidationScheme instancen based on a given model.
-            During initialisatio, the file scheme is loaded from disk.
-            :raises:
-            ValidationException.SchemeError: file is not found OR unable to load
-            the YAML scheme file.
+        """
+        Create a new ValidationScheme instancen based on a given model.
+
+        During initialisation the file scheme is loaded from disk.
+        :param name: name
+        :raises SchemeError: file is not found OR unable to load
+        the YAML scheme file.
         """
         self.schema_name = name  # the name of the schema
         self.schema = None       # the content of the schema
@@ -66,8 +75,8 @@ class ValidationScheme:
         :type content: dict
         :param filepath: the path of the file content come from
         :type filepath: str
-        :raises ValidationException.FormatError: data are not valid
-        :raises ValidationException.SchemeError: issue while applying scheme
+        :raises FormatError: data are not valid
+        :raises SchemeError: issue while applying scheme
         """
         if not filepath:
             io.console.warn("Validation operated on unknown file.")
@@ -89,37 +98,27 @@ class ValidationScheme:
                     name=self.schema_name, content=self.schema, error=e) from e
 
 
-class MetaDict(addict.Dict):
-    """Helps with managing large configuration sets, based on dictionaries.
-
-    Once instanciated, an arbitraty subnode can be initialized like:
-
-        o = MetaDict()
-        o.field_a.subnode2 = 4
-
-    Currently, this class is just derived from addict.Dict. It is planned to
-    remove this adherence.
+class Config:
     """
+    A 'Config' is a dict used to manage all configuration fields.
 
-
-class Config(MetaDict):
-    """a 'Config' is a dict extension (an MetaDict), used to manage all
-    configuration fields. While it can contain arbitrary data, the whole PCVS
+    While it can contain arbitrary data, the whole PCVS
     configuration is composed of 5 distinct 'categories', each being a single
     Config. These are then gathered in a `MetaConfig` object (see below)
     """
 
-    def __init__(self, d={}, *args, **kwargs):
-        """Init the object and propagate properly the init to MetaDict() object
+    def __init__(self, d: dict = {}, *args, **kwargs):
+        """
+        Init the object.
+
         :param d: items of the configuration
         :type d: dict
         :param *args: items of the configuration
         :type *args: tuple
         :param **kwargs: items of the configuration
-        :type **kwargs: dict"""
-        super().__init__(*args, **kwargs)
-        for n in d:
-            self.__setitem__(n, d[n])
+        :type **kwargs: dict
+        """
+        self.config = copy.deepcopy(d)
 
     def validate(self, kw, filepath: str):
         """Check if the Config instance matches the expected format as declared
@@ -136,56 +135,66 @@ class Config(MetaDict):
         ValidationScheme(kw).validate(self, filepath)
 
     def __setitem__(self, param, value):
-        """extend it to handle dict initialization (needs MetaDict conversion)
+        """
+        Config sub object set.
+
         :param param: name of value to add to configuration
         :type param: str
         :param value: value to add to configuration
-        :type value: object"""
-        if isinstance(value, dict):
-            value = MetaDict(value)
-        super().__setitem__(param, value)
+        :type value: object
+        """
+        self.config.__setitem__(param, value)
+
+    def __getitem__(self, k):
+        """
+        Config sub item get.
+
+        :param k: name of the item to get.
+        """
+        return self.config.__getitem__(k)
 
     def set_ifdef(self, k, v):
-        """shortcut function: init self[k] only if v is not None
+        """
+        Shortcut function: init self[k] only if v is not None.
+
         :param k: name of value to add
         :type k: str
         :param v: value to add
-        :type v: str"""
+        :type v: str
+        """
         if v is not None:
             self[k] = v
 
     def set_nosquash(self, k, v):
-        """shortcut function: init self[k] only if v is not already set
+        """
+        Shortcut function: init self[k] only if v is not already set.
+
         :param k: name of value to add
         :type k: str
         :param v: value to add
-        :type v: str"""
+        :type v: str
+        """
         if k not in self:
             self[k] = v
 
     def to_dict(self):
         """Convert the Config() to regular dict."""
-        # this dirty hack is due to a type(self) used into addict.py
-        # leading to misconvert derived classes from Dict()
-        # --> to_dict() checks if a sub-value is instance of type(self)
-        # In our case here, type(self) return Config(), addict not converting
-        # sub-Dict() into dict(). This double call to to_dict() seems
-        # to fix the issue. But an alternative to addict should be used
-        # (customly handled ?)
-        copy = MetaDict(super().to_dict())
-        return copy.to_dict()
+        return copy.deepcopy(self.config)
 
     def from_dict(self, d):
-        """Fill the current Config from a given dict
+        """
+        Fill the current Config from a given dict.
+
         :param d: dictionary to add
-        :type d: dict"""
-        for k, v in d.items():
-            self[k] = v
+        :type d: dict
+        """
+        self.config = copy.deepcopy(d)
 
     def from_file(self, filename):
-        """Fill the current config from a given file
+        """
+        Fill the current config from a given file
 
-            :raises CommonException.IOError: file does not exist OR badly formatted
+        :raises IOError: file does not exist OR badly formatted
         """
         try:
             with open(filename, 'r') as fh:
@@ -196,21 +205,41 @@ class Config(MetaDict):
                 "{} invalid or badly formatted".format(filename)) from error
 
 
-class MetaConfig(MetaDict):
-    """Root configuration object. It is composed of Config(), categorizing
-    each configuration blocks. This MetaConfig() contains the whole profile
-    along with any validation and current run information.
-    This configuration is used as a dict extension.
-
-    To avoid carrying a global instancied object over the whole code, a
-    class-scoped attribute allows to browse the global configuration from
-    anywhere through `Metaconfig.root`"
+class MetaConfig(Config):
     """
-    root = None
+    Root configuration object.
+
+    It is composed of Config(), categorizing each configuration blocks.
+    This MetaConfig() contains the whole profile along with
+    any validation and current run information.
+    This configuration is used as a dict extension.
+    """
     validation_default_file = pcvs.PATH_VALCFG
 
+    def __init__(self, d: dict = {}, *args, **kwargs):
+        """
+        Init the object.
+
+        :param d: items of the configuration
+        :type d: dict
+        :param *args: items of the configuration
+        :type *args: tuple
+        :param **kwargs: items of the configuration
+        :type **kwargs: dict
+        """
+        super().__init__(d)
+        self.__internal_config = {}
+
+    #def __setitem__(self, param, value):
+    #    super().__setitem__(param, value)
+
+    #def __getitem__(self, k):
+    #    return super().__getitem__(k)
+
     def bootstrap_generic(self, subnode_name: str, node: dict, filepath: str):
-        """"Initialize a Config() object and store it under name 'node'
+        """
+        Initialize a Config() object and store it under name 'node'.
+
         :param subnode_name: node name
         :type subnode_name: str
         :param node: node to initialize and add
@@ -218,39 +247,38 @@ class MetaConfig(MetaDict):
         :param filepath: the path of the file subnode_name come from
         :type filepath: str
         :return: added subnode
-        :rtype: dict"""
+        :rtype: dict
+        """
 
-        if subnode_name not in self:
+        if subnode_name not in self.config:
             self[subnode_name] = Config(node)
-
-        # for k, v in node.items():
-        #     self[subnode_name][k] = v
 
         self[subnode_name].validate(subnode_name, filepath)
         return self[subnode_name]
 
-    def bootstrap_from_profile(self, pf_as_dict, filepath: str):
+    def bootstrap_from_profile(self, pf, filepath: str):
         """Bootstrap profile from dict"""
-        if not isinstance(pf_as_dict, MetaDict):
-            pf_as_dict = MetaDict(pf_as_dict)
 
-        self.bootstrap_compiler(pf_as_dict.compiler, filepath)
-        self.bootstrap_runtime(pf_as_dict.runtime, filepath)
-        self.bootstrap_machine(pf_as_dict.machine, filepath)
-        self.bootstrap_criterion(pf_as_dict.criterion, filepath)
-        self.bootstrap_group(pf_as_dict.group, filepath)
+        self.bootstrap_compiler(pf['compiler'], filepath)
+        self.bootstrap_runtime(pf['runtime'], filepath)
+        self.bootstrap_machine(pf['machine'], filepath)
+        self.bootstrap_criterion(pf['criterion'], filepath)
+        self.bootstrap_group(pf['group'], filepath)
 
     def bootstrap_compiler(self, node, filepath: str):
-        """"Specific initialize for compiler config block
+        """
+        Specific initialize for compiler config block.
+
         :param node: compiler block to initialize
         :type node: dict
         :param filepath: the path of the file node comme from
         :type filepath: str
         :return: added node
-        :rtype: dict"""
+        :rtype: dict
+        """
         subtree = self.bootstrap_generic('compiler', node, filepath)
         if 'package_manager' in subtree:
-            self.set_internal('cc_pm', pm.identify(subtree.package_manager))
+            self.set_internal('cc_pm', pm.identify(subtree['package_manager']))
         return subtree
 
     def bootstrap_runtime(self, node, filepath: str):
@@ -263,7 +291,7 @@ class MetaConfig(MetaDict):
         :rtype: dict"""
         subtree = self.bootstrap_generic('runtime', node, filepath)
         if 'package_manager' in subtree:
-            self.set_internal('rt_pm', pm.identify(subtree.package_manager))
+            self.set_internal('rt_pm', pm.identify(subtree['package_manager']))
         return subtree
 
     def bootstrap_group(self, node, filepath: str):
@@ -289,14 +317,14 @@ class MetaConfig(MetaDict):
         :rtype:
         :raises IOError: file is not found or badly formatted
         """
-        node = MetaDict()
+        node = {}
         if filepath is None:
             filepath = self.validation_default_file
 
         if os.path.isfile(filepath):
             try:
                 with open(filepath, 'r', encoding='utf-8') as fh:
-                    node = MetaDict(YAML(typ='safe').load(fh))
+                    node = YAML(typ='safe').load(fh)
             except (IOError, YAMLError) as e:
                 raise CommonException.IOError(
                     f"Error(s) found while loading {filepath}") from e
@@ -306,8 +334,8 @@ class MetaConfig(MetaDict):
             if field in node:
                 node[field] = os.path.abspath(node[field])
 
-        if node.dirs:
-            node.dirs = {k: os.path.abspath(v) for k, v in node.dirs.items()}
+        if 'dirs' in node:
+            node['dirs'] = {k: os.path.abspath(v) for k, v in node['dirs'].items()}
 
         return self.bootstrap_validation(node, filepath)
 
@@ -354,17 +382,12 @@ class MetaConfig(MetaDict):
                 "email": git.get_current_usermail()
             })
 
-        # Annoying here:
-        # self.result should be allowed even without the 'set_nosquash' above
-        # but because of inheritance, it does not result as a MetaDict()
-        # As the 'set_nosquash' is required, it is solving the issue
-        # but this corner-case should be remembered as it WILL happen again :(
-        if 'format' not in subtree.result:
-            subtree.result.format = ['json']
-        if 'log' not in subtree.result:
-            subtree.result.log = 1
+        if 'format' not in subtree['result']:
+            subtree['result'].format = ['json']
+        if 'log' not in subtree['result']:
+            subtree['result'].log = 1
         if 'logsz' not in subtree.result:
-            subtree.result.logsz = 1024
+            subtree['result'].logsz = 1024
 
         return subtree
 
@@ -417,29 +440,30 @@ class MetaConfig(MetaDict):
         :type k: str
         :param v: value to add
         :type v: str"""
-        if not self.__internal_config:
-            self.__internal_config = {}
         self.__internal_config[k] = v
 
     def get_internal(self, k):
         """manipulate the internal MetaConfig() node to load not-exportable data
         :param k: value to get
         :type k: str"""
-        if not self.__internal_config:
-            return None
-
         if k in self.__internal_config:
             return self.__internal_config[k]
         return None
 
     def dump_for_export(self) -> dict:
-        """Export the whole configuration as a dict. Prune any __internal node
-        beforehand.
+        """Export the whole configuration as a dict.
+        Prune any __internal node beforehand.
         """
-        # there is a metadict inside a dict inside a meta dict
-        # so we need to do that ...
-        # TODO: Please fixe this
-        export_dict = MetaDict(self.to_dict()).to_dict()
-        export_dict.pop("__internal_config", None)
-        export_dict.pop("_MetaConfig__internal_config", None)
-        return export_dict
+        return self.to_dict()
+
+
+class GlobalConfig:
+    """
+    A static class to store a Global version of Metaconfig.
+
+    To avoid carrying a global instancied object over the whole code, a
+    class-scoped attribute allows to browse the global configuration from
+    anywhere through `GlobalConfig.root`"
+    """
+
+    root = MetaConfig()

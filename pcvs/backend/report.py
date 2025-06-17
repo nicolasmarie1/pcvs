@@ -12,7 +12,6 @@ from pcvs.backend.session import list_alive_sessions
 from pcvs.backend.session import Session
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import CommonException
-from pcvs.helpers.system import MetaDict
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.webview import create_app
 from pcvs.webview import data_manager
@@ -27,7 +26,7 @@ def upload_buildir_results(buildir) -> None:
 
     # first, need to determine the session ID -> conf.yml
     with open(os.path.join(buildir, "conf.yml"), 'r', encoding='utf-8') as fh:
-        conf_yml = MetaDict(YAML().load(fh))
+        conf_yml = YAML().load(fh)
 
     sid = conf_yml.validation.sid
     dataman = data_manager

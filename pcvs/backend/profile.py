@@ -15,10 +15,9 @@ from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ConfigException
 from pcvs.helpers.exceptions import ProfileException
 from pcvs.helpers.exceptions import ValidationException
-from pcvs.helpers.system import MetaDict
 from pcvs.converter import yaml_converter
 
-PROFILE_EXISTING = dict()
+PROFILE_EXISTING = {}
 
 
 def init():
@@ -99,7 +98,7 @@ class Profile:
         :param scope: desired scope, automatically set if not provided
         :type scope: str
         """
-        self._details = MetaDict()
+        self._details = {}
 
         if profilepath:
             self._name = os.path.basename(profilepath.split('\\.')[0])
@@ -173,7 +172,7 @@ class Profile:
         # of from 'clone' (dict of raw file inputs)
         for k, v in raw.items():
             if isinstance(v, config.ConfigurationBlock):
-                self._details[k] = MetaDict(v.dump())
+                self._details[k] = v.dump()
             else:
                 self._details[k] = v
 
@@ -186,7 +185,7 @@ class Profile:
         :rtype: dict
         """
         # self.load_from_disk()
-        return MetaDict(self._details).to_dict()
+        return self._details
 
     def is_found(self):
         """Check if the current profile exists on disk.
@@ -229,7 +228,7 @@ class Profile:
 
         io.console.debug(f"Load {self._name} ({self._scope})")
         with open(self._file, 'r', encoding='utf-8') as f:
-            self._details = MetaDict(YAML(typ='safe').load(f))
+            self._details = YAML(typ='safe').load(f)
 
     def load_template(self, name="default"):
         """Populate the profile from templates of 5 basic config. blocks.
@@ -292,7 +291,7 @@ class Profile:
                 raise convert_error from parsing_error
 
             with open(tmpfile, 'r', encoding='utf-8') as f:
-                self._details = MetaDict(YAML(typ='safe').load(f))
+                self._details = YAML(typ='safe').load(f)
             self.check(allow_legacy=False)
             io.console.warning(f"Legacy format for profile '{self._name}'")
             io.console.warning(
@@ -313,7 +312,7 @@ class Profile:
             os.makedirs(prefix_file, exist_ok=True)
 
         with open(self._file, 'w', encoding='utf-8') as f:
-            YAML(typ='safe').dump(self._details.to_dict(), f)
+            YAML(typ='safe').dump(self._details, f)
 
     def clone(self, clone):
         """Duplicate a valid profile into the current one.
@@ -367,7 +366,7 @@ class Profile:
 
         edited_stream = click.edit(stream, extension=".yml", require_save=True)
         if edited_stream is not None:
-            edited_yaml = MetaDict(YAML(typ='safe').load(edited_stream))
+            edited_yaml = YAML(typ='safe').load(edited_stream)
             self.fill(edited_yaml)
             self.flush_to_disk()
             try:

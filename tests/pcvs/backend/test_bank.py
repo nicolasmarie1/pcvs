@@ -10,7 +10,6 @@ import pcvs
 from pcvs.backend import bank as tested
 from pcvs.helpers import git
 from pcvs.helpers import utils
-from pcvs.helpers.system import MetaDict
 
 
 @pytest.fixture
@@ -58,13 +57,20 @@ def dummy_run():
             json.dump(content, fh)
 
         with open(os.path.join(build_path, "conf.yml"), 'w', encoding='utf-8') as fh:
-            content = MetaDict()
-            content.validation.dirs = {'LABEL_A': "DIR_A"}
-            content.validation.author.name = "John Doe"
-            content.validation.author.email = "johndoe@example.com"
-            content.validation.datetime = datetime.now()
-            content.validation.pf_hash = "profile_hash"
-            YAML(typ='safe').dump(content.to_dict(), fh)
+            content = {
+                "validation":
+                {
+                    "dirs": {'LABEL_A': "DIR_A"},
+                    "author":
+                    {
+                        "name": "John Doe",
+                        "email": "johndoe@example.com",
+                    },
+                    "pf_hash": "profile_hash",
+                }
+            }
+            content['validation']['datetime'] = datetime.now()
+            YAML(typ='safe').dump(content, fh)
 
         yield path
 

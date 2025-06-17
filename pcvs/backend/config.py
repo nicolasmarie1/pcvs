@@ -13,7 +13,6 @@ from pcvs import PATH_INSTDIR
 from pcvs.helpers import system
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ConfigException
-from pcvs.helpers.system import MetaDict
 
 CONFIG_BLOCKS = ['compiler', 'runtime', 'machine', 'criterion', 'group']
 CONFIG_EXISTING = dict()
@@ -241,7 +240,7 @@ class ConfigurationBlock:
         :param raw: the data to fill.
         :type raw: dict
         """
-        self._details = MetaDict(raw)
+        self._details = raw
 
     def dump(self) -> dict:
         """Convert the configuration Block to a regular dict.
@@ -252,7 +251,7 @@ class ConfigurationBlock:
         :rtype: dict
         """
         self.load_from_disk()
-        return MetaDict(self._details).to_dict()
+        return self._details
 
     def check(self) -> None:
         """
@@ -281,7 +280,7 @@ class ConfigurationBlock:
             raise ConfigException.NotFoundError()
 
         with open(self._file) as f:
-            self._details = MetaDict(YAML(typ='safe').load(f))
+            self._details = YAML(typ='safe').load(f)
 
     def load_template(self, name=None) -> None:
         """
@@ -317,7 +316,7 @@ class ConfigurationBlock:
         with open(self._file, 'w') as f:
             yml = YAML(typ='safe')
             yml.default_flow_style = False
-            yml.dump(self._details.to_dict(), f)
+            yml.dump(self._details, f)
 
         self._exists = True
 
@@ -373,7 +372,7 @@ class ConfigurationBlock:
 
         edited_stream = click.edit(stream, extension=".yml", require_save=True)
         if edited_stream is not None:
-            edited_yaml = MetaDict(YAML(typ='safe').load(edited_stream))
+            edited_yaml = YAML(typ='safe').load(edited_stream)
             system.ValidationScheme(self._kind).validate(edited_yaml, self._file)
             self.fill(edited_yaml)
             self.flush_to_disk()

@@ -6,7 +6,6 @@ import pcvs
 from pcvs import PATH_INSTDIR
 from pcvs.helpers import pm
 from pcvs.helpers import system
-from pcvs.helpers.system import MetaDict
 
 
 def test_bootstrap_compiler():
@@ -27,14 +26,14 @@ def test_bootstrap_compiler():
             "module": ["mod1", "mod2"]
         }}, filepath=str(__file__)
     )
-    assert isinstance(obj.compiler, system.Config)
-    assert obj.compiler.compilers.cc.program == "/path/to/cc"
-    assert obj.compiler.compilers.cc.variants.openmp.args == "-fopenmp"
+    assert isinstance(obj['compiler'], system.Config)
+    assert obj['compiler']['compilers']['cc']['program'] == "/path/to/cc"
+    assert obj['compiler']['compilers']['cc']['variants']['openmp']['args'] == "-fopenmp"
 
-    assert isinstance(obj.compiler.package_manager.spack, list)
-    assert len(obj.compiler.package_manager.spack) == 1
-    assert isinstance(obj.compiler.package_manager.module, list)
-    assert len(obj.compiler.package_manager.module) == 2
+    assert isinstance(obj['compiler']['package_manager']['spack'], list)
+    assert len(obj['compiler']['package_manager']['spack']) == 1
+    assert isinstance(obj['compiler']['package_manager']['module'], list)
+    assert len(obj['compiler']['package_manager']['module']) == 2
 
     package_array = obj.get_internal('cc_pm')
     res = {}
@@ -64,14 +63,14 @@ def test_bootstrap_runtime():
             "module": ["mod1", "mod2"]
         }}, filepath=str(__file__)
     )
-    assert isinstance(obj.runtime, system.Config)
-    assert obj.runtime.program == "/path/to/rt"
-    assert obj.runtime.criterions.n_mpi.numeric
+    assert isinstance(obj['runtime'], system.Config)
+    assert obj['runtime']['program'] == "/path/to/rt"
+    assert obj['runtime']['criterions']['n_mpi']['numeric']
 
-    assert isinstance(obj.runtime.package_manager.spack, list)
-    assert len(obj.runtime.package_manager.spack) == 1
-    assert isinstance(obj.runtime.package_manager.module, list)
-    assert len(obj.runtime.package_manager.module) == 2
+    assert isinstance(obj['runtime']['package_manager']['spack'], list)
+    assert len(obj['runtime']['package_manager']['spack']) == 1
+    assert isinstance(obj['runtime']['package_manager']['module'], list)
+    assert len(obj['runtime']['package_manager']['module']) == 2
 
     package_array = obj.get_internal('rt_pm')
     res = {}
@@ -94,7 +93,7 @@ def kw_keys():
 
 @pytest.fixture
 def init_config():
-    d = MetaDict({"": "value1", "key2": "value2"})
+    d = {"": "value1", "key2": "value2"}
     conf = system.Config(d)
 
 
@@ -164,15 +163,15 @@ def test_validate(kw_keys):
     ]
     # for kw in ["compiler", "criterion", "group"]:
     #     with open(os.path.join(PATH_INSTDIR, "templates/{}-format.yml".format(kw))) as blk:
-    #         to_validate = MetaDict(yaml.load(blk))
+    #         to_validate = yaml.load(blk)
     #         conf = system.Config(to_validate)
     #         conf.validate(kw)
     for kw in keywords:
-        to_validate = MetaDict(kw[0])
+        to_validate = kw[0]
         conf = system.Config(to_validate)
         conf.validate(kw[1], filepath=str(__file__))
     with pytest.raises(pcvs.helpers.exceptions.ValidationException.FormatError):
-        to_validate = MetaDict(criterion_wrong)
+        to_validate = criterion_wrong
         conf = system.Config(to_validate)
         conf.validate(kw[1], filepath=str(__file__))
     with pytest.raises(AssertionError):

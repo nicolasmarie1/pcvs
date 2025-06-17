@@ -443,12 +443,12 @@ def initialize_from_system():
 
     TODO: Move this function elsewhere."""
     # sanity checks
-    if not MetaConfig.root.criterion:
+    if not 'criterion' in MetaConfig.root:
         MetaConfig.root.set_internal('crit_obj', {})
     else:
         # raw YAML objects
-        runtime_iterators = MetaConfig.root.runtime.criterions
-        criterion_iterators = MetaConfig.root.criterion
+        runtime_iterators = MetaConfig.root['runtime']['criterions']
+        criterion_iterators = MetaConfig.root['criterion']
         it_to_remove = []
 
         # if a criterion defined in criterion.yaml but
@@ -501,8 +501,8 @@ def valid_combination(dic):
     :rtype: bool
     """
     global first
-    rt = MetaConfig.root.runtime
-    val = MetaConfig.root.validation
+    rt = MetaConfig.root['runtime']
+    val = MetaConfig.root['validation']
     pCollection = MetaConfig.root.get_internal('pColl')
 
     if first and rt.plugin:

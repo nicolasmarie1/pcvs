@@ -36,11 +36,11 @@ def init_constant_tokens():
         '@HOME@': str(pathlib.Path.home()),
         '@USER@': getpass.getuser(),
     }
-    for comp, comp_node in MetaConfig.root.compiler.compilers.items():
+    for comp, comp_node in MetaConfig.root['compiler']['compilers'].items():
         constant_tokens['@COMPILER_{}@'.format(comp.upper())] = comp_node.get(
             'program', "")
 
-    constant_tokens['@RUNTIME_PROGRAM@'] = MetaConfig.root.runtime.get(
+    constant_tokens['@RUNTIME_PROGRAM@'] = MetaConfig.root['runtime'].get(
         'program', "")
 
 
@@ -284,7 +284,7 @@ fi
 
 for arg in "$@"; do case $arg in
 """.format(simulated="sim"
-                if MetaConfig.root.validation.simulated is True else "",
+                if MetaConfig.root['validation']['simulated'] is True else "",
                 pm_string="\n".join([TestFile.cc_pm_string,
                                     TestFile.rt_pm_string])))
 
@@ -336,12 +336,12 @@ EOF
                 # compute max number of combinations from system iterators
                 sys_cnt = functools.reduce(operator.mul, [
                     len(v['values'])
-                    for v in MetaConfig.root.criterion.values()
+                    for v in MetaConfig.root['criterion'].values()
                 ])
                 self._debug.setdefault('.system-values', {})
                 self._debug['.system-values'].setdefault('stats', {})
 
-                for c_k, c_v in MetaConfig.root.criterion.items():
+                for c_k, c_v in MetaConfig.root['criterion'].items():
                     self._debug[".system-values"][c_k] = c_v['values']
                 self._debug[".system-values"]['stats']['theoric'] = sys_cnt
                 yml = YAML(typ='safe')

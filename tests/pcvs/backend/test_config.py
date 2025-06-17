@@ -11,7 +11,6 @@ from pcvs.backend import config as tested
 from pcvs.backend.config import CONFIG_BLOCKS
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ConfigException
-from pcvs.helpers.system import MetaDict
 
 
 @patch('glob.glob', return_value=[
@@ -68,7 +67,7 @@ def test_config_test_runtemplate(kind, capsys):
     with open(os.path.join(
                     pcvs.PATH_INSTDIR,
                     "templates/config/{}.default.yml".format(kind)), 'r') as fh:
-        ref = MetaDict(YAML(typ='safe').load(fh))
+        ref = YAML(typ='safe').load(fh)
         assert(res == ref)
     
     obj.display()

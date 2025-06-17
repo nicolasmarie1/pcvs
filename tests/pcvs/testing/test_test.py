@@ -5,7 +5,7 @@ from pcvs.helpers import system
 from pcvs.testing import test as tested
 
 
-@patch("pcvs.helpers.system.MetaConfig.root", system.MetaConfig({
+@patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig({
     "_MetaConfig__internal_config": {
         "cc_pm": "test_cc_pm"
     },

@@ -12,7 +12,6 @@ from pcvs.backend import run
 from pcvs.helpers import system
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ValidationException
-from pcvs.helpers.system import MetaDict
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.testing.testfile import TestFile
 
@@ -239,7 +238,7 @@ def process_check_directory(directory, pf_name="default", conversion=True):
         pf.check(allow_legacy=conversion)
     system.MetaConfig.root = system.MetaConfig()
     system.MetaConfig.root.bootstrap_from_profile(pf.dump(), pf.full_name)
-    system.MetaConfig.root.validation.output = "/tmp"
+    system.MetaConfig.root['validation']['output'] = "/tmp"
     buildenv = run.build_env_from_configuration(pf.dump())
     setup_files, yaml_files = run.find_files_to_process(
         {os.path.basename(directory): directory})
@@ -337,7 +336,7 @@ class BuildSystem:
         self._root = root
         self._dirs = dirs
         self._files = files
-        self._stream = MetaDict()
+        self._stream = {}
 
     def fill(self):
         """This function should be overriden by overriden classes.
@@ -361,7 +360,7 @@ class BuildSystem:
             return
 
         with open(out_file, 'w') as fh:
-            YAML(typ='safe').dump(self._stream.to_dict(), fh)
+            YAML(typ='safe').dump(self._stream, fh)
 
 
 class AutotoolsBuildSystem(BuildSystem):

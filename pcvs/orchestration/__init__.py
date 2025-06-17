@@ -36,12 +36,11 @@ class Orchestrator:
     def __init__(self):
         """constructor method"""
         config_tree = MetaConfig.root
-        self._conf = config_tree
         self._runners = list()
-        self._max_res = config_tree.machine.get('nodes', 1)
-        self._publisher = config_tree.get_internal('build_manager').results
+        self._max_res = config_tree['machine'].get('nodes', 1)
+        self._publisher = config_tree.get_internal('build_manager')['results']
         self._manager = Manager(self._max_res, publisher=self._publisher)
-        self._maxconcurrent = config_tree.machine.get('concurrent_run', 1)
+        self._maxconcurrent = config_tree['machine'].get('concurrent_run', 1)
         self._complete_q = queue.Queue()
         self._ready_q = queue.Queue()
 
@@ -154,7 +153,7 @@ class Orchestrator:
     def start_new_runner(self):
         """Start a new Runner thread & register comm queues."""
         RunnerAdapter.sched_in_progress = True
-        r = RunnerAdapter(buildir=MetaConfig.root.validation.output,
+        r = RunnerAdapter(buildir=MetaConfig.root['validation']['output'],
                           ready=self._ready_q,
                           complete=self._complete_q)
         r.start()

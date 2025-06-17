@@ -13,7 +13,6 @@ from pcvs.helpers.criterion import Serie
 from pcvs.helpers.exceptions import ProfileException
 from pcvs.helpers.exceptions import TestException
 from pcvs.helpers.system import MetaConfig
-from pcvs.helpers.system import MetaDict
 from pcvs.testing.test import Test
 
 # now return the first valid language, according to settings
@@ -29,8 +28,8 @@ def detect_compiler(array_of_files) -> str:
     """
     detect = []
     for f in array_of_files:
-        for compiler_name in MetaConfig.root.compiler.compilers:
-            compiler = MetaConfig.root.compiler.compilers[compiler_name]
+        for compiler_name in MetaConfig.root['compiler']['compilers']:
+            compiler = MetaConfig.root['compiler']['compilers'][compiler_name]
             if compiler.extension and re.search(compiler.extension, f):
                 detect.append(compiler_name)
                 break
@@ -41,8 +40,8 @@ def detect_compiler(array_of_files) -> str:
 
 def extract_compilers_envs():
     envs = []
-    for compiler_name in MetaConfig.root.compiler.compilers:
-        envs += MetaConfig.root.compiler.compilers[compiler_name].envs
+    for compiler_name in MetaConfig.root['compiler']['compilers']:
+        envs += MetaConfig.root['compiler']['compilers'][compiler_name]['envs']
     return envs
 
 
@@ -57,15 +56,15 @@ def extract_compiler_config(lang, variants):
     :return: the program, its args and env modifiers (in that order)
     :rtype: tuple
     """
-    if not lang or lang not in MetaConfig.root.compiler.compilers:
+    if not lang or lang not in MetaConfig.root['compiler']['compilers']:
         raise ProfileException.IncompleteError(
             reason="Unknown compiler, not defined into Profile",
             dbg_info={
                 "lang": lang,
-                "list": MetaConfig.root.compiler.compilers.keys()
+                "list": MetaConfig.root['compiler']['compilers'].keys()
             })
 
-    config = MetaConfig.root.compiler.compilers[lang]
+    config = MetaConfig.root['compiler']['compilers'][lang]
     for v in variants:
         if v in config.variants:
             for k, v in config.variants[v].items():
@@ -187,17 +186,17 @@ class TEDescriptor:
         # before doing anything w/ node:
         # arregate the 'group' definitions with the TE
         # to get all the fields in their final form
-        if 'group' in node and node['group'] in MetaConfig.root.group.keys():
-            tmp = MetaDict(MetaConfig.root.group[node['group']])
-            tmp.update(MetaDict(node))
+        if 'group' in node and node['group'] in MetaConfig.root['group'].keys():
+            tmp = MetaConfig.root['group'][node['group']]
+            tmp.update(node)
             node = tmp
         # load from descriptions
-        self._build = MetaDict(node.get('build', None))
-        self._run = MetaDict(node.get('run', None))
-        self._validation = MetaDict(node.get('validate', None))
-        self._artifacts = MetaDict(node.get('artifact', None))
-        self._metrics = MetaDict(node.get('metrics', None))
-        self._attributes = MetaDict(node.get("attributes", None))
+        self._build = node.get('build', None)
+        self._run = node.get('run', None)
+        self._validation = node.get('validate', None)
+        self._artifacts = node.get('artifact', None)
+        self._metrics = node.get('metrics', None)
+        self._attributes = node.get("attributes", None)
         self._template = node.get('group', None)
         self._debug = self._te_name + ":\n"
         self._effective_cnt = 0
@@ -462,7 +461,7 @@ class TEDescriptor:
             command = os.path.join(self._buildir, command)
 
         return (". {} && {}".format(
-            os.path.join(MetaConfig.root.validation.output,
+            os.path.join(MetaConfig.root['validation']['output'],
                          pcvs.NAME_BUILD_CONF_SH), command), env)
 
     def __build_exec_process(self):
@@ -575,8 +574,8 @@ class TEDescriptor:
                                                   params=" ".join(params))
             if self.get_attr('command_wrap', True) is True:
                 command = "{runtime} {args} {runtime_args} {cmd}".format(
-                    runtime=MetaConfig.root.runtime.get('program', ''),
-                    runtime_args=MetaConfig.root.runtime.get('args', ''),
+                    runtime=MetaConfig.root['runtime'].get('program', ''),
+                    runtime_args=MetaConfig.root['runtime'].get('args', ''),
                     args=" ".join(args),
                     cmd=command)
             self._effective_cnt += 1

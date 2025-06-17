@@ -1,6 +1,5 @@
 from pcvs.helpers.exceptions import OrchestratorException
 from pcvs.helpers.system import MetaConfig
-from pcvs.helpers.system import MetaDict
 from pcvs.orchestration.set import Set
 from pcvs.plugins import Plugin
 from pcvs.testing.test import Test
@@ -39,13 +38,13 @@ class Manager:
         """
         self._comman = MetaConfig.root.get_internal('comman')
         self._plugin = MetaConfig.root.get_internal('pColl')
-        self._concurrent_level = MetaConfig.root.machine.get(
+        self._concurrent_level = MetaConfig.root['machine'].get(
             'concurrent_run', 1)
 
-        self._dims = dict()
+        self._dims = {}
         self._max_size = max_size
         self._publisher = publisher
-        self._count = MetaDict()
+        self._count = {}
         self._count.total = 0
         self._count.executed = 0
 
@@ -90,7 +89,7 @@ class Manager:
         # if test is not know yet, add + increment
         if hashed not in self.job_hashes:
             self.job_hashes[hashed] = job
-            self._count.total += 1
+            self._count['total'] += 1
             self.save_dependency_rule(job.basename, job)
 
     def save_dependency_rule(self, pattern, jobs):
@@ -178,7 +177,7 @@ class Manager:
         :return: a number of jobs
         :rtype: int
         """
-        return self._count.total - self._count.executed
+        return self._count['total'] - self._count['executed']
 
     def publish_job(self, job, publish_args=None):
         if publish_args:
@@ -186,7 +185,7 @@ class Manager:
 
         if self._comman:
             self._comman.send(job)
-        self._count.executed += 1
+        self._count['executed'] += 1
         self._count[job.state] += 1
         self._publisher.save(job)
 
@@ -229,7 +228,7 @@ class Manager:
                 Plugin.Step.SCHED_SET_EVAL,
                 jobman=self,
                 max_dim=max_dim,
-                max_job_limit=int(self._count.total / self._concurrent_level))
+                max_job_limit=int(self._count['total'] / self._concurrent_level))
         else:
             for k in sorted(self._dims.keys(), reverse=True):
                 if len(self._dims[k]) <= 0 or max_dim < k:

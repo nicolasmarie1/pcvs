@@ -93,9 +93,9 @@ def handle_build_lockfile(exc=None):
     :type exc: Exception
     """
     if (system.MetaConfig.root
-            and system.MetaConfig.root.validation
-            and "output" in system.MetaConfig.root.validation):
-        prefix = os.path.join(system.MetaConfig.root.validation.output,
+            and 'validation' in system.MetaConfig.root
+            and 'output' in system.MetaConfig.root['validation']):
+        prefix = os.path.join(system.MetaConfig.root['validation']['output'],
                               NAME_BUILDFILE)
         if utils.is_locked(prefix):
             if utils.get_lock_owner(prefix)[1] == os.getpid():
@@ -273,10 +273,10 @@ def run(ctx, profilename, profilepath, output, detach, override, anon, settings_
     val_cfg.set_ifdef('timeout', timeout)
     val_cfg.set_ifdef('spack_recipe', spack_recipe)
     val_cfg.set_ifdef('only_success', only_success)
-    val_cfg.set_ifdef('buildcache', os.path.join(val_cfg.output, 'cache'))
+    val_cfg.set_ifdef('buildcache', os.path.join(val_cfg['output'], 'cache'))
 
     # if dirs not set by config file nor CLI
-    if not dirs and not val_cfg.dirs:
+    if not dirs and not val_cfg['dirs']:
         dirs = dict()
         if not spack_recipe:
             testpath = os.getcwd()
@@ -294,41 +294,41 @@ def run(ctx, profilename, profilepath, output, detach, override, anon, settings_
         obj.disconnect()
 
     # BEFORE the build dir still does not exist !
-    buildfile = os.path.join(val_cfg.output, NAME_BUILDFILE)
-    if os.path.exists(val_cfg.output):
+    buildfile = os.path.join(val_cfg['output'], NAME_BUILDFILE)
+    if os.path.exists(val_cfg['output']):
         # careful if the build dir does not exist
         # the condition above may be executed concurrently
         # by two runs, inducing parallel execution in the same dir
         # TODO.
         if not utils.trylock_file(buildfile):
-            if val_cfg.override:
+            if val_cfg['override']:
                 utils.lock_file(buildfile, force=True)
             else:
                 raise exceptions.RunException.InProgressError(
-                    path=val_cfg.output,
+                    path=val_cfg['output'],
                     lockfile=buildfile,
                     owner_pid=utils.get_lock_owner(buildfile))
 
-    elif not os.path.exists(val_cfg.output):
+    elif not os.path.exists(val_cfg['output']):
         io.console.debug("PRE-RUN: Prepare output directory: {}".format(
-            val_cfg.output))
-        os.makedirs(val_cfg.output)
+            val_cfg['output']))
+        os.makedirs(val_cfg['output'])
 
     # check if another build should reused
     # this avoids to re-run combinatorial system twice
-    if val_cfg.reused_build is not None:
+    if val_cfg['reused_build'] is not None:
         io.console.info("PRE-RUN: Clone previous build to be reused")
         try:
             io.console.debug("PRE-RUN: previous build: {}".format(
-                val_cfg.reused_build))
-            global_config = pvRun.dup_another_build(val_cfg.reused_build,
-                                                    val_cfg.output)
+                val_cfg['reused_build']))
+            global_config = pvRun.dup_another_build(val_cfg['reused_build'],
+                                                    val_cfg['output'])
             # TODO: Currently nothing can be overriden from cloned build except:
             # - 'output'
         except FileNotFoundError as fnfe:
             raise click.BadOptionUsage(
                 "--duplicate", "{} is not a valid build directory!".format(
-                    val_cfg.reused_build)) from fnfe
+                    val_cfg['reused_build'])) from fnfe
     else:
         pf = None
         if profilepath:
@@ -336,15 +336,15 @@ def run(ctx, profilename, profilepath, output, detach, override, anon, settings_
             pf = pvProfile.Profile(profilepath=profilepath)
         else:
             # otherwise create own settings command block
-            io.console.info("PRE-RUN: Profile lookup: {val_cfg.default_profile}")
+            io.console.info("PRE-RUN: Profile lookup: {val_cfg['default_profile']}")
             (scope, _,
-             label) = utils.extract_infos_from_token(val_cfg.default_profile,
+             label) = utils.extract_infos_from_token(val_cfg['default_profile'],
                                                      maxsplit=2)
             pf = pvProfile.Profile(label, scope)
             if not pf.is_found():
                 raise click.BadOptionUsage(
                     "--profile",
-                    f"Profile '{val_cfg.default_profile}' not found")
+                    f"Profile '{val_cfg['default_profile']}' not found")
         pf.load_from_disk()
         pf.check()
 
@@ -352,11 +352,11 @@ def run(ctx, profilename, profilepath, output, detach, override, anon, settings_
         val_cfg.set_ifdef('pf_hash', pf.get_unique_id())
         global_config.bootstrap_from_profile(pf.dump(), pf.full_name)
 
-    the_session = pvSession.Session(val_cfg.datetime, val_cfg.output)
+    the_session = pvSession.Session(val_cfg['datetime'], val_cfg['output'])
     the_session.register_callback(callback=pvRun.process_main_workflow)
 
     io.console.info("PRE-RUN: Session to be started")
-    if val_cfg.background:
+    if val_cfg['background']:
         sid = the_session.run_detached(the_session)
         print("Session successfully started, ID {}".format(sid))
 

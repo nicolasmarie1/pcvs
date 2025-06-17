@@ -24,7 +24,6 @@ from pcvs.helpers import criterion
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import RunException
 from pcvs.helpers.system import MetaConfig
-from pcvs.helpers.system import MetaDict
 from pcvs.orchestration import Orchestrator
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.plugins import Plugin
@@ -51,11 +50,11 @@ def display_summary(the_session):
     :param the_session: active session, for extra info to be displayed.
     :type the_session: Session
     """
-    cfg = MetaConfig.root.validation
+    cfg = MetaConfig.root['validation']
 
     io.console.print_section("Global Information")
     io.console.print_item("Date of execution: {}".format(
-        MetaConfig.root.validation.datetime.strftime("%c")))
+        MetaConfig.root['validation']['datetime'].strftime("%c")))
     io.console.print_item("Run by: {} <{}>".format(cfg.author.name,
                                                    cfg.author.email))
     io.console.print_item("Active session ID: {}".format(the_session.id))
@@ -117,11 +116,11 @@ def process_main_workflow(the_session=None):
     """
     io.console.info("RUN: Session start")
     global_config = MetaConfig.root
-    valcfg = global_config.validation
+    valcfg = global_config['validation']
     rc = 0
 
-    valcfg.sid = the_session.id
-    build_manager = BuildDirectoryManager(build_dir=valcfg.output)
+    valcfg['sid'] = the_session.id
+    build_manager = BuildDirectoryManager(build_dir=valcfg['output'])
     MetaConfig.root.set_internal('build_manager', build_manager)
 
     io.console.print_banner()
@@ -130,14 +129,14 @@ def process_main_workflow(the_session=None):
     prepare()
     assert (build_manager.config)
 
-    if valcfg.reused_build is not None:
+    if valcfg['reused_build'] is not None:
         io.console.print_section("Reusing previously generated inputs")
     else:
         io.console.print_section("Load Test Suites")
         start = time.time()
-        if MetaConfig.root.validation.dirs:
+        if MetaConfig.root['validation'].dirs:
             process_files()
-        if MetaConfig.root.validation.spack_recipe:
+        if MetaConfig.root['validation'].spack_recipe:
             process_spack()
         end = time.time()
         io.console.print_section(
@@ -146,7 +145,7 @@ def process_main_workflow(the_session=None):
     io.console.print_header("Summary")
     display_summary(the_session)
 
-    if valcfg.onlygen:
+    if valcfg['onlygen']:
         io.console.warn([
             "====================================================",
             "Tests won't be run. This program will now stop.",
@@ -164,7 +163,7 @@ def process_main_workflow(the_session=None):
     # post-actions to build the archive, post-process the webview...
     terminate()
 
-    bank_token = valcfg.target_bank
+    bank_token = valcfg['target_bank']
     if bank_token is not None:
         bank = pvBank.Bank(token=bank_token)
         pref_proj = bank.default_project
@@ -178,10 +177,10 @@ def process_main_workflow(the_session=None):
                                             msg=valcfg.get('message', None))
             # bank.save_from_buildir(
             #    None,
-            #    os.path.join(valcfg.output)
+            #    os.path.join(valcfg['output'])
             # )
 
-    buildfile = os.path.join(valcfg.output, NAME_BUILDFILE)
+    buildfile = os.path.join(valcfg['output'], NAME_BUILDFILE)
     if utils.is_locked(buildfile):
         utils.unlock_file(buildfile)
 
@@ -195,27 +194,27 @@ def __check_defined_program_validity():
     Only system-wide commands are assessed here (compiler, runtime, etc...) not
     test-wide, as some resource may not be available at the time.
     """
-    assert MetaConfig.root.machine
-    if "job_manager" in MetaConfig.root.machine:
+    assert MetaConfig.root['machine']
+    if "job_manager" in MetaConfig.root['machine']:
         # exhaustive list of user-defined program to exist before starting:
         utils.check_valid_program(
-            MetaConfig.root.machine.job_manager.allocate.program)
+            MetaConfig.root['machine']['job_manager']['allocate']['program'])
         utils.check_valid_program(
-            MetaConfig.root.machine.job_manager.allocate.wrapper)
+            MetaConfig.root['machine']['job_manager']['allocate']['wrapper'])
         utils.check_valid_program(
-            MetaConfig.root.machine.job_manager.remote.program)
+            MetaConfig.root['machine']['job_manager']['remote']['program'])
         utils.check_valid_program(
-            MetaConfig.root.machine.job_manager.remote.wrapper)
+            MetaConfig.root['machine']['job_manager']['remote']['wrapper'])
         utils.check_valid_program(
-            MetaConfig.root.machine.job_manager.batch.program)
+            MetaConfig.root['machine']['job_manager']['batch']['program'])
         utils.check_valid_program(
-            MetaConfig.root.machine.job_manager.batch.wrapper)
+            MetaConfig.root['machine']['job_manager']['batch']['wrapper'])
 
-    for compiler_name in MetaConfig.root.compiler.compilers:
-        compiler = MetaConfig.root.compiler.compilers[compiler_name]
-        utils.check_valid_program(compiler.program, fail=io.console.warning, raise_if_fail=False)
+    for compiler_name in MetaConfig.root['compiler']['compilers']:
+        compiler = MetaConfig.root['compiler']['compilers'][compiler_name]
+        utils.check_valid_program(compiler['program'], fail=io.console.warning, raise_if_fail=False)
 
-    utils.check_valid_program(MetaConfig.root.runtime.program)
+    utils.check_valid_program(MetaConfig.root['runtime']['program'])
 
     # TODO: need to handle package_manager commands to process below
     # maybe a dummy testfile should be used
@@ -228,7 +227,7 @@ def prepare():
     This function prepares the build dir, create trees...
     """
     io.console.print_section("Prepare environment")
-    valcfg = MetaConfig.root.validation
+    valcfg = MetaConfig.root['validation']
     build_man = MetaConfig.root.get_internal('build_manager')
 
     utils.start_autokill(valcfg.timeout)
@@ -335,7 +334,7 @@ def process_files():
     """
     io.console.print_item("Locate benchmarks from user directories")
     setup_files, yaml_files = find_files_to_process(
-        MetaConfig.root.validation.dirs)
+        MetaConfig.root['validation'].dirs)
 
     io.console.debug(f"Found setup files: {pprint.pformat(setup_files)}")
     io.console.debug(f"Found static files: {pprint.pformat(yaml_files)}")
@@ -360,7 +359,7 @@ def process_spack():
     io.console.print_item("Build test-bases from Spack recipes")
     label = "spack"
     path = "/spack"
-    MetaConfig.root.validation.dirs[label] = path
+    MetaConfig.root['validation'].dirs[label] = path
     build_man = MetaConfig.root.get_internal('build_manager')
 
     _, _, rbuild, _ = testing.generate_local_variables(label, '')
@@ -369,7 +368,7 @@ def process_spack():
                           export=False)
 
     for spec in io.console.progress_iter(
-            MetaConfig.root.validation.spack_recipe):
+            MetaConfig.root['validation'].spack_recipe):
         _, _, _, cbuild = testing.generate_local_variables(label, spec)
         build_man.save_extras(os.path.relpath(cbuild, build_man.prefix),
                               dir=True,
@@ -435,7 +434,7 @@ def process_dyn_setup_scripts(setup_files):
     env_config = build_env_from_configuration(MetaConfig.root)
     env.update(env_config)
 
-    with open(os.path.join(MetaConfig.root.validation.output,
+    with open(os.path.join(MetaConfig.root['validation'].output,
                            NAME_BUILD_CONF_SH), 'w', encoding='utf-8') as fh:
         fh.write(utils.str_dict_as_envvar(env_config))
         fh.close()
@@ -556,9 +555,9 @@ def anonymize_archive():
         preserve the anonymization, only the archive must be exported/shared,
         not the actual build directory.
     """
-    config = MetaConfig.root.validation
-    outdir = config.output
-    for root, _, files in os.walk(config.output):
+    config = MetaConfig.root['validation']
+    outdir = config['output']
+    for root, _, files in os.walk(config['output']):
         for f in files:
             if not f.endswith(
                 ('.xml', '.json', '.yml', '.txt', '.md', '.html')):
@@ -585,14 +584,14 @@ def terminate():
         Plugin.Step.END_BEFORE)
 
     build_man = MetaConfig.root.get_internal('build_manager')
-    outdir = MetaConfig.root.validation.output
+    outdir = MetaConfig.root['validation'].output
 
     io.console.print_section("Prepare results")
     io.console.move_debug_file(outdir)
     archive_path = build_man.create_archive()
     io.console.print_item("Archive: {}".format(archive_path))
 
-    # if MetaConfig.root.validation.anonymize:
+    # if MetaConfig.root['validation'].anonymize:
     #    io.console.print_item("Anonymize data")
     #    anonymize_archive()
 
@@ -621,13 +620,13 @@ def dup_another_build(build_dir, outdir):
 
     # First, load the whole config
     with open(os.path.join(build_dir, NAME_BUILD_CONF_FN), 'r') as fh:
-        d = MetaDict(YAML(typ='safe').load(fh))
+        d = YAML(typ='safe').load(fh)
         global_config = MetaConfig(d)
 
     # first, clear fields overridden by current run
-    global_config.validation.output = outdir
-    global_config.validation.reused_build = build_dir
-    global_config.validation.buildcache = os.path.join(outdir,
+    global_config['validation'].output = outdir
+    global_config['validation'].reused_build = build_dir
+    global_config['validation'].buildcache = os.path.join(outdir,
                                                        NAME_BUILD_CACHEDIR)
 
     # second, copy any xml/sh files to be reused

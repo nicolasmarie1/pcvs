@@ -9,7 +9,7 @@ from ..conftest import isolated_fs
 @patch("pcvs.backend.session.store_session_to_file", return_value={})
 @patch("pcvs.backend.session.update_session_from_file", return_value={})
 @patch("pcvs.backend.session.remove_session_from_file", return_value={})
-def test_big_integation(rs, us, ss):
+def test_big_integration(rs, us, ss):
     with isolated_fs():
         res = click_call('profile', 'create', 'local.default')
         res = click_call('run')
