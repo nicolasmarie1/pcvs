@@ -80,7 +80,7 @@ def isolated_yml_test():
     # utils.delete_folder(testdir)
 
 
-@patch("pcvs.helpers.system.MetaConfig.root", system.MetaConfig({
+@patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig({
     "_MetaConfig__internal_config": {
         "cc_pm": [pm.SpackManager("fakespec")],
         "pColl": Collection()

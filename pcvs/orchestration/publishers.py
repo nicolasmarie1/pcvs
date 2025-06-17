@@ -806,7 +806,7 @@ class BuildDirectoryManager:
         return self._config
 
     def use_as_global_config(self):
-        MetaConfig.root = self._config
+        GlobalConfig.root = self._config
 
     def save_config(self, config) -> None:
         """

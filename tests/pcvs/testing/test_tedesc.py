@@ -31,7 +31,7 @@ def test_handle_job_deps(mock_id):
 
 
 @patch.dict(os.environ, {'HOME': '/home/user', 'USER': 'superuser'})
-@patch("pcvs.helpers.system.MetaConfig.root",
+@patch("pcvs.helpers.system.GlobalConfig.root",
        system.MetaConfig(
         {
             "_MetaConfig__internal_config": {
@@ -98,7 +98,7 @@ def test_tedesc_regular():
 
 
 @patch.dict(os.environ, {'HOME': '/home/user', 'USER': 'superuser'})
-@patch("pcvs.helpers.system.MetaConfig.root", system.MetaConfig({
+@patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig({
     "_MetaConfig__internal_config": {
         "cc_pm": pm.SpackManager("this_is_a_test"),
     },
@@ -157,7 +157,7 @@ def test_tedesc_compilation():
 # Sincelanguage support have been replace by compiler definition
 # this test does not make sense any more.
 # TODO: replace this test with a test of user define compilers in test file.
-#@patch("pcvs.helpers.system.MetaConfig.root", system.MetaConfig({
+#@patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig({
 #    "_MetaConfig__internal_config": {
 #        "cc_pm": pm.SpackManager("this_is_a_test"),
 #    },

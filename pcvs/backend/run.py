@@ -50,18 +50,18 @@ def display_summary(the_session):
     :param the_session: active session, for extra info to be displayed.
     :type the_session: Session
     """
-    cfg = MetaConfig.root['validation']
+    cfg = GlobalConfig.root['validation']
 
     io.console.print_section("Global Information")
     io.console.print_item("Date of execution: {}".format(
-        MetaConfig.root['validation']['datetime'].strftime("%c")))
+        GlobalConfig.root['validation']['datetime'].strftime("%c")))
     io.console.print_item("Run by: {} <{}>".format(cfg.author.name,
                                                    cfg.author.email))
     io.console.print_item("Active session ID: {}".format(the_session.id))
     io.console.print_item("Loaded profile: '{}'".format(cfg.pf_name))
     io.console.print_item("Build stored to: {}".format(cfg.output))
     io.console.print_item("Criterion matrix size per job: {}".format(
-        MetaConfig.root.get_internal("comb_cnt")))
+        GlobalConfig.root.get_internal("comb_cnt")))
 
     if cfg.target_bank:
         io.console.print_item("Bank Management: {}".format(cfg.target_bank))
@@ -73,10 +73,10 @@ def display_summary(the_session):
                                                                 width=width))
 
     io.console.print_section("Globally loaded plugins:")
-    MetaConfig.root.get_internal("pColl").show_enabled_plugins()
+    GlobalConfig.root.get_internal("pColl").show_enabled_plugins()
 
     io.console.print_section("Orchestration infos")
-    MetaConfig.root.get_internal("orchestrator").print_infos()
+    GlobalConfig.root.get_internal("orchestrator").print_infos()
 
     if cfg.simulated is True:
         io.console.print_box("\n".join([
@@ -95,7 +95,7 @@ def stop_pending_jobs(exc=None):
     :raises exc: the exception to raise (this function is generally called when
         a exception is raised, this do some actions without capturing the exeception)
     """
-    orch = MetaConfig.root.get_internal('orchestrator')
+    orch = GlobalConfig.root.get_internal('orchestrator')
     if orch:
         orch.stop()
     if exc:
@@ -115,13 +115,13 @@ def process_main_workflow(the_session=None):
     :rtype: int
     """
     io.console.info("RUN: Session start")
-    global_config = MetaConfig.root
+    global_config = GlobalConfig.root
     valcfg = global_config['validation']
     rc = 0
 
     valcfg['sid'] = the_session.id
     build_manager = BuildDirectoryManager(build_dir=valcfg['output'])
-    MetaConfig.root.set_internal('build_manager', build_manager)
+    GlobalConfig.root.set_internal('build_manager', build_manager)
 
     io.console.print_banner()
     io.console.print_header("Initialization")
@@ -134,9 +134,9 @@ def process_main_workflow(the_session=None):
     else:
         io.console.print_section("Load Test Suites")
         start = time.time()
-        if MetaConfig.root['validation'].dirs:
+        if GlobalConfig.root['validation'].dirs:
             process_files()
-        if MetaConfig.root['validation'].spack_recipe:
+        if GlobalConfig.root['validation'].spack_recipe:
             process_spack()
         end = time.time()
         io.console.print_section(
@@ -156,7 +156,7 @@ def process_main_workflow(the_session=None):
         return 0
 
     io.console.print_header("Execution")
-    run_rc = MetaConfig.root.get_internal('orchestrator').run(the_session)
+    run_rc = GlobalConfig.root.get_internal('orchestrator').run(the_session)
     rc += run_rc if isinstance(run_rc, int) else 1
 
     io.console.print_header("Finalization")
@@ -194,27 +194,27 @@ def __check_defined_program_validity():
     Only system-wide commands are assessed here (compiler, runtime, etc...) not
     test-wide, as some resource may not be available at the time.
     """
-    assert MetaConfig.root['machine']
-    if "job_manager" in MetaConfig.root['machine']:
+    assert GlobalConfig.root['machine']
+    if "job_manager" in GlobalConfig.root['machine']:
         # exhaustive list of user-defined program to exist before starting:
         utils.check_valid_program(
-            MetaConfig.root['machine']['job_manager']['allocate']['program'])
+            GlobalConfig.root['machine']['job_manager']['allocate']['program'])
         utils.check_valid_program(
-            MetaConfig.root['machine']['job_manager']['allocate']['wrapper'])
+            GlobalConfig.root['machine']['job_manager']['allocate']['wrapper'])
         utils.check_valid_program(
-            MetaConfig.root['machine']['job_manager']['remote']['program'])
+            GlobalConfig.root['machine']['job_manager']['remote']['program'])
         utils.check_valid_program(
-            MetaConfig.root['machine']['job_manager']['remote']['wrapper'])
+            GlobalConfig.root['machine']['job_manager']['remote']['wrapper'])
         utils.check_valid_program(
-            MetaConfig.root['machine']['job_manager']['batch']['program'])
+            GlobalConfig.root['machine']['job_manager']['batch']['program'])
         utils.check_valid_program(
-            MetaConfig.root['machine']['job_manager']['batch']['wrapper'])
+            GlobalConfig.root['machine']['job_manager']['batch']['wrapper'])
 
-    for compiler_name in MetaConfig.root['compiler']['compilers']:
-        compiler = MetaConfig.root['compiler']['compilers'][compiler_name]
+    for compiler_name in GlobalConfig.root['compiler']['compilers']:
+        compiler = GlobalConfig.root['compiler']['compilers'][compiler_name]
         utils.check_valid_program(compiler['program'], fail=io.console.warning, raise_if_fail=False)
 
-    utils.check_valid_program(MetaConfig.root['runtime']['program'])
+    utils.check_valid_program(GlobalConfig.root['runtime']['program'])
 
     # TODO: need to handle package_manager commands to process below
     # maybe a dummy testfile should be used
@@ -227,8 +227,8 @@ def prepare():
     This function prepares the build dir, create trees...
     """
     io.console.print_section("Prepare environment")
-    valcfg = MetaConfig.root['validation']
-    build_man = MetaConfig.root.get_internal('build_manager')
+    valcfg = GlobalConfig.root['validation']
+    build_man = GlobalConfig.root.get_internal('build_manager')
 
     utils.start_autokill(valcfg.timeout)
 
@@ -270,13 +270,13 @@ def prepare():
             comman = communications.RemoteServer(valcfg.sid,
                                                  valcfg.report_addr)
             io.console.print_item("Listening on {}".format(comman.endpoint))
-        MetaConfig.root.set_internal('comman', comman)
+        GlobalConfig.root.set_internal('comman', comman)
 
     io.console.print_item("Init the global Orchestrator")
-    MetaConfig.root.set_internal('orchestrator', Orchestrator())
+    GlobalConfig.root.set_internal('orchestrator', Orchestrator())
 
     io.console.print_item("Save Configurations into {}".format(valcfg.output))
-    build_man.save_config(MetaConfig.root)
+    build_man.save_config(GlobalConfig.root)
 
 
 def find_files_to_process(path_dict):
@@ -334,7 +334,7 @@ def process_files():
     """
     io.console.print_item("Locate benchmarks from user directories")
     setup_files, yaml_files = find_files_to_process(
-        MetaConfig.root['validation'].dirs)
+        GlobalConfig.root['validation'].dirs)
 
     io.console.debug(f"Found setup files: {pprint.pformat(setup_files)}")
     io.console.debug(f"Found static files: {pprint.pformat(yaml_files)}")
@@ -359,8 +359,8 @@ def process_spack():
     io.console.print_item("Build test-bases from Spack recipes")
     label = "spack"
     path = "/spack"
-    MetaConfig.root['validation'].dirs[label] = path
-    build_man = MetaConfig.root.get_internal('build_manager')
+    GlobalConfig.root['validation'].dirs[label] = path
+    build_man = GlobalConfig.root.get_internal('build_manager')
 
     _, _, rbuild, _ = testing.generate_local_variables(label, '')
     build_man.save_extras(os.path.relpath(rbuild, build_man.prefix),
@@ -368,7 +368,7 @@ def process_spack():
                           export=False)
 
     for spec in io.console.progress_iter(
-            MetaConfig.root['validation'].spack_recipe):
+            GlobalConfig.root['validation'].spack_recipe):
         _, _, _, cbuild = testing.generate_local_variables(label, spec)
         build_man.save_extras(os.path.relpath(cbuild, build_man.prefix),
                               dir=True,
@@ -431,10 +431,10 @@ def process_dyn_setup_scripts(setup_files):
     """
     io.console.info("Convert configuration to Shell variables")
     env = os.environ.copy()
-    env_config = build_env_from_configuration(MetaConfig.root)
+    env_config = build_env_from_configuration(GlobalConfig.root)
     env.update(env_config)
 
-    with open(os.path.join(MetaConfig.root['validation'].output,
+    with open(os.path.join(GlobalConfig.root['validation'].output,
                            NAME_BUILD_CONF_SH), 'w', encoding='utf-8') as fh:
         fh.write(utils.str_dict_as_envvar(env_config))
         fh.close()
@@ -492,7 +492,7 @@ def process_dyn_setup_scripts(setup_files):
             continue
 
         # Now create the file handler
-        MetaConfig.root.get_internal("pColl").invoke_plugins(
+        GlobalConfig.root.get_internal("pColl").invoke_plugins(
             Plugin.Step.TFILE_BEFORE)
 
         try:
@@ -511,7 +511,7 @@ def process_dyn_setup_scripts(setup_files):
             io.console.error(f"{f} (failed to parse): {e}")
             raise e
 
-        MetaConfig.root.get_internal("pColl").invoke_plugins(
+        GlobalConfig.root.get_internal("pColl").invoke_plugins(
             Plugin.Step.TFILE_AFTER)
 
 
@@ -555,7 +555,7 @@ def anonymize_archive():
         preserve the anonymization, only the archive must be exported/shared,
         not the actual build directory.
     """
-    config = MetaConfig.root['validation']
+    config = GlobalConfig.root['validation']
     outdir = config['output']
     for root, _, files in os.walk(config['output']):
         for f in files:
@@ -580,26 +580,26 @@ def terminate():
 
     This include generating & anonymizing (if needed) the archive.
     """
-    MetaConfig.root.get_internal("pColl").invoke_plugins(
+    GlobalConfig.root.get_internal("pColl").invoke_plugins(
         Plugin.Step.END_BEFORE)
 
-    build_man = MetaConfig.root.get_internal('build_manager')
-    outdir = MetaConfig.root['validation'].output
+    build_man = GlobalConfig.root.get_internal('build_manager')
+    outdir = GlobalConfig.root['validation'].output
 
     io.console.print_section("Prepare results")
     io.console.move_debug_file(outdir)
     archive_path = build_man.create_archive()
     io.console.print_item("Archive: {}".format(archive_path))
 
-    # if MetaConfig.root['validation'].anonymize:
+    # if GlobalConfig.root['validation'].anonymize:
     #    io.console.print_item("Anonymize data")
     #    anonymize_archive()
 
-    comman = MetaConfig.root.get_internal("comman")
+    comman = GlobalConfig.root.get_internal("comman")
     if comman:
         io.console.print_item("Close connection to Reporting Server")
         comman.close_connection()
-    MetaConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.END_AFTER)
+    GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.END_AFTER)
     build_man.finalize()
 
 

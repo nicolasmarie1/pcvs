@@ -236,9 +236,9 @@ def process_check_directory(directory, pf_name="default", conversion=True):
     else:
         pf.load_from_disk()
         pf.check(allow_legacy=conversion)
-    system.MetaConfig.root = system.MetaConfig()
-    system.MetaConfig.root.bootstrap_from_profile(pf.dump(), pf.full_name)
-    system.MetaConfig.root['validation']['output'] = "/tmp"
+    system.GlobalConfig.root = system.MetaConfig()
+    system.GlobalConfig.root.bootstrap_from_profile(pf.dump(), pf.full_name)
+    system.GlobalConfig.root['validation']['output'] = "/tmp"
     buildenv = run.build_env_from_configuration(pf.dump())
     setup_files, yaml_files = run.find_files_to_process(
         {os.path.basename(directory): directory})

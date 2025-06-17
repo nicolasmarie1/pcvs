@@ -55,7 +55,7 @@ def mock_config():
 
 
 def test_process_setup_scripts(mock_config):
-    d = os.path.join(MetaConfig.root['validation']['dirs']['L1'], "subtree")
+    d = os.path.join(GlobalConfig.root['validation']['dirs']['L1'], "subtree")
     f = os.path.join(d, "pcvs.setup")
     help_create_setup_file(f, good_content)
     pcvs.io.init()
@@ -64,7 +64,7 @@ def test_process_setup_scripts(mock_config):
 
 
 def test_process_bad_setup_script(mock_config):
-    d = os.path.join(MetaConfig.root['validation']['dirs']['L1'], "subtree")
+    d = os.path.join(GlobalConfig.root['validation']['dirs']['L1'], "subtree")
     f = os.path.join(d, "pcvs.setup")
     help_create_setup_file(f, bad_script)
     pcvs.io.init()
@@ -75,7 +75,7 @@ def test_process_bad_setup_script(mock_config):
 
 
 def test_process_wrong_setup_script(mock_config):
-    d = os.path.join(MetaConfig.root['validation']['dirs']['L1'], "subtree")
+    d = os.path.join(GlobalConfig.root['validation']['dirs']['L1'], "subtree")
     f = os.path.join(d, "pcvs.setup")
     help_create_setup_file(f, bad_output)
     pcvs.io.init()

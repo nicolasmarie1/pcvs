@@ -342,13 +342,13 @@ class Test:
         # timeout is (in order):
         # 1. explicitly defined
         # 2. OR extrapolated from defined result.mean
-        # 3. set by default (MetaConfig.root.validation.job_timeout)
+        # 3. set by default (GlobalConfig.root.validation.job_timeout)
         if self._timeout:
             return self._timeout
         elif self._validation['time'] > 0:
             return (self._validation['time'] + self._validation['delta']) * 1.5
         else:
-            return MetaConfig.root['validation']['job_timeout']
+            return GlobalConfig.root['validation']['job_timeout']
 
     def get_dim(self):
         """Return the orch-dimension value for this test.
@@ -437,7 +437,7 @@ class Test:
         if state == Test.State.SUCCESS and self._validation[
                 'analysis'] is not None:
             analysis = self._validation['analysis']
-            s = MetaConfig.root.get_internal("pColl").invoke_plugins(
+            s = GlobalConfig.root.get_internal("pColl").invoke_plugins(
                 Plugin.Step.TEST_RESULT_EVAL, analysis=analysis, job=self)
             if s is not None:
                 state = s
@@ -471,8 +471,8 @@ class Test:
             icon = "fail"
 
         if self._output and \
-            (MetaConfig.root['validation']['print_level'] == 'all' or
-             (self.state == Test.State.FAILURE) and MetaConfig.root['validation']['print_level'] == 'errors'):
+            (GlobalConfig.root['validation']['print_level'] == 'all' or
+             (self.state == Test.State.FAILURE) and GlobalConfig.root['validation']['print_level'] == 'errors'):
             raw_output = self.output
 
         io.console.print_job(

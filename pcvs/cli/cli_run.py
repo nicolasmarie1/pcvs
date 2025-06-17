@@ -92,10 +92,10 @@ def handle_build_lockfile(exc=None):
     :param exc: The raising exception.
     :type exc: Exception
     """
-    if (system.MetaConfig.root
-            and 'validation' in system.MetaConfig.root
-            and 'output' in system.MetaConfig.root['validation']):
-        prefix = os.path.join(system.MetaConfig.root['validation']['output'],
+    if (system.GlobalConfig.root
+            and 'validation' in system.GlobalConfig.root
+            and 'output' in system.GlobalConfig.root['validation']):
+        prefix = os.path.join(system.GlobalConfig.root['validation']['output'],
                               NAME_BUILDFILE)
         if utils.is_locked(prefix):
             if utils.get_lock_owner(prefix)[1] == os.getpid():
@@ -242,7 +242,7 @@ def run(ctx, profilename, profilepath, output, detach, override, anon, settings_
         output = os.path.abspath(output)
 
     global_config = system.MetaConfig()
-    system.MetaConfig.root = global_config
+    system.GlobalConfig.root = global_config
     global_config.set_internal("pColl", ctx.obj['plugins'])
 
     # then init the configuration

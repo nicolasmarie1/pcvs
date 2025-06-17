@@ -443,12 +443,12 @@ def initialize_from_system():
 
     TODO: Move this function elsewhere."""
     # sanity checks
-    if not 'criterion' in MetaConfig.root:
-        MetaConfig.root.set_internal('crit_obj', {})
+    if not 'criterion' in GlobalConfig.root:
+        GlobalConfig.root.set_internal('crit_obj', {})
     else:
         # raw YAML objects
-        runtime_iterators = MetaConfig.root['runtime']['criterions']
-        criterion_iterators = MetaConfig.root['criterion']
+        runtime_iterators = GlobalConfig.root['runtime']['criterions']
+        criterion_iterators = GlobalConfig.root['criterion']
         it_to_remove = []
 
         # if a criterion defined in criterion.yaml but
@@ -470,7 +470,7 @@ def initialize_from_system():
 
         # register the new dict {criterion_name: Criterion object}
         # the criterion object gathers both information from runtime & criterion
-        MetaConfig.root.set_internal(
+        GlobalConfig.root.set_internal(
             'crit_obj', {
                 k: Criterion(k, {
                     **runtime_iterators[k],
@@ -483,10 +483,10 @@ def initialize_from_system():
 
     # numeric criterions
     comb_cnt = 1
-    for criterion in MetaConfig.root.get_internal('crit_obj').values():
+    for criterion in GlobalConfig.root.get_internal('crit_obj').values():
         criterion.expand_values()
         comb_cnt *= len(criterion)
-    MetaConfig.root.set_internal("comb_cnt", comb_cnt)
+    GlobalConfig.root.set_internal("comb_cnt", comb_cnt)
 
 
 first = True
@@ -501,9 +501,9 @@ def valid_combination(dic):
     :rtype: bool
     """
     global first
-    rt = MetaConfig.root['runtime']
-    val = MetaConfig.root['validation']
-    pCollection = MetaConfig.root.get_internal('pColl')
+    rt = GlobalConfig.root['runtime']
+    val = GlobalConfig.root['validation']
+    pCollection = GlobalConfig.root.get_internal('pColl')
 
     if first and rt.plugin:
         first = not first
@@ -527,7 +527,7 @@ def valid_combination(dic):
                                "base64 -d <<< \"<plugin>\"")
 
     ret = pCollection.invoke_plugins(Plugin.Step.TEST_EVAL,
-                                     config=MetaConfig.root,
+                                     config=GlobalConfig.root,
                                      combination=dic)
 
     # by default, no plugin = always true

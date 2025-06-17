@@ -58,8 +58,8 @@ class RemoteServer(GenericServer):
             "/submit/session_init", {
                 "sid": self._metadata['sid'],
                 "state": Session.State.IN_PROGRESS,
-                "buildpath": MetaConfig.root['validation']['output'],
-                "dirs": MetaConfig.root['validation']['dirs']
+                "buildpath": GlobalConfig.root['validation']['output'],
+                "dirs": GlobalConfig.root['validation']['dirs']
             })
 
     def close_connection(self):

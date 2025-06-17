@@ -36,9 +36,9 @@ class Manager:
         :param publisher: requested publisher by the orchestrator
         :type publisher: :class:`ResultFileManager`
         """
-        self._comman = MetaConfig.root.get_internal('comman')
-        self._plugin = MetaConfig.root.get_internal('pColl')
-        self._concurrent_level = MetaConfig.root['machine'].get(
+        self._comman = GlobalConfig.root.get_internal('comman')
+        self._plugin = GlobalConfig.root.get_internal('pColl')
+        self._concurrent_level = GlobalConfig.root['machine'].get(
             'concurrent_run', 1)
 
         self._dims = {}

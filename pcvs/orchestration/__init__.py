@@ -35,7 +35,7 @@ class Orchestrator:
 
     def __init__(self):
         """constructor method"""
-        config_tree = MetaConfig.root
+        config_tree = GlobalConfig.root
         self._runners = list()
         self._max_res = config_tree['machine'].get('nodes', 1)
         self._publisher = config_tree.get_internal('build_manager')['results']
@@ -71,7 +71,7 @@ class Orchestrator:
         :type restart: False for a brand new run.
         """
 
-        MetaConfig.root.get_internal("pColl").invoke_plugins(
+        GlobalConfig.root.get_internal("pColl").invoke_plugins(
             Plugin.Step.SCHED_BEFORE)
 
         io.console.info("ORCH: initialize runners")
@@ -141,7 +141,7 @@ class Orchestrator:
         assert (self._manager.get_count('executed') == self._manager.get_count(
             'total'))
 
-        MetaConfig.root.get_internal("pColl").invoke_plugins(
+        GlobalConfig.root.get_internal("pColl").invoke_plugins(
             Plugin.Step.SCHED_AFTER)
 
         io.console.info("ORCH: Stop active runners")
@@ -153,7 +153,7 @@ class Orchestrator:
     def start_new_runner(self):
         """Start a new Runner thread & register comm queues."""
         RunnerAdapter.sched_in_progress = True
-        r = RunnerAdapter(buildir=MetaConfig.root['validation']['output'],
+        r = RunnerAdapter(buildir=GlobalConfig.root['validation']['output'],
                           ready=self._ready_q,
                           complete=self._complete_q)
         r.start()

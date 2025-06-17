@@ -35,7 +35,7 @@ def resolve(ctx, file, bankname):
         stream = sys.stdin.read().rstrip()
 
     if not bankname:
-        bankname = MetaConfig.root['validation']['target_bank']
+        bankname = GlobalConfig.root['validation']['target_bank']
 
     # may deadlock !!
     bank = Bank(bankname)

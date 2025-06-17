@@ -36,11 +36,11 @@ def init_constant_tokens():
         '@HOME@': str(pathlib.Path.home()),
         '@USER@': getpass.getuser(),
     }
-    for comp, comp_node in MetaConfig.root['compiler']['compilers'].items():
+    for comp, comp_node in GlobalConfig.root['compiler']['compilers'].items():
         constant_tokens['@COMPILER_{}@'.format(comp.upper())] = comp_node.get(
             'program', "")
 
-    constant_tokens['@RUNTIME_PROGRAM@'] = MetaConfig.root['runtime'].get(
+    constant_tokens['@RUNTIME_PROGRAM@'] = GlobalConfig.root['runtime'].get(
         'program', "")
 
 
@@ -231,7 +231,7 @@ class TestFile:
 
         # main loop, parse each node to register tests
         for k, content, in self._raw.items():
-            MetaConfig.root.get_internal("pColl").invoke_plugins(
+            GlobalConfig.root.get_internal("pColl").invoke_plugins(
                 Plugin.Step.TDESC_BEFORE)
             if content is None:
                 # skip empty nodes
@@ -243,7 +243,7 @@ class TestFile:
                                 td.name,
                                 pprint.pformat(td.get_debug())))
 
-            MetaConfig.root.get_internal("pColl").invoke_plugins(
+            GlobalConfig.root.get_internal("pColl").invoke_plugins(
                 Plugin.Step.TDESC_AFTER)
 
             # register debug informations relative to the loaded TEs
@@ -252,12 +252,12 @@ class TestFile:
     def flush_sh_file(self):
         """Store the given input file into their destination."""
         fn_sh = os.path.join(self._path_out, "list_of_tests.sh")
-        cobj = MetaConfig.root.get_internal('cc_pm')
+        cobj = GlobalConfig.root.get_internal('cc_pm')
         if TestFile.cc_pm_string == "" and cobj:
             TestFile.cc_pm_string = "\n".join(
                 [e.get(load=True, install=False) for e in cobj])
 
-        robj = MetaConfig.root.get_internal('rt_pm')
+        robj = GlobalConfig.root.get_internal('rt_pm')
         if TestFile.rt_pm_string == "" and robj:
             TestFile.rt_pm_string = "\n".join(
                 [e.get(load=True, install=False) for e in robj])
@@ -284,13 +284,13 @@ fi
 
 for arg in "$@"; do case $arg in
 """.format(simulated="sim"
-                if MetaConfig.root['validation']['simulated'] is True else "",
+                if GlobalConfig.root['validation']['simulated'] is True else "",
                 pm_string="\n".join([TestFile.cc_pm_string,
                                     TestFile.rt_pm_string])))
 
             for test in self._tests:
                 fh_sh.write(test.generate_script(fn_sh))
-                MetaConfig.root.get_internal('orchestrator').add_new_job(test)
+                GlobalConfig.root.get_internal('orchestrator').add_new_job(test)
 
             fh_sh.write("""
         --list) printf "{list_of_tests}\\n"; exit 0;;
@@ -336,12 +336,12 @@ EOF
                 # compute max number of combinations from system iterators
                 sys_cnt = functools.reduce(operator.mul, [
                     len(v['values'])
-                    for v in MetaConfig.root['criterion'].values()
+                    for v in GlobalConfig.root['criterion'].values()
                 ])
                 self._debug.setdefault('.system-values', {})
                 self._debug['.system-values'].setdefault('stats', {})
 
-                for c_k, c_v in MetaConfig.root['criterion'].items():
+                for c_k, c_v in GlobalConfig.root['criterion'].items():
                     self._debug[".system-values"][c_k] = c_v['values']
                 self._debug[".system-values"]['stats']['theoric'] = sys_cnt
                 yml = YAML(typ='safe')

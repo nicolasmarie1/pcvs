@@ -23,9 +23,9 @@ def generate_local_variables(label, subprefix):
     if subprefix is None:
         subprefix = ""
 
-    base_srcdir = MetaConfig.root['validation']['dirs'].get(label, '')
+    base_srcdir = GlobalConfig.root['validation']['dirs'].get(label, '')
     cur_srcdir = os.path.join(base_srcdir, subprefix)
-    base_buildir = os.path.join(MetaConfig.root['validation']['output'],
+    base_buildir = os.path.join(GlobalConfig.root['validation']['output'],
                                 "test_suite", label)
     cur_buildir = os.path.join(base_buildir, subprefix)
 

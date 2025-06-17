@@ -18,7 +18,7 @@ class BankValidationPlugin(Plugin):
         """TODO:
         """
         if not self._bank_hdl:
-            bankname = MetaConfig.root['validation'].get('target_bank', None)
+            bankname = GlobalConfig.root['validation'].get('target_bank', None)
             if not bankname:
                 return None
 
@@ -26,7 +26,7 @@ class BankValidationPlugin(Plugin):
             self._bank_hdl.connect()
         self._serie = self._bank_hdl.get_serie(
             self._bank_hdl.build_target_branch_name(
-                hashid=MetaConfig.root['validation']['pf_hash']))
+                hashid=GlobalConfig.root['validation']['pf_hash']))
         if not self._serie:
             # no history, stop !
             return None

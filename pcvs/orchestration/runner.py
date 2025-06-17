@@ -90,13 +90,13 @@ class RunnerAdapter(threading.Thread):
     def remote_exec(self, set: Set) -> None:
         jobman_cfg = {}
         if set.execmode == Set.ExecMode.ALLOC:
-            jobman_cfg = MetaConfig.root['machine']['job_manager']['allocate']
+            jobman_cfg = GlobalConfig.root['machine']['job_manager']['allocate']
         elif set.execmode == Set.ExecMode.REMOTE:
-            jobman_cfg = MetaConfig.root['machine']['job_manager']['remote']
+            jobman_cfg = GlobalConfig.root['machine']['job_manager']['remote']
         elif set.execmode == Set.ExecMode.BATCH:
-            jobman_cfg = MetaConfig.root['machine']['job_manager']['batch']
+            jobman_cfg = GlobalConfig.root['machine']['job_manager']['batch']
 
-        parallel = MetaConfig.root['validation']['scheduling'].get("parallel", 1)
+        parallel = GlobalConfig.root['validation']['scheduling'].get("parallel", 1)
 
         # TODO: Prepare exec context
         wrapper = jobman_cfg.get('wrapper', "")

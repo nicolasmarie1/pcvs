@@ -60,8 +60,8 @@ class Set:
         self._map = dict()
 
         if not self.comman:
-            if MetaConfig.root.get_internal('comman') is not None:
-                self.comman = MetaConfig.root.get_internal('comman')
+            if GlobalConfig.root.get_internal('comman') is not None:
+                self.comman = GlobalConfig.root.get_internal('comman')
 
     @property
     def execmode(self) -> ExecMode:
