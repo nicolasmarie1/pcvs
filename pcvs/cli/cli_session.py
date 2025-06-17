@@ -18,7 +18,7 @@ except ImportError:
 from click.shell_completion import CompletionItem
 
 
-def compl_session_token(ctx, args, incomplete) -> list:
+def compl_session_token(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
     """Session name completion function.
 
     :param ctx: Click context
@@ -38,6 +38,50 @@ def compl_session_token(ctx, args, incomplete) -> list:
     ]
 
 
+def print_sessions(sessions):
+    """List detached sessions."""
+    if len(sessions) <= 0:
+        io.console.print("[italic bold]No sessions")
+        return
+    table = Table(title="Sessions", expand=True)
+    table.add_column("SID", justify="center", max_width=10)
+    table.add_column("Status", justify="right")
+    table.add_column("Started", justify="center")
+    table.add_column("Elasped", justify="right")
+    table.add_column("Location", justify="left")
+
+    for sk, sv in sessions.items():
+        s = pvSession.Session()
+        s.load_from(sk, sv)
+        status = "Broken"
+        duration = timedelta()
+        line_style = "default"
+        if s.state == pvSession.Session.State.IN_PROGRESS:
+            duration = datetime.now() - s.property('started')
+            status = "{:3.2f} %".format(s.property('progress'))
+            line_style = "yellow"
+        elif s.state == pvSession.Session.State.COMPLETED:
+            duration = s.property('ended') - s.property('started')
+            status = "100.00 %"
+            line_style = "green bold"
+        elif s.state == pvSession.Session.State.WAITING:
+            duration = datetime.now() - s.property('started')
+            status = "Waiting"
+            line_style = "yellow"
+
+        table.add_row(
+            "[{}]{:0>6}".format(line_style, s.id),
+            "[{}]{}".format(line_style, status), "[{}]{}".format(
+                line_style,
+                datetime.strftime(s.property("started"),
+                                  "%Y-%m-%d %H:%M")),
+            "[{}]{}".format(
+                "red bold" if duration.days > 0 else line_style,
+                timedelta(days=duration.days, seconds=duration.seconds)),
+            "[{}]{}".format(line_style, s.property("path")))
+    io.console.print(table)
+
+
 @click.command(name="session", short_help="Manage multiple validations")
 @click.option(
     '-c',
@@ -54,7 +98,7 @@ def compl_session_token(ctx, args, incomplete) -> list:
               help="Clear all completed sessions, for removing from logs")
 @click.option('-l', '--list', 'list_sessions', is_flag=True, help="List detached sessions")
 @click.pass_context
-def session(ctx, ack, list_sessions, ack_all):
+def session(ctx, ack, list_sessions, ack_all):  # pylint: disable=unused-argument
     """Manage sessions by listing or acknowledging their completion."""
     sessions = pvSession.list_alive_sessions()
     if sessions is None:
@@ -82,44 +126,7 @@ def session(ctx, ack, list_sessions, ack_all):
         pvSession.remove_session_from_file(ack)
         lockfile = os.path.join(sessions[ack]['path'], NAME_BUILDFILE)
         utils.unlock_file(lockfile)
+    elif list_sessions:
+        print_sessions(sessions)
     else:  # listing is the defualt
-        if len(sessions) <= 0:
-            io.console.print("[italic bold]No sessions")
-            return
-        table = Table(title="Sessions", expand=True)
-        table.add_column("SID", justify="center", max_width=10)
-        table.add_column("Status", justify="right")
-        table.add_column("Started", justify="center")
-        table.add_column("Elasped", justify="right")
-        table.add_column("Location", justify="left")
-
-        for sk, sv in sessions.items():
-            s = pvSession.Session()
-            s.load_from(sk, sv)
-            status = "Broken"
-            duration = timedelta()
-            line_style = "default"
-            if s.state == pvSession.Session.State.IN_PROGRESS:
-                duration = datetime.now() - s.property('started')
-                status = "{:3.2f} %".format(s.property('progress'))
-                line_style = "yellow"
-            elif s.state == pvSession.Session.State.COMPLETED:
-                duration = s.property('ended') - s.property('started')
-                status = "100.00 %"
-                line_style = "green bold"
-            elif s.state == pvSession.Session.State.WAITING:
-                duration = datetime.now() - s.property('started')
-                status = "Waiting"
-                line_style = "yellow"
-
-            table.add_row(
-                "[{}]{:0>6}".format(line_style, s.id),
-                "[{}]{}".format(line_style, status), "[{}]{}".format(
-                    line_style,
-                    datetime.strftime(s.property("started"),
-                                      "%Y-%m-%d %H:%M")),
-                "[{}]{}".format(
-                    "red bold" if duration.days > 0 else line_style,
-                    timedelta(days=duration.days, seconds=duration.seconds)),
-                "[{}]{}".format(line_style, s.property("path")))
-        io.console.print(table)
+        print_sessions(sessions)

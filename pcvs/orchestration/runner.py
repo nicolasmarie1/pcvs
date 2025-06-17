@@ -45,18 +45,18 @@ class RunnerAdapter(threading.Thread):
             except Exception as e:
                 raise e
 
-    def execute_set(self, set):
-        if set.execmode == Set.ExecMode.LOCAL:
-            return self.local_exec(set)
+    def execute_set(self, jobs):
+        if jobs.execmode == Set.ExecMode.LOCAL:
+            return self.local_exec(jobs)
         else:
-            return self.remote_exec(set)
+            return self.remote_exec(jobs)
 
-    def local_exec(self, set) -> None:
+    def local_exec(self, jobs) -> None:
         """Execute the Set and jobs within it.
 
         :raises Exception: Something occured while running a test"""
         io.console.nodebug('{}: [LOCAL] Set start'.format(self.ident))
-        for job in set.content:
+        for job in jobs.content:
             try:
                 p = subprocess.Popen('{}'.format(job.invocation_command),
                                      shell=True,
@@ -81,19 +81,17 @@ class RunnerAdapter(threading.Thread):
                 stdout, _ = p.communicate()
                 rc = Test.Timeout_RC  # nah, to be changed
                 final = job.timeout
-            except Exception:
-                raise
             job.save_raw_run(time=final, rc=rc, out=stdout)
             job.save_status(Test.State.EXECUTED)
-        set.complete = True
+        jobs.complete = True
 
-    def remote_exec(self, set: Set) -> None:
+    def remote_exec(self, jobs: Set) -> None:
         jobman_cfg = {}
-        if set.execmode == Set.ExecMode.ALLOC:
+        if jobs.execmode == Set.ExecMode.ALLOC:
             jobman_cfg = GlobalConfig.root['machine']['job_manager']['allocate']
-        elif set.execmode == Set.ExecMode.REMOTE:
+        elif jobs.execmode == Set.ExecMode.REMOTE:
             jobman_cfg = GlobalConfig.root['machine']['job_manager']['remote']
-        elif set.execmode == Set.ExecMode.BATCH:
+        elif jobs.execmode == Set.ExecMode.BATCH:
             jobman_cfg = GlobalConfig.root['machine']['job_manager']['batch']
 
         parallel = GlobalConfig.root['validation']['scheduling'].get("parallel", 1)
@@ -102,13 +100,13 @@ class RunnerAdapter(threading.Thread):
         wrapper = jobman_cfg.get('wrapper', "")
         env = os.environ.copy()
         ctx_path = os.path.join(self._prefix, pcvs.NAME_BUILD_CONTEXTDIR,
-                                str(set.id))
+                                str(jobs.id))
         os.makedirs(ctx_path)
         updated_env = {
             "PCVS_JOB_MANAGER_{}".format(i.upper()): jobman_cfg[i]
             for i in ['program', 'args'] if i in jobman_cfg
         }
-        updated_env['PCVS_SET_DIM'] = str(set.dim)
+        updated_env['PCVS_SET_DIM'] = str(jobs.dim)
         updated_env[
             'PCVS_SET_CMD'] = jobman_cfg['program'] if jobman_cfg['program'] else ""
         updated_env[
@@ -119,25 +117,25 @@ class RunnerAdapter(threading.Thread):
             script=wrapper, ctx=ctx_path, parallel=parallel)
         try:
             ctx = RemoteContext(ctx_path)
-            ctx.save_input_to_disk(set)
-            assert (ctx.check_input_avail())
-            self._process_hdl = subprocess.Popen(cmd,
+            ctx.save_input_to_disk(jobs)
+            assert ctx.check_input_avail()
+            _process_hdl = subprocess.Popen(cmd,
                                                  shell=True,
                                                  env=env,
                                                  stdout=subprocess.PIPE,
                                                  stderr=subprocess.PIPE)
-            out, err = self._process_hdl.communicate()
+            _, err = _process_hdl.communicate()
             if err:
                 io.console.warning("Set {} - error output: {}".format(
-                    set.id, err.decode('utf-8')))
+                    jobs.id, err.decode('utf-8')))
             if ctx.check_output_avail():
-                ctx.load_result_from_disk(set)
+                ctx.load_result_from_disk(jobs)
             else:
                 io.console.warning("Set {} did not produce any output".format(
-                    set.id))
-        except:
+                    jobs.id))
+        except Exception as e:
             raise RunnerException.LaunchError(
-                reason="Fail to start a remote Runner", dbg_info={'cmd': cmd})
+                reason="Fail to start a remote Runner", dbg_info={'cmd': cmd}) from e
 
 
 def progress_jobs(q, ctx, ev):
@@ -158,6 +156,8 @@ def progress_jobs(q, ctx, ev):
 class RunnerRemote:
 
     def __init__(self, ctx_path):
+        self._ctx = None
+        self._set = None
         self._ctx_path = ctx_path
 
     def connect_to_context(self):
@@ -167,7 +167,7 @@ class RunnerRemote:
     def run(self, parallel=1):
 
         self._ctx.mark_as_not_completed()
-        thr_list = list()
+        thr_list = []
         rq = queue.Queue()
         pq = queue.Queue()
         ev = threading.Event()
@@ -199,16 +199,16 @@ class RemoteContext:
 
     MAGIC_TOKEN = "PCVS-MAGIC"
 
-    def __init__(self, prefix, set=None):
+    def __init__(self, prefix, jobs=None):
         self._path = prefix
         self._cnt = 0
 
-        if set:
-            self._path = os.path.join(self._path, str(set.id))
+        if jobs:
+            self._path = os.path.join(self._path, str(jobs.id))
         self._completed_file = os.path.join(prefix, ".completed")
 
-        if set:
-            self.save_input_to_disk(set)
+        if jobs:
+            self.save_input_to_disk(jobs)
 
         # inputs are flushed atomically, no need for a file handler
         # outputs are stored incrementally to avoid data losses
@@ -218,11 +218,11 @@ class RemoteContext:
     def cnt(self):
         return self._cnt
 
-    def save_input_to_disk(self, set):
+    def save_input_to_disk(self, jobs):
         with open(os.path.join(self._path, "input.json"), "w") as f:
             f.write(
                 json.dumps(
-                    list(map(lambda x: x.to_minimal_json(), set.content))))
+                    list(map(lambda x: x.to_minimal_json(), jobs.content))))
 
     def check_input_avail(self):
         f = os.path.join(self._path, "input.json")
@@ -234,15 +234,15 @@ class RemoteContext:
 
     def load_input_from_disk(self):
         assert (os.path.isdir(os.path.join(self._path)))
-        set = Set(execmode=Set.ExecMode.LOCAL)
+        jobs = Set(execmode=Set.ExecMode.LOCAL)
         with open(os.path.join(self._path, "input.json"), "r") as f:
             data = json.load(f)
             for job in data:
                 cur = Test()
                 cur.from_minimal_json(job)
-                set.add(cur)
+                jobs.add(cur)
                 self._cnt += 1
-        return set
+        return jobs
 
     def save_result_to_disk(self, job: Test):
         if not self._outfile:
@@ -254,25 +254,20 @@ class RemoteContext:
             data, "\n".encode('utf-8')
         ])
 
-    def load_result_from_disk(self, set):
+    def load_result_from_disk(self, jobs):
         with open(os.path.join(self._path, "output.bin"), "rb") as fh:
             lines = fh.readlines()
-            jobs = list(set.content)
             for lineum, linedata in enumerate(lines):
                 if lineum % 2 == 0:
                     # metadata:
-                    try:
-                        magic, jobid, datalen, timexec, retcode = linedata.decode(
-                            'utf-8').split(":")
-                    except:
-                        raise
-                    assert (magic == self.MAGIC_TOKEN)
+                    magic, jobid, datalen, timexec, retcode = linedata.decode('utf-8').split(":")
+                    assert magic == self.MAGIC_TOKEN
                     datalen = int(datalen)
                     timexec = float(timexec)
                     retcode = int(retcode)
                     data = b""
-                    job: Test = set.find(jobid)
-                    assert (job)
+                    job: Test = jobs.find(jobid)
+                    assert job
                     if datalen > 0:
                         data = lines[lineum + 1].strip()
                         job.encoded_output = data

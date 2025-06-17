@@ -26,7 +26,7 @@ except ImportError:
               is_flag=False,
               help="read from file instead of stdin")
 @click.pass_context
-def resolve(ctx, file, bankname):
+def resolve(ctx, file, bankname):  # pylint: disable=unused-argument
 
     if file:
         with open(file, 'r') as fh:

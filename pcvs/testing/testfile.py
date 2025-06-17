@@ -189,8 +189,8 @@ class TestFile:
             try:
                 template = os.path.join(PATH_INSTDIR,
                                         "templates/config/group-compat.yml")
-                yaml_converter.convert(None, tmpfile, "te", template,
-                                       None, None, False, True, True)
+                yaml_converter.convert(tmpfile, "te", template, None,
+                                       None, False, True, True)
             except Exception as er:
                 io.console.error(
                     f"An error occure when trying to update file {self._in}.")

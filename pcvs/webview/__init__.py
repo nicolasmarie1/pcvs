@@ -210,7 +210,7 @@ def create_app(iface):
         return "OK!", 200
 
     @app.errorhandler(404)
-    def page_not_found(e):
+    def page_not_found(e):  # pylint: disable=unused-argument
         """404 Not found page handler.
 
         :param e: the caught error, only 404 here

@@ -69,7 +69,7 @@ def flatten(dd, prefix='') -> dict:
     }
 
 
-def compute_new_key(k, v, m) -> str:
+def compute_new_key(k, m) -> str:
     """replace in 'k' any pattern found in 'm'.
     'k' is a string with placeholders, while 'm' is a match result with groups
     named after placeholders.
@@ -84,7 +84,7 @@ def compute_new_key(k, v, m) -> str:
     return k
 
 
-def check_if_key_matches(key, value, ref_array) -> tuple:
+def check_if_key_matches(key, ref_array) -> tuple:
     """list all matches for the current key in the new YAML description."""
     # for each key to be replaced.
     # WARNING: no order!
@@ -99,9 +99,9 @@ def check_if_key_matches(key, value, ref_array) -> tuple:
             # if there is a associated key in the new tree
             if new_k is not None:
                 if isinstance(new_k, list):
-                    dest_k = [compute_new_key(i, value, res) for i in new_k]
+                    dest_k = [compute_new_key(i, res) for i in new_k]
                 else:
-                    dest_k = [compute_new_key(new_k, value, res)]
+                    dest_k = [compute_new_key(new_k, res)]
             else:
                 dest_k = []
             return (True, dest_k)
@@ -128,7 +128,7 @@ def process(data, ref_array=None, warn_if_missing=True) -> dict:
         #    * the new key alongside with the transformed value as well
         # in the latter case, a split is required to identify key & value
         # an array is returned as a single node can produe multiple new nodes
-        (valid, dest_k) = check_if_key_matches(k, v, ref_array)
+        (valid, dest_k) = check_if_key_matches(k, ref_array)
         if valid:
             io.console.info("Processing {}".format(k))
             # An empty array means the key does not exist in the new tree.
@@ -202,7 +202,7 @@ def replace_placeholder(tmp, refs) -> dict:
     return final
 
 
-def convert(ctx, input_file, kind, template, scheme, out,
+def convert(input_file, kind, template, scheme, out,
             stdout, skip_unknown, in_place) -> None:
     """
     Process the conversion from one YAML format to another.

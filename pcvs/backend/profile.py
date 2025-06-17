@@ -283,8 +283,8 @@ class Profile:
 
             tmpfile = tempfile.mkstemp()[1]
             try:
-                yaml_converter.convert(None, self._file, 'profile', None,
-                                       None, tmpfile, False, True, False)
+                yaml_converter.convert(self._file, 'profile', None, None,
+                                       tmpfile, False, True, False)
             except Exception as convert_error:
                 io.console.error("An error occure when trying "
                                  f"to update profile: {self._file}")

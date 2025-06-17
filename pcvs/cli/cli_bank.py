@@ -12,8 +12,8 @@ try:
 except ImportError:
     import click
 
-#nopylint: disable=unused-argument
-def compl_list_banks(ctx, args, incomplete):
+
+def compl_list_banks(ctx, args, incomplete):  # pylint: disable=unused-argument
     """bank name completion function.
 
     :param ctx: Click context
@@ -33,7 +33,7 @@ def compl_list_banks(ctx, args, incomplete):
     ]
 
 
-def compl_bank_projects(ctx, args, incomplete):
+def compl_bank_projects(ctx, args, incomplete):  # pylint: disable=unused-argument
     """bank project completion function.
 
     :param ctx: Click context
@@ -60,13 +60,13 @@ def compl_bank_projects(ctx, args, incomplete):
 
 @click.group(name="bank", short_help="Persistent data repository management")
 @click.pass_context
-def bank(ctx):
+def bank(ctx):  # pylint: disable=unused-argument
     """Bank entry-point."""
 
 
 @bank.command(name="list", short_help="List known repositories")
 @click.pass_context
-def bank_list(ctx):
+def bank_list(ctx):  # pylint: disable=unused-argument
     """List known repositories, stored under ``PATH_BANK``."""
     io.console.print_header("Bank View")
     for label, path in pvBank.list_banks().items():
@@ -86,7 +86,7 @@ def bank_list(ctx):
               default=False,
               help="Display bank location")
 @click.pass_context
-def bank_show(ctx, name, path):
+def bank_show(ctx, name, path):  # pylint: disable=unused-argument
     """Display all data stored into NAME repository"""
     b = pvBank.Bank(token=name)
     if not b.exists():
@@ -108,7 +108,7 @@ def bank_show(ctx, name, path):
                 required=False,
                 type=click.Path(exists=False, file_okay=False))
 @click.pass_context
-def bank_create(ctx, name, path):
+def bank_create(ctx, name, path):  # pylint: disable=unused-argument
     """Create a new bank, named NAME, data will be stored under PATH."""
     io.console.print_header("Bank View")
     if path is None:
@@ -141,7 +141,7 @@ def bank_create(ctx, name, path):
     prompt="Are your sure to delete repository and its content ?",
     help="Do not ask for confirmation before deletion")
 @click.pass_context
-def bank_destroy(ctx, name, symlink):
+def bank_destroy(ctx, name, symlink):  # pylint: disable=unused-argument
     """Remove the bank NAME from PCVS management. This does not include
     repository deletion. 'data.yml' and bank entry in the configuratino file
     will be removed but existing data are preserved.
@@ -172,7 +172,7 @@ def bank_destroy(ctx, name, symlink):
               default=None,
               help="Use a custom Run() message")
 @click.pass_context
-def bank_save_run(ctx, name, path, msg):
+def bank_save_run(ctx, name, path, msg):  # pylint: disable=unused-argument
     """Create a backup from a previously generated build directory. NAME will be
     the target bank name, PATH the build directory"""
 
@@ -197,24 +197,23 @@ def bank_save_run(ctx, name, path, msg):
                 required=True,
                 type=str,
                 shell_complete=compl_list_banks)
-@click.option("--since",
-              "start",
-              default=None,
-              help="Select a starting point from where data will be extracted")
-@click.option(
-    "--until",
-    "end",
-    default=None,
-    help="Select the last date (included) where data will be searched for")
-@click.option(
-    "-s",
-    "--startswith",
-    "prefix",
-    type=str,
-    default="",
-    help="Select only a subset of each runs based on provided prefix")
+# unused
+#@click.option("--since",
+#              "start",
+#              default=None,
+#              help="Select a starting point from where data will be extracted")
+#@click.option("--until",
+#              "end",
+#              default=None,
+#              help="Select the last date (included) where data will be searched for")
+@click.option("-s",
+              "--startswith",
+              "prefix",
+              type=str,
+              default="",
+              help="Select only a subset of each runs based on provided prefix")
 @click.pass_context
-def bank_load(ctx, name, prefix, start, end):
+def bank_load(ctx, name, prefix):  # pylint: disable=unused-argument
     b = pvBank.Bank(token=name)
     serie = b.get_serie()
     run = serie.last
@@ -230,15 +229,15 @@ def bank_load(ctx, name, prefix, start, end):
     import json
     print(json.dumps(data))
 
-
-@bank.command(name="extract", short_help="Extract infos from the datastore")
-@click.argument("name",
-                nargs=1,
-                required=True,
-                type=str,
-                shell_complete=compl_list_banks)
-@click.argument("key", nargs=1, required=True)
-@click.pass_context
-def bank_extract(ctx, name, key):
-
-    pass
+# TODO: implement bank extract command
+# @bank.command(name="extract", short_help="Extract infos from the datastore")
+# @click.argument("name",
+#                 nargs=1,
+#                 required=True,
+#                 type=str,
+#                 shell_complete=compl_list_banks)
+# @click.argument("key", nargs=1, required=True)
+# @click.pass_context
+# def bank_extract(ctx, name, key):
+#
+#     pass

@@ -26,7 +26,7 @@ class Manager:
     job_hashes = dict()
     dep_rules = dict()
 
-    def __init__(self, max_size=0, builder=None, publisher=None):
+    def __init__(self, max_size=0, publisher=None):
         """constructor method.
 
         :param max_size: max number of resource allowed to schedule.

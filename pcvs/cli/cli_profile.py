@@ -18,7 +18,7 @@ except ImportError:
     import click
 
 
-def compl_list_token(ctx, args, incomplete):  # pragma: no cover
+def compl_list_token(ctx, args, incomplete):  # pylint: disable=unused-argument
     """profile name completion function.
 
     :param ctx: Click context
@@ -37,7 +37,7 @@ def compl_list_token(ctx, args, incomplete):  # pragma: no cover
     return [elt for elt in flat_array if incomplete in elt]
 
 
-def compl_list_templates(ctx, args, incomplete):  # pragma: no cover
+def compl_list_templates(ctx, args, incomplete):  # pylint: disable=unused-argument
     """ the profile template completion.
 
     :param ctx: Click context
@@ -54,7 +54,7 @@ def compl_list_templates(ctx, args, incomplete):  # pragma: no cover
 
 @click.group(name="profile", short_help="Manage Profiles")
 @click.pass_context
-def profile(ctx):
+def profile(ctx):  # pylint: disable=unused-argument
     """
     Profile management command. A profile is a gathering of multiple
     configuration blocks, describing a fixed validation process (for instance,
@@ -82,7 +82,7 @@ def profile(ctx):
               default=False,
               help="Include any extra resources for profile (templates, etc.)")
 @click.pass_context
-def profile_list(ctx, token, all_profiles):
+def profile_list(ctx, token, all_profiles):  # pylint: disable=unused-argument
     """
     List all known profiles to be used as part of a validation process. The
     list can be filtered out depending on the '--scope' option to only print
@@ -136,7 +136,7 @@ def profile_list(ctx, token, all_profiles):
                 type=click.STRING,
                 shell_complete=compl_list_token)
 @click.pass_context
-def profile_show(ctx, token):
+def profile_show(ctx, token):  # pylint: disable=unused-argument
     """Prints a detailed view of the NAME profile."""
     (scope, _, label) = utils.extract_infos_from_token(token, maxsplit=2)
     pf = pvProfile.Profile(label, scope)
@@ -217,7 +217,7 @@ def profile_interactive_select():
                 type=click.STRING,
                 shell_complete=compl_list_token)
 @click.pass_context
-def profile_create(ctx, token, interactive, blocks, clone, base):
+def profile_create(ctx, token, interactive, blocks, clone, base):  # pylint: disable=unused-argument
     """
     Creates a new profile based on basic configuration blocks (see the 'config'
     command). The newly created profile is built from basic configuration
@@ -310,7 +310,7 @@ def profile_create(ctx, token, interactive, blocks, clone, base):
                 type=click.STRING,
                 shell_complete=compl_list_token)
 @click.pass_context
-def profile_destroy(ctx, token):
+def profile_destroy(ctx, token):  # pylint: disable=unused-argument
     """Delete an existing profile named TOKEN.
 
     Use with caution, this action is irreversible !
@@ -345,7 +345,7 @@ def profile_destroy(ctx, token):
               help="Only edit the plugin code ('runtime')")
 @click.pass_context
 @io.capture_exception(ValidationException.FormatError)
-def profile_edit(ctx, token, edit_plugin):
+def profile_edit(ctx, token, edit_plugin):  # pylint: disable=unused-argument
     """Edit an existing profile with the given EDITOR. The '-p' option will open
     the decoded runtime plugin code stored as a base64 string into the profile
     for edition.
@@ -384,7 +384,7 @@ def profile_edit(ctx, token, edit_plugin):
               help="File to populate the profile from")
 @click.option("-f", "--force", "force", is_flag=True, default=False)
 @click.pass_context
-def profile_import(ctx, token, src_file, force):
+def profile_import(ctx, token, src_file, force):  # pylint: disable=unused-argument
     """Create a profile from a file. If the profile name is already used, it
     will not be overwritten unless '--force' is used.
     """
@@ -409,7 +409,7 @@ def profile_import(ctx, token, src_file, force):
               default=sys.stdout,
               help="YAML-formatted output file path")
 @click.pass_context
-def profile_export(ctx, token, dest_file):
+def profile_export(ctx, token, dest_file):  # pylint: disable=unused-argument
     """Export a profile to a YAML. If '--output' is omitted, the standard output
     is used to print the profile."""
     (scope, _, label) = utils.extract_infos_from_token(token, maxsplit=2)
@@ -446,7 +446,7 @@ def profile_export(ctx, token, dest_file):
     default=None,
     help="Default scope to store the split (default: same as profile)")
 @click.pass_context
-def profile_decompose_profile(ctx, token, name, block_opt, scope):
+def profile_decompose_profile(ctx, token, name, block_opt, scope):  # pylint: disable=unused-argument
     """Build basic configuration blocks from a given profile. Every block name will
     be prefixed with the '-n' option (set to 'default')
     """

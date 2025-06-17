@@ -31,8 +31,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-help'],
                         auto_envvar_prefix='PCVS')
 
 
-# pylint: disable=unused-argument
-def print_version(ctx, param, value):
+def print_version(ctx, param, value):  # pylint: disable=unused-argument
     """Print current version.
 
     This is used as an option formatter, PCVS is not event loaded yet.
@@ -91,12 +90,13 @@ def print_version(ctx, param, value):
               callback=print_version,
               is_flag=True,
               help="Display current version")
-@click.option("-w",
-              "--width",
-              "width",
-              type=int,
-              default=None,
-              help="Terminal width (autodetection if omitted")
+# unused
+# @click.option("-w",
+#               "--width",
+#               "width",
+#               type=int,
+#               default=None,
+#               help="Terminal width (autodetection if omitted")
 @click.option("-P",
               "--plugin-path",
               "plugin_path",
@@ -114,7 +114,7 @@ def print_version(ctx, param, value):
 @click.pass_context
 @io.capture_exception(PluginException.NotFoundError)
 @io.capture_exception(PluginException.LoadError)
-def cli(ctx, verbose, color, encoding, exec_path, width, plugin_path,
+def cli(ctx, verbose, color, encoding, exec_path, plugin_path,
         select_plugins, tui, debug):
     """PCVS main program."""
     ctx.ensure_object(dict)

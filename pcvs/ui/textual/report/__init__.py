@@ -104,18 +104,18 @@ class SessionPickScreen(ModalScreen):
         pass
 
     @on(Button.Pressed, "#session-pick-cancel")
-    def pop_screen(self, event):
+    def pop_screen(self, event):  # pylint: disable=unused-argument
         self.app.pop_screen()
 
     @on(Button.Pressed, "#session-pick-done")
-    def set_active_session(self, event):
+    def set_active_session(self, event):  # pylint: disable=unused-argument
         selected_row = self.query_one(ActiveSessionList).selected
         self.app.model.set_active(selected_row)
         self.post_message(SessionPickScreen.SwitchAnotherSession())
         self.app.pop_screen()
 
     @on(Button.Pressed, "#add-session")
-    def add_from_file_browser(self, event):
+    def add_from_file_browser(self, event):  # pylint: disable=unused-argument
         if self.query_one(Input).value:
             path = os.path.abspath(
                 os.path.expanduser(self.query_one(Input).value))
@@ -176,10 +176,10 @@ class SingleJobViewer(Widget):
         yield self.cmd
         yield self.log
 
-    def watch_log(self, old, new):
+    def watch_log(self, old, new):  # pylint: disable=unused-argument
         self.log = new
 
-    def watch_cmd(self, old, new):
+    def watch_cmd(self, old, new):  # pylint: disable=unused-argument
         self.cmd = new
 
 
@@ -256,7 +256,7 @@ class SessionInfoScreen(ModalScreen):
                         id="session-infos")
 
     @on(Button.Pressed)
-    def quit_infos(self, ev):
+    def quit_infos(self, event):  # pylint: disable=unused-argument
         self.app.pop_screen()
 
 
@@ -279,7 +279,7 @@ class ReportApplication(App):
     CSS_PATH = "main.css"
 
     @on(SessionPickScreen.SwitchAnotherSession)
-    def switch_session(self, event):
+    def switch_session(self, event):  # pylint: disable=unused-argument
         """
         Coming back from picking a session, refresh the table
 
@@ -306,7 +306,7 @@ class ReportApplication(App):
         super().__init__()
 
 
-def start_app(p=None) -> int:
+def start_app(p=None) -> int:  # pylint: disable=unused-argument
     """
     handler to start a new Textual application.
 

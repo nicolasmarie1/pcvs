@@ -22,7 +22,7 @@ except ImportError:
     import click
 
 
-def iterate_dirs(ctx, param, value) -> dict:
+def iterate_dirs(ctx, param, value) -> dict:  # pylint: disable=unused-argument
     """Validate directories provided by users & format them correctly.
 
     Set the defaul label for a given path if not specified & Configure default
@@ -68,7 +68,7 @@ def iterate_dirs(ctx, param, value) -> dict:
     return list_of_dirs
 
 
-def compl_list_dirs(ctx, args, incomplete) -> list:  # pragma: no cover
+def compl_list_dirs(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
     """directory completion function.
 
     :param ctx: Click context

@@ -173,7 +173,7 @@ def exec_cli(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout,
               default=True,
               help="Enable/Disable auto-conversion through `pcvs_convert`")
 @click.pass_context
-def check(ctx, directory, encoding, color, configs, profiles, pf_name, conversion):
+def check(ctx, directory, encoding, color, configs, profiles, pf_name, conversion):  # pylint: disable=unused-argument
     """Global input/output analyzer, validating configuration, profiles &
     terminal supports."""
     io.console.print_banner()
@@ -266,7 +266,7 @@ def check(ctx, directory, encoding, color, configs, profiles, pf_name, conversio
                 type=click.Path(exists=True),
                 nargs=-1)
 @click.pass_context
-def clean(ctx, force, fake, paths, remove_build_dir, interactive):
+def clean(ctx, force, fake, paths, remove_build_dir, interactive):  # pylint: disable=unused-argument
     """Find & clean workspaces from PCVS artifacts (build & archives)"""
     if not fake and not force:
         io.console.warn("\n".join([
@@ -327,7 +327,7 @@ def clean(ctx, force, fake, paths, remove_build_dir, interactive):
 @click.option("-c/-l", "--create/--list", "create", is_flag=True, default=False)
 @click.option("-f", "--force", "force", is_flag=True, default=False)
 @click.pass_context
-def discover(ctx, paths, create, force):
+def discover(ctx, paths, create, force):  # pylint: disable=unused-argument
     """Discover & integrate new benchmarks to PCVS format."""
     if not paths:
         paths = [os.getcwd()]

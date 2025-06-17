@@ -107,16 +107,12 @@ class Config:
     Config. These are then gathered in a `MetaConfig` object (see below)
     """
 
-    def __init__(self, d: dict = {}, *args, **kwargs):
+    def __init__(self, d: dict = {}):
         """
         Init the object.
 
         :param d: items of the configuration
         :type d: dict
-        :param *args: items of the configuration
-        :type *args: tuple
-        :param **kwargs: items of the configuration
-        :type **kwargs: dict
         """
         self.config = copy.deepcopy(d)
 
@@ -216,25 +212,15 @@ class MetaConfig(Config):
     """
     validation_default_file = pcvs.PATH_VALCFG
 
-    def __init__(self, d: dict = {}, *args, **kwargs):
+    def __init__(self, d: dict = {}):
         """
         Init the object.
 
         :param d: items of the configuration
         :type d: dict
-        :param *args: items of the configuration
-        :type *args: tuple
-        :param **kwargs: items of the configuration
-        :type **kwargs: dict
         """
         super().__init__(d)
         self.__internal_config = {}
-
-    #def __setitem__(self, param, value):
-    #    super().__setitem__(param, value)
-
-    #def __getitem__(self, k):
-    #    return super().__getitem__(k)
 
     def bootstrap_generic(self, subnode_name: str, node: dict, filepath: str):
         """
@@ -249,7 +235,6 @@ class MetaConfig(Config):
         :return: added subnode
         :rtype: dict
         """
-
         if subnode_name not in self.config:
             self[subnode_name] = Config(node)
 

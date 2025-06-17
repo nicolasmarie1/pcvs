@@ -152,8 +152,8 @@ class ResultFile:
             yield elt
 
     def extract_output(self, offset, length) -> str:
-        assert (offset >= 0)
-        assert (length > 0)
+        assert offset >= 0
+        assert length > 0
 
         self._rawout_reader.seek(offset)
         rawout = self._rawout_reader.read(length).decode('utf-8')
@@ -163,30 +163,30 @@ class ResultFile:
 
         return rawout[len(self.MAGIC_TOKEN):]
 
-    def retrieve_test(self, id=None, name=None) -> List[Test]:
+    def retrieve_test(self, job_id=None, name=None) -> List[Test]:
         """
         Find jobs based on its id or name and return associated Test object.
 
         Only id OR name should be set (not both). To handle multiple matches,
         this function returns a list of class:`Test`.
 
-        :param id: job id, defaults to None
-        :type id: int, optional
+        :param job_id: job id, defaults to None
+        :type job_id: int, optional
         :param name: test name (full), defaults to None
         :type name: str, optional
         :return: A list of class:`Test`
         :rtype: list
         """
-        if (id is None and name is None) or \
-                (id is not None and name is not None):
-            raise PublisherException.UnknownJobError(id, name)
+        if (job_id is None and name is None) or \
+                (job_id is not None and name is not None):
+            raise PublisherException.UnknownJobError(job_id, name)
 
         lookup_table = []
-        if id is not None:
-            if id not in self._data:
+        if job_id is not None:
+            if job_id not in self._data:
                 return []
             else:
-                lookup_table = [self._data[id]]
+                lookup_table = [self._data[job_id]]
         elif name is not None:
             lookup_table = list(
                 filter(lambda x: name in x['id']['fq_name'],
@@ -318,28 +318,28 @@ class ResultFileManager:
     def reconstruct_map_data(self) -> None:
         for job in self.browse_tests():
             self._mapdata_rev[job.id] = job.output_info['file']
-            self._mapdata.setdefault(job.output_info['file'], list())
-            self._mapdata[job.output_info['file']].append(id)
+            self._mapdata.setdefault(job.output_info['file'], [])
+            self._mapdata[job.output_info['file']].append(job.id)
 
     def reconstruct_view_data(self) -> None:
         for job in self.browse_tests():
             state = str(job.state)
-            id = job.jid
-            self._viewdata['status'][state].append(id)
+            job_id = job.id
+            self._viewdata['status'][state].append(job_id)
             for tag in job.tags:
                 if tag not in self._viewdata['tags']:
                     self.register_view_item(view='tags', item=tag)
-                self._viewdata['tags'][tag][state].append(id)
+                self._viewdata['tags'][tag][state].append(job_id)
 
             self.register_view_item('tree', job.label)
-            self._viewdata['tree'][job.label][state].append(id)
+            self._viewdata['tree'][job.label][state].append(job_id)
             if job.subtree:
                 nodes = job.subtree.split('/')
                 nb_nodes = len(nodes)
                 for i in range(1, nb_nodes + 1):
                     name = "/".join([job.label] + nodes[:i])
                     self.register_view_item('tree', name)
-                    self._viewdata['tree'][name][state].append(id)
+                    self._viewdata['tree'][name][state].append(job_id)
 
     def __init__(self,
                  prefix=".",
@@ -358,7 +358,7 @@ class ResultFileManager:
         """
         self._current_file = None
         self._outdir = prefix
-        self._opened_files: Dict[ResultFile] = dict()
+        self._opened_files: Dict[ResultFile] = {}
 
         map_filename = os.path.join(prefix, 'maps.json')
         view_filename = os.path.join(prefix, 'views.json')
@@ -417,8 +417,8 @@ class ResultFileManager:
         :param job: the job element to store
         :type job: class:`Test`
         """
-        id = job.jid
-        if id in self._mapdata.keys():
+        job_id = job.jid
+        if job_id in self._mapdata.keys():
             raise PublisherException.AlreadyExistJobError(job.name)
 
         # create a new file if the current one is 'large' enough
@@ -427,44 +427,44 @@ class ResultFileManager:
             self.create_new_result_file()
 
         # save info to file
-        self._current_file.save(id, job.to_json(), job.encoded_output)
+        self._current_file.save(job_id, job.to_json(), job.encoded_output)
 
         # register this location from the map-id table
-        self._mapdata_rev[id] = self._current_file.prefix
+        self._mapdata_rev[job_id] = self._current_file.prefix
         assert self._current_file.prefix in self._mapdata
-        self._mapdata[self._current_file.prefix].append(id)
+        self._mapdata[self._current_file.prefix].append(job_id)
         # record this save as a FAILURE/SUCCESS statistic for multiple views
         state = str(job.state)
-        self._viewdata['status'][state].append(id)
+        self._viewdata['status'][state].append(job_id)
         for tag in job.tags:
             if tag not in self._viewdata['tags']:
                 self.register_view_item(view='tags', item=tag)
-            self._viewdata['tags'][tag][state].append(id)
+            self._viewdata['tags'][tag][state].append(job_id)
 
         self.register_view_item('tree', job.label)
-        self._viewdata['tree'][job.label][state].append(id)
+        self._viewdata['tree'][job.label][state].append(job_id)
         if job.subtree:
             nodes = job.subtree.split('/')
             nb_nodes = len(nodes)
             for i in range(1, nb_nodes + 1):
                 name = "/".join([job.label] + nodes[:i])
                 self.register_view_item('tree', name)
-                self._viewdata['tree'][name][state].append(id)
+                self._viewdata['tree'][name][state].append(job_id)
 
-    def retrieve_test(self, id) -> Optional[Test]:
+    def retrieve_test(self, job_id) -> Optional[Test]:
         """
         Build the Test object mapped to the given job id.
 
         If such ID does not exist, it will return None.
 
-        :param id: _description_
-        :type id: _type_
+        :param job_id: _description_
+        :type job_id: _type_
         :return: _description_
         :rtype: List[Test]
         """
-        if id not in self._mapdata_rev:
+        if job_id not in self._mapdata_rev:
             return None
-        filename = self._mapdata_rev[id]
+        filename = self._mapdata_rev[job_id]
         handler = None
         if filename == self._current_file.metadata_prefix:
             handler = self._current_file
@@ -474,13 +474,13 @@ class ResultFileManager:
             handler = ResultFile(self._outdir, filename)
             self._mapdata[filename] = handler
 
-        res = handler.retrieve_test(id=id)
+        res = handler.retrieve_test(job_id=job_id)
         if res:
             if len(res) > 1:
                 raise CommonException.UnclassifiableError(
                     reason="Given info leads to more than one job",
                     dbg_info={
-                        "data": id,
+                        "data": job_id,
                         'matches': res
                     })
             else:
@@ -547,7 +547,7 @@ class ResultFileManager:
         ResultFileManager.increment += 1
         self._current_file = ResultFile(self._outdir, filename)
         self._opened_files[filename] = self._current_file
-        self._mapdata.setdefault(self._current_file.prefix, list())
+        self._mapdata.setdefault(self._current_file.prefix, [])
 
     def flush(self) -> None:
         """
@@ -592,18 +592,18 @@ class ResultFileManager:
         """
         return len(self._mapdata_rev.keys())
 
-    def map_id(self, id):
+    def map_id(self, job_id):
         """
         Comnvert a job ID into its class:`Test` representation.
 
-        :param id: job id
-        :type id: int
+        :param job_id: job id
+        :type job_id: int
         :return: the associated Test object or None if not found
         :rtype: class:`Test` or None
         """
-        if id not in self._mapdata_rev:
+        if job_id not in self._mapdata_rev:
             return None
-        res = self._mapdata_rev[id]
+        res = self._mapdata_rev[job_id]
         # if the mapped object is already resolved:
         if isinstance(res, Test):
             return res
@@ -612,11 +612,11 @@ class ResultFileManager:
             self._opened_files[res] = ResultFile(self._outdir, res)
         hdl = self._opened_files[res]
 
-        match = hdl.retrieve_test(id=id)
-        assert (len(match) <= 1)
+        match = hdl.retrieve_test(job_id=job_id)
+        assert len(match) <= 1
         if match:
             # cache the mapping
-            self._mapdata_rev[id] = match[0]
+            self._mapdata_rev[job_id] = match[0]
             return match[0]
         else:
             return None
@@ -774,9 +774,9 @@ class BuildDirectoryManager:
 
         self.clean_archives()
 
-        self.save_extras(pcvs.NAME_BUILD_CACHEDIR, dir=True, export=False)
-        self.save_extras(pcvs.NAME_BUILD_CONTEXTDIR, dir=True, export=False)
-        self.save_extras(pcvs.NAME_BUILD_SCRATCH, dir=True, export=False)
+        self.save_extras(pcvs.NAME_BUILD_CACHEDIR, directory=True, export=False)
+        self.save_extras(pcvs.NAME_BUILD_CONTEXTDIR, directory=True, export=False)
+        self.save_extras(pcvs.NAME_BUILD_SCRATCH, directory=True, export=False)
 
     @property
     def sid(self) -> Optional[int]:
@@ -862,7 +862,7 @@ class BuildDirectoryManager:
     def save_extras(self,
                     rel_filename,
                     data="",
-                    dir=False,
+                    directory=False,
                     export=False) -> None:
         """
         Register a specific build-relative path, to be saved into the directory.
@@ -877,8 +877,8 @@ class BuildDirectoryManager:
         :type rel_filename: str
         :param data: data to be saved into the target file, defaults to ""
         :type data: Any, optional
-        :param dir: is it a directory to save, defaults to False
-        :type dir: bool, optional
+        :param directory: is it a directory to save, defaults to False
+        :type directory: bool, optional
         :param export: should the target be also exported in final archive, defaults to False
         :type export: bool, optional
         """
@@ -887,7 +887,7 @@ class BuildDirectoryManager:
                 reason="Extras should be saved as relative paths",
                 dbg_info={"filename": rel_filename})
 
-        if dir:
+        if directory:
             try:
                 os.makedirs(os.path.join(self._path, rel_filename))
             except FileExistsError:
@@ -1019,7 +1019,7 @@ class BuildDirectoryManager:
         archive.close()
 
         d = [x for x in os.listdir(path) if x.startswith("pcvsrun_")]
-        assert (len(d) == 1)
+        assert len(d) == 1
         hdl = BuildDirectoryManager(build_dir=os.path.join(path, d[0]))
         hdl.load_config()
         hdl._archive_path = archive_path

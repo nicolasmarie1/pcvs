@@ -36,7 +36,7 @@ class Orchestrator:
     def __init__(self):
         """constructor method"""
         config_tree = GlobalConfig.root
-        self._runners = list()
+        self._runners = []
         self._max_res = config_tree['machine'].get('nodes', 1)
         self._publisher = config_tree.get_internal('build_manager')['results']
         self._manager = Manager(self._max_res, publisher=self._publisher)
@@ -61,8 +61,10 @@ class Orchestrator:
         """
         self._manager.add_job(job)
 
+    # TODO implement restart so the session does not have
+    # to restart from scratch each time
     @io.capture_exception(KeyboardInterrupt, global_stop)
-    def start_run(self, the_session=None, restart=False):
+    def start_run(self, the_session=None, restart=False):  # pylint: disable=unused-argument
         """Start the orchestrator.
 
         :param the_session: container owning the run.
@@ -75,7 +77,7 @@ class Orchestrator:
             Plugin.Step.SCHED_BEFORE)
 
         io.console.info("ORCH: initialize runners")
-        for i in range(0, self._maxconcurrent):
+        for _ in range(0, self._maxconcurrent):
             self.start_new_runner()
 
         self._manager.resolve_deps()
@@ -84,7 +86,7 @@ class Orchestrator:
 
         nb_res = self._max_res
         last_progress = 0
-        pending_list = list()
+        pending_list = []
         io.console.info("ORCH: start job scheduling")
         # While some jobs are available to run
         with io.console.table_container(self._manager.get_count()):
@@ -108,15 +110,14 @@ class Orchestrator:
 
                 # Now, look for a completion
                 try:
-                    set = self._complete_q.get(block=False, timeout=2)
+                    jobs = self._complete_q.get(block=False, timeout=2)
                     io.console.nodebug(
                         "ORCH: recv Set from queue (#{}, sz:{})".format(
-                            set.id, set.size))
-                    nb_res += set.dim
-                    self._manager.merge_subset(set)
+                            jobs.id, jobs.size))
+                    nb_res += jobs.dim
+                    self._manager.merge_subset(jobs)
                 except queue.Empty:
                     self._manager.prune_non_runnable_jobs()
-                    pass
                     # TODO: create backup to allow start/stop
 
                 current_progress = self._manager.get_count(
@@ -172,11 +173,11 @@ class Orchestrator:
         """Request runner threads to stop."""
         RunnerAdapter.sched_in_progress = False
 
-    def run(self, session):
+    def run(self, s):
         """Start the orchestrator.
 
-        :param session: container owning the run.
-        :type session: :class:`Session`
+        :param s: container owning the run.
+        :type s: :class:`Session`
         """
         # pre-actions done only once
-        return self.start_run(session, restart=False)
+        return self.start_run(s, restart=False)

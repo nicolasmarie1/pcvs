@@ -57,9 +57,9 @@ except ImportError:
                                 readable=True,
                                 allow_dash=True))
 @click.pass_context
-def convert(ctx, input_file, kind, template, scheme, out,
+def convert(ctx, input_file, kind, template, scheme, out,  # pylint: disable=unused-argument
             stdout, skip_unknown, in_place) -> None:
     """Convert cli"""
     return pcvs.converter.yaml_converter.convert(
-            ctx, input_file, kind, template, scheme, out,
+            input_file, kind, template, scheme, out,
             stdout, skip_unknown, in_place)

@@ -14,7 +14,7 @@ except ImportError:
     import click
 
 
-def compl_list_token(ctx, args, incomplete) -> list:  # pragma: no cover
+def compl_list_token(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
     """config name completion function.
 
     :param ctx: Click context
@@ -34,7 +34,7 @@ def compl_list_token(ctx, args, incomplete) -> list:  # pragma: no cover
     return [elt for elt in flat_array if incomplete in elt]
 
 
-def compl_list_templates(ctx, args, incomplete) -> list:  # pragma: no cover
+def compl_list_templates(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
     """Config template completion.
 
     :param ctx: Click context
@@ -48,7 +48,7 @@ def compl_list_templates(ctx, args, incomplete) -> list:  # pragma: no cover
 
 @click.group(name="config", short_help="Manage Configuration blocks")
 @click.pass_context
-def config(ctx) -> None:
+def config(ctx) -> None:  # pylint: disable=unused-argument
     """The 'config' command helps user to manage configuration basic blocks in
     order to set up a future validation to process. A basic block is the
     smallest piece of configuration gathering similar informations. Multiple
@@ -111,7 +111,7 @@ def config_list_single_kind(kind, scope) -> None:
               default=False,
               help="Display extra resources (templates, etc.)")
 @click.pass_context
-def config_list(ctx, token, all_configs) -> None:
+def config_list(ctx, token, all_configs) -> None:  # pylint: disable=unused-argument
     """List available configurations on the system. The list can be
     filtered by applying a KIND. Possible values for KIND are documented
     through the `pcvs config --help` command.
@@ -165,7 +165,7 @@ def config_list(ctx, token, all_configs) -> None:
                 type=click.STRING,
                 shell_complete=compl_list_token)
 @click.pass_context
-def config_show(ctx, token) -> None:
+def config_show(ctx, token) -> None:  # pylint: disable=unused-argument
     """Prints a detailed description of this configuration block, labeled NAME
     and belonging to the KIND kind.
 
@@ -211,7 +211,7 @@ def config_show(ctx, token) -> None:
               is_flag=True,
               help="Directly open the created config block in $EDITOR")
 @click.pass_context
-def config_create(ctx, token, clone, base, interactive) -> None:
+def config_create(ctx, token, clone, base, interactive) -> None:  # pylint: disable=unused-argument
     """Create a new configuration block for the given KIND. The newly created
     block will be labeled NAME. It is inherited from a default template. This
     can be overriden by spefifying a CLONE argument.
@@ -269,7 +269,7 @@ def config_create(ctx, token, clone, base, interactive) -> None:
     prompt="Are you sure you want to delete this config ?",
     help="Do not ask for confirmation before deletion")
 @click.pass_context
-def config_destroy(ctx, token) -> None:
+def config_destroy(ctx, token) -> None:  # pylint: disable=unused-argument
     """
     Erase from disk a previously created configuration block.
 
@@ -298,7 +298,7 @@ def config_destroy(ctx, token) -> None:
               default=False,
               help="runtime-only: edit plugin code instead of config file")
 @click.pass_context
-def config_edit(ctx, token, edit_plugin) -> None:
+def config_edit(ctx, token, edit_plugin) -> None:  # pylint: disable=unused-argument
     """
     Open the file with $EDITOR for direct modifications. The configuration is
     then validated to ensure consistency.
@@ -336,7 +336,7 @@ def config_edit(ctx, token, edit_plugin) -> None:
               default=False,
               help="Erase any previously existing config.")
 @click.pass_context
-def config_import(ctx, token, in_file, force) -> None:
+def config_import(ctx, token, in_file, force) -> None:  # pylint: disable=unused-argument
     """
     Import a new configuration block from a YAML file named IN_FILE.
     The configuration is then validated to ensure consistency.
@@ -365,7 +365,7 @@ def config_import(ctx, token, in_file, force) -> None:
               type=click.File('w'),
               default=sys.stdout)
 @click.pass_context
-def config_export(ctx, token, out_file):
+def config_export(ctx, token, out_file):  # pylint: disable=unused-argument
     """
     Export a new configuration block to a YAML file named OUT_FILE.
 

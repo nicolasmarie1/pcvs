@@ -30,7 +30,7 @@ except ImportError:
               type=int,
               help="Run jobs concurrently")
 @click.pass_context
-def remote_run(ctx, buildir, ctx_path, parallel):
+def remote_run(ctx, buildir, ctx_path, parallel):  # pylint: disable=unused-argument
     """
     This command is not intended to be used by end users. Please reporte any
     failure coming from this invocation.
