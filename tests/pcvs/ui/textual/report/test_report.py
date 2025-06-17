@@ -1,4 +1,4 @@
-from pcvs.ui.textual import report as tested
+from pcvs.ui.textual import report as tested  # pylint: disable=unused-import
 
 from ....conftest import click_call
 from ....conftest import isolated_fs

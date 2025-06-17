@@ -8,10 +8,9 @@ with open(os.path.join("pcvs/version.py")) as fh:
 
 try:
     import sh
-    # pylint: disable=too-many-function-args
     # pylint fail to parse sh.git function correctly
-    version += "+{}".format(sh.git("rev-parse", "HEAD").strip()[:8])
-    if sh.git('--no-pager', 'diff', 'HEAD'):
+    version += "+{}".format(sh.git("rev-parse", "HEAD").strip()[:8])  # pylint: disable=too-many-function-args
+    if sh.git('--no-pager', 'diff', 'HEAD'):  # pylint: disable=too-many-function-args
         version += ".dirty"
 except Exception:
     pass

@@ -31,6 +31,7 @@ echo "failure"
 exit 42
 """
 
+
 def help_create_setup_file(path, s):
     os.makedirs(os.path.dirname(path))
     with open(path, 'w') as fh:
@@ -55,7 +56,7 @@ def mock_config():
             yield {}
 
 
-def test_process_setup_scripts(mock_config):
+def test_process_setup_scripts(mock_config):  # pylint: disable=unused-argument,redefined-outer-name
     d = os.path.join(GlobalConfig.root['validation']['dirs']['L1'], "subtree")
     f = os.path.join(d, "pcvs.setup")
     help_create_setup_file(f, good_content)
@@ -64,7 +65,7 @@ def test_process_setup_scripts(mock_config):
         tested.process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
 
 
-def test_process_bad_setup_script(mock_config):
+def test_process_bad_setup_script(mock_config):  # pylint: disable=unused-argument,redefined-outer-name
     d = os.path.join(GlobalConfig.root['validation']['dirs']['L1'], "subtree")
     f = os.path.join(d, "pcvs.setup")
     help_create_setup_file(f, bad_script)
@@ -75,7 +76,7 @@ def test_process_bad_setup_script(mock_config):
         pass
 
 
-def test_process_wrong_setup_script(mock_config):
+def test_process_wrong_setup_script(mock_config):  # pylint: disable=unused-argument,redefined-outer-name
     d = os.path.join(GlobalConfig.root['validation']['dirs']['L1'], "subtree")
     f = os.path.join(d, "pcvs.setup")
     help_create_setup_file(f, bad_output)

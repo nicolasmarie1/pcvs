@@ -15,7 +15,7 @@ from ..conftest import click_call
         } for k in ['compiler', 'runtime', 'machine', 'criterion', 'group']
         })
 @patch('pcvs.backend.config.init')
-def test_completion(mock_init):
+def test_completion(mock_init):  # pylint: disable=unused-argument
     assert (set(tested.compl_list_token(None, None, "local.")) == {
         "local.compiler.default", "local.runtime.default", "local.machine.default",
         "local.group.default", "local.criterion.default"})
@@ -40,28 +40,29 @@ def test_list(config_scope, config_kind):
     token = ".".join(filter(None, (config_scope, config_kind)))
 
     if config_scope and config_kind is None:
-        res = click_call('config', 'list', token, success=False)
+        res = click_call('config', 'list', token)
         assert "Invalid " in res.stderr
     else:
         res = click_call('config', 'list', token)
         assert res.exit_code == 0
 
 
+# theses tests may be broken
 def test_list_wrong():
     with pytest.raises(pcvs.helpers.exceptions.ConfigException.BadTokenError):
         res = click_call('config', 'list', 'error')
-        #assert(res.exit_code != 0)
-        #assert ('Invalid KIND' in res.stderr)
+        assert res.exit_code != 0
+        assert 'Invalid KIND' in res.stderr
 
     with pytest.raises(pcvs.helpers.exceptions.ConfigException.BadTokenError):
         res = click_call('config', 'list', 'failure.compiler')
-        #assert(res.exit_code != 0)
-        #assert ('Invalid SCOPE' in res.stderr)
+        assert res.exit_code != 0
+        assert 'Invalid SCOPE' in res.stderr
 
     with pytest.raises(pcvs.helpers.exceptions.ConfigException.BadTokenError):
         res = click_call('config', 'list', 'failure.compiler.extra.field')
-        #assert(res.exit_code != 0)
-        #assert ('Invalid SCOPE' in res.stderr)
+        assert res.exit_code != 0
+        assert 'Invalid SCOPE' in res.stderr
 
 
 @patch('pcvs.backend.config.ConfigurationBlock', autospec=True)
@@ -86,7 +87,7 @@ def test_show(mock_config):
 def test_create(mock_config):
     instance = mock_config.return_value
     instance.is_found.return_value = False
-    
+
     res = click_call('config', 'create', 'compiler.dummy-config')
     assert res.exit_code == 0
     instance.load_template.assert_called_once_with(None)

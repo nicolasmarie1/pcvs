@@ -94,10 +94,10 @@ def kw_keys():
 @pytest.fixture
 def init_config():
     d = {"": "value1", "key2": "value2"}
-    conf = system.Config(d)
+    system.Config(d)
 
 
-def test_validate(kw_keys):
+def test_validate(kw_keys):  # pylint: disable=unused-argument,redefined-outer-name
     vs = system.Config()
     compiler = {
         "compilers": {
@@ -178,5 +178,5 @@ def test_validate(kw_keys):
         vs.validate("wrong_value", filepath=str(__file__))
 
 
-def test_config(init_config):
+def test_config(init_config):  # pylint: disable=unused-argument,redefined-outer-name
     pass

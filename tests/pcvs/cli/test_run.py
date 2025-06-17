@@ -1,15 +1,15 @@
 from unittest.mock import patch
 
-from pcvs.backend import run as tested
-
 from ..conftest import click_call
 from ..conftest import isolated_fs
+
+from pcvs.backend import run as tested # pylint: disable=unused-import
 
 
 @patch("pcvs.backend.session.store_session_to_file", return_value={})
 @patch("pcvs.backend.session.update_session_from_file", return_value={})
 @patch("pcvs.backend.session.remove_session_from_file", return_value={})
-def test_big_integration(rs, us, ss):
+def test_big_integration(rs, us, ss):  # pylint: disable=unused-argument
     with isolated_fs():
         res = click_call('profile', 'create', 'local.default')
         res = click_call('run')
@@ -20,7 +20,7 @@ def test_big_integration(rs, us, ss):
 @patch('pcvs.backend.profile.Profile')
 @patch('pcvs.backend.bank')
 @patch('pcvs.helpers.system')
-def override(mock_sys, mock_bank, mock_pf, mock_run, caplog):
+def override(mock_sys, mock_bank, mock_pf, mock_run, caplog):  # pylint: disable=unused-argument
     with isolated_fs():
         res = click_call('run', '.')
         assert res.exit_code == 0

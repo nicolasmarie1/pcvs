@@ -38,4 +38,4 @@ def test_check_configs(mock_config):
 
 
 def test_check_directory():
-    res = click_call('check', '--directory', '.')
+    click_call('check', '--directory', '.')

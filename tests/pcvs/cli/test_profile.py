@@ -20,7 +20,7 @@ def test_cmd():
         'global': [('system-wide', "/path/to/system-wide.yml")]
         })
 @patch('pcvs.backend.profile.init', return_value=None)
-def test_list(mock_init):
+def test_list(mock_init):  # pylint: disable=unused-argument
     res = click_call('profile', 'list')
     assert res.exit_code == 0
     assert 'default' in res.stdout

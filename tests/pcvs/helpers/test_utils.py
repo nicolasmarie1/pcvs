@@ -30,7 +30,7 @@ def test_token_extraction_2(token):
                                    "global.comppiler.this.is.a.test"])
 def test_token_extraction_3(token):
     split = token.split(".")
-    assert(tested.extract_infos_from_token(token) == (split[0], split[1], ".".join(split[2:])))
+    assert (tested.extract_infos_from_token(token) == (split[0], split[1], ".".join(split[2:])))
 
 
 def test_path_cleaner():
@@ -39,10 +39,10 @@ def test_path_cleaner():
         open("./A/B/C/D/file.txt", "w").close()
 
         tested.create_or_clean_path("A/B/C/D/file.txt")
-        assert(not os.path.exists("A/B/C/D/file.txt"))
+        assert not os.path.exists("A/B/C/D/file.txt")
         tested.create_or_clean_path("A/B")
-        assert(os.path.isdir("A/B"))
-        assert(len(os.listdir("A/B")) == 0)
+        assert os.path.isdir("A/B")
+        assert len(os.listdir("A/B")) == 0
 
 
 @pytest.mark.parametrize("wd_dir", ["/home", "/", "/tmp", "./dummy-dir"])
@@ -51,7 +51,7 @@ def test_cwd_manager(wd_dir):
     with CliRunner().isolated_filesystem():
         ref_path = os.path.abspath(wd_dir)
         with tested.cwd(wd_dir):
-            assert(os.getcwd() == ref_path)
+            assert os.getcwd() == ref_path
 
 
 @patch("pcvs.helpers.system.GlobalConfig.root", {

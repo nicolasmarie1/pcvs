@@ -75,7 +75,7 @@ def dummy_run():
         yield path
 
 
-def test_bank_connect(mock_repo_fs):
+def test_bank_connect(mock_repo_fs):  # pylint: disable=redefined-outer-name
     # first test with a specific dir to create the Git repo
     pcvs.io.init()
     obj = tested.Bank(path=mock_repo_fs)
@@ -94,7 +94,7 @@ def test_bank_connect(mock_repo_fs):
     obj.disconnect()
 
 
-def test_save_run(mock_repo_fs, dummy_run, capsys):
+def test_save_run(mock_repo_fs, dummy_run, capsys):  # pylint: disable=redefined-outer-name
     pcvs.io.init()
     obj = tested.Bank(path=mock_repo_fs, token="dummy@original-tag")
     assert not obj.exists()
@@ -117,4 +117,3 @@ def test_save_run(mock_repo_fs, dummy_run, capsys):
     repo = git.elect_handler(mock_repo_fs)
     repo.open()
     assert len(list(repo.branches())) == 3
-
