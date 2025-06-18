@@ -1,5 +1,4 @@
 import os
-import copy
 
 from typing import List
 
@@ -67,7 +66,7 @@ class ValidationScheme:
             raise ValidationException.SchemeError(
                 f"Unable to load scheme {name}") from er
 
-    def validate(self, content, filepath):
+    def validate(self, content: dict, filepath: str):
         """
         Validate a given datastructure (dict) agasint the loaded scheme.
 
@@ -90,6 +89,7 @@ class ValidationScheme:
             raise ValidationException.FormatError(
                 reason=f"Failed to validate input file: '{filepath}'\n"
                        f"Validation against schema '{self.schema_name}'\n"
+                       f"Context is: \n {content}\n"
                        f"Schema is: \n {self.schema}\n"
                        f"Validation error message is:\n {e.message}\n"
                 ) from e
@@ -98,7 +98,7 @@ class ValidationScheme:
                     name=self.schema_name, content=self.schema, error=e) from e
 
 
-class Config:
+class Config(dict):
     """
     A 'Config' is a dict used to manage all configuration fields.
 
@@ -114,7 +114,7 @@ class Config:
         :param d: items of the configuration
         :type d: dict
         """
-        self.config = copy.deepcopy(d)
+        super().__init__(**d)
 
     def validate(self, kw, filepath: str):
         """Check if the Config instance matches the expected format as declared
@@ -129,25 +129,6 @@ class Config:
         assert filepath
         assert kw in ValidationScheme.available_schemes()
         ValidationScheme(kw).validate(self, filepath)
-
-    def __setitem__(self, param, value):
-        """
-        Config sub object set.
-
-        :param param: name of value to add to configuration
-        :type param: str
-        :param value: value to add to configuration
-        :type value: object
-        """
-        self.config.__setitem__(param, value)
-
-    def __getitem__(self, k):
-        """
-        Config sub item get.
-
-        :param k: name of the item to get.
-        """
-        return self.config.__getitem__(k)
 
     def set_ifdef(self, k, v):
         """
@@ -173,9 +154,16 @@ class Config:
         if k not in self:
             self[k] = v
 
+    @classmethod
+    def __to_dict(cls, d):
+        for k, v in d.items():
+            if isinstance(v, dict):  # is MetaConfig or v is Config:
+                d[k] = Config.__to_dict(v)
+        return dict(d)
+
     def to_dict(self):
         """Convert the Config() to regular dict."""
-        return copy.deepcopy(self.config)
+        return Config.__to_dict(self)
 
     def from_dict(self, d):
         """
@@ -184,7 +172,7 @@ class Config:
         :param d: dictionary to add
         :type d: dict
         """
-        self.config = copy.deepcopy(d)
+        self.update(d)
 
     def from_file(self, filename):
         """
@@ -209,10 +197,12 @@ class MetaConfig(Config):
     This MetaConfig() contains the whole profile along with
     any validation and current run information.
     This configuration is used as a dict extension.
+
+    The internal_config is used to initialize the internal config during unit test
     """
     validation_default_file = pcvs.PATH_VALCFG
 
-    def __init__(self, d: dict = {}):
+    def __init__(self, d: dict = {}, internal_config: dict = {}):
         """
         Init the object.
 
@@ -220,7 +210,7 @@ class MetaConfig(Config):
         :type d: dict
         """
         super().__init__(d)
-        self.__internal_config = {}
+        self.__internal_config = internal_config
 
     def bootstrap_generic(self, subnode_name: str, node: dict, filepath: str):
         """
@@ -235,7 +225,7 @@ class MetaConfig(Config):
         :return: added subnode
         :rtype: dict
         """
-        if subnode_name not in self.config:
+        if subnode_name not in self:
             self[subnode_name] = Config(node)
 
         self[subnode_name].validate(subnode_name, filepath)
@@ -359,7 +349,7 @@ class MetaConfig(Config):
         subtree.set_nosquash('job_timeout', 3600)
         subtree.set_nosquash('per_result_file_sz', 10 * 1024 * 1024)
         subtree.set_nosquash('buildcache',
-                             os.path.join(subtree.output, 'cache'))
+                             os.path.join(subtree['output'], 'cache'))
         subtree.set_nosquash('result', {"format": ['json']})
         subtree.set_nosquash(
             'author', {
@@ -368,11 +358,11 @@ class MetaConfig(Config):
             })
 
         if 'format' not in subtree['result']:
-            subtree['result'].format = ['json']
+            subtree['result']['format'] = ['json']
         if 'log' not in subtree['result']:
-            subtree['result'].log = 1
-        if 'logsz' not in subtree.result:
-            subtree['result'].logsz = 1024
+            subtree['result']['log'] = 1
+        if 'logsz' not in subtree['result']:
+            subtree['result']['logsz'] = 1024
 
         return subtree
 

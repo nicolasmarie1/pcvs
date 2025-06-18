@@ -272,11 +272,9 @@ class Profile:
                     "Unknown kind in Profile", invalid_kinds=err_dbg)
 
             for kind in config.CONFIG_BLOCKS:
-                # if kind not in self._details:
-                #    raise ValidationException.FormatError(
-                #        "Missing '{}' in profile".format(kind))
-                system.ValidationScheme(kind).validate(self._details[kind],
-                                                       filepath=self._name)
+                if kind in self._details:
+                    system.ValidationScheme(kind).validate(self._details[kind],
+                                                           filepath=self._name)
         except ValidationException.FormatError as parsing_error:
             if not allow_legacy:
                 raise parsing_error

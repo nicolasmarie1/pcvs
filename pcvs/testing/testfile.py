@@ -284,7 +284,8 @@ fi
 
 for arg in "$@"; do case $arg in
 """.format(simulated="sim"
-                if GlobalConfig.root['validation']['simulated'] is True else "",
+                if 'simulated' in GlobalConfig.root['validation'] and
+                GlobalConfig.root['validation']['simulated'] is True else "",
                 pm_string="\n".join([TestFile.cc_pm_string,
                                     TestFile.rt_pm_string])))
 

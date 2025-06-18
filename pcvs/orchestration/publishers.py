@@ -823,9 +823,8 @@ class BuildDirectoryManager:
                   'w') as fh:
             h = YAML(typ='safe')
             h.default_flow_style = None
-            conf = config.dump_for_export()
-            print(conf)
-            h.dump(conf, fh)
+            print(config)
+            h.dump(config.dump_for_export(), fh)
 
     def get_config(self) -> dict:
         """

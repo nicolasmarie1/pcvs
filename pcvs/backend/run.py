@@ -56,19 +56,19 @@ def display_summary(the_session):
     io.console.print_section("Global Information")
     io.console.print_item("Date of execution: {}".format(
         GlobalConfig.root['validation']['datetime'].strftime("%c")))
-    io.console.print_item("Run by: {} <{}>".format(cfg.author.name,
-                                                   cfg.author.email))
+    io.console.print_item("Run by: {} <{}>".format(cfg['author']['name'],
+                                                   cfg['author']['email']))
     io.console.print_item("Active session ID: {}".format(the_session.id))
-    io.console.print_item("Loaded profile: '{}'".format(cfg.pf_name))
-    io.console.print_item("Build stored to: {}".format(cfg.output))
+    io.console.print_item("Loaded profile: '{}'".format(cfg['pf_name']))
+    io.console.print_item("Build stored to: {}".format(cfg['output']))
     io.console.print_item("Criterion matrix size per job: {}".format(
         GlobalConfig.root.get_internal("comb_cnt")))
 
-    if cfg.target_bank:
-        io.console.print_item("Bank Management: {}".format(cfg.target_bank))
+    if cfg['target_bank']:
+        io.console.print_item("Bank Management: {}".format(cfg['target_bank']))
     io.console.print_section("User directories:")
-    width = max([0] + [len(i) for i in cfg.dirs])
-    for k, v in cfg.dirs.items():
+    width = max([0] + [len(i) for i in cfg['dirs']])
+    for k, v in cfg['dirs'].items():
         io.console.print_item("{:<{width}}: {:<{width}}".format(k.upper(),
                                                                 v,
                                                                 width=width))
@@ -79,7 +79,7 @@ def display_summary(the_session):
     io.console.print_section("Orchestration infos")
     GlobalConfig.root.get_internal("orchestrator").print_infos()
 
-    if cfg.simulated is True:
+    if cfg['simulated'] is True:
         io.console.print_box("\n".join([
             "[red bold]DRY-RUN:[yellow] TEST EXECUTION IS [underline]EMULATED[/] <<<<",
             "[yellow italic]>>>> Dry run enabled for setup checking purposes."
@@ -122,7 +122,7 @@ def process_main_workflow(the_session=None):
 
     valcfg['sid'] = the_session.id
     build_manager = BuildDirectoryManager(build_dir=valcfg['output'])
-    GlobalConfig.root.set_internal('build_manager', build_manager)
+    global_config.set_internal('build_manager', build_manager)
 
     io.console.print_banner()
     io.console.print_header("Initialization")
@@ -135,9 +135,9 @@ def process_main_workflow(the_session=None):
     else:
         io.console.print_section("Load Test Suites")
         start = time.time()
-        if GlobalConfig.root['validation'].dirs:
+        if valcfg['dirs']:
             process_files()
-        if GlobalConfig.root['validation'].spack_recipe:
+        if valcfg['spack_recipe']:
             process_spack()
         end = time.time()
         io.console.print_section(
@@ -157,7 +157,7 @@ def process_main_workflow(the_session=None):
         return 0
 
     io.console.print_header("Execution")
-    run_rc = GlobalConfig.root.get_internal('orchestrator').run(the_session)
+    run_rc = global_config.get_internal('orchestrator').run(the_session)
     rc += run_rc if isinstance(run_rc, int) else 1
 
     io.console.print_header("Finalization")
@@ -229,27 +229,27 @@ def prepare():
     """
     io.console.print_section("Prepare environment")
     valcfg = GlobalConfig.root['validation']
-    build_man = GlobalConfig.root.get_internal('build_manager')
+    build_man: BuildDirectoryManager = GlobalConfig.root.get_internal('build_manager')
 
-    utils.start_autokill(valcfg.timeout)
+    utils.start_autokill(valcfg['timeout'])
 
     io.console.print_item("Check whether build directory is valid")
-    build_man.prepare(reuse=valcfg.reused_build)
+    build_man.prepare(reuse=valcfg['reused_build'])
 
     per_file_max_sz = 0
     try:
-        per_file_max_sz = int(valcfg.per_result_file_sz)
+        per_file_max_sz = int(valcfg['per_result_file_sz'])
     except (TypeError, ValueError):
         pass
     build_man.init_results(per_file_max_sz=per_file_max_sz)
 
-    for label in valcfg.dirs.keys():
+    for label in valcfg['dirs'].keys():
         build_man.save_extras(os.path.join(NAME_BUILD_SCRATCH, label),
-                              dir=True,
+                              directory=True,
                               export=False)
 
-    build_man.save_extras(NAME_BUILD_CACHEDIR, dir=True, export=False)
-    valcfg.buildcache = os.path.join(build_man.prefix, NAME_BUILD_CACHEDIR)
+    build_man.save_extras(NAME_BUILD_CACHEDIR, directory=True, export=False)
+    valcfg['buildcache'] = os.path.join(build_man.prefix, NAME_BUILD_CACHEDIR)
 
     io.console.print_item("Ensure user-defined programs exist")
     __check_defined_program_validity()
@@ -261,22 +261,22 @@ def prepare():
     # TODO: replace resource here by the one read from config
     TEDescriptor.init_system_wide('n_node')
 
-    if valcfg.enable_report:
+    if valcfg['enable_report']:
         io.console.print_section("Connection to the Reporting Server")
         comman = None
-        if valcfg.report_addr == "local":
-            comman = communications.EmbeddedServer(valcfg.sid)
+        if valcfg['report_addr'] == "local":
+            comman = communications.EmbeddedServer(valcfg['sid'])
             io.console.print_item("Running a local instance")
         else:
-            comman = communications.RemoteServer(valcfg.sid,
-                                                 valcfg.report_addr)
+            comman = communications.RemoteServer(valcfg['sid'],
+                                                 valcfg['report_addr'])
             io.console.print_item("Listening on {}".format(comman.endpoint))
         GlobalConfig.root.set_internal('comman', comman)
 
     io.console.print_item("Init the global Orchestrator")
     GlobalConfig.root.set_internal('orchestrator', Orchestrator())
 
-    io.console.print_item("Save Configurations into {}".format(valcfg.output))
+    io.console.print_item("Save Configurations into {}".format(valcfg['output']))
     build_man.save_config(GlobalConfig.root)
 
 
@@ -335,7 +335,7 @@ def process_files():
     """
     io.console.print_item("Locate benchmarks from user directories")
     setup_files, yaml_files = find_files_to_process(
-        GlobalConfig.root['validation'].dirs)
+        GlobalConfig.root['validation']['dirs'])
 
     io.console.debug(f"Found setup files: {pprint.pformat(setup_files)}")
     io.console.debug(f"Found static files: {pprint.pformat(yaml_files)}")
@@ -360,7 +360,7 @@ def process_spack():
     io.console.print_item("Build test-bases from Spack recipes")
     label = "spack"
     path = "/spack"
-    GlobalConfig.root['validation'].dirs[label] = path
+    GlobalConfig.root['validation']['dirs'][label] = path
     build_man = GlobalConfig.root.get_internal('build_manager')
 
     _, _, rbuild, _ = testing.generate_local_variables(label, '')
@@ -369,7 +369,7 @@ def process_spack():
                           export=False)
 
     for spec in io.console.progress_iter(
-            GlobalConfig.root['validation'].spack_recipe):
+            GlobalConfig.root['validation']['spack_recipe']):
         _, _, _, cbuild = testing.generate_local_variables(label, spec)
         build_man.save_extras(os.path.relpath(cbuild, build_man.prefix),
                               dir=True,
@@ -435,7 +435,7 @@ def process_dyn_setup_scripts(setup_files):
     env_config = build_env_from_configuration(GlobalConfig.root)
     env.update(env_config)
 
-    with open(os.path.join(GlobalConfig.root['validation'].output,
+    with open(os.path.join(GlobalConfig.root['validation']['output'],
                            NAME_BUILD_CONF_SH), 'w', encoding='utf-8') as fh:
         fh.write(utils.str_dict_as_envvar(env_config))
         fh.close()
@@ -556,9 +556,8 @@ def anonymize_archive():
         preserve the anonymization, only the archive must be exported/shared,
         not the actual build directory.
     """
-    config = GlobalConfig.root['validation']
-    outdir = config['output']
-    for root, _, files in os.walk(config['output']):
+    outdir = GlobalConfig.root['validation']['output']
+    for root, _, files in os.walk(outdir):
         for f in files:
             if not f.endswith(
                 ('.xml', '.json', '.yml', '.txt', '.md', '.html')):
@@ -585,14 +584,14 @@ def terminate():
         Plugin.Step.END_BEFORE)
 
     build_man = GlobalConfig.root.get_internal('build_manager')
-    outdir = GlobalConfig.root['validation'].output
+    outdir = GlobalConfig.root['validation']['output']
 
     io.console.print_section("Prepare results")
     io.console.move_debug_file(outdir)
     archive_path = build_man.create_archive()
     io.console.print_item("Archive: {}".format(archive_path))
 
-    # if GlobalConfig.root['validation'].anonymize:
+    # if GlobalConfig.root['validation']['anonymize']:
     #    io.console.print_item("Anonymize data")
     #    anonymize_archive()
 
@@ -625,9 +624,9 @@ def dup_another_build(build_dir, outdir):
         global_config = MetaConfig(d)
 
     # first, clear fields overridden by current run
-    global_config['validation'].output = outdir
-    global_config['validation'].reused_build = build_dir
-    global_config['validation'].buildcache = os.path.join(outdir,
+    global_config['validation']['output'] = outdir
+    global_config['validation']['reused_build'] = build_dir
+    global_config['validation']['buildcache'] = os.path.join(outdir,
                                                        NAME_BUILD_CACHEDIR)
 
     # second, copy any xml/sh files to be reused

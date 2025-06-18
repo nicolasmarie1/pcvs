@@ -5,21 +5,23 @@ from pcvs.helpers import system
 from pcvs.testing import test as tested
 
 
-@patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig({
-    "_MetaConfig__internal_config": {
+@patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig(
+    {
+        "validation": {
+            "output": "test_output",
+            "dirs": {
+                "keytestdir": "valuetestdir"
+            }
+        },
+        "group": {
+            "GRPSERIAL": {}
+        },
+        "criterion": {}
+    },
+    {
         "cc_pm": "test_cc_pm"
-    },
-    "validation": {
-        "output": "test_output",
-        "dirs": {
-            "keytestdir": "valuetestdir"
-        }
-    },
-    "group": {
-        "GRPSERIAL": {}
-    },
-    "criterion": {}
-}))
+    }
+))
 def test_test():
     test = tested.Test(
         label="label",

@@ -34,10 +34,6 @@ def test_handle_job_deps(mock_id):
 @patch("pcvs.helpers.system.GlobalConfig.root",
        system.MetaConfig(
         {
-            "_MetaConfig__internal_config": {
-                "cc_pm": pm.SpackManager("this_is_a_test"),
-                'pColl': Collection(),
-            },
             "validation": {
                 "output": "test_output",
                 "dirs": {
@@ -55,7 +51,12 @@ def test_handle_job_deps(mock_id):
             "runtime": {"criterion": {
                 "n_mpi": {"option": "-n ", "numeric": True, "values": [1, 2, 3, 4]}}
             }
-        }))
+        },
+        {
+            "cc_pm": pm.SpackManager("this_is_a_test"),
+            'pColl': Collection(),
+        }
+       ))
 def test_tedesc_regular():
     criterion.initialize_from_system()
     tested.TEDescriptor.init_system_wide("n_node")
@@ -98,26 +99,36 @@ def test_tedesc_regular():
 
 
 @patch.dict(os.environ, {'HOME': '/home/user', 'USER': 'superuser'})
-@patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig({
-    "_MetaConfig__internal_config": {
-        "cc_pm": pm.SpackManager("this_is_a_test"),
-    },
-    "validation": {
-        "output": "test_output",
-        "dirs": {
-            "label": "/this/directory"
+@patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig(
+    {
+        "validation": {
+            "output": "test_output",
+            "dirs": {
+                "label": "/this/directory"
+            }
+        },
+        "group": {
+            "GRPSERIAL": {}
+        },
+        "compiler": {
+            "compilers": {
+                "cc": {'program': "/path/to/cc", "extension": "\\.c$"}
+            },
+        },
+        "runtime": {
+            "criterion": {
+                "n_mpi": {
+                    "option": "-n ",
+                    "numeric": True,
+                    "values": [1, 2, 3, 4]
+                }
+            }
         }
     },
-    "group": {
-        "GRPSERIAL": {}
-    },
-    "compiler": {
-        "compilers": {
-            "cc": {'program': "/path/to/cc", "extension": "\\.c$"}
-        },
-    },
-    "runtime": {"criterion": {"n_mpi": {"option": "-n ", "numeric": True, "values": [1, 2, 3, 4]}}}
-}))
+    {
+        "cc_pm": pm.SpackManager("this_is_a_test"),
+    }
+    ))
 def test_tedesc_compilation():
     criterion.initialize_from_system()
     tested.TEDescriptor.init_system_wide("n_node")
@@ -157,27 +168,37 @@ def test_tedesc_compilation():
 # Sincelanguage support have been replace by compiler definition
 # this test does not make sense any more.
 # TODO: replace this test with a test of user define compilers in test file.
-#@patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig({
-#    "_MetaConfig__internal_config": {
-#        "cc_pm": pm.SpackManager("this_is_a_test"),
-#    },
-#    "validation": {
-#        "output": "test_output",
-#        "dirs": {
-#            "label": "/this/directory"
+#@patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig(
+#    {
+#        "validation": {
+#            "output": "test_output",
+#            "dirs": {
+#                "label": "/this/directory"
+#            }
+#        },
+#        "group": {
+#            "GRPSERIAL": {}
+#        },
+#        "compiler": {
+#            "compilers": {
+#                "cc": {'program': "/path/to/cc", "extension": "\\.c$"},
+#                "fc": {'program': "/path/to/fc", "extension": "\\.f$"},
+#            },
+#        },
+#        "runtime": {
+#            "criterion": {
+#                "n_mpi": {
+#                    "option": "-n ",
+#                    "numeric": True,
+#                    "values": [1, 2, 3, 4]
+#                }
+#            }
 #        }
 #    },
-#    "group": {
-#        "GRPSERIAL": {}
-#    },
-#    "compiler": {
-#        "compilers": {
-#            "cc": {'program': "/path/to/cc", "extension": "\\.c$"},
-#            "fc": {'program': "/path/to/fc", "extension": "\\.f$"},
-#        },
-#    },
-#    "runtime": {"criterion": {"n_mpi": {"option": "-n ", "numeric": True, "values": [1, 2, 3, 4]}}}
-#}))
+#    {
+#        "cc_pm": pm.SpackManager("this_is_a_test"),
+#    }
+#))
 #def test_te_user_defined_language():
 #    node = {
 #        "build": {

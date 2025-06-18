@@ -38,7 +38,7 @@ class Orchestrator:
         config_tree = GlobalConfig.root
         self._runners = []
         self._max_res = config_tree['machine'].get('nodes', 1)
-        self._publisher = config_tree.get_internal('build_manager')['results']
+        self._publisher = config_tree.get_internal('build_manager').results
         self._manager = Manager(self._max_res, publisher=self._publisher)
         self._maxconcurrent = config_tree['machine'].get('concurrent_run', 1)
         self._complete_q = queue.Queue()

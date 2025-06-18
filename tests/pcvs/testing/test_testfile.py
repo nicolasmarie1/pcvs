@@ -80,18 +80,20 @@ def isolated_yml_test():
     # utils.delete_folder(testdir)
 
 
-@patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig({
-    "_MetaConfig__internal_config": {
+@patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig(
+    {
+        "validation": {
+            "output": "test_output",
+            "dirs": {
+                "keytestdir": "valuetestdir"
+            }
+        }
+    },
+    {
         "cc_pm": [pm.SpackManager("fakespec")],
         "pColl": Collection()
-    },
-    "validation": {
-        "output": "test_output",
-        "dirs": {
-            "keytestdir": "valuetestdir"
-        }
     }
-}))
+))
 @patch.dict(os.environ, {'HOME': '/home/user', 'USER': 'superuser'})
 @patch("pcvs.testing.tedesc.TEDescriptor", autospec=True)
 def test_TestFile(tedesc, isolated_yml_test):  # pylint: disable=redefined-outer-name

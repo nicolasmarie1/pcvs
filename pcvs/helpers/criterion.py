@@ -505,21 +505,21 @@ def valid_combination(dic):
     val = GlobalConfig.root['validation']
     pCollection = GlobalConfig.root.get_internal('pColl')
 
-    if first and rt.plugin:
+    if first and 'plugin' in rt:
         first = not first
 
-        rt.pluginfile = os.path.join(val.buildcache, "rt-plugin.py")
-        with open(rt.pluginfile, 'w', encoding='utf-8') as fh:
-            fh.write(rt.plugin.decode('utf-8'))
+        rt['pluginfile'] = os.path.join(val.buildcache, "rt-plugin.py")
+        with open(rt['pluginfile'], 'w', encoding='utf-8') as fh:
+            fh.write(rt['plugin'].decode('utf-8'))
 
         try:
-            pCollection.register_plugin_by_file(rt.pluginfile, activate=True)
+            pCollection.register_plugin_by_file(rt['pluginfile'], activate=True)
         except SyntaxError as e:
-            os.unlink(rt.pluginfile)
-            with open(rt.pluginfile, 'w', encoding='utf-8') as fh2:
-                fh2.write(base64.b64decode(rt.plugin).decode('utf-8'))
+            os.unlink(rt['pluginfile'])
+            with open(rt['pluginfile'], 'w', encoding='utf-8') as fh2:
+                fh2.write(base64.b64decode(rt['plugin']).decode('utf-8'))
             try:
-                pCollection.register_plugin_by_file(rt.pluginfile, activate=True)
+                pCollection.register_plugin_by_file(rt['pluginfile'], activate=True)
             except SyntaxError as er2:
                 raise e from er2
             io.console.warning("Profile file doubly encoded, "

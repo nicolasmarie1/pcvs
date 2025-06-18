@@ -42,17 +42,19 @@ def help_create_setup_file(path, s):
 @pytest.fixture
 def mock_config():
     with CliRunner().isolated_filesystem():
-        with patch.object(pcvs.helpers.system.MetaConfig, 'root', MetaConfig({
-            'validation': {
-                'output': os.getcwd(),
-                'dirs': {'L1': os.getcwd()},
-                'datetime': datetime.now(),
-                'buildcache': os.path.join(os.getcwd(), "buildcache")
+        with patch.object(pcvs.helpers.system.GlobalConfig, 'root', MetaConfig(
+            {
+                'validation': {
+                    'output': os.getcwd(),
+                    'dirs': {'L1': os.getcwd()},
+                    'datetime': datetime.now(),
+                    'buildcache': os.path.join(os.getcwd(), "buildcache")
+                }
             },
-            '_MetaConfig__internal_config': {
+            {
                 'pColl': Collection()
             }
-        })):
+        )):
             yield {}
 
 
