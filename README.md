@@ -20,12 +20,11 @@ A more detailed guide to install PCVS can be found in the appropriate
 documentation, here is a quick overview to set up and test the framework.
 
     # considering python3.7+
-    $ pip3 install -r requirements.txt
+    $ pip3 install .
     # for dev/testing purposes, use:
-    $ pip3 install -r requirements-dev.txt
-    $ pip3 install pcvs
+    $ pip3 install '.[dev]'
     # basic tests:
-    $ tox
+    $ tox -e pcvs-coverage
     # OR
     $ coverage run
 

@@ -15,7 +15,7 @@ from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ConfigException
 
 CONFIG_BLOCKS = ['compiler', 'runtime', 'machine', 'criterion', 'group']
-CONFIG_EXISTING = dict()
+CONFIG_EXISTING = {}
 
 
 def init() -> None:
@@ -27,7 +27,7 @@ def init() -> None:
     if hasattr(init, 'done'):
         return
 
-    global CONFIG_BLOCKS, CONFIG_EXISTING
+    global CONFIG_EXISTING
     CONFIG_EXISTING = {}
 
     # this first loop defines configuration order

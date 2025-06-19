@@ -1,14 +1,14 @@
-image: 'python:3.7'
-
 before_script:
-- pip3 install -rrequirements-dev.txt
+  - source spack_organizer_inti/setup.sh
+  - spack env activate pcvs
+  - spack concretize -f
+  - spack install
+  # - pip3 install '.[dev]'
 
 variables:
     GIT_CLEAN_FLAGS: -fddx -e .coverage
 
 .scope: &scope
-    tags:
-    - docker
     only:
     - master
     - devel
@@ -17,91 +17,44 @@ variables:
 
 stages:
 - Installation
-- Deployment
-- Pytest
+- Lints
+- Tests
 - Documentation
-- Linting
 
-flake:
+Install PCVS:
+    <<: *scope
+    stage: Installation
+    script:
+    - pip install '.[dev]'
+    - pcvs --version
+
+Lint PCVS:
     <<: *scope
     stage: Linting
-    allow_failure: true
     script:
-    - tox -e lint-flake
+    - tox -e pcvs-lint
 
-typing:
+Coverage PCVS:
     <<: *scope
-    stage: Linting
-    allow_failure: true
+    stage: Tests
     script:
-    - tox -e lint-mypy
+    - tox -e pcvs-coverage
 
-build_doc:
+Build Doc:
     <<: *scope
     stage: Documentation
     script:
     - tox -e doc
 
-test_doc:
+Lint Doc:
     <<: *scope
     stage: Documentation
     script:
-    - tox -e lint-doc
+    - tox -e doc-lint
 
-imports:
+Test Doc:
     <<: *scope
-    stage: Linting
-    allow_failure: true
+    stage: Documentation
     script:
-    - tox -e lint-isort
+    - tox -e doc-coverage
 
-.pytest:
-    <<: *scope
-    stage: Pytest
-    script:
-    - pip3 install .
-    - coverage run --source=./pcvs -m pytest ./tests/pcvs
-    - coverage report
-
-setuptools:
-    <<: *scope
-    stage: Installation
-    script:
-    - python3 setup.py build
-    - python3 setup.py install
-    - pcvs --version
-
-pip:
-    <<: *scope
-    stage: Installation
-    script:
-    - pip3 install .
-    - pcvs --version
-
-pypi-package:
-    <<: *scope
-    stage: Deployment
-    script:
-    - pip3 install build twine
-    - python3 -m build
-    - python3 -m twine check dist/*
-
-
-      #Python3.5:
-      #    extends: .pytest
-      #    image: "python:3.5"
-      #Python3.6:
-      #    extends: .pytest
-      #    image: "python:3.6"
-Python3.7:
-    extends: .pytest
-    image: "python:3.7"
-Python3.8:
-    extends: .pytest
-    image: "python:3.8"
-Python3.9:
-    extends: .pytest
-    image: "python:3.9"
-Python3.10:
-    extends: .pytest
-    image: "python:3.10"
