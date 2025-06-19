@@ -17,8 +17,8 @@ from pcvs import io
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers.exceptions import PublisherException
-from pcvs.helpers.system import MetaConfig
 from pcvs.helpers.system import GlobalConfig
+from pcvs.helpers.system import MetaConfig
 from pcvs.testing.test import Test
 
 

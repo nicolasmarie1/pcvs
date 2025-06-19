@@ -1,5 +1,5 @@
-from unittest.mock import patch
 from importlib.metadata import version
+from unittest.mock import patch
 
 from ..conftest import click_call
 

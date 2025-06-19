@@ -10,8 +10,8 @@ import pcvs
 from pcvs.backend import run as tested
 from pcvs.helpers.exceptions import RunException
 from pcvs.helpers.exceptions import ValidationException
-from pcvs.helpers.system import MetaConfig
 from pcvs.helpers.system import GlobalConfig
+from pcvs.helpers.system import MetaConfig
 from pcvs.plugins import Collection
 
 good_content = """#!/bin/sh

@@ -1,4 +1,7 @@
-from pcvs.dsl import Bank, Serie, Run, Job
+from pcvs.dsl import Bank
+from pcvs.dsl import Job
+from pcvs.dsl import Run
+from pcvs.dsl import Serie
 
 # open a bank
 bank = Bank('./demo.git')

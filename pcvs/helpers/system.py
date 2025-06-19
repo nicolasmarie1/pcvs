@@ -1,5 +1,4 @@
 import os
-
 from typing import List
 
 import jsonschema
@@ -7,6 +6,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml import YAMLError
 
 import pcvs
+from pcvs import io
 from pcvs import NAME_BUILDIR
 from pcvs import PATH_INSTDIR
 from pcvs.helpers import git
@@ -14,7 +14,6 @@ from pcvs.helpers import pm
 from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers.exceptions import ValidationException
 from pcvs.io import Verbosity
-from pcvs import io
 
 
 # ###################################

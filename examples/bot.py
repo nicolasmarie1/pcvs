@@ -1,13 +1,14 @@
+import inspect
+import logging
 import os
 import tempfile
-import logging
-import inspect
 
 import discord
 from discord.ext import commands
 
 from pcvs.backend import bank
-from pcvs.dsl import analysis, render
+from pcvs.dsl import analysis
+from pcvs.dsl import render
 
 
 async def help_cmd(ctx):

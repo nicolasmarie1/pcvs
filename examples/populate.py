@@ -1,10 +1,11 @@
-from random import randint
 from itertools import product
+from random import randint
 
 from random_word import RandomWords
 
+from pcvs.dsl import Bank
+from pcvs.dsl import Run
 from pcvs.testing.test import Test
-from pcvs.dsl import Bank, Run
 
 MAX = 100
 group = ["MPI", "OpenMP", "Others"]

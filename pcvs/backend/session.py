@@ -1,5 +1,5 @@
-import os
 import hashlib
+import os
 from datetime import datetime
 from enum import IntEnum
 from multiprocessing import Process

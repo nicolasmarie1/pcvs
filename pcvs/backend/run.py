@@ -23,8 +23,8 @@ from pcvs.helpers import communications
 from pcvs.helpers import criterion
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import RunException
-from pcvs.helpers.system import MetaConfig
 from pcvs.helpers.system import GlobalConfig
+from pcvs.helpers.system import MetaConfig
 from pcvs.orchestration import Orchestrator
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.plugins import Plugin

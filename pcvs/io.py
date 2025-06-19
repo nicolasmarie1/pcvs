@@ -22,9 +22,9 @@ from rich.progress import SpinnerColumn
 from rich.progress import TextColumn
 from rich.progress import TimeElapsedColumn
 from rich.progress import track
+from rich.style import Style
 from rich.table import Table
 from rich.theme import Theme
-from rich.style import Style
 
 import pcvs
 

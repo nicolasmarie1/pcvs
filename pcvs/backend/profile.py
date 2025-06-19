@@ -9,13 +9,13 @@ from ruamel.yaml import YAML
 from pcvs import io
 from pcvs import PATH_INSTDIR
 from pcvs.backend import config
+from pcvs.converter import yaml_converter
 from pcvs.helpers import git
 from pcvs.helpers import system
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ConfigException
 from pcvs.helpers.exceptions import ProfileException
 from pcvs.helpers.exceptions import ValidationException
-from pcvs.converter import yaml_converter
 
 PROFILE_EXISTING = {}
 

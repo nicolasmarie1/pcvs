@@ -1,5 +1,5 @@
-import os
 import fcntl
+import os
 import shutil
 import signal
 import socket

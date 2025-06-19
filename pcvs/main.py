@@ -7,13 +7,13 @@ from pcvs.backend import config
 from pcvs.backend import profile
 from pcvs.cli import cli_bank
 from pcvs.cli import cli_config
+from pcvs.cli import cli_convert
 from pcvs.cli import cli_profile
 from pcvs.cli import cli_remote_run
 from pcvs.cli import cli_report
 from pcvs.cli import cli_run
 from pcvs.cli import cli_session
 from pcvs.cli import cli_utilities
-from pcvs.cli import cli_convert
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import PluginException
 from pcvs.plugins import Collection

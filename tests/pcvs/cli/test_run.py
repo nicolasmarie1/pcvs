@@ -1,10 +1,10 @@
 from unittest.mock import patch
 
+# flake8: noqa: F401
+from pcvs.backend import run as tested  # pylint: disable=unused-import
+
 from ..conftest import click_call
 from ..conftest import isolated_fs
-
-# flake8: noqa: F401
-from pcvs.backend import run as tested # pylint: disable=unused-import
 
 
 @patch("pcvs.backend.session.store_session_to_file", return_value={})

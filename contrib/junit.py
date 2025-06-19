@@ -3,7 +3,8 @@ from pcvs.testing.test import Test
 
 LOAD_FAILED = False
 try:
-    from junit_xml import TestSuite, TestCase
+    from junit_xml import TestCase
+    from junit_xml import TestSuite
 except ImportError:
     LOAD_FAILED = True
 

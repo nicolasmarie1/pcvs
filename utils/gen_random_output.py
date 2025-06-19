@@ -1,7 +1,9 @@
 import os
 import random
-from rich.progress import track
 import shutil
+
+from rich.progress import track
+
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.testing.test import Test
 
