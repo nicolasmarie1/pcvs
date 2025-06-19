@@ -375,12 +375,12 @@ def init() -> None:
     """
     try:
         with open(PATH_BANK, 'r', encoding='utf-8') as f:
-            BANKS = YAML(typ='safe').load(f)
+            Bank.BANKS = YAML(typ='safe').load(f)
     except FileNotFoundError:
         # nothing to do, file may not exist
         pass
-    if BANKS is None:
-        BANKS = {}
+    if Bank.BANKS is None:
+        Bank.BANKS = {}
 
 
 def list_banks() -> dict:
