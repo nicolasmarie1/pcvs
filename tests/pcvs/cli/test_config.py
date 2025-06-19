@@ -8,12 +8,13 @@ from pcvs.cli import cli_config as tested
 from ..conftest import click_call
 
 
-@patch('pcvs.backend.config.CONFIG_EXISTING', {k: {
+@patch('pcvs.backend.config.CONFIG_EXISTING', {
+    k: {
         'local': [('default', "/path/to/default.yml")],
         'user': [('user-{}'.format(k), "/path/to/user_override.yml")],
         'global': [('system-wide', "/path/to/system-wide.yml")]
-        } for k in ['compiler', 'runtime', 'machine', 'criterion', 'group']
-        })
+    } for k in ['compiler', 'runtime', 'machine', 'criterion', 'group']
+})
 @patch('pcvs.backend.config.init')
 def test_completion(mock_init):  # pylint: disable=unused-argument
     assert (set(tested.compl_list_token(None, None, "local.")) == {

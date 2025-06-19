@@ -5,7 +5,7 @@ bank = Bank('./demo.git')
 
 # retrieve project/configs within the bank
 # a given serie is identified by:
-# - a name 
+# - a name
 # - a hash, based on a specific profile
 list_of_projects = bank.list_projects()
 configs_for_project = bank.list_series(list_of_projects[0])

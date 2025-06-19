@@ -56,17 +56,17 @@ def test_combination_str(crit_desc, crit_comb):  # pylint: disable=redefined-out
     assert obj.translate_to_str() == "A=10_E=message_pa=parameter_pe=user_message"
 
     crit_desc['arg'] = tested.Criterion(name="arg", numeric=True, description={
-            "option": "-a ",
-            "type": "argument",
-            "subtitle": ""
-        })
+        "option": "-a ",
+        "type": "argument",
+        "subtitle": ""
+    })
     obj = tested.Combination(crit_desc, crit_comb)
     assert obj.translate_to_str() == "10_E=message_pa=parameter_pe=user_message"
 
     crit_desc['arg'] = tested.Criterion(name="arg", numeric=True, description={
-            "option": "-a ",
-            "type": "argument"
-        })
+        "option": "-a ",
+        "type": "argument"
+    })
     obj = tested.Combination(crit_desc, crit_comb)
     assert obj.translate_to_str() == "arg10_E=message_pa=parameter_pe=user_message"
 
@@ -122,4 +122,3 @@ def test_value_expansion(op):
 
 def test_serie_init(crit_desc):  # pylint: disable=unused-argument,redefined-outer-name
     tested.Serie(crit_desc)
-

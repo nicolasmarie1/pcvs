@@ -31,57 +31,56 @@ def test_handle_job_deps(mock_id):
 
 
 @patch.dict(os.environ, {'HOME': '/home/user', 'USER': 'superuser'})
-@patch("pcvs.helpers.system.GlobalConfig.root",
-       system.MetaConfig(
-        {
-            "validation": {
-                "output": "test_output",
-                "dirs": {
-                    "label": "/this/directory"
-                }
-            },
-            "group": {
-                "GRPSERIAL": {}
-            },
-            "compiler": {
-                "compilers": {
-                    "cc": {'program': "/path/to/cc", "extension": "\\.c$"}
-                }
-            },
-            "runtime": {"criterion": {
-                "n_mpi": {"option": "-n ", "numeric": True, "values": [1, 2, 3, 4]}}
+@patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig(
+    {
+        "validation": {
+            "output": "test_output",
+            "dirs": {
+                "label": "/this/directory"
             }
         },
-        {
-            "cc_pm": pm.SpackManager("this_is_a_test"),
-            'pColl': Collection(),
+        "group": {
+            "GRPSERIAL": {}
+        },
+        "compiler": {
+            "compilers": {
+                "cc": {'program': "/path/to/cc", "extension": "\\.c$"}
+            }
+        },
+        "runtime": {"criterion": {
+            "n_mpi": {"option": "-n ", "numeric": True, "values": [1, 2, 3, 4]}}
         }
-       ))
+    },
+    {
+        "cc_pm": pm.SpackManager("this_is_a_test"),
+        'pColl': Collection(),
+    }
+))
 def test_tedesc_regular():
     criterion.initialize_from_system()
     tested.TEDescriptor.init_system_wide("n_node")
     node = {
-            "build": {
-                "files": "@SRCPATH@/constant.c",
-                "sources": {
-                    "binary": "test_MPI_2INT",
-                    "cflags": "-DSYMB=MPI_2INT -DTYPE1='int' -DTYPE='int'"
+        "build": {
+            "files": "@SRCPATH@/constant.c",
+            "sources": {
+                "binary": "test_MPI_2INT",
+                "cflags": "-DSYMB=MPI_2INT -DTYPE1='int' -DTYPE='int'"
+            }
+        },
+        "group": "GRPSERIAL",
+        "run": {
+            "program": "test_MPI_2INT",
+            "iterate": {
+                "n_mpi": {
+                    "values": [1, 2, 3, 4]
                 }
             },
-            "group": "GRPSERIAL",
-            "run": {
-                "program": "test_MPI_2INT",
-                "iterate": {
-                    "n_mpi": {
-                        "values": [1, 2, 3, 4]
-                    }
-                },
-            },
-            "tag": [
-                "std_1",
-                "constant"
-            ]
-        }
+        },
+        "tag": [
+            "std_1",
+            "constant"
+        ]
+    }
     tedesc = tested.TEDescriptor("te_name", node, "label", "subtree")
 
     assert tedesc.name == "te_name"
@@ -128,7 +127,7 @@ def test_tedesc_regular():
     {
         "cc_pm": pm.SpackManager("this_is_a_test"),
     }
-    ))
+))
 def test_tedesc_compilation():
     criterion.initialize_from_system()
     tested.TEDescriptor.init_system_wide("n_node")

@@ -1,3 +1,4 @@
+# flake8: noqa: F401
 from pcvs.ui.textual import report as tested  # pylint: disable=unused-import
 
 from ....conftest import click_call

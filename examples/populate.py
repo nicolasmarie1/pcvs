@@ -27,7 +27,7 @@ for i in range(0, MAX):
     cnt_succ = 0
     cnt_fail = 0
 
-    thr = thr / (1 + i/MAX)
+    thr = thr / (1 + i / MAX)
 
     for idx, name in enumerate(tests):
         label = "SAMPLED"

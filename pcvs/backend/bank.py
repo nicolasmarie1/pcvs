@@ -15,10 +15,6 @@ from pcvs.helpers.exceptions import BankException
 from pcvs.helpers.exceptions import CommonException
 from pcvs.orchestration.publishers import BuildDirectoryManager
 
-#: :var BANKS: list of available banks when PCVS starts up
-#: :type BANKS: dict, keys are bank names, values are file path
-BANKS: Dict[str, str] = dict()
-
 
 class Bank(dsl.Bank):
     """Representation of a PCVS result datastore.
@@ -41,6 +37,10 @@ class Bank(dsl.Bank):
     :param proj_name: extracted default-proj from initial token
     :type proj_name: str
     """
+
+    #: :var BANKS: list of available banks when PCVS starts up
+    #: :type BANKS: dict, keys are bank names, values are file path
+    BANKS: Dict[str, str] = {}
 
     def __init__(self, path: Optional[str] = None, token: str = "") -> None:
         """Build a Bank.
@@ -65,8 +65,6 @@ class Bank(dsl.Bank):
         self._name: Optional[str] = None
         self._path: str = path
 
-        global BANKS
-
         # split name & default-proj from token
         array: List[str] = token.split('@', 1)
         if len(array) > 1:
@@ -75,9 +73,9 @@ class Bank(dsl.Bank):
 
         if self.exists():
             if self.name_exist():
-                path = BANKS[self._name.lower()]
+                path = Bank.BANKS[self._name.lower()]
             else:
-                for k, v in BANKS.items():
+                for k, v in Bank.BANKS.items():
                     if v == path:
                         self._name = k
                         break
@@ -128,7 +126,7 @@ class Bank(dsl.Bank):
         :return: True if the name (lowered) is in the keys()
         :rtype: bool
         """
-        return self._name.lower() in BANKS.keys() if self._name else False
+        return self._name.lower() in Bank.BANKS.keys() if self._name else False
 
     def path_exist(self) -> bool:
         """Check if the bank path is registered into ``PATH_BANK`` file.
@@ -136,7 +134,7 @@ class Bank(dsl.Bank):
         :return: True if the path is known.
         :rtype: bool
         """
-        return self._path in BANKS.values()
+        return self._path in Bank.BANKS.values()
 
     def __str__(self) -> str:
         """Stringification of a bank.
@@ -178,8 +176,7 @@ class Bank(dsl.Bank):
 
     def save_to_global(self) -> None:
         """Store the current bank into ``PATH_BANK`` file."""
-        global BANKS
-        if self._name in BANKS:
+        if self._name in Bank.BANKS:
             self._name = os.path.basename(self._path).lower()
         add_banklink(self._name, self._path)
 
@@ -376,7 +373,6 @@ def init() -> None:
 
     Called when program initializes. Detects defined banks in ``PATH_BANK``
     """
-    global BANKS
     try:
         with open(PATH_BANK, 'r', encoding='utf-8') as f:
             BANKS = YAML(typ='safe').load(f)
@@ -393,7 +389,7 @@ def list_banks() -> dict:
     :return: dict of available banks.
     :rtype: dict
     """
-    return BANKS
+    return Bank.BANKS
 
 
 def add_banklink(name: str, path: str) -> None:
@@ -404,8 +400,7 @@ def add_banklink(name: str, path: str) -> None:
     :param path: path to bank directory
     :type path: str
     """
-    global BANKS
-    BANKS[name] = path
+    Bank.BANKS[name] = path
     flush_to_disk()
 
 
@@ -415,9 +410,8 @@ def rm_banklink(name: str) -> None:
     :param name: bank name
     :type name: str
     """
-    global BANKS
-    if name in BANKS:
-        BANKS.pop(name)
+    if name in Bank.BANKS:
+        Bank.BANKS.pop(name)
         flush_to_disk()
 
 
@@ -426,12 +420,12 @@ def flush_to_disk() -> None:
 
     :raises IOError: Unable to properly manipulate the tree layout
     """
-    global BANKS, PATH_BANK
+    global PATH_BANK
     try:
         prefix_file = os.path.dirname(PATH_BANK)
         if not os.path.isdir(prefix_file):
             os.makedirs(prefix_file, exist_ok=True)
         with open(PATH_BANK, 'w+', encoding='utf-8') as f:
-            YAML(typ='safe').dump(BANKS, f)
+            YAML(typ='safe').dump(Bank.BANKS, f)
     except IOError as e:
         raise BankException.IOError(e)

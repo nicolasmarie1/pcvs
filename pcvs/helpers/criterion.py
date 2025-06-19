@@ -443,7 +443,7 @@ def initialize_from_system():
 
     TODO: Move this function elsewhere."""
     # sanity checks
-    if not 'criterion' in GlobalConfig.root:
+    if 'criterion' not in GlobalConfig.root:
         GlobalConfig.root.set_internal('crit_obj', {})
     else:
         # raw YAML objects

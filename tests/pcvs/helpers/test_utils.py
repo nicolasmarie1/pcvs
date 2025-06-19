@@ -55,12 +55,11 @@ def test_cwd_manager(wd_dir):
 
 
 @patch("pcvs.helpers.system.GlobalConfig.root", {
-        "validation": {
-            'output': "/prefix_build",
-            "dirs": {'LABEL1': '/prefix1', 'LABEL2': "/prefix2"}
-        }
+    "validation": {
+        "output": "/prefix_build",
+        "dirs": {'LABEL1': '/prefix1', 'LABEL2': "/prefix2"}
     }
-)
+})
 @pytest.mark.parametrize("program", ["ls", "/bin/sh"])
 def test_check_program(program):
     class Success(Exception):

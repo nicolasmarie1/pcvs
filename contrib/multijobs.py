@@ -1,6 +1,7 @@
 from pcvs.orchestration.set import Set
 from pcvs.plugins import Plugin
 
+
 class SchedMultiJobs(Plugin):
     step = Plugin.Step.SCHED_SET_EVAL
 

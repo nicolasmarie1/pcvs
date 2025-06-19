@@ -11,9 +11,9 @@ TREE_IDX = 0
 
 if __name__ == '__main__':
     print(f"Building {NB_FILES} files with {TE_PER_FILE} files per file")
-    for d in range(1, NB_FILES+1):
+    for d in range(1, NB_FILES + 1):
 
-        subdirectory = os.path.join(DIR, "d{}".format(d%NB_FILES))
+        subdirectory = os.path.join(DIR, "d{}".format(d % NB_FILES))
         TREE_IDX += 1
 
         if not os.path.isdir(subdirectory):
@@ -23,5 +23,3 @@ if __name__ == '__main__':
         with open(os.path.join(subdirectory, "pcvs.yml"), 'w') as fh:
             for te in range(0, TE_PER_FILE):
                 fh.write(f"""te_{te}: {{"run": {{"program": "echo 'this is test te_{te}'"}}}}\n""")
-
-

@@ -25,7 +25,7 @@ def compl_list_banks(ctx, args, incomplete):  # pylint: disable=unused-argument
     """
     pvBank.init()
     array = list()
-    for k, v in pvBank.BANKS.items():
+    for k, v in pvBank.Bank.BANKS.items():
         array.append((k, v))
     return [
         CompletionItem(elt[0], help=elt[1]) for elt in array

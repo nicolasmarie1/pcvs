@@ -15,10 +15,10 @@ def test_cmd():
 
 
 @patch('pcvs.backend.profile.PROFILE_EXISTING', {
-        'local': [('default', "/path/to/default.yml")],
-        'user': [('user', "/path/to/user_override.yml")],
-        'global': [('system-wide', "/path/to/system-wide.yml")]
-        })
+    'local': [('default', "/path/to/default.yml")],
+    'user': [('user', "/path/to/user_override.yml")],
+    'global': [('system-wide', "/path/to/system-wide.yml")]
+})
 @patch('pcvs.backend.profile.init', return_value=None)
 def test_list(mock_init):  # pylint: disable=unused-argument
     res = click_call('profile', 'list')

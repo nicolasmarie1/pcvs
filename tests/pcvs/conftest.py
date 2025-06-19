@@ -7,7 +7,7 @@ from pcvs.main import cli
 if version("click") >= "8.2.0":
     runner = CliRunner()
 else:
-    runner = CliRunner(mix_stderr=False)
+    runner = CliRunner(mix_stderr=False)  # pylint: disable=unexpected-keyword-arg
 
 
 def click_call(*cmd):

@@ -79,10 +79,10 @@ class Run:
 
     @property
     def previous(self):
-        l = self._repo.get_parents(self._cid)
-        if l[0].get_info()['message'] == "INIT" or len(l) < 1:
+        runs = self._repo.get_parents(self._cid)
+        if runs[0].get_info()['message'] == "INIT" or len(runs) < 1:
             return None
-        return Run(repo=self._repo, cid=l[0])
+        return Run(repo=self._repo, cid=runs[0])
 
     @property
     def oneline(self):

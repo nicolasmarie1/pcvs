@@ -491,8 +491,7 @@ class Test:
         :param state: give a special state to the test, defaults to FAILED
         :param state: :class:`Test.State`, optional
         """
-        self._state = state if type(
-            state) == Test.State else Test.State.FAILURE
+        self._state = state if state is Test.State else Test.State.FAILURE
 
     def been_executed(self):
         """Cehck if job has been executed (not waiting or in progress).

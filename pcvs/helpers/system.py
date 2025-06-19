@@ -92,7 +92,7 @@ class ValidationScheme:
                        f"Context is: \n {content}\n"
                        f"Schema is: \n {self.schema}\n"
                        f"Validation error message is:\n {e.message}\n"
-                ) from e
+            ) from e
         except jsonschema.exceptions.SchemaError as e:
             raise ValidationException.SchemeError(
                     name=self.schema_name, content=self.schema, error=e) from e

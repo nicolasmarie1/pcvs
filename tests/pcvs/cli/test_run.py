@@ -3,6 +3,7 @@ from unittest.mock import patch
 from ..conftest import click_call
 from ..conftest import isolated_fs
 
+# flake8: noqa: F401
 from pcvs.backend import run as tested # pylint: disable=unused-import
 
 

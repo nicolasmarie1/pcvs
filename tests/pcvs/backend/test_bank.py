@@ -33,26 +33,25 @@ def dummy_run():
                   "w+", encoding="utf-8") as fh:
             content = {
                 "tests": [{
-                        "id": {
-                            "te_name": "test_main",
-                            "label": "TBD",
-                            "subtree": "tmp",
-                            "fq_name": "tmp/test_main_c4_n4_N1_o4",
-                            "comb": "TBD"
-                        },
-                        "exec": "mpirun --share-node --clean -c=4 -n=4 -N=1 /tmp/my_program ",
-                        "result": {
-                            "state": -1,
-                            "time": 0.0,
-                            "output": None
-                        },
-                        "data": {
-                            "tags": "TBD",
-                            "metrics": "TBD",
-                            "artifacts": "TBD",
-                        }
+                    "id": {
+                        "te_name": "test_main",
+                        "label": "TBD",
+                        "subtree": "tmp",
+                        "fq_name": "tmp/test_main_c4_n4_N1_o4",
+                        "comb": "TBD"
                     },
-                ]
+                    "exec": "mpirun --share-node --clean -c=4 -n=4 -N=1 /tmp/my_program ",
+                    "result": {
+                        "state": -1,
+                        "time": 0.0,
+                        "output": None
+                    },
+                    "data": {
+                        "tags": "TBD",
+                        "metrics": "TBD",
+                        "artifacts": "TBD",
+                    }
+                }]
             }
             json.dump(content, fh)
 

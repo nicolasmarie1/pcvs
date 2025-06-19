@@ -57,7 +57,7 @@ def test_session_file():
             end_date = datetime.now()
             tested.update_session_from_file(session_id, {
                 "ended": end_date
-                })
+            })
 
             with open(os.path.join(mock_session, "{}.yml".format(session_id)), "r") as fh:
                 data = YAML().load(fh)

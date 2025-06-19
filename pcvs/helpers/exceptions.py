@@ -232,9 +232,9 @@ class TestException(CommonException):
             """Updated constructor"""
             super().__init__(reason=reason,
                              help_msg="\n".join([
-                                "Please check input files with `pcvs check`",
-                                "Invalide files are:"
-                                "{}"
+                                 "Please check input files with `pcvs check`",
+                                 "Invalide files are:"
+                                 "{}"
                              ]).format("\n".join(input_files)),
                              dbg_info=kwargs)
 
