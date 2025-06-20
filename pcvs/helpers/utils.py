@@ -206,7 +206,7 @@ def copy_file(src, dest):
 # ###################################
 
 
-def check_valid_program(p, succ=None, fail=None, raise_if_fail=True):
+def check_valid_program(p, succ=None, fail=None, raise_on_fail=True):
     """Check if p is a valid program, using the ``which`` function.
 
     :param p: program to check
@@ -215,8 +215,8 @@ def check_valid_program(p, succ=None, fail=None, raise_if_fail=True):
     :type succ: optional
     :param fail: function to call in case of failure, defaults to None
     :type fail: optional
-    :param raise_if_fail: Raise an exception in case of failure, defaults to True
-    :type raise_if_fail: bool, optional
+    :param raise_on_fail: Raise an exception in case of failure, defaults to True
+    :type raise_on_fail: bool, optional
     :raises RunException.ProgramError: p is not a valid program
     :return: True if p is a program, False otherwise
     :rtype: bool
@@ -235,7 +235,7 @@ def check_valid_program(p, succ=None, fail=None, raise_if_fail=True):
     if res is False:
         if fail is not None:
             fail(f"'{p}' not found or not an executable")
-        if raise_if_fail:
+        if raise_on_fail:
             raise RunException.ProgramError(p)
 
     return res

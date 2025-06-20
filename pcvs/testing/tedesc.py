@@ -74,9 +74,11 @@ def extract_compiler_config(lang, variants):
                     config.setdefault(k, [])
                     config[k] += v
         else:
-            return (None, [], [])
+            # TODO: throw error here
+            return (None, [], [], False)
 
-    return (config['program'], config.get('args', []), config.get('envs', []))
+    return (config['program'], config.get('args', []),
+            config.get('envs', []), config.get('valide', False))
 
 
 def build_job_deps(deps_node, pkg_label, pkg_prefix):
@@ -346,7 +348,11 @@ class TEDescriptor:
                     f"Unable to dect compilers for files: {self._build['files']}")
 
         compiler = compilers[0]
-        program, args, envs = extract_compiler_config(compiler, self._build.get('variants', {}))
+
+        compiler_config = extract_compiler_config(compiler, self._build.get('variants', {}))
+        program, args, envs, valide = compiler_config
+        if not valide:
+            io.console.warn(f"Compiler program '{program}' not found for test '{self.name}'")
 
         binary = self.get_binary_name()
 

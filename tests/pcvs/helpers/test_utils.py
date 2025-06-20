@@ -88,4 +88,4 @@ def test_check_wrong_program(program):
     with pytest.raises(RunException.ProgramError):
         tested.check_valid_program(program)
 
-    tested.check_valid_program(program, raise_if_fail=False)
+    tested.check_valid_program(program, raise_on_fail=False)

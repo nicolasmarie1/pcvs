@@ -213,7 +213,9 @@ def __check_defined_program_validity():
 
     for compiler_name in GlobalConfig.root['compiler']['compilers']:
         compiler = GlobalConfig.root['compiler']['compilers'][compiler_name]
-        utils.check_valid_program(compiler['program'], fail=io.console.warning, raise_if_fail=False)
+        compiler['valide'] = utils.check_valid_program(compiler['program'],
+                                                       fail=io.console.warning,
+                                                       raise_on_fail=False)
 
     utils.check_valid_program(GlobalConfig.root['runtime']['program'])
 
