@@ -1,5 +1,5 @@
 before_script:
-  - source spack_organizer_inti/setup.sh
+  - source "$(ccc_home -u mpc)/gitlab-runner/spack_organizer_inti/setup.sh"
   - spack env activate pcvs
   - spack concretize -f
   - spack install
