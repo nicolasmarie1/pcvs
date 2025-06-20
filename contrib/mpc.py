@@ -8,8 +8,8 @@ class MyPlugin(Plugin):
         # this dict maps keys (it name) with values (it value)
         # returns True if the combination should be used
         config = kwargs['config']
-        nb_nodes = config.machine.get('nodes', 1)
-        nb_cores = config.machine.get('cores_per_node', 1)
+        nb_nodes = config['machine'].get('nodes', 1)
+        nb_cores = config['machine'].get('cores_per_node', 1)
 
         comb = kwargs['combination']
         n_node = comb.get('n_node', 1)

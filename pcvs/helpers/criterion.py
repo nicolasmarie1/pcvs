@@ -508,7 +508,7 @@ def valid_combination(dic):
     if first and 'plugin' in rt:
         first = not first
 
-        rt['pluginfile'] = os.path.join(val.buildcache, "rt-plugin.py")
+        rt['pluginfile'] = os.path.join(val['buildcache'], "rt-plugin.py")
         with open(rt['pluginfile'], 'w', encoding='utf-8') as fh:
             fh.write(rt['plugin'].decode('utf-8'))
 

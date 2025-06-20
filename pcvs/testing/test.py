@@ -309,10 +309,11 @@ class Test:
         :return: True if at least one dep is shown a `Test.State.FAILURE` state.
         :rtype: bool
         """
-        return len([
-            d for d in self._deps if d.state in
-            [Test.State.ERR_DEP, Test.State.ERR_OTHER, Test.State.FAILURE]
-        ]) > 0
+        bad_states = [Test.State.ERR_DEP, Test.State.ERR_OTHER, Test.State.FAILURE]
+        for d in self._deps:
+            if d.state in bad_states:
+                return True
+        return False
 
     def first_incomplete_dep(self):
         """Retrive the first ready-for-schedule dep.
@@ -485,13 +486,13 @@ class Test:
             icon=icon,
             content=raw_output)
 
-    def executed(self, state=None):
+    def executed(self, state: State = None):
         """Set current Test as executed.
 
         :param state: give a special state to the test, defaults to FAILED
         :param state: :class:`Test.State`, optional
         """
-        self._state = state if state is Test.State else Test.State.FAILURE
+        self._state = state if isinstance(state, Test.State) else Test.State.FAILURE
 
     def been_executed(self):
         """Cehck if job has been executed (not waiting or in progress).

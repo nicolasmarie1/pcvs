@@ -13,6 +13,7 @@ from pcvs.helpers.exceptions import ValidationException
 from pcvs.helpers.system import GlobalConfig
 from pcvs.helpers.system import MetaConfig
 from pcvs.plugins import Collection
+from pcvs.testing.tedesc import TEDescriptor
 
 good_content = """#!/bin/sh
 echo 'test_node:'
@@ -64,7 +65,7 @@ def test_process_setup_scripts(mock_config):  # pylint: disable=unused-argument,
     help_create_setup_file(f, good_content)
     pcvs.io.init()
     with patch("pcvs.testing.tedesc.TEDescriptor") as _:
-        tested.process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
+        tested.unsafe_process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
 
 
 def test_process_bad_setup_script(mock_config):  # pylint: disable=unused-argument,redefined-outer-name
@@ -73,7 +74,7 @@ def test_process_bad_setup_script(mock_config):  # pylint: disable=unused-argume
     help_create_setup_file(f, bad_script)
     pcvs.io.init()
     try:
-        tested.process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
+        tested.unsafe_process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
     except RunException.NonZeroSetupScript:
         pass
 
@@ -83,7 +84,8 @@ def test_process_wrong_setup_script(mock_config):  # pylint: disable=unused-argu
     f = os.path.join(d, "pcvs.setup")
     help_create_setup_file(f, bad_output)
     pcvs.io.init()
+    TEDescriptor.init_system_wide("n_node")
     try:
-        tested.process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
+        tested.unsafe_process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
     except ValidationException.FormatError:
         pass

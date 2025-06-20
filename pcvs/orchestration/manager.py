@@ -23,8 +23,8 @@ class Manager:
     :ivar _count: dict gathering various counters (total, executed...)
     :type _count: dict
     """
-    job_hashes = dict()
-    dep_rules = dict()
+    job_hashes = {}
+    dep_rules = {}
 
     def __init__(self, max_size=0, publisher=None):
         """constructor method.
@@ -44,9 +44,7 @@ class Manager:
         self._dims = {}
         self._max_size = max_size
         self._publisher = publisher
-        self._count = {}
-        self._count['total'] = 0
-        self._count['executed'] = 0
+        self._count = {"total": 0, "executed": 0}
 
     def get_dim(self, dim):
         """Get the list of jobs satisfying the given dimension.
@@ -119,7 +117,7 @@ class Manager:
         """
         for joblist in self._dims.values():
             for job in joblist:
-                self.resolve_single_job_deps(job, list())
+                self.resolve_single_job_deps(job, [])
 
     def print_dep_graph(self, outfile=None):
         s = ["digraph D {"]
@@ -186,6 +184,8 @@ class Manager:
         if self._comman:
             self._comman.send(job)
         self._count['executed'] += 1
+        if job.state not in self._count:
+            self._count[job.state] = 0
         self._count[job.state] += 1
         self._publisher.save(job)
 

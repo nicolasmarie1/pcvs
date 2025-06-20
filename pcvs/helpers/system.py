@@ -235,7 +235,7 @@ class MetaConfig(Config):
 
         self.bootstrap_compiler(pf['compiler'], filepath)
         self.bootstrap_runtime(pf['runtime'], filepath)
-        self.bootstrap_machine(pf['machine'], filepath)
+        self.bootstrap_machine(pf.get('machine', {}), filepath)
         self.bootstrap_criterion(pf['criterion'], filepath)
         self.bootstrap_group(pf['group'], filepath)
 

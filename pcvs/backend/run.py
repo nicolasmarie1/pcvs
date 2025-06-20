@@ -416,8 +416,15 @@ def build_env_from_configuration(current_node, parent_prefix="pcvs"):
     return env_dict
 
 
-@io.capture_exception(Exception, doexit=False)
+# Needed to keep capture exception at runtime,
+# While allowing pytest to test process_syn function.
+@io.capture_exception(Exception, doexit=True)
 def process_dyn_setup_scripts(setup_files):
+    """Wrapper to process_static_yaml_files to use @io.capture_exception."""
+    unsafe_process_dyn_setup_scripts(setup_files)
+
+
+def unsafe_process_dyn_setup_scripts(setup_files):
     """Process dynamic test files and generate associated tests.
 
     This function executes pcvs.setup files after deploying the environment (to
@@ -516,9 +523,17 @@ def process_dyn_setup_scripts(setup_files):
             Plugin.Step.TFILE_AFTER)
 
 
-@io.capture_exception(Exception, doexit=False)
+# Needed to keep capture exception at runtime,
+# While allowing pytest to test process_static function.
+@io.capture_exception(Exception, doexit=True)
 def process_static_yaml_files(yaml_files):
-    """Process 'pcvs.yml' files to contruct the test base.
+    """Wrapper to process_static_yaml_files to use @io.capture_exception."""
+    unsafe_process_static_yaml_files(yaml_files)
+
+
+def unsafe_process_static_yaml_files(yaml_files):
+    """
+    Process 'pcvs.yml' files to contruct the test base.
 
     :param yaml_files: list of tuples, each describing a single input file.
     :type yaml_files: list

@@ -36,12 +36,10 @@ def init_constant_tokens():
         '@HOME@': str(pathlib.Path.home()),
         '@USER@': getpass.getuser(),
     }
-    for comp, comp_node in GlobalConfig.root['compiler']['compilers'].items():
-        constant_tokens['@COMPILER_{}@'.format(comp.upper())] = comp_node.get(
-            'program', "")
+    for comp, comp_node in GlobalConfig.root.get('compiler', {}).get('compilers', {}).items():
+        constant_tokens[f'@COMPILER_{comp.upper()}@'] = comp_node.get('program', "")
 
-    constant_tokens['@RUNTIME_PROGRAM@'] = GlobalConfig.root['runtime'].get(
-        'program', "")
+    constant_tokens['@RUNTIME_PROGRAM@'] = GlobalConfig.root.get('runtime', {}).get('program', "")
 
 
 def replace_special_token(content, src, build, prefix):

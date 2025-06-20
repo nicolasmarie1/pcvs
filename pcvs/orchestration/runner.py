@@ -120,10 +120,10 @@ class RunnerAdapter(threading.Thread):
             ctx.save_input_to_disk(jobs)
             assert ctx.check_input_avail()
             _process_hdl = subprocess.Popen(cmd,
-                                                 shell=True,
-                                                 env=env,
-                                                 stdout=subprocess.PIPE,
-                                                 stderr=subprocess.PIPE)
+                                            shell=True,
+                                            env=env,
+                                            stdout=subprocess.PIPE,
+                                            stderr=subprocess.PIPE)
             _, err = _process_hdl.communicate()
             if err:
                 io.console.warning("Set {} - error output: {}".format(

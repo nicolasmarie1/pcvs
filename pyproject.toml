@@ -68,9 +68,8 @@ dev = [
 
 # files are included by setuptool from Manifest.in
 
-[tool.setuptools]
-package-dir = {"" = "pcvs"}
-
+[tool.setuptools.packages.find]
+where = ["."]
 
 #
 # TOX Configuration

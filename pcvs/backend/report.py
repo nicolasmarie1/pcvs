@@ -28,7 +28,7 @@ def upload_buildir_results(buildir) -> None:
     with open(os.path.join(buildir, "conf.yml"), 'r', encoding='utf-8') as fh:
         conf_yml = YAML().load(fh)
 
-    sid = conf_yml.validation.sid
+    sid = conf_yml['validation']['sid']
     dataman = data_manager
 
     man = BuildDirectoryManager(buildir)
@@ -36,7 +36,7 @@ def upload_buildir_results(buildir) -> None:
         sid, {
             'buildpath': buildir,
             'state': Session.State.COMPLETED,
-            'dirs': conf_yml.validation.dirs
+            'dirs': conf_yml['validation']['dirs']
         })
     for test in man.results.browse_tests():
         # FIXME: this function does not exist any more
@@ -157,7 +157,7 @@ class Report:
                 'state': str(state),
                 'count': counts,
                 'path': sdata.prefix,
-                'info': sdata.config.validation.get('message', 'No message')
+                'info': sdata.config['validation'].get('message', 'No message')
             }
 
     def single_session_config(self, sid) -> dict:
@@ -233,7 +233,7 @@ class Report:
         labels_info = self._sessions[sid].results.tree_view
         return {
             label: labels_info[label]
-            for label in self._sessions[sid].config.validation.dirs.keys()
+            for label in self._sessions[sid].config['validation']['dirs'].keys()
         }
 
     def single_session_build_path(self, sid) -> str:
@@ -260,7 +260,7 @@ class Report:
         :rtype: Test
         """
         assert sid in self._sessions
-        return self._sessions[sid].results.map_id(id=jid)
+        return self._sessions[sid].results.map_id(jid)
 
     def single_session_get_view(self,
                                 sid,

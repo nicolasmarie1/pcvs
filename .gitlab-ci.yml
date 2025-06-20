@@ -30,7 +30,7 @@ Install PCVS:
 
 Lint PCVS:
     <<: *scope
-    stage: Linting
+    stage: Lints
     script:
     - tox -e pcvs-lint
 

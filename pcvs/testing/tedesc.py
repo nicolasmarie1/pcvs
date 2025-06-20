@@ -173,7 +173,6 @@ class TEDescriptor:
 
         :raises TDFormatError: Unproper YAML TE format (sanity check)
         """
-        io.console.error(node)
         if not isinstance(node, dict):
             raise TestException.TestExpressionError(node)
 
@@ -235,7 +234,7 @@ class TEDescriptor:
         If a program name is given, use it.
         If none are defined, use the test name.
         """
-        if 'binary' in self._build['sources']:
+        if 'binary' in self._build.get('sources', {}):
             return self._build['sources']['binary']
         if 'program' in self._run:
             return self._run['program']
@@ -302,7 +301,6 @@ class TEDescriptor:
         if self._run is None:
             # for now, criterion only applies to run tests
             return
-
         # if this TE does not override anything: trivial
         if 'iterate' not in self._run:
             self._criterion = self._sys_crit
@@ -353,7 +351,7 @@ class TEDescriptor:
         binary = self.get_binary_name()
 
         # used to run the test later
-        self._build['sources']['binary'] = binary
+        self._build.setdefault('sources', {})['binary'] = binary
         output_path = os.path.join(self._buildir, binary)
 
         command = "{cc} {cflags} {files} {ldflags} {args} {out}".format(
