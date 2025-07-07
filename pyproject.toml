@@ -66,8 +66,8 @@ dev = [
   "sphinx_rtd_theme",
 ]
 
-# files are included by setuptool from Manifest.in
-
+# tell setuptools look for all python packages to include,
+# in addition, files are also included from Manifest.in
 [tool.setuptools.packages.find]
 where = ["."]
 
@@ -94,7 +94,7 @@ commands = [
   [
     'coverage', 'erase'
   ],
-	[
+  [
     'coverage', 'run', '--source=./pcvs', '-m', 'pytest', './tests/pcvs'
   ],
   [
