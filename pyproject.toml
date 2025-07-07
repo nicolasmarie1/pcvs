@@ -84,9 +84,10 @@ skip_missing_interpreters = true
 [tool.tox.env_run_base]
 # Gather the dependencies from the fields above.
 # see: https://tox.wiki/en/latest/config.html#references-within-set-env
-deps = [{ replace = "ref", of = ["project", "dependencies"], extend = true},
-        { replace = "ref", of = ["project", "optional-dependencies", "dev"], extend = true}]
+#deps = [{ replace = "ref", of = ["project", "dependencies"], extend = true},
+#        { replace = "ref", of = ["project", "optional-dependencies", "dev"], extend = true}]
 passenv = ["HOME", "USER"]
+allowlist_externals = ["coverage", "pylint", "flake8", "isort", "mypy", "docstr-coverage", "darglint", "pydocstyle", "make"]
 
 # pcvs coverage
 [tool.tox.env.pcvs-coverage]
