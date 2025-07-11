@@ -29,8 +29,8 @@ maintainers = [
 ]
 description = "A Validation Orchestrator designed by and for software at scale."
 readme = "README.md"
-license = "CeCILL-C"
-license-files = ["COPYING"]
+license = { text = "CeCILL-C"}
+#license-files = ["COPYING"]
 keywords = ["validation", "hpc", "test-suite"]
 classifiers = [
   'Topic :: Software Development :: Quality Assurance',
