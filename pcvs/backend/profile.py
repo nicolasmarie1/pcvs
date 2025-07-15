@@ -118,7 +118,8 @@ class Profile:
 
         This function relies on known profiles & path concatenation.
         """
-        self._file = None
+        if self._file:
+            return
 
         # determine proper scope is not given
         if self._scope is None:

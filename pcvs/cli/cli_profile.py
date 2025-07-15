@@ -355,7 +355,10 @@ def profile_edit(ctx, token, edit_plugin):  # pylint: disable=unused-argument
     content.
     """
     (scope, _, label) = utils.extract_infos_from_token(token, maxsplit=2)
-    pf = pvProfile.Profile(label, scope)
+    if scope:
+        pf = pvProfile.Profile(label, scope)
+    else:
+        pf = pvProfile.Profile(profilepath=token)
     if pf.is_found():
         if pf.scope == 'global' and label == 'local':
             raise click.BadArgumentUsage('Wrongly formatted profile token')
