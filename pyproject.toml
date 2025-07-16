@@ -63,7 +63,7 @@ dev = [
   "mypy",
   "sphinx<7.0.0",
   "sphinx-autodoc-typehints",
-  "sphinx_rtd_theme",
+  "sphinx-rtd-theme",
 ]
 
 # tell setuptools look for all python packages to include,
@@ -79,6 +79,8 @@ where = ["."]
 env_list = ["3.12.3"]
 skipsdist = true
 skip_missing_interpreters = true
+# TODO: fixe install_commands to disable indexing so we can run that on inti
+#install_commands = ["python -I -m pip install --no-index {opts} {packages}"]
 
 # Base env
 [tool.tox.env_run_base]

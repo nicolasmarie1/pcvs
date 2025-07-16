@@ -1,8 +1,6 @@
 before_script:
   - source "$(ccc_home -u mpc)/gitlab-runner/spack_organizer_inti/setup.sh"
   - spack env activate pcvs
-  - spack concretize -f
-  - spack install
   # - pip3 install '.[dev]'
 
 variables:
