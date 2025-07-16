@@ -5,6 +5,7 @@ import os
 import shutil
 import sys
 from datetime import datetime
+from importlib.metadata import version
 from typing import Callable
 from typing import Dict
 from typing import Iterable
@@ -454,6 +455,8 @@ class TheConsole(Console):
             banner = logo_short
 
         self.print("\n".join(banner))
+        pcvs_version = version("pcvs")
+        self.print(f'Parallel Computing Validation System (pcvs) -- version {pcvs_version}')
 
     def nodebug(self, fmt, *args, **kwargs):
         """Do nothing.
