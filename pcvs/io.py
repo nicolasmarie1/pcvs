@@ -261,7 +261,8 @@ class TheConsole(Console):
                 pcvs.NAME_DEBUG_FILE))
 
     def print_section(self, txt):
-        self.print("[yellow bold]{} {}[/]".format(self.utf('sec'), txt))
+        self.print("[yellow bold]{} {}[/]".format(self.utf('sec'), txt),
+                   soft_wrap=True)
         self._loghdl.info("[DISPLAY] ======= %s ======", txt)
 
     def print_header(self, txt):
@@ -270,7 +271,8 @@ class TheConsole(Console):
 
     def print_item(self, txt, depth=1):
         self.print("[red bold]{}{}[/] {}".format(" " * (depth * 2),
-                                                 self.utf('item'), txt))
+                                                 self.utf('item'), txt),
+                   soft_wrap=True)
         self._loghdl.info("[DISPLAY] * %s", txt)
 
     def print_box(self, txt, *args, **kwargs):
@@ -471,7 +473,7 @@ class TheConsole(Console):
         self._loghdl.debug(fmt, *args, **kwargs)
         if self._verbose >= Verbosity.DEBUG:
             user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
-            self.print(f"[debug]\\[debug]: {user_fmt}[/debug]")
+            self.print(f"[debug]\\[debug]: {user_fmt}[/debug]", soft_wrap=True)
 
     def info(self, fmt, *args, **kwargs, ):
         """Print & log info.
@@ -483,7 +485,7 @@ class TheConsole(Console):
         self._loghdl.info(fmt, *args, **kwargs)
         if self._verbose >= Verbosity.INFO:
             user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
-            self.print(f"[info]\\[info]: {user_fmt}[/info]")
+            self.print(f"[info]\\[info]: {user_fmt}[/info]", soft_wrap=True)
 
     def warning(self, fmt, *args, **kwargs):
         """Print & log warning.
@@ -494,7 +496,7 @@ class TheConsole(Console):
         """
         self._loghdl.warning(fmt, *args, **kwargs)
         user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
-        self.print(f"[warning]\\[warning]: {user_fmt}[/warning]")
+        self.print(f"[warning]\\[warning]: {user_fmt}[/warning]", soft_wrap=True)
 
     def warn(self, fmt, *args, **kwargs):
         """Short for warning.
@@ -514,7 +516,7 @@ class TheConsole(Console):
         """
         self._loghdl.error(fmt, *args, **kwargs)
         user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
-        self.print(f"[danger]\\[error]: {user_fmt}[/danger]")
+        self.print(f"[danger]\\[error]: {user_fmt}[/danger]", soft_wrap=True)
 
     def critical(self, fmt, *args, **kwargs):
         """Print a log critical error then exit.
@@ -525,7 +527,7 @@ class TheConsole(Console):
         """
         self._loghdl.critical(fmt, *args, **kwargs)
         user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
-        self.print(f"[danger]\\[CRITICAL]: {user_fmt}[/danger]")
+        self.print(f"[danger]\\[CRITICAL]: {user_fmt}[/danger]", soft_wrap=True)
         sys.exit(42)
 
     def exception(self, e: BaseException):

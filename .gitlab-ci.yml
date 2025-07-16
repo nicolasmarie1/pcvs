@@ -1,58 +1,83 @@
+---
+
 before_script:
   - source "$(ccc_home -u mpc)/gitlab-runner/spack_organizer_inti/setup.sh"
   - spack env activate pcvs
   # - pip3 install '.[dev]'
 
 variables:
-    GIT_CLEAN_FLAGS: -fddx -e .coverage
+  GIT_CLEAN_FLAGS: -fddx -e .coverage
 
 .scope: &scope
-    only:
+  only:
     - master
     - devel
     - merge_requests
     - web
 
 stages:
-- Installation
-- Lints
-- Tests
-- Documentation
+  - Installation
+  - PCVS
+  - Documentation
 
-Install PCVS:
-    <<: *scope
-    stage: Installation
-    script:
-    - pip install '.[dev]'
-    - pcvs --version
-
-Lint PCVS:
-    <<: *scope
-    stage: Lints
-    script:
-    - tox -e pcvs-lint
+# pcvs is installed for testing via tox, no need to install it.
+#Install PCVS:
+#    <<: *scope
+#    stage: Installation
+#    script:
+#    - pip install '.[dev]'
+#    - pcvs --version
 
 Coverage PCVS:
-    <<: *scope
-    stage: Tests
-    script:
-    - tox -e pcvs-coverage
+  <<: *scope
+  stage: PCVS
+  script:
+    # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
+    #- tox -e pcvs-coverage
+    - module load mpi
+    - coverage erase
+    - coverage run --source=./pcvs -m pytest ./tests/pcvs
+    - coverage report --precision=2 --fail-under=50 --sort=-miss
+
+Lint PCVS:
+  <<: *scope
+  stage: PCVS
+  script:
+    # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
+    #- tox -e pcvs-lint
+    - pylint . --fail-under=10 --ignore=.tox,build,examples --extension-pkg-whitelist=pygit2 --disable=R,C --disable=unspecified-encoding --disable=keyword-arg-before-vararg,dangerous-default-value --disable=global-variable-not-assigned,global-statement --disable=broad-exception-caught --disable=fixme
+    - flake8 . --exclude '.tox,build' --ignore 'DAR101,DAR102,DAR201,DAR202,DAR301,DAR401,DAR402,E501,E125,E126,E127,E128,E265,F824,W503,W504'
+    - isort --sl --fass --check --diff .
+    # TODO: fixe mypy test when running in a tox env with installed pcvs
+    # - mypy --config-file ./mypy.ini ./pcvs
 
 Build Doc:
-    <<: *scope
-    stage: Documentation
-    script:
-    - tox -e doc
+  <<: *scope
+  stage: Documentation
+  script:
+    # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
+    #- tox -e doc
+    - cd docs
+    - make html
 
 Lint Doc:
-    <<: *scope
-    stage: Documentation
-    script:
-    - tox -e doc-lint
+  <<: *scope
+  # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
+  stage: Documentation
+  allow_failure: true
+  script:
+    #- tox -e doc-lint
+    # TODO: install darglint on inti with spack organizer
+    # - darglint --verbosity=2 docs pcvs tests
+    - pydocstyle pcvs/
 
 Test Doc:
-    <<: *scope
-    stage: Documentation
-    script:
-    - tox -e doc-coverage
+  <<: *scope
+  # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
+  stage: Documentation
+  allow_failure: true
+  script:
+    #- tox -e doc-coverage
+    # TODO: install docstr-coverage on inti with spack organizer
+    - docstr-coverage --skip-file-doc --exclude '.*pcvs/cli/cli.*.py' --accept-empty --verbose=2 pcvs --fail-under 70
 
