@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import pytest
 
 from pcvs.helpers import criterion as tested
@@ -34,6 +32,7 @@ def crit_desc():
         })
     }
 
+
 @pytest.fixture()
 def crit_comb():
     return {
@@ -43,38 +42,41 @@ def crit_comb():
         "prog-arg": "parameter"
     }
 
-def test_combination_init(crit_desc, crit_comb):
-    obj = tested.Combination(crit_desc, crit_comb)
-    assert(obj.get('arg') == 10)
-    assert(obj.get('env') == "message")
-    assert(obj.get('prog-env') == "user_message")
-    assert(obj.get('prog-arg') == "parameter")
 
-def test_combination_str(crit_desc, crit_comb):
+def test_combination_init(crit_desc, crit_comb):  # pylint: disable=redefined-outer-name
     obj = tested.Combination(crit_desc, crit_comb)
-    assert(obj.translate_to_str() == "A=10_E=message_pa=parameter_pe=user_message")
+    assert obj.get('arg') == 10
+    assert obj.get('env') == "message"
+    assert obj.get('prog-env') == "user_message"
+    assert obj.get('prog-arg') == "parameter"
 
-    crit_desc['arg'] = tested.Criterion(name="arg", numeric=True, description={
-            "option": "-a ",
-            "type": "argument",
-            "subtitle": ""
-        })
+
+def test_combination_str(crit_desc, crit_comb):  # pylint: disable=redefined-outer-name
     obj = tested.Combination(crit_desc, crit_comb)
-    assert(obj.translate_to_str() == "10_E=message_pa=parameter_pe=user_message")
+    assert obj.translate_to_str() == "A=10_E=message_pa=parameter_pe=user_message"
 
     crit_desc['arg'] = tested.Criterion(name="arg", numeric=True, description={
-            "option": "-a ",
-            "type": "argument"
-        })
+        "option": "-a ",
+        "type": "argument",
+        "subtitle": ""
+    })
     obj = tested.Combination(crit_desc, crit_comb)
-    assert(obj.translate_to_str() == "arg10_E=message_pa=parameter_pe=user_message")
+    assert obj.translate_to_str() == "10_E=message_pa=parameter_pe=user_message"
 
-def test_combination_command(crit_desc, crit_comb):
+    crit_desc['arg'] = tested.Criterion(name="arg", numeric=True, description={
+        "option": "-a ",
+        "type": "argument"
+    })
+    obj = tested.Combination(crit_desc, crit_comb)
+    assert obj.translate_to_str() == "arg10_E=message_pa=parameter_pe=user_message"
+
+
+def test_combination_command(crit_desc, crit_comb):  # pylint: disable=redefined-outer-name
     obj = tested.Combination(crit_desc, crit_comb)
     env, args, params = obj.translate_to_command()
-    assert(['ENV=message', 'PROG_ENV=user_message'] == env)
-    assert(['-a 10'] == args)
-    assert(['-pa parameter'] == params)
+    assert ['ENV=message', 'PROG_ENV=user_message'] == env
+    assert ['-a 10'] == args
+    assert ['-pa parameter'] == params
 
 
 matrix = {
@@ -103,6 +105,7 @@ matrix = {
     ]
 }
 
+
 @pytest.mark.parametrize("op", ["arithmetic", "geometric", "powerof"])
 def test_value_expansion(op):
     d = {
@@ -114,8 +117,8 @@ def test_value_expansion(op):
     for elt in matrix[op]:
         c = tested.Criterion("n_mpi", {**d, "values": [{**elt[0], "op": op}]})
         c.expand_values()
-        assert(c.values == elt[1])
+        assert c.values == elt[1]
 
-def test_serie_init(crit_desc):
-    obj = tested.Serie(crit_desc)
 
+def test_serie_init(crit_desc):  # pylint: disable=unused-argument,redefined-outer-name
+    tested.Serie(crit_desc)

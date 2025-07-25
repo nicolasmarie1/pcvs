@@ -1,10 +1,7 @@
 import os
-import sys
 
-import jsonschema
 import pytest
 from ruamel.yaml import YAML
-from ruamel.yaml import YAMLError
 
 from pcvs.backend.config import ConfigurationBlock
 from pcvs.backend.config import init as cinit
@@ -22,10 +19,11 @@ def find_files(t):
         array.append(os.path.join(d, f))
     return array
 
-def manage_validation(label, f):
+
+def manage_validation(label, check):
     err = None
     try:
-        f()
+        check()
         state = "OK"
     except (ValidationException.FormatError, ValidationException.SchemeError) as e:
         state = "NOK"
@@ -40,17 +38,19 @@ def test_configuration_templates(configpath):
     cinit()
     config = os.path.basename(configpath)
     conf_kind = config.split(".")[0]
-    t = ConfigurationBlock(conf_kind, "test", "local")
-    with open(configpath, 'r') as fh:
+    conf_blk = ConfigurationBlock(conf_kind, "test", "local")
+    with open(configpath, 'r', encoding='utf-8') as fh:
         data = YAML(typ='safe').load(fh)
-        t.fill(data)
-    manage_validation(config, t.check)
+        conf_blk.fill(data)
+    manage_validation(config, conf_blk.check)
 
-@pytest.mark.parametrize("profilepath", [*find_files("config")])
+
+@pytest.mark.parametrize("profilepath", [*find_files("profile")])
 def test_profile_template(profilepath):
-    pinit()    
-    t = Profile("tmp", "local")
-    with open(profilepath, 'r') as fh:
+    pinit()
+    prof = Profile("tmp", "local")
+    with open(profilepath, 'r', encoding='utf-8') as fh:
         data = YAML(typ='safe').load(fh)
-        t.fill(data)
-    manage_validation(os.path.basename(profilepath), t.check)
+        print(data)
+        prof.fill(data)
+    manage_validation(os.path.basename(profilepath), prof.check)

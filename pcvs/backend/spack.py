@@ -1,7 +1,6 @@
 import subprocess
 
 from pcvs import testing
-from pcvs.helpers.system import MetaDict
 from pcvs.testing.testfile import TestFile
 
 
@@ -44,7 +43,7 @@ def generate_from_variants(package, label, prefix):
     :param prefix: subprefix name for this package
     :type prefix: str
     """
-    data = MetaDict()
+    data = {}
     dict_of_variants = parse_spec_variants(package)
 
     data[package].run.program = "spack install {} ".format(package)
@@ -56,7 +55,10 @@ def generate_from_variants(package, label, prefix):
 
     _, src, _, build = testing.generate_local_variables(label, prefix)
 
-    t = TestFile(file_in=src, path_out=build,
-                 data=data, label=label, prefix=prefix)
+    t = TestFile(file_in=src,
+                 path_out=build,
+                 data=data,
+                 label=label,
+                 prefix=prefix)
     t.process()
     t.flush_sh_file()

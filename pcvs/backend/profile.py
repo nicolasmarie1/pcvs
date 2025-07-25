@@ -1,7 +1,6 @@
-import base64
 import glob
 import os
-import subprocess
+import tempfile
 from typing import Optional
 
 import click
@@ -10,20 +9,19 @@ from ruamel.yaml import YAML
 from pcvs import io
 from pcvs import PATH_INSTDIR
 from pcvs.backend import config
+from pcvs.converter import yaml_converter
 from pcvs.helpers import git
 from pcvs.helpers import system
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ConfigException
 from pcvs.helpers.exceptions import ProfileException
 from pcvs.helpers.exceptions import ValidationException
-from pcvs.helpers.system import MetaDict
 
-PROFILE_EXISTING = dict()
+PROFILE_EXISTING = {}
 
 
 def init():
-    """Initialization callback, loading available profiles on disk.
-    """
+    """Initialize callback, loading available profiles on disk."""
     global PROFILE_EXISTING
     PROFILE_EXISTING = {}
     # this first loop defines configuration order
@@ -31,7 +29,8 @@ def init():
     priority_paths.reverse()
     for token in priority_paths:  # reverse order (overriding)
         PROFILE_EXISTING[token] = []
-        for pfile in glob.glob(os.path.join(utils.STORAGES[token], 'profile', "*.yml")):
+        for pfile in glob.glob(
+                os.path.join(utils.STORAGES[token], 'profile', "*.yml")):
             PROFILE_EXISTING[token].append(
                 (os.path.basename(pfile)[:-4], pfile))
 
@@ -90,29 +89,37 @@ class Profile:
     :type _file: str
     """
 
-    def __init__(self, name, scope=None):
+    def __init__(self, name: str = None, scope: str = None, profilepath: str = None):
         """Constructor method.
 
         :param name: profile name
         :type name: str
+        :param profilepath: profile file path
         :param scope: desired scope, automatically set if not provided
-        :type scope: str, optional
+        :type scope: str
         """
-        utils.check_valid_scope(scope)
-        self._name = name
-        self._scope = scope
-        self._details = MetaDict()
-        self._exists = False
-        self._file = None
+        self._details = {}
 
-        self._retrieve_file()
+        if profilepath:
+            self._name = os.path.basename(profilepath.split('\\.')[0])
+            self._scope = 'local'
+            self._exists = True
+            self._file = profilepath
+        else:
+            utils.check_valid_scope(scope)
+            self._name = name
+            self._scope = scope
+            self._exists = False
+            self._file = None
+            self._retrieve_file()
 
     def _retrieve_file(self):
         """From current representation, determine the profile file path.
 
         This function relies on known profiles & path concatenation.
         """
-        self._file = None
+        if self._file:
+            return
 
         # determine proper scope is not given
         if self._scope is None:
@@ -138,8 +145,8 @@ class Profile:
         # otherwise the for loop above would have trigger a profile
         # in that case, _file is computed through path concatenation
         # but the _exists is set to False
-        self._file = os.path.join(
-            utils.STORAGES[self._scope], 'profile', self._name + ".yml")
+        self._file = os.path.join(utils.STORAGES[self._scope], 'profile',
+                                  self._name + ".yml")
         self._exists = False
 
     def get_unique_id(self):
@@ -160,13 +167,13 @@ class Profile:
         :type raw: dict
         """
         # some checks
-        assert (isinstance(raw, dict))
+        assert isinstance(raw, dict)
 
         # fill is called either from 'build' (dict of configurationBlock)
         # of from 'clone' (dict of raw file inputs)
         for k, v in raw.items():
             if isinstance(v, config.ConfigurationBlock):
-                self._details[k] = MetaDict(v.dump())
+                self._details[k] = v.dump()
             else:
                 self._details[k] = v
 
@@ -179,7 +186,7 @@ class Profile:
         :rtype: dict
         """
         # self.load_from_disk()
-        return MetaDict(self._details).to_dict()
+        return self._details
 
     def is_found(self):
         """Check if the current profile exists on disk.
@@ -216,14 +223,13 @@ class Profile:
 
         if not self._exists:
             raise ProfileException.NotFoundError(self._name)
-        self._retrieve_file()
 
         if not os.path.isfile(self._file):
             raise ProfileException.NotFoundError(self._file)
 
-        io.console.debug("Load {} ({})".format(self._name, self._scope))
-        with open(self._file) as f:
-            self._details = MetaDict(YAML(typ='safe').load(f))
+        io.console.debug(f"Load {self._name} ({self._scope})")
+        with open(self._file, 'r', encoding='utf-8') as f:
+            self._details = YAML(typ='safe').load(f)
 
     def load_template(self, name="default"):
         """Populate the profile from templates of 5 basic config. blocks.
@@ -236,13 +242,14 @@ class Profile:
         """
         self._exists = True
         self._file = None
-        filepath = os.path.join(
-            PATH_INSTDIR, "templates", "profile", name) + ".yml"
+        filepath = os.path.join(PATH_INSTDIR, "templates", "profile",
+                                name) + ".yml"
         if not os.path.isfile(filepath):
             raise ProfileException.NotFoundError(
-                "{} is not a valid base name.\nPlease use pcvs profile list --all".format(name))
+                f"{name} is not a valid base name.\n"
+                "Please use pcvs profile list --all")
 
-        with open(filepath, "r") as fh:
+        with open(filepath, 'r', encoding='utf-8') as fh:
             self.fill(YAML(typ='safe').load(fh))
 
     def check(self, allow_legacy: Optional[bool] = True):
@@ -257,7 +264,7 @@ class Profile:
         :raises ValidationException.FormatError: incorrect profile.
         """
         try:
-            err_dbg = list()
+            err_dbg = []
             for k in self._details.keys():
                 if k not in config.CONFIG_BLOCKS:
                     err_dbg.append(k)
@@ -266,31 +273,26 @@ class Profile:
                     "Unknown kind in Profile", invalid_kinds=err_dbg)
 
             for kind in config.CONFIG_BLOCKS:
-                # if kind not in self._details:
-                #    raise ValidationException.FormatError(
-                #        "Missing '{}' in profile".format(kind))
-                system.ValidationScheme(kind).validate(
-                    self._details[kind], filepath=self._name)
-        except ValidationException.FormatError:
+                if kind in self._details:
+                    system.ValidationScheme(kind).validate(self._details[kind],
+                                                           filepath=self._name)
+        except ValidationException.FormatError as parsing_error:
             if not allow_legacy:
-                raise
-            # Is the profile a legacy format ?
-            # Attempt to convert it on the fly
-            proc = subprocess.Popen(
-                "pcvs_convert '{}' --stdout -k profile --skip-unknown".format(
-                    self._file),
-                stderr=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                shell=True)
+                raise parsing_error
 
-            fds = proc.communicate()
-            if proc.returncode != 0:
-                raise
-            converted_data = YAML(typ='safe').load(fds[0].decode('utf-8'))
-            self.fill(converted_data)
+            tmpfile = tempfile.mkstemp()[1]
+            try:
+                yaml_converter.convert(self._file, 'profile', None, None,
+                                       tmpfile, False, True, False)
+            except Exception as convert_error:
+                io.console.error("An error occure when trying "
+                                 f"to update profile: {self._file}")
+                raise convert_error from parsing_error
+
+            with open(tmpfile, 'r', encoding='utf-8') as f:
+                self._details = YAML(typ='safe').load(f)
             self.check(allow_legacy=False)
-            io.console.warning(
-                "Legacy format for profile '{}'".format(self._name))
+            io.console.warning(f"Legacy format for profile '{self._name}'")
             io.console.warning(
                 "Please consider updating it with `pcvs_convert -k profile`")
 
@@ -308,8 +310,8 @@ class Profile:
         if not os.path.isdir(prefix_file):
             os.makedirs(prefix_file, exist_ok=True)
 
-        with open(self._file, 'w') as f:
-            YAML(typ='safe').dump(self._details.to_dict(), f)
+        with open(self._file, 'w', encoding='utf-8') as f:
+            YAML(typ='safe').dump(self._details, f)
 
     def clone(self, clone):
         """Duplicate a valid profile into the current one.
@@ -320,8 +322,8 @@ class Profile:
         self._retrieve_file()
 
         io.console.info("Compute target prefix: {}".format(self._file))
-        assert (not os.path.isfile(self._file))
-        self._details = clone._details
+        assert not os.path.isfile(self._file)
+        self._details = clone.details
 
     def delete(self):
         """Remove the current profile from disk.
@@ -353,18 +355,17 @@ class Profile:
             manually edited, it may be submitted again through `pcvs profile
             import`.
         """
-        assert (self._file is not None)
+        assert self._file is not None
 
         if not os.path.exists(self._file):
             return
 
-        with open(self._file, 'r') as fh:
+        with open(self._file, 'r', encoding='utf-8') as fh:
             stream = fh.read()
 
-        edited_stream = click.edit(
-            stream, extension=".yml", require_save=True)
+        edited_stream = click.edit(stream, extension=".yml", require_save=True)
         if edited_stream is not None:
-            edited_yaml = MetaDict(YAML(typ='safe').load(edited_stream))
+            edited_yaml = YAML(typ='safe').load(edited_stream)
             self.fill(edited_yaml)
             self.flush_to_disk()
             try:
@@ -389,10 +390,10 @@ class Profile:
         self.load_from_disk()
 
         if 'plugin' in self._details['runtime'].keys():
-            plugin_code = base64.b64decode(
-                self._details['runtime']['plugin']).decode('utf-8')
+            plugin_code = self._details['runtime']['plugin'].decode('utf-8')
         else:
-            plugin_code = """import math
+            plugin_code = """
+import math
 from pcvs.plugins import Plugin
 
 class MyPlugin(Plugin):
@@ -404,11 +405,11 @@ class MyPlugin(Plugin):
     return True
 """
         try:
-            edited_code = click.edit(
-                plugin_code, extension=".py", require_save=True)
+            edited_code = click.edit(plugin_code,
+                                     extension=".py",
+                                     require_save=True)
             if edited_code is not None:
-                self._details['runtime']['plugin'] = base64.b64encode(
-                    edited_code.encode('utf-8'))
+                self._details['runtime']['plugin'] = edited_code.encode('utf-8')
                 self.flush_to_disk()
         except Exception as e:
             raise e
@@ -490,3 +491,12 @@ class MyPlugin(Plugin):
         :rtype: dict
         """
         return self._details['machine']
+
+    @property
+    def details(self) -> dict:
+        """Access all the object details.
+
+        :return: all the details object
+        :rtype: dict
+        """
+        return self._details

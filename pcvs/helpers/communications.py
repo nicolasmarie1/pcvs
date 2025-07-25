@@ -3,7 +3,7 @@ from abc import abstractmethod
 import requests
 
 from pcvs.backend.session import Session
-from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import GlobalConfig
 from pcvs.testing.test import Test
 
 sendData = False
@@ -16,8 +16,7 @@ class GenericServer:
         self._metadata = {
             "rootdir": "remote server",
             "sid": session_id,
-            "count": {
-            }
+            "count": {}
         }
 
     @abstractmethod
@@ -31,10 +30,7 @@ class GenericServer:
 
 class EmbeddedServer(GenericServer):
 
-    def __init__(self, sid):
-        super().__init__(sid)
-
-    def send(self):
+    def send(self, data):
         pass
 
     def recv(self):
@@ -58,12 +54,13 @@ class RemoteServer(GenericServer):
         self.open_connection()
 
     def open_connection(self):
-        self._json_send("/submit/session_init", {
-            "sid": self._metadata['sid'],
-            "state": Session.State.IN_PROGRESS,
-            "buildpath": MetaConfig.root.validation.output,
-            "dirs": MetaConfig.root.validation.dirs
-        })
+        self._json_send(
+            "/submit/session_init", {
+                "sid": self._metadata['sid'],
+                "state": Session.State.IN_PROGRESS,
+                "buildpath": GlobalConfig.root['validation']['output'],
+                "dirs": GlobalConfig.root['validation']['dirs']
+            })
 
     def close_connection(self):
         self._json_send("/submit/session_fini", {
@@ -75,11 +72,11 @@ class RemoteServer(GenericServer):
     def endpoint(self):
         return self._serv
 
-    def send(self, test):
-        if self._send_unitary_test(test):
+    def send(self, data):
+        if self._send_unitary_test(data):
             self.retry_pending()
         else:
-            self._waitlist.append(test)
+            self._waitlist.append(data)
 
     def retry_pending(self):
         while len(self._waitlist) > 0:
@@ -89,9 +86,11 @@ class RemoteServer(GenericServer):
 
     def _send_unitary_test(self, test):
         assert (isinstance(test, Test))
-        to_send = {"metadata": self._metadata,
-                   "test_data": test.to_json(),
-                   "state": test.state}
+        to_send = {
+            "metadata": self._metadata,
+            "test_data": test.to_json(),
+            "state": test.state
+        }
         return self._json_send("/submit/test", to_send)
 
     def _json_send(self, prefix, json_data):
@@ -100,3 +99,6 @@ class RemoteServer(GenericServer):
             return True
         except requests.exceptions.ConnectionError:
             return False
+
+    def recv(self):
+        pass

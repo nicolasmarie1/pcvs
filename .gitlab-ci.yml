@@ -1,107 +1,83 @@
-image: 'python:3.7'
+---
 
 before_script:
-- pip3 install -rrequirements-dev.txt
+  - source "$(ccc_home -u mpc)/gitlab-runner/spack_organizer_inti/setup.sh"
+  - spack env activate pcvs
+  # - pip3 install '.[dev]'
 
 variables:
-    GIT_CLEAN_FLAGS: -fddx -e .coverage
+  GIT_CLEAN_FLAGS: -fddx -e .coverage
 
 .scope: &scope
-    tags:
-    - docker
-    only:
+  only:
     - master
     - devel
     - merge_requests
     - web
 
 stages:
-- Installation
-- Deployment
-- Pytest
-- Documentation
-- Linting
+  - Installation
+  - PCVS
+  - Documentation
 
-flake:
-    <<: *scope
-    stage: Linting
-    allow_failure: true
-    script:
-    - tox -e lint-flake
+# pcvs is installed for testing via tox, no need to install it.
+#Install PCVS:
+#    <<: *scope
+#    stage: Installation
+#    script:
+#    - pip install '.[dev]'
+#    - pcvs --version
 
-typing:
-    <<: *scope
-    stage: Linting
-    allow_failure: true
-    script:
-    - tox -e lint-mypy
-
-build_doc:
-    <<: *scope
-    stage: Documentation
-    script:
-    - tox -e doc
-
-test_doc:
-    <<: *scope
-    stage: Documentation
-    script:
-    - tox -e lint-doc
-
-imports:
-    <<: *scope
-    stage: Linting
-    allow_failure: true
-    script:
-    - tox -e lint-isort
-
-.pytest:
-    <<: *scope
-    stage: Pytest
-    script:
-    - pip3 install .
+Coverage PCVS:
+  <<: *scope
+  stage: PCVS
+  script:
+    # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
+    #- tox -e pcvs-coverage
+    - module load mpi
+    - coverage erase
     - coverage run --source=./pcvs -m pytest ./tests/pcvs
-    - coverage report
+    - coverage report --precision=2 --fail-under=50 --sort=-miss
 
-setuptools:
-    <<: *scope
-    stage: Installation
-    script:
-    - python3 setup.py build
-    - python3 setup.py install
-    - pcvs --version
+Lint PCVS:
+  <<: *scope
+  stage: PCVS
+  script:
+    # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
+    #- tox -e pcvs-lint
+    - pylint . --fail-under=10 --ignore=.tox,build,examples --extension-pkg-whitelist=pygit2 --disable=R,C --disable=unspecified-encoding --disable=keyword-arg-before-vararg,dangerous-default-value --disable=global-variable-not-assigned,global-statement --disable=broad-exception-caught --disable=fixme
+    - flake8 . --exclude '.tox,build' --ignore 'DAR101,DAR102,DAR201,DAR202,DAR301,DAR401,DAR402,E501,E125,E126,E127,E128,E265,F824,W503,W504'
+    - isort --sl --fass --check --diff .
+    # TODO: fixe mypy test when running in a tox env with installed pcvs
+    # - mypy --config-file ./mypy.ini ./pcvs
 
-pip:
-    <<: *scope
-    stage: Installation
-    script:
-    - pip3 install .
-    - pcvs --version
+Build Doc:
+  <<: *scope
+  stage: Documentation
+  script:
+    # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
+    #- tox -e doc
+    - cd docs
+    - make html
 
-pypi-package:
-    <<: *scope
-    stage: Deployment
-    script:
-    - pip3 install build twine
-    - python3 -m build
-    - python3 -m twine check dist/*
+Lint Doc:
+  <<: *scope
+  # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
+  stage: Documentation
+  allow_failure: true
+  script:
+    #- tox -e doc-lint
+    # TODO: install darglint on inti with spack organizer
+    # - darglint --verbosity=2 docs pcvs tests
+    - pydocstyle pcvs/
 
+Test Doc:
+  <<: *scope
+  # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
+  stage: Documentation
+  allow_failure: true
+  script:
+    #- tox -e doc-coverage
+    # TODO: install docstr-coverage on inti with spack organizer
+    - docstr-coverage --skip-file-doc --exclude '.*pcvs/cli/cli.*.py' --accept-empty --verbose=2 pcvs --fail-under 70
 
-      #Python3.5:
-      #    extends: .pytest
-      #    image: "python:3.5"
-      #Python3.6:
-      #    extends: .pytest
-      #    image: "python:3.6"
-Python3.7:
-    extends: .pytest
-    image: "python:3.7"
-Python3.8:
-    extends: .pytest
-    image: "python:3.8"
-Python3.9:
-    extends: .pytest
-    image: "python:3.9"
-Python3.10:
-    extends: .pytest
-    image: "python:3.10"

@@ -1,14 +1,10 @@
-import copy
-import json
 import os
-import random
 
 from flask import abort
 from flask import Flask
 from flask import jsonify
 from flask import render_template
 from flask import request
-from flask import sessions
 
 from pcvs import PATH_INSTDIR
 from pcvs.testing.test import Test
@@ -25,8 +21,9 @@ def create_app(iface):
     global data_manager
     data_manager = iface
 
-    app = Flask(__name__, template_folder=os.path.join(
-        PATH_INSTDIR, "webview/templates"))
+    app = Flask(__name__,
+                template_folder=os.path.join(PATH_INSTDIR,
+                                             "webview/templates"))
 
     # app.config.from_object(...)
     @app.route('/about')
@@ -69,7 +66,6 @@ def create_app(iface):
         :return: page content
         :rtype: str
         """
-        sid = sid
         if sid not in data_manager.session_ids:
             abort(404)
 
@@ -78,19 +74,19 @@ def create_app(iface):
         jobs_cnt = data_manager.single_session_job_cnt(sid)
 
         if 'json' in request.args.get('render', []):
-            return jsonify({"tag": len(tags),
-                            "label": len(labels),
-                            "test": jobs_cnt,
-                            "config": data_manager.single_session_config(sid)
-                            })
-        return render_template('session_main.html',
-                               sid=sid,
-                               rootdir=data_manager.single_session_build_path(
-                                   sid),
-                               nb_tests=jobs_cnt,
-                               nb_labels=len(labels),
-                               nb_tags=len(tags)
-                               )
+            return jsonify({
+                "tag": len(tags),
+                "label": len(labels),
+                "test": jobs_cnt,
+                "config": data_manager.single_session_config(sid)
+            })
+        return render_template(
+            'session_main.html',
+            sid=sid,
+            rootdir=data_manager.single_session_build_path(sid),
+            nb_tests=jobs_cnt,
+            nb_labels=len(labels),
+            nb_tags=len(tags))
 
     @app.route('/compare')
     def compare():
@@ -117,16 +113,13 @@ def create_app(iface):
         :return: web content
         :rtype: str
         """
-        sid = sid
         if 'json' in request.args.get('render', []):
-            out = list()
-            infos = data_manager.single_session_get_view(
-                sid, selection, summary=True)
+            out = []
+            infos = data_manager.single_session_get_view(sid,
+                                                         selection,
+                                                         summary=True)
             for k, v in infos.items():
-                out.append({
-                    "name": k,
-                    "count": v
-                })
+                out.append({"name": k, "count": v})
             return jsonify(out)
 
         return render_template('list_view.html', sid=sid, selection=selection)
@@ -147,23 +140,22 @@ def create_app(iface):
         :return: web response
         :rtype: str
         """
-        sid = sid
-        out = list()
+        out = []
         request_item = request.args.get('name', None)
 
         if 'json' in request.args.get('render', []):
             # special case
             if selection == "status":
                 job_list = data_manager.single_session_status(
-                    sid, filter=request_item)
+                    sid, status_filter=request_item)
             else:
                 struct = data_manager.single_session_get_view(
                     sid, selection, subset=request_item, summary=False)
                 # jobs are returned split into 3 lists, depending on their status
                 # -> browse all three lists
-                job_list = list()
-                for e, m in struct.items():
-                    for sn, s in m.items():
+                job_list = []
+                for _, m in struct.items():
+                    for _, s in m.items():
                         job_list += s
             for elt in job_list:
                 cur: Test = data_manager.single_session_map_id(sid, elt)
@@ -205,22 +197,20 @@ def create_app(iface):
         :return: OK
         :rtype: HTTP request
         """
-        return "OK!", 200
         json_str = request.get_json()
 
         test_sid = json_str["metadata"]["sid"]
         test_obj = Test()
-        test_obj.from_json(json_str["test_data"])
+        test_obj.from_json(json_str["test_data"], None)
 
         ok = data_manager.insert_test(test_sid, test_obj)
 
         if not ok:
             return "", 406
-        else:
-            return "OK!", 200
+        return "OK!", 200
 
     @app.errorhandler(404)
-    def page_not_found(e):
+    def page_not_found(e):  # pylint: disable=unused-argument
         """404 Not found page handler.
 
         :param e: the caught error, only 404 here

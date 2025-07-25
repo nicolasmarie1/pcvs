@@ -1,11 +1,8 @@
-import os
 import queue
 
 from pcvs import io
-from pcvs import NAME_BUILD_RESDIR
 from pcvs.backend import session
-from pcvs.helpers import log
-from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import GlobalConfig
 from pcvs.orchestration.manager import Manager
 from pcvs.orchestration.runner import RunnerAdapter
 from pcvs.orchestration.set import Set
@@ -38,13 +35,12 @@ class Orchestrator:
 
     def __init__(self):
         """constructor method"""
-        config_tree = MetaConfig.root
-        self._conf = config_tree
-        self._runners = list()
-        self._max_res = config_tree.machine.get('nodes', 1)
+        config_tree = GlobalConfig.root
+        self._runners = []
+        self._max_res = config_tree['machine'].get('nodes', 1)
         self._publisher = config_tree.get_internal('build_manager').results
         self._manager = Manager(self._max_res, publisher=self._publisher)
-        self._maxconcurrent = config_tree.machine.get('concurrent_run', 1)
+        self._maxconcurrent = config_tree['machine'].get('concurrent_run', 1)
         self._complete_q = queue.Queue()
         self._ready_q = queue.Queue()
 
@@ -52,8 +48,8 @@ class Orchestrator:
         """display pre-run infos."""
         io.console.print_item("Test count: {}".format(
             self._manager.get_count('total')))
-        io.console.print_item(
-            "Max simultaneous Sets: {}".format(self._maxconcurrent))
+        io.console.print_item("Max simultaneous Sets: {}".format(
+            self._maxconcurrent))
         io.console.print_item("Resource count: {}".format(self._max_res))
 
     # This func should only be a passthrough to the job manager
@@ -65,8 +61,10 @@ class Orchestrator:
         """
         self._manager.add_job(job)
 
+    # TODO implement restart so the session does not have
+    # to restart from scratch each time
     @io.capture_exception(KeyboardInterrupt, global_stop)
-    def start_run(self, the_session=None, restart=False):
+    def start_run(self, the_session=None, restart=False):  # pylint: disable=unused-argument
         """Start the orchestrator.
 
         :param the_session: container owning the run.
@@ -75,11 +73,11 @@ class Orchestrator:
         :type restart: False for a brand new run.
         """
 
-        MetaConfig.root.get_internal(
-            "pColl").invoke_plugins(Plugin.Step.SCHED_BEFORE)
+        GlobalConfig.root.get_internal("pColl").invoke_plugins(
+            Plugin.Step.SCHED_BEFORE)
 
         io.console.info("ORCH: initialize runners")
-        for i in range(0, self._maxconcurrent):
+        for _ in range(0, self._maxconcurrent):
             self.start_new_runner()
 
         self._manager.resolve_deps()
@@ -88,36 +86,38 @@ class Orchestrator:
 
         nb_res = self._max_res
         last_progress = 0
-        pending_list = list()
+        pending_list = []
         io.console.info("ORCH: start job scheduling")
         # While some jobs are available to run
         with io.console.table_container(self._manager.get_count()):
-            while self._manager.get_leftjob_count() > 0 or len(pending_list) > 0:
+            while self._manager.get_leftjob_count() > 0 or len(
+                    pending_list) > 0:
                 # dummy init value
                 new_set: Set = not None
                 while new_set is not None:
                     # create a new set, if not possible, returns None
                     new_set = self._manager.create_subset(nb_res)
                     if new_set is not None:
-                        assert (isinstance(nb_res, int))
+                        assert isinstance(nb_res, int)
                         # schedule the set asynchronously
                         nb_res -= new_set.dim
-                        io.console.debug("ORCH: send Set to queue (#{}, sz:{})".format(
-                            new_set.id, new_set.size))
+                        io.console.nodebug(
+                            "ORCH: send Set to queue (#{}, sz:{})".format(
+                                new_set.id, new_set.size))
                         self._ready_q.put(new_set)
                     else:
                         self._manager.prune_non_runnable_jobs()
 
                 # Now, look for a completion
                 try:
-                    set = self._complete_q.get(block=False, timeout=2)
-                    io.console.debug("ORCH: recv Set from queue (#{}, sz:{})".format(
-                        set.id, set.size))
-                    nb_res += set.dim
-                    self._manager.merge_subset(set)
+                    jobs = self._complete_q.get(block=False, timeout=2)
+                    io.console.nodebug(
+                        "ORCH: recv Set from queue (#{}, sz:{})".format(
+                            jobs.id, jobs.size))
+                    nb_res += jobs.dim
+                    self._manager.merge_subset(jobs)
                 except queue.Empty:
                     self._manager.prune_non_runnable_jobs()
-                    pass
                     # TODO: create backup to allow start/stop
 
                 current_progress = self._manager.get_count(
@@ -130,30 +130,33 @@ class Orchestrator:
                     # TODO: Publish results periodically
                     # 1. on file system
                     # 2. directly into the selected bank
-                    io.console.debug("ORCH: Flush a new progression file")
+                    io.console.nodebug("ORCH: Flush a new progression file")
                     self._publisher.flush()
                     last_progress = current_progress
                     if the_session is not None:
                         session.update_session_from_file(
-                            the_session.id, {'progress': current_progress * 100})
+                            the_session.id,
+                            {'progress': current_progress * 100})
 
         self._publisher.flush()
-        assert (self._manager.get_count('executed')
-                == self._manager.get_count('total'))
+        assert (self._manager.get_count('executed') == self._manager.get_count(
+            'total'))
 
-        MetaConfig.root.get_internal(
-            "pColl").invoke_plugins(Plugin.Step.SCHED_AFTER)
+        GlobalConfig.root.get_internal("pColl").invoke_plugins(
+            Plugin.Step.SCHED_AFTER)
 
         io.console.info("ORCH: Stop active runners")
         self.stop_runners()
 
-        return 0 if self._manager.get_count('total') - self._manager.get_count(Test.State.SUCCESS) == 0 else 1
+        return 0 if self._manager.get_count('total') - self._manager.get_count(
+            Test.State.SUCCESS) == 0 else 1
 
     def start_new_runner(self):
         """Start a new Runner thread & register comm queues."""
         RunnerAdapter.sched_in_progress = True
-        r = RunnerAdapter(buildir=MetaConfig.root.validation.output,
-                          ready=self._ready_q, complete=self._complete_q)
+        r = RunnerAdapter(buildir=GlobalConfig.root['validation']['output'],
+                          ready=self._ready_q,
+                          complete=self._complete_q)
         r.start()
         self._runners.append(r)
 
@@ -170,11 +173,11 @@ class Orchestrator:
         """Request runner threads to stop."""
         RunnerAdapter.sched_in_progress = False
 
-    def run(self, session):
+    def run(self, s):
         """Start the orchestrator.
 
-        :param session: container owning the run.
-        :type session: :class:`Session`
+        :param s: container owning the run.
+        :type s: :class:`Session`
         """
         # pre-actions done only once
-        return self.start_run(session, restart=False)
+        return self.start_run(s, restart=False)

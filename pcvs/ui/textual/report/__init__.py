@@ -33,21 +33,23 @@ class ActiveSessionList(Widget):
     items = reactive(OptionList())
     selected = None
 
+    def __init__(self, *args, **kwargs):
+        self.item_list = []
+        super().__init__(*args, **kwargs)
+
     def compose(self):
         self.init_list()
         yield Static("Loaded Sessions:")
         yield self.items
         yield Horizontal(
             Button(label="Done", variant="primary", id="session-pick-done"),
-            Button(label="Cancel", variant="error", id="session-pick-cancel")
-        )
+            Button(label="Cancel", variant="error", id="session-pick-cancel"))
 
     def init_list(self):
         item_names = self.app.model.session_prefixes
         active = self.app.model.active.prefix
         assert (active in item_names)
 
-        self.item_list = list()
         for name in item_names:
             self.item_list.append(Option(name))
 
@@ -70,8 +72,12 @@ class FileBrowser(Widget):
     log = reactive(Static(id="error-log"))
 
     class CustomDirectoryTree(DirectoryTree):
+
         def filter_paths(self, paths: Iterable[Path]) -> Iterable[Path]:
-            return [path for path in paths if check_is_build_or_archive(path) or os.path.isdir(path)]
+            return [
+                path for path in paths
+                if check_is_build_or_archive(path) or os.path.isdir(path)
+            ]
 
     def compose(self):
         yield Static("File Browser:")
@@ -88,29 +94,28 @@ class FileBrowser(Widget):
 
 
 class SessionPickScreen(ModalScreen):
+
     def compose(self):
-        yield Grid(
-            ActiveSessionList(),
-            FileBrowser(),
-            id="session-list-screen"
-        )
+        yield Grid(ActiveSessionList(),
+                   FileBrowser(),
+                   id="session-list-screen")
 
     class SwitchAnotherSession(Message):
         pass
 
     @on(Button.Pressed, "#session-pick-cancel")
-    def pop_screen(self, event):
+    def pop_screen(self, event):  # pylint: disable=unused-argument
         self.app.pop_screen()
 
     @on(Button.Pressed, "#session-pick-done")
-    def set_active_session(self, event):
+    def set_active_session(self, event):  # pylint: disable=unused-argument
         selected_row = self.query_one(ActiveSessionList).selected
         self.app.model.set_active(selected_row)
         self.post_message(SessionPickScreen.SwitchAnotherSession())
         self.app.pop_screen()
 
     @on(Button.Pressed, "#add-session")
-    def add_from_file_browser(self, event):
+    def add_from_file_browser(self, event):  # pylint: disable=unused-argument
         if self.query_one(Input).value:
             path = os.path.abspath(
                 os.path.expanduser(self.query_one(Input).value))
@@ -148,7 +153,8 @@ class JobListViewer(Widget):
 
     def update_table(self):
         self.table.clear()
-        for state, jobs in self.app.model.single_session_status(self.app.model.active_id).items():
+        for _, jobs in self.app.model.single_session_status(
+                self.app.model.active_id).items():
             for jobid in jobs:
                 obj = self.app.model.single_session_map_id(
                     self.app.model.active_id, jobid)
@@ -156,10 +162,8 @@ class JobListViewer(Widget):
                 color = self.app.model.pick_color_on_status(obj.state)
 
                 self.table.add_row(
-                    obj.name,
-                    "[{c}]{i}[/{c}]".format(c=color, i=obj.state),
-                    obj.time
-                )
+                    obj.name, "[{c}]{i}[/{c}]".format(c=color, i=obj.state),
+                    obj.time)
                 self.jobgroup[obj.name] = obj
         self.table.sort(self.name_colkey)
 
@@ -172,14 +176,15 @@ class SingleJobViewer(Widget):
         yield self.cmd
         yield self.log
 
-    def watch_log(self, old, new):
+    def watch_log(self, old, new):  # pylint: disable=unused-argument
         self.log = new
 
-    def watch_cmd(self, old, new):
+    def watch_cmd(self, old, new):  # pylint: disable=unused-argument
         self.cmd = new
 
 
 class MainScreen(Screen):
+
     def compose(self):
         # with TabbedContent():
         #    with TabPane("main", id="main"):
@@ -192,8 +197,8 @@ class MainScreen(Screen):
     @on(DataTable.RowSelected)
     def selected_row(self, event: DataTable.RowSelected):
         name_colkey = self.query_one(JobListViewer).name_colkey
-        jobname = self.query_one(DataTable).get_cell(
-            event.row_key, name_colkey)
+        jobname = self.query_one(DataTable).get_cell(event.row_key,
+                                                     name_colkey)
 
         obj = self.query_one(JobListViewer).jobgroup[jobname]
         data = "** No Output **" if not obj.output else obj.output
@@ -205,6 +210,7 @@ class MainScreen(Screen):
 
 
 class ExitConfirmScreen(ModalScreen):
+
     def compose(self):
         yield Grid(
             Static("Are you sure you want to quit?", id="question"),
@@ -222,35 +228,35 @@ class ExitConfirmScreen(ModalScreen):
 
 
 class PleaseWaitScreen(ModalScreen):
+
     def compose(self):
         yield Static("Please Wait...")
         yield LoadingIndicator()
 
 
 class SessionInfoScreen(ModalScreen):
+
     def compose(self):
-        display = {
-            "datetime": Static("Date of run:"),
-            "pf_name": Static("Profile:"),
-        }
+        # display = {
+        #     "datetime": Static("Date of run:"),
+        #     "pf_name": Static("Profile:"),
+        # }
         config = self.app.model.active.config
         infolog = RichLog()
 
         infolog.write(pprint.pformat(config))
 
-        yield Container(
-            Horizontal(
-                Static('File Path:'),
-                Static(self.app.model.active.prefix),
-            ),
-            Static('Configuration:'),
-            infolog,
-            Button("Done"),
-            id="session-infos"
-        )
+        yield Container(Horizontal(
+            Static('File Path:'),
+            Static(self.app.model.active.prefix),
+        ),
+                        Static('Configuration:'),
+                        infolog,
+                        Button("Done"),
+                        id="session-infos")
 
     @on(Button.Pressed)
-    def quit_infos(self, ev):
+    def quit_infos(self, event):  # pylint: disable=unused-argument
         self.app.pop_screen()
 
 
@@ -260,23 +266,20 @@ class ReportApplication(App):
     """
     TITLE = "PCVS Job Result Viewer"
     SCREENS = {
-        "main": MainScreen(),
-        "exit": ExitConfirmScreen(),
-        "wait": PleaseWaitScreen(),
-        "session_list": SessionPickScreen(),
-        "session_infos": SessionInfoScreen()
+        "main": MainScreen,
+        "exit": ExitConfirmScreen,
+        "wait": PleaseWaitScreen,
+        "session_list": SessionPickScreen,
+        "session_infos": SessionInfoScreen
     }
-    BINDINGS = {
-        ('q', 'push_screen("exit")', 'Exit'),
-        ('o', 'push_screen("session_list")', 'Open'),
-        ('t', 'toggle_dark', 'Dark mode'),
-        ("c", "push_screen('session_infos')", 'Infos')
-
-    }
+    BINDINGS = {('q', 'push_screen("exit")', 'Exit'),
+                ('o', 'push_screen("session_list")', 'Open'),
+                ('t', 'toggle_dark', 'Dark mode'),
+                ("c", "push_screen('session_infos')", 'Infos')}
     CSS_PATH = "main.css"
 
     @on(SessionPickScreen.SwitchAnotherSession)
-    def switch_session(self, event):
+    def switch_session(self, event):  # pylint: disable=unused-argument
         """
         Coming back from picking a session, refresh the table
 
@@ -303,7 +306,7 @@ class ReportApplication(App):
         super().__init__()
 
 
-def start_app(p=None) -> int:
+def start_app(p=None) -> int:  # pylint: disable=unused-argument
     """
     handler to start a new Textual application.
 
@@ -312,4 +315,4 @@ def start_app(p=None) -> int:
     :return: A return code from Textual Application
     :rtype: int
     """
-    app = ReportApplication(ReportModel(p)).run()
+    # app = ReportApplication(ReportModel(p)).run()

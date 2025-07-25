@@ -1,47 +1,39 @@
 ---
 type: object
 properties:
-  cc: &compiler_properties
+  compilers:
     type: object
-    properties:
-      program: {type: string}
-      args:
-        OneOf:
-        - {type: array, items: {type: string}}
-        - {type: string}
-      envs:
-        OneOf:
-        - {type: array, items: {type: string}}
-        - {type: string}
-      variants:
+    patternProperties:
+      "^.*$":
         type: object
-        patternProperties:
-          "^.*$":
+        properties:
+          program: {type: string}
+          args:
+            OneOf:
+            - {type: array, items: {type: string}}
+            - {type: string}
+          envs:
+            OneOf:
+            - {type: array, items: {type: string}}
+            - {type: string}
+          extension: {type: string}
+          variants:
             type: object
-            properties:
-              program: {type: string}
-              args:
-                OneOf:
-                - {type: array, items: {type: string}}
-                - {type: string}
-              envs:
-                OneOf:
-                - {type: array, items: {type: string}}
-                - {type: string}
-            additionalProperties: false
-    additionalProperties: false
-  cxx:
-    <<: *compiler_properties
-  fc:
-    <<: *compiler_properties
-  f77:
-    <<: *compiler_properties
-  f90:
-    <<: *compiler_properties
-  f08:
-    <<: *compiler_properties
-  accl:
-    <<: *compiler_properties
+            patternProperties:
+              "^.*$":
+                type: object
+                properties:
+                  program: {type: string}
+                  args:
+                    OneOf:
+                    - {type: array, items: {type: string}}
+                    - {type: string}
+                  envs:
+                    OneOf:
+                    - {type: array, items: {type: string}}
+                    - {type: string}
+                additionalProperties: false
+        additionalProperties: false
   package_manager:
     type: object
     properties:

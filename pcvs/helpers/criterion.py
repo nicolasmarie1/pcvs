@@ -5,7 +5,7 @@ import os
 
 from pcvs import io
 from pcvs.helpers.exceptions import CommonException
-from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import GlobalConfig
 from pcvs.plugins import Plugin
 
 
@@ -60,7 +60,7 @@ class Combination:
         for n in sorted(self._combination.keys()):
             subtitle = c[n].subtitle
             if subtitle is None:
-                subtitle = "{}".format(n)
+                subtitle = f"{n}"
 
             string.append(subtitle +
                           str(self._combination[n]).replace(" ", "-"))
@@ -109,6 +109,7 @@ class Serie:
     which can be taken for each criterion to build test sets.
     A serie can be seen as the Combination generator for a given TEDescriptor
     """
+
     @classmethod
     def register_sys_criterion(cls, system_criterion):
         """copy/inherit the system-defined criterion (shortcut to global config)
@@ -125,8 +126,8 @@ class Serie:
         # this has to be saved, need to be forwarded to each combination
         self._dict = dict_of_criterion
         for name, node in dict_of_criterion.items():
-            assert (isinstance(node, Criterion))
-            assert (name == node.name)
+            assert isinstance(node, Criterion)
+            assert name == node.name
             self._values.append(node.values)
             self._keys.append(node.name)
 
@@ -136,10 +137,7 @@ class Serie:
             d = {self._keys[i]: val for i, val in enumerate(combination)}
             if not valid_combination(d):
                 continue
-            yield Combination(
-                self._dict,
-                d
-            )
+            yield Combination(self._dict, d)
 
 
 class Criterion:
@@ -191,8 +189,7 @@ class Criterion:
             if isinstance(v, list):
                 raise CommonException.UnclassifiableError(
                     reason="list elements should be scalar OR dict",
-                    dbg_info={"element": v}
-                )
+                    dbg_info={"element": v})
             if isinstance(v, dict):
                 for key in v.keys():
                     assert key in ['op', 'of', 'from', 'to']
@@ -215,20 +212,20 @@ class Criterion:
         """Update the calling Criterion with the interesection of the current
         range of possible values with the one given as a parameters.
 
-        This is used to refine overriden per-TE criterion according to 
+        This is used to refine overriden per-TE criterion according to
         system-wide's"""
-        assert (isinstance(other, Criterion))
-        assert (self._name == other._name)
+        assert isinstance(other, Criterion)
+        assert self._name == other.name
 
         # None is special value meaning, discard this criterion because
         # irrelevant
-        if self._values is None or other._values is None:
+        if self._values is None or other.values is None:
             self._values = None
         else:
-            self._values = set(self._values).intersection(other._values)
+            self._values = set(self._values).intersection(other.values)
 
     def is_empty(self):
-        """Is the current set of values empty 
+        """Is the current set of values empty
         May lead to errors, as it may indicates no common values has been
         found between user and system specifications"""
         return self._values is not None and len(self._values) == 0
@@ -244,14 +241,6 @@ class Criterion:
     def is_env(self):
         """Is this criterion targeting a component used as an env var ?"""
         return self._is_env
-
-    @staticmethod
-    def __convert_str_to_int(str_elt):
-        """Convert a sequence (as a string) into a valid range of values.
-
-        This is used to build criterion numeric-only possible values"""
-        # TODO: write sequence conversion for numeric values
-        return 0
 
     @property
     def values(self):
@@ -361,8 +350,8 @@ class Criterion:
                         return int(n)
                     else:
                         return n
-                except ValueError:
-                    raise CommonException.BadTokenError(val)
+                except ValueError as ve:
+                    raise CommonException.BadTokenError(val) from ve
 
             else:
                 return val
@@ -374,12 +363,12 @@ class Criterion:
         op = node.get('op', 'seq').lower()
 
         if op in ['seq', 'arithmetic', 'ari']:
-            values = range(start, end+1, of)
+            values = range(start, end + 1, of)
         elif op in ['mul', 'geometric', 'geo']:
             if start == 0:
                 values.append(0)
             elif of in [-1, 0, 1]:
-                values.append(start ** of)
+                values.append(start**of)
             else:
                 cur = start
                 while cur <= end:
@@ -388,9 +377,9 @@ class Criterion:
         elif op in ['pow', 'powerof']:
             if of == 0:
                 values.append()
-            start = math.ceil(start**(1/of))
-            end = math.floor(end**(1/of))
-            for i in range(start, end+1):
+            start = math.ceil(start**(1 / of))
+            end = math.floor(end**(1 / of))
+            for i in range(start, end + 1):
                 values.append(i**of)
         else:
             io.console.warn("failure in Criterion sequence!")
@@ -403,12 +392,12 @@ class Criterion:
 
     @property
     def min_value(self):
-        assert (self.expanded)
+        assert self.expanded
         return min(self._values)
 
     @property
     def max_value(self):
-        assert (self.expanded)
+        assert self.expanded
         return max(self._values)
 
     def expand_values(self, reference=None):
@@ -432,8 +421,9 @@ class Criterion:
             for v in self._values:
 
                 if isinstance(v, dict):
-                    values += self.__convert_sequence_to_list(
-                        v, s=start, e=end)
+                    values += self.__convert_sequence_to_list(v,
+                                                              s=start,
+                                                              e=end)
                 elif isinstance(v, (int, float, str)):
                     values.append(v)
                 else:
@@ -444,7 +434,7 @@ class Criterion:
         # now ensure values are unique
         self._values = set(values)
         self._expanded = True
-        io.console.debug("EXPANDED {}: {}".format(self.name, self._values))
+        io.console.debug(f"EXPANDED {self.name}: {self._values}")
         # TODO: handle criterion dependency (ex: n_mpi: ['n_node * 2'])
 
 
@@ -453,12 +443,12 @@ def initialize_from_system():
 
     TODO: Move this function elsewhere."""
     # sanity checks
-    if not MetaConfig.root.criterion:
-        MetaConfig.root.set_internal('crit_obj', {})
+    if 'criterion' not in GlobalConfig.root:
+        GlobalConfig.root.set_internal('crit_obj', {})
     else:
         # raw YAML objects
-        runtime_iterators = MetaConfig.root.runtime.criterions
-        criterion_iterators = MetaConfig.root.criterion
+        runtime_iterators = GlobalConfig.root['runtime']['criterions']
+        criterion_iterators = GlobalConfig.root['criterion']
         it_to_remove = []
 
         # if a criterion defined in criterion.yaml but
@@ -480,17 +470,23 @@ def initialize_from_system():
 
         # register the new dict {criterion_name: Criterion object}
         # the criterion object gathers both information from runtime & criterion
-        MetaConfig.root.set_internal('crit_obj', {k: Criterion(
-            k, {**runtime_iterators[k], **criterion_iterators[k]}) for k in criterion_iterators.keys() if k not in it_to_remove})
+        GlobalConfig.root.set_internal(
+            'crit_obj', {
+                k: Criterion(k, {
+                    **runtime_iterators[k],
+                    **criterion_iterators[k]
+                })
+                for k in criterion_iterators.keys() if k not in it_to_remove
+            })
 
     # convert any sequence into valid range of integers for
 
     # numeric criterions
     comb_cnt = 1
-    for criterion in MetaConfig.root.get_internal('crit_obj').values():
+    for criterion in GlobalConfig.root.get_internal('crit_obj').values():
         criterion.expand_values()
         comb_cnt *= len(criterion)
-    MetaConfig.root.set_internal("comb_cnt", comb_cnt)
+    GlobalConfig.root.set_internal("comb_cnt", comb_cnt)
 
 
 first = True
@@ -505,21 +501,33 @@ def valid_combination(dic):
     :rtype: bool
     """
     global first
-    rt = MetaConfig.root.runtime
-    val = MetaConfig.root.validation
-    pCollection = MetaConfig.root.get_internal('pColl')
+    rt = GlobalConfig.root['runtime']
+    val = GlobalConfig.root['validation']
+    pCollection = GlobalConfig.root.get_internal('pColl')
 
-    if first and rt.plugin:
+    if first and 'plugin' in rt:
         first = not first
 
-        rt.pluginfile = os.path.join(val.buildcache, "rt-plugin.py")
-        with open(rt.pluginfile, 'w') as fh:
-            fh.write(base64.b64decode(rt.plugin).decode('utf-8'))
+        rt['pluginfile'] = os.path.join(val['buildcache'], "rt-plugin.py")
+        with open(rt['pluginfile'], 'w', encoding='utf-8') as fh:
+            fh.write(rt['plugin'].decode('utf-8'))
 
-        pCollection.register_plugin_by_file(rt.pluginfile, activate=True)
+        try:
+            pCollection.register_plugin_by_file(rt['pluginfile'], activate=True)
+        except SyntaxError as e:
+            os.unlink(rt['pluginfile'])
+            with open(rt['pluginfile'], 'w', encoding='utf-8') as fh2:
+                fh2.write(base64.b64decode(rt['plugin']).decode('utf-8'))
+            try:
+                pCollection.register_plugin_by_file(rt['pluginfile'], activate=True)
+            except SyntaxError as er2:
+                raise e from er2
+            io.console.warning("Profile file doubly encoded, "
+                               "consider updating plugin in profile file"
+                               "base64 -d <<< \"<plugin>\"")
 
     ret = pCollection.invoke_plugins(Plugin.Step.TEST_EVAL,
-                                     config=MetaConfig.root,
+                                     config=GlobalConfig.root,
                                      combination=dic)
 
     # by default, no plugin = always true

@@ -1,11 +1,14 @@
-from pcvs.dsl import Bank, Serie, Run, Job
+from pcvs.dsl import Bank
+from pcvs.dsl import Job
+from pcvs.dsl import Run
+from pcvs.dsl import Serie
 
 # open a bank
 bank = Bank('./demo.git')
 
 # retrieve project/configs within the bank
 # a given serie is identified by:
-# - a name 
+# - a name
 # - a hash, based on a specific profile
 list_of_projects = bank.list_projects()
 configs_for_project = bank.list_series(list_of_projects[0])

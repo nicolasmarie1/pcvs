@@ -1,27 +1,25 @@
 import json
-import os
-from enum import Enum
 from enum import IntEnum
 from typing import Dict
 from typing import List
 
 from pcvs import io
-from pcvs.helpers import exceptions
 from pcvs.helpers import git
 from pcvs.testing.test import Test
 
 
 class Job(Test):
     """Map a real job representation within a bank."""
+
     class Trend(IntEnum):
-        REGRESSION = 0,
-        PROGRESSION = 1,
+        REGRESSION = 0
+        PROGRESSION = 1
         STABLE = 2
 
-    def __init__(self, s=None) -> None:
+    def __init__(self, s=None, filepath: str = None) -> None:
         super().__init__()
         if isinstance(s, dict):
-            self.from_json(s)
+            self.from_json(s, filepath)
 
     def get_state(self) -> Test.State:
         """Retrieve job state as stored in the Run.
@@ -31,13 +29,13 @@ class Job(Test):
         """
         return self._state
 
-    def load(self, s="") -> None:
+    def load(self, s="", filepath: str = None) -> None:
         """Populate the job with given data.
 
         :param s: A Job's data dict representation
         :type s: dict
         """
-        self.from_json(s)
+        self.from_json(s, filepath)
 
     def dump(self) -> dict:
         """Return serialied job data.
@@ -81,10 +79,10 @@ class Run:
 
     @property
     def previous(self):
-        l = self._repo.get_parents(self._cid)
-        if l[0].get_info()['message'] == "INIT" or len(l) < 1:
+        runs = self._repo.get_parents(self._cid)
+        if runs[0].get_info()['message'] == "INIT" or len(runs) < 1:
             return None
-        return Run(repo=self._repo, cid=l[0])
+        return Run(repo=self._repo, cid=runs[0])
 
     @property
     def oneline(self):
@@ -112,7 +110,7 @@ class Run:
         if not data:
             return data
 
-        res.from_json(str(data))
+        res.from_json(str(data), None)
         return res
 
     def update(self, prefix, data):
@@ -151,14 +149,14 @@ class Run:
 class Serie:
     """TODO:
     """
+
     class Request(IntEnum):
         """TODO:
         """
         REGRESSIONS = 0
-        RUNS = 1,
+        RUNS = 1
 
-    """Depicts an history of runs for a given project/profile.
-    """
+    #Depicts an history of runs for a given project/profile.
 
     def __init__(self, branch):
         """TODO:
@@ -207,16 +205,20 @@ class Serie:
         if op == self.Request.REGRESSIONS:
             job = Test()
             res = []
-            for raw_job in self._repo.diff_tree(tree=tree, src=self._hdl,
-                                                dst=None, since=since,
+            for raw_job in self._repo.diff_tree(tree=tree,
+                                                src=self._hdl,
+                                                dst=None,
+                                                since=since,
                                                 until=until):
-                job.from_json(raw_job)
+                job.from_json(raw_job, None)
                 if job.state != Test.State.SUCCESS:
                     res.append(job)
 
         elif op == self.Request.RUNS:
             res = []
-            for elt in self._repo.list_commits(rev=self._hdl, since=since, until=until):
+            for elt in self._repo.list_commits(rev=self._hdl,
+                                               since=since,
+                                               until=until):
                 if elt.get_info()['message'] != "INIT":
                     res.append(Run(repo=self._repo, cid=elt))
         return res
@@ -227,7 +229,7 @@ class Serie:
         msg = "New run" if not msg else msg
         try:
             raw_metadata = json.dumps(metadata)
-        except:
+        except Exception:
             raw_metadata = ""
 
         commit_msg = """{}
@@ -236,8 +238,11 @@ class Serie:
 
         for k, v in run.changes.items():
             root_tree = self._repo.insert_tree(k, v, root_tree)
-        self._repo.commit(tree=root_tree, msg=commit_msg,
-                          parent=self._hdl, timestamp=timestamp, orphan=False)
+        self._repo.commit(tree=root_tree,
+                          msg=commit_msg,
+                          parent=self._hdl,
+                          timestamp=timestamp,
+                          orphan=False)
         # self._repo.gc()
 
 
@@ -255,16 +260,18 @@ class Bank:
             self._repo.set_head(head)
         else:
             first_branch = [
-                b for b in self._repo.branches if b.name != "master"]
+                b for b in self._repo.branches() if b.name != "master"
+            ]
             if len(first_branch) <= 0:
-                io.console.warn(
-                    "This repository seems empty: {}".format(self._path))
+                io.console.warn("This repository seems empty: {}".format(
+                    self._path))
             else:
                 self._repo.set_head(first_branch[0].name)
 
         if not self._repo.get_branch_from_str('master'):
             t = self._repo.insert_tree(
-                'README', "This file is intended to be used as a branch bootstrap.")
+                'README',
+                "This file is intended to be used as a branch bootstrap.")
             c = self._repo.commit(t, "INIT", orphan=True)
             self._repo.set_branch(git.Branch(self._repo, 'master'), c)
 
@@ -303,7 +310,7 @@ class Bank:
         """TODO:
         """
         res = []
-        for elt in self._repo.branches:
+        for elt in self._repo.branches():
             array = elt.name.split('/')
             if project is None or array[0].lower() == project.lower():
                 res.append(Serie(elt))
@@ -327,6 +334,8 @@ class Bank:
         :return: A list of available projects
         :rtype: list of str
         """
-        projects = [elt.name.split(
-            '/')[0] for elt in self._repo.branches if elt.name != "master"]
+        projects = [
+            elt.name.split('/')[0] for elt in self._repo.branches()
+            if elt.name != "master"
+        ]
         return list(set(projects))

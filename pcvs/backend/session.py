@@ -1,5 +1,5 @@
-import os
 import hashlib
+import os
 from datetime import datetime
 from enum import IntEnum
 from multiprocessing import Process
@@ -9,12 +9,14 @@ from ruamel.yaml.main import yaml_object
 
 from pcvs import io
 from pcvs import PATH_SESSION
-from pcvs.helpers import utils
 
 yml = YAML()
 
+
 def session_file_hash(session_infos):
-    return hashlib.sha1("{}:{}".format(session_infos["path"], session_infos["started"]).encode()).hexdigest()
+    return hashlib.sha1("{}:{}".format(
+        session_infos["path"], session_infos["started"]).encode()).hexdigest()
+
 
 def store_session_to_file(c) -> int:
     """Save a new session into the session file (in HOME dir).
@@ -50,24 +52,25 @@ def update_session_from_file(sid, update):
     :type: dict
     """
     global yml
-    
+
     if not os.path.exists(PATH_SESSION):
         os.makedirs(PATH_SESSION)
-    
+
     for f in os.listdir(PATH_SESSION):
         if f.startswith(sid):
             with open(os.path.join(PATH_SESSION, f), "r") as fh:
                 data = yml.load(fh)
-            
+
             for k, v in update.items():
                 data[k] = v
-            
+
             with open(os.path.join(PATH_SESSION, f), "w") as fh:
                 yml.dump(data, fh)
-        
+
             return True
-        
+
     return False
+
 
 def remove_session_from_file(sid):
     """clear a session from logs.
@@ -76,12 +79,13 @@ def remove_session_from_file(sid):
     :type sid: int
     """
     global yml
-    
+
     for f in os.listdir(PATH_SESSION):
         if f.startswith(sid):
             os.remove(os.path.join(PATH_SESSION, f))
             return True
     return False
+
 
 def list_alive_sessions():
     """Load and return the complete dict from session.yml file
@@ -92,16 +96,16 @@ def list_alive_sessions():
     global yml
     if not os.path.exists(PATH_SESSION):
         os.makedirs(PATH_SESSION)
-    
+
     all_sessions = {}
-    
+
     for f in os.listdir(PATH_SESSION):
-        assert(os.path.splitext(f) not in all_sessions)
+        assert (os.path.splitext(f) not in all_sessions)
         try:
             with open(os.path.join(PATH_SESSION, f), "r") as fh:
                 data = yml.load(fh)
                 all_sessions[os.path.splitext(f)[0]] = data
-        except:
+        except Exception:
             continue
     return all_sessions
 
@@ -167,6 +171,7 @@ class Session:
     :type _session_infos: dict
 
     """
+
     @yaml_object(yml)
     class State(IntEnum):
         """Enum of possible Session states."""
@@ -187,7 +192,8 @@ class Session:
             :return: the YAML representation
             :rtype: Any
             """
-            return representer.represent_scalar(u'!State', u'{}||{}'.format(data.name, data.value))
+            return representer.represent_scalar(
+                '!State', '{}||{}'.format(data.name, data.value))
 
         @classmethod
         def from_yaml(cls, constructor, node):

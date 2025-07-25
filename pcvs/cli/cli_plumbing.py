@@ -2,8 +2,7 @@ import sys
 
 from pcvs.backend.bank import Bank
 from pcvs.cli.cli_bank import compl_list_banks
-from pcvs.dsl.analysis import ResolverAnalysis
-from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import GlobalConfig
 
 try:
     import rich_click as click
@@ -13,13 +12,21 @@ except ImportError:
 
 
 @click.command(name="resolve", short_help="Resolve test status")
-@click.option("-b", "--bank", "bankname", shell_complete=compl_list_banks,
-              default=None, help="explicit bank name to use.")
-@click.option("-f", "--file", "file",
-              type=click.Path(exists=False), default=None,
-              is_flag=False, help="read from file instead of stdin")
+@click.option("-b",
+              "--bank",
+              "bankname",
+              shell_complete=compl_list_banks,
+              default=None,
+              help="explicit bank name to use.")
+@click.option("-f",
+              "--file",
+              "file",
+              type=click.Path(exists=False),
+              default=None,
+              is_flag=False,
+              help="read from file instead of stdin")
 @click.pass_context
-def resolve(ctx, file, bankname):
+def resolve(ctx, file, bankname):  # pylint: disable=unused-argument
 
     if file:
         with open(file, 'r') as fh:
@@ -28,7 +35,7 @@ def resolve(ctx, file, bankname):
         stream = sys.stdin.read().rstrip()
 
     if not bankname:
-        bankname = MetaConfig.root.validation.target_bank
+        bankname = GlobalConfig.root['validation']['target_bank']
 
     # may deadlock !!
     bank = Bank(bankname)

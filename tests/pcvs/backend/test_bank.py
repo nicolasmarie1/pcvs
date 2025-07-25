@@ -1,20 +1,15 @@
 import json
 import os
 from datetime import datetime
-from unittest.mock import Mock
-from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner
 from ruamel.yaml import YAML
 
 import pcvs
-from pcvs import NAME_BUILD_RESDIR
-from pcvs import NAME_BUILDIR
 from pcvs.backend import bank as tested
 from pcvs.helpers import git
 from pcvs.helpers import utils
-from pcvs.helpers.system import MetaDict
 
 
 @pytest.fixture
@@ -23,17 +18,19 @@ def mock_repo_fs():
         path = os.path.join(os.getcwd(), "fake_bank")
         os.makedirs(path)
         yield path
-        
+
+
 @pytest.fixture
 def dummy_run():
     with CliRunner().isolated_filesystem():
         path = os.getcwd()
         build_path = os.path.join(path, ".pcvs-build")
-        
+
         os.makedirs(os.path.join(build_path, "rawdata"))
-        open(os.path.join(build_path, ".pcvs-isbuilddir"), 'w+').close()
-        
-        with open(os.path.join(build_path, "rawdata/pcvs_rawdat0000.json"), "w+") as fh:
+        open(os.path.join(build_path, ".pcvs-isbuilddir"), 'w+', encoding='utf-8').close()
+
+        with open(os.path.join(build_path, "rawdata/pcvs_rawdat0000.json"),
+                  "w+", encoding="utf-8") as fh:
             content = {
                 "tests": [{
                     "id": {
@@ -48,65 +45,74 @@ def dummy_run():
                         "state": -1,
                         "time": 0.0,
                         "output": None
-                    }, "data": {
+                    },
+                    "data": {
                         "tags": "TBD",
                         "metrics": "TBD",
                         "artifacts": "TBD",
-                        }}, 
-                ]
+                    }
+                }]
             }
             json.dump(content, fh)
-        
-        with open(os.path.join(build_path, "conf.yml"), 'w') as fh:
-            content = MetaDict()
-            content.validation.dirs = {'LABEL_A': "DIR_A"}
-            content.validation.author.name = "John Doe"
-            content.validation.author.email = "johndoe@example.com"
-            content.validation.datetime = datetime.now()
-            content.validation.pf_hash = "profile_hash"
-            YAML(typ='safe').dump(content.to_dict(), fh)
+
+        with open(os.path.join(build_path, "conf.yml"), 'w', encoding='utf-8') as fh:
+            content = {
+                "validation":
+                {
+                    "dirs": {'LABEL_A': "DIR_A"},
+                    "author":
+                    {
+                        "name": "John Doe",
+                        "email": "johndoe@example.com",
+                    },
+                    "pf_hash": "profile_hash",
+                }
+            }
+            content['validation']['datetime'] = datetime.now()
+            YAML(typ='safe').dump(content, fh)
 
         yield path
 
-def test_bank_connect(mock_repo_fs):
+
+def test_bank_connect(mock_repo_fs):  # pylint: disable=redefined-outer-name
     # first test with a specific dir to create the Git repo
     pcvs.io.init()
     obj = tested.Bank(path=mock_repo_fs)
-    assert(not obj.exists())
+    assert not obj.exists()
     obj.connect()
-    assert(os.path.isfile(os.path.join(mock_repo_fs, "HEAD")))
+    assert os.path.isfile(os.path.join(mock_repo_fs, "HEAD"))
     obj.disconnect()
 
     # Then use the recursive research to let pygit2 detect the Git repo
     obj = tested.Bank(path=mock_repo_fs)
-    assert(not obj.exists())
+    assert not obj.exists()
     obj.connect()
-    assert(obj.prefix == mock_repo_fs)  # pygit2 should detect the old repo
-    assert(os.path.isfile(os.path.join(mock_repo_fs, "HEAD")))
+    assert obj.prefix == mock_repo_fs  # pygit2 should detect the old repo
+    assert os.path.isfile(os.path.join(mock_repo_fs, "HEAD"))
     obj.connect()  # ensure multiple connection are safe
     obj.disconnect()
 
-def test_save_run(mock_repo_fs, dummy_run, capsys):
+
+def test_save_run(mock_repo_fs, dummy_run, capsys):  # pylint: disable=redefined-outer-name
     pcvs.io.init()
     obj = tested.Bank(path=mock_repo_fs, token="dummy@original-tag")
-    assert(not obj.exists())
+    assert not obj.exists()
     obj.connect()
     prefix = utils.find_buildir_from_prefix(dummy_run)
     obj.save_from_buildir("override-tag", prefix)
-    assert(obj.get_count() == 1)
-    
+    assert obj.get_count() == 1
+
     obj.save_from_buildir(None, prefix)
-    assert(obj.get_count() == 2)
-    
-    assert(len(obj.list_series("override-tag")) == 1)
-    assert(len(obj.list_series("original-tag")) == 1)
+    assert obj.get_count() == 2
+
+    assert len(obj.list_series("override-tag")) == 1
+    assert len(obj.list_series("original-tag")) == 1
     obj.show()
     capture = capsys.readouterr()
-    assert('original-tag: 1 distinct testsuite(s)' in capture.out)
-    assert('override-tag: 1 distinct testsuite(s)' in capture.out)
+    assert 'original-tag: 1 distinct testsuite(s)' in capture.out
+    assert 'override-tag: 1 distinct testsuite(s)' in capture.out
     obj.disconnect()
-    
+
     repo = git.elect_handler(mock_repo_fs)
     repo.open()
-    assert(len(list(repo.branches)) == 3)
-
+    assert len(list(repo.branches())) == 3

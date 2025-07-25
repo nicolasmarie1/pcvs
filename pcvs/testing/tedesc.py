@@ -3,17 +3,16 @@ import os
 import re
 import shutil
 import tempfile
-from typing import Optional
 
 import pcvs
+from pcvs import io
 from pcvs import testing
 from pcvs.helpers import pm
 from pcvs.helpers.criterion import Criterion
 from pcvs.helpers.criterion import Serie
 from pcvs.helpers.exceptions import ProfileException
 from pcvs.helpers.exceptions import TestException
-from pcvs.helpers.system import MetaConfig
-from pcvs.helpers.system import MetaDict
+from pcvs.helpers.system import GlobalConfig
 from pcvs.testing.test import Test
 
 # now return the first valid language, according to settings
@@ -21,69 +20,28 @@ from pcvs.testing.test import Test
 # appearing in this list will be considered as the main language
 
 
-
-
-def detect_source_lang(array_of_files) -> str:
-    """Determine compilation language for a target file (or list of files).
-
-    Only one language is detected at once.
+def detect_compiler(array_of_files) -> str:
+    """Determine compilers to use for a target file (or list of files).
 
     :param array_of_files: list of files to identify
-    :type array_of_files: list
-    :return: the language code
-    :rtype: str
+    :return the chosen compilers
     """
-    detect = list()
+    detect = []
     for f in array_of_files:
-        if re.search(r'\.(h|H|i|I|s|S|c|c90|c99|c11)$', f):
-            detect.append('cc')
-        elif re.search(r'\.(hpp|C|cc|cxx|cpp|c\+\+)$', f):
-            detect.append('cxx')
-        elif re.search(r'\.(f|F)(77)$', f):
-            detect.append('f77')
-        elif re.search(r'\.(f|F)90$', f):
-            detect.append('f90')
-        elif re.search(r'\.(f|F)95$', f):
-            detect.append('f95')
-        elif re.search(r'\.(f|F)(20)*03$', f):
-            detect.append('f03')
-        elif re.search(r'\.(f|F)(20)*08$', f):
-            detect.append('f08')
-        elif re.search(r'\.(f|F)$', f):
-            detect.append('fc')
-        elif re.search(r'\.(cu|CU)$', f):
-            detect.append('accl')
+        for compiler_name in GlobalConfig.root['compiler']['compilers']:
+            compiler = GlobalConfig.root['compiler']['compilers'][compiler_name]
+            if compiler['extension'] and re.search(compiler['extension'], f):
+                detect.append(compiler_name)
+                break
+        else:
+            detect.append(None)
     return detect
 
-def validate_source_lang(langs, allowed_languages) -> Optional[str]:
-    #1. If fortran, select a compiler in that order
-    for i in ['f08', 'f03', 'f95', 'f90', 'f77', 'fc']:
-        if i in langs:
-            # fallback: if a requested language is not
-            # defined by compiler configuration,
-            # fallback to un-versioned compiler
-            if i not in allowed_languages:
-                return 'fc' if 'fc' in allowed_languages else None
-            else:
-                return i
-    for i in ['cxx', 'cc']:
-        if i in langs:
-            if i not in allowed_languages:
-                return 'cc' if 'cc' in allowed_languages else None
-            else:
-                return i
-    for i in ['accl']:
-        if i in langs:
-            if i not in allowed_languages:
-                return 'accl' if 'accl' in allowed_languages else None
-            else:
-                return i
-    return None
 
 def extract_compilers_envs():
     envs = []
-    for compiler in MetaConfig.root.compiler:
-        envs += MetaConfig.root.compiler[compiler].envs
+    for compiler_name in GlobalConfig.root['compiler']['compilers']:
+        envs += GlobalConfig.root['compiler']['compilers'][compiler_name].get('envs', [])
     return envs
 
 
@@ -91,32 +49,36 @@ def extract_compiler_config(lang, variants):
     """
     Build resource to compile based on language and variants involved.
 
-    :param lang: target language
+    :param lang: target compiler name
     :type lang: str
     :param variants: list of enabled variants
     :type variants: list
     :return: the program, its args and env modifiers (in that order)
     :rtype: tuple
     """
-    if not lang or lang not in MetaConfig.root.compiler:
+    if not lang or lang not in GlobalConfig.root['compiler']['compilers']:
         raise ProfileException.IncompleteError(
-            reason="Unknown language, not defined into Profile",
-            dbg_info={"lang": lang, "list": MetaConfig.root.compiler.keys()}
-        )
+            reason="Unknown compiler, not defined into Profile",
+            dbg_info={
+                "lang": lang,
+                "list": GlobalConfig.root['compiler']['compilers'].keys()
+            })
 
-    config = MetaConfig.root.compiler[lang]
+    config = GlobalConfig.root['compiler']['compilers'][lang]
     for v in variants:
-        if v in config.variants:
-            for k, v in config.variants[v].items():
+        if v in config['variants']:
+            for k, v in config['variants'][v].items():
                 if k == 'program':
                     config[k] = v
                 else:
-                    config.setdefault(k, list())
+                    config.setdefault(k, [])
                     config[k] += v
         else:
-            return (None, [], [])
+            # TODO: throw error here
+            return (None, [], [], False)
 
-    return (config.program, config.args, config.envs)
+    return (config['program'], config.get('args', []),
+            config.get('envs', []), config.get('valide', False))
 
 
 def build_job_deps(deps_node, pkg_label, pkg_prefix):
@@ -139,11 +101,10 @@ def build_job_deps(deps_node, pkg_label, pkg_prefix):
     :return: a list of dependencies, either as depnames or PManager objects
     :rtype: list
     """
-    deps = list()
-    for d in deps_node.get('depends_on', list()):
-        deps.append(
-            d if "/" in d else Test.compute_fq_name(pkg_label, pkg_prefix, d)
-        )
+    deps = []
+    for d in deps_node.get('depends_on', []):
+        deps.append(d if "/" in
+                    d else Test.compute_fq_name(pkg_label, pkg_prefix, d))
     return deps
 
 
@@ -197,7 +158,7 @@ class TEDescriptor:
         :param base_criterion_name: iterator name used as scheduling resource.
         :type base_criterion_name: str
         """
-        cls._sys_crit = MetaConfig.root.get_internal('crit_obj')
+        cls._sys_crit = GlobalConfig.root.get_internal('crit_obj')
         cls._base_it = base_criterion_name
 
     def __init__(self, name, node, label, subprefix):
@@ -223,27 +184,25 @@ class TEDescriptor:
         self._te_subtree = subprefix
 
         _, self._srcdir, _, self._buildir = testing.generate_local_variables(
-            label,
-            subprefix
-        )
+            label, subprefix)
         # before doing anything w/ node:
         # arregate the 'group' definitions with the TE
         # to get all the fields in their final form
-        if 'group' in node and node['group'] in MetaConfig.root.group.keys():
-            tmp = MetaDict(MetaConfig.root.group[node['group']])
-            tmp.update(MetaDict(node))
+        if 'group' in node and node['group'] in GlobalConfig.root['group'].keys():
+            tmp = GlobalConfig.root['group'][node['group']]
+            tmp.update(node)
             node = tmp
         # load from descriptions
-        self._build = MetaDict(node.get('build', None))
-        self._run = MetaDict(node.get('run', None))
-        self._validation = MetaDict(node.get('validate', None))
-        self._artifacts = MetaDict(node.get('artifact', None))
-        self._metrics = MetaDict(node.get('metrics', None))
-        self._attributes = MetaDict(node.get("attributes", None))
-        self._template = node.get('group', None)
-        self._debug = self._te_name+":\n"
+        self._build = node.get('build', {})
+        self._run = node.get('run', {})
+        self._validation = node.get('validate', {})
+        self._artifacts = node.get('artifact', {})
+        self._metrics = node.get('metrics', {})
+        self._attributes = node.get('attributes', {})
+        self._template = node.get('group', {})
+        self._debug = self._te_name + ":\n"
         self._effective_cnt = 0
-        self._tags = node.get('tag', list())
+        self._tags = node.get('tag', [])
 
         path_prefix = self._buildir
         if self.get_attr('path_resolution', True) is False:
@@ -261,7 +220,7 @@ class TEDescriptor:
         if 'program' in self._run.get('iterate', {}):
             self._program_criterion = {
                 k: Criterion(k, v, local=True)
-                for k, v in self._run.iterate.program.items()
+                for k, v in self._run['iterate']['program'].items()
             }
         else:
             self._program_criterion = {}
@@ -270,6 +229,18 @@ class TEDescriptor:
         self._configure_criterions()
         # apply retro-compatibility w/ old syntax
         self._compatibility_support(node.get('_compat', None))
+
+    def get_binary_name(self):
+        """ Get the binary name for the file at the output of the compiler.
+        If a binary name is already defined by the test, use it.
+        If a program name is given, use it.
+        If none are defined, use the test name.
+        """
+        if 'binary' in self._build.get('sources', {}):
+            return self._build['sources']['binary']
+        if 'program' in self._run:
+            return self._run['program']
+        return self._te_name
 
     def get_attr(self, name, dflt=None):
         if name in self._attributes:
@@ -292,34 +263,34 @@ class TEDescriptor:
             # parent node does not exist
             if 'chdir' in k:
                 if self._build and 'cwd' not in self._build:
-                    self._build.cwd = compat[k]
+                    self._build['cwd'] = compat[k]
                 if self._run and 'cwd' not in self._run:
-                    self._run.cwd = compat[k]
+                    self._run['cwd'] = compat[k]
 
             # the old 'type' keyword disappeared. Still, the 'complete'
             # keyword must be handled to create both nodes 'build' & 'run'
             if 'type' in k:
                 if compat[k] in ['build', 'complete']:
-                    self._build.dummy = True
+                    self._build['dummy'] = True
                 if compat[k] in ['run', 'complete']:
-                    self._run.dummy = True
+                    self._run['dummy'] = True
 
             # same as for chdir, 'bin' may be used by both build & run
             # but should set either not existing already
             elif 'bin' in k:
                 if self._build and 'binary' not in self._build:
-                    self._build.binary = compat[k]
+                    self._build['binary'] = compat[k]
                 if self._run and 'program' not in self._run:
-                    self._run.program = compat[k]
+                    self._run['program'] = compat[k]
 
         if 'cflags' in self._build and 'sources' in self._build:
             self._build['sources']['cflags'] = self._build['cflags']
         if 'ldflags' in self._build and 'sources' in self._build:
             self._build['sources']['ldflags'] = self._build['ldflags']
         if 'params' in self._build.get('autotools', {}):
-            self._build.autotools.args = self._build.autotools.params
+            self._build['autotools']['args'] = self._build['autotools']['params']
         if 'vars' in self._build.get('cmake', {}):
-            self._build.cmake.args = self._build.cmake.vars
+            self._build['cmake']['args'] = self._build['cmake']['vars']
 
     def _configure_criterions(self):
         """Prepare the list of components this TE will be built against.
@@ -332,19 +303,18 @@ class TEDescriptor:
         if self._run is None:
             # for now, criterion only applies to run tests
             return
-
         # if this TE does not override anything: trivial
         if 'iterate' not in self._run:
             self._criterion = self._sys_crit
         else:
-            te_keys = self._run.iterate.keys()
+            te_keys = self._run['iterate'].keys()
             tmp = {}
             # browse declared criterions (system-wide)
             for k_sys, v_sys in self._sys_crit.items():
                 # if key is overriden by the test
                 if k_sys in te_keys:
                     cur_criterion = copy.deepcopy(v_sys)
-                    cur_criterion.override(self._run.iterate[k_sys])
+                    cur_criterion.override(self._run['iterate'][k_sys])
 
                     if cur_criterion.is_discarded():
                         continue
@@ -371,40 +341,32 @@ class TEDescriptor:
         :return: the command to be used.
         :rtype: str
         """
-        langs: Optional[str] = None
-        if not self._build.sources.get("lang", None):
-            langs = detect_source_lang(self._build.files)
-            if langs is None:
-                raise TestException.TestExpressionError(self._build.files, reason="Unable to detect the compiler to use")
-        else:
-            langs = self._build.sources.lang
-            if isinstance(langs, str):
-                langs = [langs]
+        compilers = detect_compiler(self._build['files'])
+        if len(compilers) < 1 or compilers[0] is None:
+            raise TestException.TestExpressionError(
+                    self._build['files'],
+                    f"Unable to dect compilers for files: {self._build['files']}")
 
-        lang = validate_source_lang(langs, MetaConfig.root.compiler.keys())
+        compiler = compilers[0]
 
-        if lang is None:
-            raise TestException.TestExpressionError(langs, reason="Unable to find the right compiler")
+        compiler_config = extract_compiler_config(compiler, self._build.get('variants', {}))
+        program, args, envs, valide = compiler_config
+        if not valide:
+            io.console.warn(f"Compiler program '{program}' not found for test '{self.name}'")
 
-        binary = self._te_name
-        if self._build.sources.binary:
-            binary = self._build.sources.binary
-        elif self._run.program:
-            binary = self._run.program
+        binary = self.get_binary_name()
 
-        self._build.sources.binary = binary
-
-        program, args, envs = extract_compiler_config(
-            lang, self._build.variants)
+        # used to run the test later
+        self._build.setdefault('sources', {})['binary'] = binary
+        output_path = os.path.join(self._buildir, binary)
 
         command = "{cc} {cflags} {files} {ldflags} {args} {out}".format(
             cc=program,
+            cflags=self._build['sources'].get('cflags', ''),
+            files=" ".join(self._build['files']),
+            ldflags=self._build['sources'].get('ldflags', ''),
             args=" ".join(args),
-            cflags=self._build.sources.get('cflags', ''),
-            files=" ".join(self._build.files),
-            ldflags=self._build.sources.get('ldflags', ''),
-            out="-o {}".format(os.path.join(self._buildir, binary))
-        )
+            out=f"-o {output_path}")
         return (command, envs)
 
     def __build_from_makefile(self):
@@ -418,20 +380,16 @@ class TEDescriptor:
 
         # change makefile path if overriden by 'files'
         if 'files' in self._build:
-            basepath = os.path.dirname(self._build.files[0])
-            command.append("-f {}".format(" ".join(self._build.files)))
+            basepath = os.path.dirname(self._build['files'][0])
+            command.append("-f {}".format(" ".join(self._build['files'])))
 
         envs = extract_compilers_envs()
         # build the 'make' command
-        command.append(
-            '-C {path} {target} '.format(
-                path=basepath,
-                target=self._build.make.get('target', '')
-            )
-        )
-        command += self._build['make'].get('args', [])
-        envs += self._build['make'].get('envs', [])
-        
+        command.append('-C {path} {target} '.format(
+            path=basepath, target=self._build.get('make', {}).get('target', '')))
+        command += self._build.get('make', {}).get('args', [])
+        envs += self._build.get('make', {}).get('envs', [])
+
         cmd = (" ".join(command), envs)
         return cmd
 
@@ -443,22 +401,19 @@ class TEDescriptor:
         """
         command = ["cmake"]
         if 'files' in self._build:
-            command.append(self._build.files[0])
+            command.append(self._build['files'][0])
         else:
             command.append(self._srcdir)
 
         envs = extract_compilers_envs()
         command.append(
             r"-G 'Unix Makefiles' "
-            r"-DCMAKE_BINARY_DIR='{build}' ".format(
-                build=self._buildir
-            )
-        )
+            r"-DCMAKE_BINARY_DIR='{build}' ".format(build=self._buildir))
 
         command += self._build['cmake'].get('args', [])
         envs += self._build['cmake'].get('envs', [])
 
-        self._build.files = [os.path.join(self._buildir, "Makefile")]
+        self._build['files'] = [os.path.join(self._buildir, "Makefile")]
         tmp = self.__build_from_makefile()
         next_command = tmp[0]
         envs += tmp[1]
@@ -475,15 +430,13 @@ class TEDescriptor:
         autogen_path = ""
 
         if self._build.get('files', False):
-            configure_path = self._build.files[0]
+            configure_path = self._build['files'][0]
         else:
             configure_path = os.path.join(self._srcdir, "configure")
 
-        if self._build.autotools.get('autogen', False) is True:
-            autogen_path = os.path.join(
-                os.path.dirname(configure_path),
-                "autogen.sh"
-            )
+        if self._build['autotools'].get('autogen', False) is True:
+            autogen_path = os.path.join(os.path.dirname(configure_path),
+                                        "autogen.sh")
             command.append("{} && ".format(autogen_path))
 
         envs = extract_compilers_envs()
@@ -493,7 +446,7 @@ class TEDescriptor:
         command += self._build['autotools'].get('args', [])
         envs += self._build['autotools'].get('envs', [])
 
-        self._build.files = [os.path.join(self._buildir, "Makefile")]
+        self._build['files'] = [os.path.join(self._buildir, "Makefile")]
         tmp = self.__build_from_makefile()
         next_command = tmp[0]
         envs += tmp[1]
@@ -505,14 +458,16 @@ class TEDescriptor:
         command = []
         env = []
 
-        command = self._build.custom.get('program', 'echo')
+        command = self._build['custom'].get('program', 'echo')
         # args not relevant as cflags/ldflags can be used instead
-        env = self._build.custom.get('envs', [])
+        env = self._build['custom'].get('envs', [])
 
         if not os.path.isabs(command):
             command = os.path.join(self._buildir, command)
 
-        return (". {} && {}".format(os.path.join(MetaConfig.root.validation.output, pcvs.NAME_BUILD_CONF_SH), command), env)
+        return (". {} && {}".format(
+            os.path.join(GlobalConfig.root['validation']['output'],
+                         pcvs.NAME_BUILD_CONF_SH), command), env)
 
     def __build_exec_process(self):
         """Drive compilation command generation based on TE format.
@@ -538,17 +493,17 @@ class TEDescriptor:
         # ensure consistency when 'files' node is used
         # can be a list or a single value
         if 'files' in self._build:
-            if not isinstance(self._build.files, list):
-                self._build.files = [self._build.files]
+            if not isinstance(self._build['files'], list):
+                self._build['files'] = [self._build['files']]
 
-            for i in range(0, len(self._build.files)):
-                if not os.path.isabs(self._build.files[i]):
-                    self._build.files[i] = os.path.join(
-                        self._srcdir, self._build.files[i])
+            for i in range(0, len(self._build['files'])):
+                if not os.path.isabs(self._build['files'][i]):
+                    self._build['files'][i] = os.path.join(
+                        self._srcdir, self._build['files'][i])
 
         # manage deps (tests, package_managers...)
-        job_deps = build_job_deps(
-            self._build, self._te_label, self._te_subtree)
+        job_deps = build_job_deps(self._build, self._te_label,
+                                  self._te_subtree)
         mod_deps = build_pm_deps(self._build)
 
         chdir = self._build.get('cwd')
@@ -562,43 +517,38 @@ class TEDescriptor:
         # count number of built tests
         self._effective_cnt += 1
 
-        yield Test(
-            te_name=self._te_name,
-            user_suffix="cc" if self._run else None,
-            label=self._te_label,
-            subtree=self._te_subtree,
-            command=command,
-            environment=env,
-            tags=tags,
-            job_deps=job_deps,
-            mod_deps=mod_deps,
-            time=self._validation.time.get("mean", -1),
-            delta=self._validation.time.get("tolerance", 0),
-            kill_after=self._validation.time.get('kill_after', None),
-            rc=self._validation.get("expect_exit", 0),
-            artifacts=self._artifacts,
-            analysis=self._validation.get("analysis", {}),
-            resources=1,
-            wd=chdir
-        )
+        yield Test(te_name=self._te_name,
+                   user_suffix="cc" if self._run else None,
+                   label=self._te_label,
+                   subtree=self._te_subtree,
+                   command=command,
+                   environment=env,
+                   tags=tags,
+                   job_deps=job_deps,
+                   mod_deps=mod_deps,
+                   time=self._validation.get('time', {}).get("mean", -1),
+                   delta=self._validation.get('time', {}).get("tolerance", 0),
+                   kill_after=self._validation.get('time', {}).get('kill_after', None),
+                   rc=self._validation.get("expect_exit", 0),
+                   artifacts=self._artifacts,
+                   analysis=self._validation.get("analysis", {}),
+                   resources=1,
+                   wd=chdir)
 
-    def __construct_runtime_tests(self):
+    def __construct_runtime_tests(self, serie):
         """Generate tests to be run by the runtime command."""
-        te_job_deps = build_job_deps(
-            self._run, self._te_label, self._te_subtree)
+        te_job_deps = build_job_deps(self._run, self._te_label,
+                                     self._te_subtree)
         te_mod_deps = build_pm_deps(self._run)
 
         if self._build:
-            fq_name = Test.compute_fq_name(
-                self._te_label,
-                self._te_subtree,
-                self._te_name,
-                'cc')
+            fq_name = Test.compute_fq_name(self._te_label, self._te_subtree,
+                                           self._te_name, 'cc')
             if fq_name not in te_job_deps:
                 te_job_deps.append(fq_name)
 
         # for each combination generated from the collection of criterions
-        for comb in self._serie.generate():
+        for comb in serie.generate():
             chdir = None
 
             # start to build the proper command, three parts:
@@ -606,23 +556,17 @@ class TEDescriptor:
             # the runtime argument to propagate
             # the program parameters to forward
             env, args, params = comb.translate_to_command()
-
-            # attempt to compute program/binary name
-            program = self._te_name
-            if self._run.program:
-                program = self._run.program
-            elif self._build.sources.binary:
-                program = self._build.sources.binary
+            program = self.get_binary_name()
 
             clone_outdir = self.get_attr('copy_output', False)
             if clone_outdir:
-                buildir = tempfile.mkdtemp(prefix="{}.".format(
-                    self._te_name), dir=self._buildir)
+                buildir = tempfile.mkdtemp(prefix="{}.".format(self._te_name),
+                                           dir=self._buildir)
             else:
                 buildir = self._buildir
 
             # attempt to determine test working directory
-            chdir = self._run.cwd if self._run.cwd else buildir
+            chdir = self._run['cwd'] if 'cwd' in self._run else buildir
 
             if not os.path.isabs(chdir):
                 chdir = os.path.abspath(os.path.join(buildir, chdir))
@@ -631,43 +575,38 @@ class TEDescriptor:
             if self.get_attr('path_resolution', True) is True:
                 program = os.path.abspath(os.path.join(self._buildir, program))
 
-            command = "{program} {params}".format(
-                program=program,
-                params=" ".join(params)
-            )
+            command = "{program} {params}".format(program=program,
+                                                  params=" ".join(params))
             if self.get_attr('command_wrap', True) is True:
                 command = "{runtime} {args} {runtime_args} {cmd}".format(
-                    runtime=MetaConfig.root.runtime.get('program', ''),
-                    runtime_args=MetaConfig.root.runtime.get('args', ''),
+                    runtime=GlobalConfig.root['runtime'].get('program', ''),
+                    runtime_args=GlobalConfig.root['runtime'].get('args', ''),
                     args=" ".join(args),
-                    cmd=command
-                )
-            #print(repr(command))
+                    cmd=command)
             self._effective_cnt += 1
 
-            yield Test(
-                te_name=self._te_name,
-                label=self._te_label,
-                subtree=self._te_subtree,
-                command=command,
-                job_deps=te_job_deps,
-                mod_deps=te_mod_deps,
-                tags=self._tags,
-                metrics=self._metrics,
-                environment=env,
-                dim=comb.get('n_node', 1),
-                time=self._validation.time.get("mean", -1),
-                delta=self._validation.time.get("tolerance", 0),
-                kill_after=self._validation.time.get('kill_after', None),
-                rc=self._validation.get("expect_exit", 0),
-                valscript=self._validation.script.get('path', None),
-                analysis=self._validation.get("analysis", {}),
-                comb=comb,
-                wd=chdir,
-                artifacts=self._artifacts,
-                matchers=self._validation.get('match', None)
-            )
+            yield Test(te_name=self._te_name,
+                       label=self._te_label,
+                       subtree=self._te_subtree,
+                       command=command,
+                       job_deps=te_job_deps,
+                       mod_deps=te_mod_deps,
+                       tags=self._tags,
+                       metrics=self._metrics,
+                       environment=env,
+                       dim=comb.get('n_node', 1),
+                       time=self._validation.get('time', {}).get("mean", -1),
+                       delta=self._validation.get('time', {}).get("tolerance", 0),
+                       kill_after=self._validation.get('time', {}).get('kill_after', None),
+                       rc=self._validation.get("expect_exit", 0),
+                       valscript=self._validation.get('script', {}).get('path', None),
+                       analysis=self._validation.get("analysis", {}),
+                       comb=comb,
+                       wd=chdir,
+                       artifacts=self._artifacts,
+                       matchers=self._validation.get('match', None))
 
+    @io.capture_exception(Exception, doexit=True)
     def construct_tests(self):
         """Construct a collection of tests (build & run) from a given TE.
 
@@ -681,8 +620,9 @@ class TEDescriptor:
         clone_indir = self.get_attr('copy_input', False)
 
         if clone_indir:
-            isolation_path = tempfile.mkdtemp(
-                prefix="{}.".format(self._te_name), dir=self._buildir)
+            isolation_path = tempfile.mkdtemp(prefix="{}.".format(
+                self._te_name),
+                                              dir=self._buildir)
             old_src_dir = self._srcdir
             self._srcdir = os.path.join(isolation_path, "src")
             shutil.copytree(old_src_dir, self._srcdir)
@@ -692,48 +632,39 @@ class TEDescriptor:
         if self._build:
             yield from self.__construct_compil_tests()
         if self._run:
-
             if self.get_attr('command_wrap', True) is False:
-                self._serie = Serie({**self._program_criterion})
+                serie = Serie({**self._program_criterion})
             else:
-                self._serie = Serie(
-                    {**self._criterion, **self._program_criterion})
-            yield from self.__construct_runtime_tests()
-            del self._serie
+                serie = Serie({
+                    **self._criterion,
+                    **self._program_criterion
+                })
+            yield from self.__construct_runtime_tests(serie)
 
     def get_debug(self):
         """Build information debug for the current TE.
 
-        :return: the debug info 
+        :return: the debug info
         :rtype: dict
         """
         # if the current TE did not lead to a single test, skip now
         if self._skipped:
             return {}
 
-        self._debug_yaml = dict()
+        debug_yaml = {}
 
         # count actual tests built
         if self._run:
             # for system-wide iterators, count max number of possibilites
             for k, v in self._criterion.items():
-                self._debug_yaml[k] = list(v.values)
-                #real_cnt *= len(v.values)
+                debug_yaml[k] = list(v.values)
 
             # for program-lavel iterators, count number of possibilies
-            self._debug_yaml['program'] = dict()
+            debug_yaml['program'] = dict()
             for k, v in self._program_criterion.items():
-                self._debug_yaml['program'][k] = list(v.values)
-                #user_cnt *= len(v.values)
+                debug_yaml['program'][k] = list(v.values)
 
-        # store debug info
-        # self._debug_yaml['.stats'] = {
-        #    'theoric': user_cnt * real_cnt,
-        #    'program_factor': user_cnt,
-        #    'effective': self._effective_cnt
-        # }
-
-        return self._debug_yaml
+        return debug_yaml
 
     @property
     def name(self):

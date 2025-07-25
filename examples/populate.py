@@ -1,13 +1,17 @@
-from pcvs.dsl import Bank, Serie, Run
-from pcvs.testing.test import Test
-from random_word import RandomWords
-from random import randint
 from itertools import product
+from random import randint
+
+from random_word import RandomWords
+
+from pcvs.dsl import Bank
+from pcvs.dsl import Run
+from pcvs.testing.test import Test
+
 MAX = 100
 group = ["MPI", "OpenMP", "Others"]
 sub = ["raw", "coll", "pt2pt", "directives", "io"]
 rnd = RandomWords()
-words = rnd.get_random_words()
+words = rnd.get_random_word()
 tests = ["_".join(elt).replace(" ", "-") for elt in product(words, words)]
 
 # open a bank
@@ -23,23 +27,23 @@ for i in range(0, MAX):
     d = {}
     cnt_succ = 0
     cnt_fail = 0
-    
-    thr = thr / (1 + i/MAX)
-    
+
+    thr = thr / (1 + i / MAX)
+
     for idx, name in enumerate(tests):
         label = "SAMPLED"
         short_name = name
         subtree = '{}/{}'.format(group[idx % len(group)], sub[idx % len(sub)])
         long_name = "{}/{}/{}".format(label, subtree, short_name)
-        
+
         n = randint(0, 100)
-        
+
         print(thr, n)
         state = Test.State.SUCCESS if n > thr else Test.State.FAILURE
-        
+
         cnt_succ += 1 if state == Test.State.SUCCESS else 0
         cnt_fail += 1 if state == Test.State.FAILURE else 0
-        
+
         d[long_name] = {
             "id": {
                 "te_name": short_name,
@@ -58,6 +62,6 @@ for i in range(0, MAX):
                 "time": 10.34
             },
         }
-        
+
     r.update_flatdict(d)
     serie.commit(r, metadata={'cnt': {str(Test.State.SUCCESS): cnt_succ, str(Test.State.FAILURE): cnt_fail}})

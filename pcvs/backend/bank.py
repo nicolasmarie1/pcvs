@@ -15,10 +15,6 @@ from pcvs.helpers.exceptions import BankException
 from pcvs.helpers.exceptions import CommonException
 from pcvs.orchestration.publishers import BuildDirectoryManager
 
-#: :var BANKS: list of available banks when PCVS starts up
-#: :type BANKS: dict, keys are bank names, values are file path
-BANKS: Dict[str, str] = dict()
-
 
 class Bank(dsl.Bank):
     """Representation of a PCVS result datastore.
@@ -33,7 +29,7 @@ class Bank(dsl.Bank):
     :param repo: the Pygit2 handle
     :type repo:  :class:`Pygit2.Repository`
     :param config: when set, configuration file of the just-submitted archive
-    :type config: :class:`MetaDict`
+    :type config: : dict
     :param rootree: When set, root handler to the next commit to insert
     :type rootree: :class:`Pygit2.Object`
     :param locked: Serialize Bank manipulation among multiple processes
@@ -41,6 +37,10 @@ class Bank(dsl.Bank):
     :param proj_name: extracted default-proj from initial token
     :type proj_name: str
     """
+
+    #: :var BANKS: list of available banks when PCVS starts up
+    #: :type BANKS: dict, keys are bank names, values are file path
+    BANKS: Dict[str, str] = {}
 
     def __init__(self, path: Optional[str] = None, token: str = "") -> None:
         """Build a Bank.
@@ -65,8 +65,6 @@ class Bank(dsl.Bank):
         self._name: Optional[str] = None
         self._path: str = path
 
-        global BANKS
-
         # split name & default-proj from token
         array: List[str] = token.split('@', 1)
         if len(array) > 1:
@@ -75,9 +73,9 @@ class Bank(dsl.Bank):
 
         if self.exists():
             if self.name_exist():
-                path = BANKS[self._name.lower()]
+                path = Bank.BANKS[self._name.lower()]
             else:
-                for k, v in BANKS.items():
+                for k, v in Bank.BANKS.items():
                     if v == path:
                         self._name = k
                         break
@@ -128,7 +126,7 @@ class Bank(dsl.Bank):
         :return: True if the name (lowered) is in the keys()
         :rtype: bool
         """
-        return self._name.lower() in BANKS.keys() if self._name else False
+        return self._name.lower() in Bank.BANKS.keys() if self._name else False
 
     def path_exist(self) -> bool:
         """Check if the bank path is registered into ``PATH_BANK`` file.
@@ -136,7 +134,7 @@ class Bank(dsl.Bank):
         :return: True if the path is known.
         :rtype: bool
         """
-        return self._path in BANKS.values()
+        return self._path in Bank.BANKS.values()
 
     def __str__(self) -> str:
         """Stringification of a bank.
@@ -160,8 +158,8 @@ class Bank(dsl.Bank):
         string = ["Projects contained in bank '{}':".format(self._path)]
         # browse references
         for project, series in self.list_all().items():
-            string.append(
-                "- {:<8}: {} distinct testsuite(s)".format(project, len(series)))
+            string.append("- {:<8}: {} distinct testsuite(s)".format(
+                project, len(series)))
             for s in series:
                 string.append("  * {}: {} run(s)".format(s.name, len(s)))
 
@@ -178,12 +176,14 @@ class Bank(dsl.Bank):
 
     def save_to_global(self) -> None:
         """Store the current bank into ``PATH_BANK`` file."""
-        global BANKS
-        if self._name in BANKS:
+        if self._name in Bank.BANKS:
             self._name = os.path.basename(self._path).lower()
         add_banklink(self._name, self._path)
 
-    def save_from_buildir(self, tag: str, buildpath: str, msg: Optional[str] = None) -> None:
+    def save_from_buildir(self,
+                          tag: str,
+                          buildpath: str,
+                          msg: Optional[str] = None) -> None:
         """Extract results from the given build directory & store into the bank.
 
         :param tag: overridable default project (if different)
@@ -198,7 +198,7 @@ class Bank(dsl.Bank):
         hdl.init_results()
 
         seriename = self.build_target_branch_name(
-            tag, hdl.config.validation.pf_hash)
+            tag, hdl.config['validation']['pf_hash'])
         serie = self.get_serie(seriename)
         if serie is None:
             serie = self.new_serie(seriename)
@@ -211,19 +211,22 @@ class Bank(dsl.Bank):
             metadata['cnt'][str(job.state)] += 1
             run.update(job.name, job.to_json())
 
-        self.set_id(
-            an=hdl.config.validation.author.name,
-            am=hdl.config.validation.author.email,
-            cn=git.get_current_username(),
-            cm=git.get_current_usermail()
-        )
+        self.set_id(an=hdl.config['validation']['author']['name'],
+                    am=hdl.config['validation']['author']['email'],
+                    cn=git.get_current_username(),
+                    cm=git.get_current_usermail())
 
         run.update(".pcvs-cache/conf.json", hdl.config.dump_for_export())
 
-        serie.commit(run, metadata=metadata, msg=msg, timestamp=int(
-            hdl.config.validation.datetime.timestamp()))
+        serie.commit(run,
+                     metadata=metadata,
+                     msg=msg,
+                     timestamp=int(hdl.config['validation']['datetime'].timestamp()))
 
-    def save_from_archive(self, tag: str, archivepath: str, msg: Optional[str] = None) -> None:
+    def save_from_archive(self,
+                          tag: str,
+                          archivepath: str,
+                          msg: Optional[str] = None) -> None:
         """Extract results from the archive, if used to export results.
 
         This is basically the same as :func:`BanK.save_from_buildir` except
@@ -236,15 +239,18 @@ class Bank(dsl.Bank):
         :param msg: the custom message to attach to this run (=commit msg)
         :type msg: str, optional
         """
-        assert (os.path.isfile(archivepath))
+        assert os.path.isfile(archivepath)
 
         with tempfile.TemporaryDirectory() as tarpath:
             tarfile.open(os.path.join(archivepath)).extractall(tarpath)
             d = [x for x in os.listdir(tarpath) if x.startswith("pcvsrun_")]
-            assert (len(d) == 1)
+            assert len(d) == 1
             self.save_from_buildir(tag, os.path.join(tarpath, d[0]), msg=msg)
 
-    def save_new_run_from_instance(self, target_project: str, hdl: BuildDirectoryManager, msg: Optional[str] = None) -> None:
+    def save_new_run_from_instance(self,
+                                   target_project: str,
+                                   hdl: BuildDirectoryManager,
+                                   msg: Optional[str] = None) -> None:
         """
         Create a new node into the bank for the given project, based on the open
         result handler.
@@ -257,7 +263,7 @@ class Bank(dsl.Bank):
         :type msg: str, optional
         """
         seriename = self.build_target_branch_name(
-            target_project, hdl.config.validation.pf_hash)
+            target_project, hdl.config.validation['pf_hash'])
         serie = self.get_serie(seriename)
         metadata = {'cnt': {}}
 
@@ -283,17 +289,17 @@ class Bank(dsl.Bank):
 
         run.update_flatdict(d)
 
-        self.set_id(
-            an=hdl.config.validation.author.name,
-            am=hdl.config.validation.author.email,
-            cn=git.get_current_username(),
-            cm=git.get_current_usermail()
-        )
+        self.set_id(an=hdl.config['validation']['author']['name'],
+                    am=hdl.config['validation']['author']['email'],
+                    cn=git.get_current_username(),
+                    cm=git.get_current_usermail())
 
         run.update(".pcvs-cache/conf.json", hdl.config)
 
-        serie.commit(run, metadata=metadata, msg=msg, timestamp=int(
-            hdl.config.validation.datetime.timestamp()))
+        serie.commit(run,
+                     metadata=metadata,
+                     msg=msg,
+                     timestamp=int(hdl.config['validation']['datetime'].timestamp()))
 
     def save_new_run(self, target_project: str, path: str) -> None:
         """
@@ -309,8 +315,7 @@ class Bank(dsl.Bank):
         if not utils.check_is_build_or_archive(path):
             raise CommonException.NotPCVSRelated(
                 reason="Invalid path, not PCVS-related",
-                dbg_info={"path": path}
-            )
+                dbg_info={"path": path})
 
         if utils.check_is_archive(path):
             # convert to prefix
@@ -322,7 +327,9 @@ class Bank(dsl.Bank):
 
         self.save_new_run_from_instance(target_project, hdl)
 
-    def build_target_branch_name(self, tag: str = None, hash: Optional[str] = None) -> str:
+    def build_target_branch_name(self,
+                                 tag: str = None,
+                                 hashid: Optional[str] = None) -> str:
         """Compute the target branch to store data.
 
         This is used to build the exact Git branch name based on:
@@ -341,7 +348,7 @@ class Bank(dsl.Bank):
         # TODO: compute the proper name for the current test-suite
         if tag is None:
             tag = self.default_project
-        return "{}/{}".format(tag, hash)
+        return "{}/{}".format(tag, hashid)
 
     def __repr__(self) -> dict:
         """Bank representation.
@@ -349,10 +356,7 @@ class Bank(dsl.Bank):
         :return: a dict-based representation
         :rtype: dict
         """
-        return {
-            'rootpath': self._path,
-            'name': self._name
-        }
+        return repr({'rootpath': self._path, 'name': self._name})
 
     def get_count(self):
         """
@@ -369,15 +373,14 @@ def init() -> None:
 
     Called when program initializes. Detects defined banks in ``PATH_BANK``
     """
-    global BANKS
     try:
-        with open(PATH_BANK, 'r') as f:
-            BANKS = YAML(typ='safe').load(f)
+        with open(PATH_BANK, 'r', encoding='utf-8') as f:
+            Bank.BANKS = YAML(typ='safe').load(f)
     except FileNotFoundError:
         # nothing to do, file may not exist
         pass
-    if BANKS is None:
-        BANKS = dict()
+    if Bank.BANKS is None:
+        Bank.BANKS = {}
 
 
 def list_banks() -> dict:
@@ -386,7 +389,7 @@ def list_banks() -> dict:
     :return: dict of available banks.
     :rtype: dict
     """
-    return BANKS
+    return Bank.BANKS
 
 
 def add_banklink(name: str, path: str) -> None:
@@ -397,8 +400,7 @@ def add_banklink(name: str, path: str) -> None:
     :param path: path to bank directory
     :type path: str
     """
-    global BANKS
-    BANKS[name] = path
+    Bank.BANKS[name] = path
     flush_to_disk()
 
 
@@ -408,9 +410,8 @@ def rm_banklink(name: str) -> None:
     :param name: bank name
     :type name: str
     """
-    global BANKS
-    if name in BANKS:
-        BANKS.pop(name)
+    if name in Bank.BANKS:
+        Bank.BANKS.pop(name)
         flush_to_disk()
 
 
@@ -419,12 +420,12 @@ def flush_to_disk() -> None:
 
     :raises IOError: Unable to properly manipulate the tree layout
     """
-    global BANKS, PATH_BANK
+    global PATH_BANK
     try:
         prefix_file = os.path.dirname(PATH_BANK)
         if not os.path.isdir(prefix_file):
             os.makedirs(prefix_file, exist_ok=True)
-        with open(PATH_BANK, 'w+') as f:
-            YAML(typ='safe').dump(BANKS, f)
+        with open(PATH_BANK, 'w+', encoding='utf-8') as f:
+            YAML(typ='safe').dump(Bank.BANKS, f)
     except IOError as e:
         raise BankException.IOError(e)

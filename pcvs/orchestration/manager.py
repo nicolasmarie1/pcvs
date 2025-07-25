@@ -1,7 +1,5 @@
-from pcvs.helpers import log
 from pcvs.helpers.exceptions import OrchestratorException
-from pcvs.helpers.system import MetaConfig
-from pcvs.helpers.system import MetaDict
+from pcvs.helpers.system import GlobalConfig
 from pcvs.orchestration.set import Set
 from pcvs.plugins import Plugin
 from pcvs.testing.test import Test
@@ -23,12 +21,12 @@ class Manager:
     :ivar _publisher: the Formatter object, publishing results into files
     :type _publisher: :class:`ResultFileManager`
     :ivar _count: dict gathering various counters (total, executed...)
-    :type _count: dict 
+    :type _count: dict
     """
-    job_hashes = dict()
-    dep_rules = dict()
+    job_hashes = {}
+    dep_rules = {}
 
-    def __init__(self, max_size=0, builder=None, publisher=None):
+    def __init__(self, max_size=0, publisher=None):
         """constructor method.
 
         :param max_size: max number of resource allowed to schedule.
@@ -38,18 +36,15 @@ class Manager:
         :param publisher: requested publisher by the orchestrator
         :type publisher: :class:`ResultFileManager`
         """
-        self._comman = MetaConfig.root.get_internal('comman')
-        self._plugin = MetaConfig.root.get_internal('pColl')
-        self._concurrent_level = MetaConfig.root.machine.get(
+        self._comman = GlobalConfig.root.get_internal('comman')
+        self._plugin = GlobalConfig.root.get_internal('pColl')
+        self._concurrent_level = GlobalConfig.root['machine'].get(
             'concurrent_run', 1)
 
-        self._dims = dict()
+        self._dims = {}
         self._max_size = max_size
         self._publisher = publisher
-        self._count = MetaDict({
-            "total": 0,
-            "executed": 0
-        })
+        self._count = {"total": 0, "executed": 0}
 
     def get_dim(self, dim):
         """Get the list of jobs satisfying the given dimension.
@@ -92,7 +87,7 @@ class Manager:
         # if test is not know yet, add + increment
         if hashed not in self.job_hashes:
             self.job_hashes[hashed] = job
-            self._count.total += 1
+            self._count['total'] += 1
             self.save_dependency_rule(job.basename, job)
 
     def save_dependency_rule(self, pattern, jobs):
@@ -122,7 +117,7 @@ class Manager:
         """
         for joblist in self._dims.values():
             for job in joblist:
-                self.resolve_single_job_deps(job, list())
+                self.resolve_single_job_deps(job, [])
 
     def print_dep_graph(self, outfile=None):
         s = ["digraph D {"]
@@ -180,7 +175,7 @@ class Manager:
         :return: a number of jobs
         :rtype: int
         """
-        return self._count.total - self._count.executed
+        return self._count['total'] - self._count['executed']
 
     def publish_job(self, job, publish_args=None):
         if publish_args:
@@ -188,7 +183,9 @@ class Manager:
 
         if self._comman:
             self._comman.send(job)
-        self._count.executed += 1
+        self._count['executed'] += 1
+        if job.state not in self._count:
+            self._count[job.state] = 0
         self._count[job.state] += 1
         self._publisher.save(job)
 
@@ -200,8 +197,9 @@ class Manager:
                 removed_jobs = list()
                 for job in self._dims[k]:
                     if job.pick_count() > Test.SCHED_MAX_ATTEMPTS:
-                        self.publish_failed_to_run_job(
-                            job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
+                        self.publish_failed_to_run_job(job,
+                                                       Test.MAXATTEMPTS_STR,
+                                                       Test.State.ERR_OTHER)
                         removed_jobs.append(job)
                 for elt in removed_jobs:
                     self._dims[k].remove(elt)
@@ -230,8 +228,7 @@ class Manager:
                 Plugin.Step.SCHED_SET_EVAL,
                 jobman=self,
                 max_dim=max_dim,
-                max_job_limit=int(self._count.total / self._concurrent_level)
-            )
+                max_job_limit=int(self._count['total'] / self._concurrent_level))
         else:
             for k in sorted(self._dims.keys(), reverse=True):
                 if len(self._dims[k]) <= 0 or max_dim < k:
@@ -239,9 +236,9 @@ class Manager:
                 else:
                     # assert(self._builder.job_grabber)
                     job: Test = self._dims[k].pop(0)
-                    publish_job_args = {}
                     if job:
-                        if job.been_executed() or job.state == Test.State.IN_PROGRESS:
+                        if job.been_executed(
+                        ) or job.state == Test.State.IN_PROGRESS:
                             # skip job (only a pop() to do)
                             continue
 
@@ -298,31 +295,25 @@ class Manager:
                         else:
                             if job.not_picked():
                                 self.publish_failed_to_run_job(
-                                    job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
+                                    job, Test.MAXATTEMPTS_STR,
+                                    Test.State.ERR_OTHER)
                             else:
                                 self._dims[k].append(job)
         self._plugin.invoke_plugins(Plugin.Step.SCHED_SET_AFTER)
         return the_set
 
     def publish_failed_to_run_job(self, job, out, state):
-        publish_job_args = {
-            "rc": -1,
-            "time": 0.0,
-            "out": out,
-            "state": state
-        }
-        self.publish_job(
-            job, publish_args=publish_job_args)
+        publish_job_args = {"rc": -1, "time": 0.0, "out": out, "state": state}
+        self.publish_job(job, publish_args=publish_job_args)
         job.display()
 
-    def merge_subset(self, set):
+    def merge_subset(self, subset):
         """After completion, process the Set to publish test results.
 
         :param set: the set handling jobs during the scheduling.
         :type set: :class:`Set`
         """
-        final = list()
-        for job in set.content:
+        for job in subset.content:
             if job.been_executed():
                 job.extract_metrics()
                 job.save_artifacts()
@@ -332,7 +323,7 @@ class Manager:
             else:
 
                 if job.not_picked():
-                    self.publish_failed_to_run_job(
-                        job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
+                    self.publish_failed_to_run_job(job, Test.MAXATTEMPTS_STR,
+                                                   Test.State.ERR_OTHER)
                 else:
                     self.add_job(job)

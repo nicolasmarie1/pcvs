@@ -59,7 +59,7 @@
 	"runtime.args": "runtime.args",
 	"runtime.module": "runtime.plugin",
 	"runtime.timeout-prefix": null,
-	"runtime.<it>.key": ["call:k = 'runtime||criterions||<it>||numeric=True' if '<it>'.startswith('n_') else 'runtime||criterions||<it>||numeric=False'", "runtime||criterions||<it>||option"],
+	"runtime.<it>.key": [ "runtime||criterions||<it>||numeric=True", "runtime||criterions||<it>||option"],
 	"runtime.<it>.usage": "runtime.criterions.<it>.type",
 	"runtime.<it>.<ropt>_val": "runtime.criterions.<it>.aliases.<ropt>",
 

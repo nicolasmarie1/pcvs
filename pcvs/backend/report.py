@@ -12,7 +12,6 @@ from pcvs.backend.session import list_alive_sessions
 from pcvs.backend.session import Session
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import CommonException
-from pcvs.helpers.system import MetaDict
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.webview import create_app
 from pcvs.webview import data_manager
@@ -26,20 +25,22 @@ def upload_buildir_results(buildir) -> None:
     """
 
     # first, need to determine the session ID -> conf.yml
-    with open(os.path.join(buildir, "conf.yml"), 'r') as fh:
-        conf_yml = MetaDict(YAML().load(fh))
+    with open(os.path.join(buildir, "conf.yml"), 'r', encoding='utf-8') as fh:
+        conf_yml = YAML().load(fh)
 
-    sid = conf_yml.validation.sid
+    sid = conf_yml['validation']['sid']
     dataman = data_manager
 
     man = BuildDirectoryManager(buildir)
-    dataman.insert_session(sid, {
-        'buildpath': buildir,
-        'state': Session.State.COMPLETED,
-        'dirs': conf_yml.validation.dirs
-    })
+    dataman.insert_session(
+        sid, {
+            'buildpath': buildir,
+            'state': Session.State.COMPLETED,
+            'dirs': conf_yml['validation']['dirs']
+        })
     for test in man.results.browse_tests():
-        man.save(test)
+        # FIXME: this function does not exist any more
+        # man.save(test)
         dataman.insert_test(sid, test)
 
     dataman.close_session(sid, {'state': Session.State.COMPLETED})
@@ -54,10 +55,9 @@ class Report:
         """
         Initialize a new report (no args)
         """
-        self._sessions = dict()
-        self._alive_session_infos = dict()
+        self._sessions = {}
+        self._alive_session_infos = {}
 
-    @classmethod
     def __create_build_handler(self, path) -> BuildDirectoryManager:
         """
         Initialize a new handler to a build directory.
@@ -77,8 +77,7 @@ class Report:
         else:
             raise CommonException.NotPCVSRelated(
                 reason="Given path is not PCVS build related",
-                dbg_info={"path": path}
-            )
+                dbg_info={"path": path})
         return hdl
 
     def add_session(self, path) -> BuildDirectoryManager:
@@ -129,8 +128,8 @@ class Report:
         """
         return list(self._sessions.keys())
 
-    @classmethod
-    def dict_convert_list_to_cnt(self, arrays: Dict[str, List[int]]) -> Dict[str, int]:
+    def dict_convert_list_to_cnt(
+            self, arrays: Dict[str, List[int]]) -> Dict[str, int]:
         """
         Convert dict of arrays to a dict of array lengths.
 
@@ -151,12 +150,15 @@ class Report:
         for sid, sdata in self._sessions.items():
             counts = self.dict_convert_list_to_cnt(
                 self.single_session_status(sid))
-            state = self._alive_session_infos[sid]['state'] if sid in self._alive_session_infos else Session.State.COMPLETED
-            yield {'sid': sid,
-                   'state': str(state),
-                   'count': counts,
-                   'path': sdata.prefix,
-                   'info': sdata.config.validation.get('message', 'No message')}
+            state = self._alive_session_infos[sid][
+                'state'] if sid in self._alive_session_infos else Session.State.COMPLETED
+            yield {
+                'sid': sid,
+                'state': str(state),
+                'count': counts,
+                'path': sdata.prefix,
+                'info': sdata.config['validation'].get('message', 'No message')
+            }
 
     def single_session_config(self, sid) -> dict:
         """
@@ -172,7 +174,7 @@ class Report:
         d['runtime']['plugin'] = ''
         return d
 
-    def single_session_status(self, sid, filter=None) -> Union[Dict, List]:
+    def single_session_status(self, sid, status_filter=None) -> Union[Dict, List]:
         """
         Get per-session status infos
 
@@ -185,11 +187,10 @@ class Report:
         """
         assert sid in self._sessions
         statuses = self._sessions[sid].results.status_view
-        if filter:
-            assert (filter in statuses)
-            return statuses[filter]
-        else:
-            return statuses
+        if status_filter:
+            assert status_filter in statuses
+            return statuses[status_filter]
+        return statuses
 
     def single_session_tags(self, sid) -> Dict[str, Dict]:
         """
@@ -230,7 +231,10 @@ class Report:
         """
         assert sid in self._sessions
         labels_info = self._sessions[sid].results.tree_view
-        return {label: labels_info[label] for label in self._sessions[sid].config.validation.dirs.keys()}
+        return {
+            label: labels_info[label]
+            for label in self._sessions[sid].config['validation']['dirs'].keys()
+        }
 
     def single_session_build_path(self, sid) -> str:
         """
@@ -256,9 +260,13 @@ class Report:
         :rtype: Test
         """
         assert sid in self._sessions
-        return self._sessions[sid].results.map_id(id=jid)
+        return self._sessions[sid].results.map_id(jid)
 
-    def single_session_get_view(self, sid, name, subset=None, summary=False) -> Dict[str, Dict]:
+    def single_session_get_view(self,
+                                sid,
+                                name,
+                                subset=None,
+                                summary=False) -> Dict[str, Dict]:
         """
         Get a specific view from a given session.
 
@@ -298,8 +306,7 @@ class Report:
 
         if d and summary:
             return {k: self.dict_convert_list_to_cnt(v) for k, v in d.items()}
-        else:
-            return d
+        return d
 
 
 def build_static_pages(buildir) -> None:
@@ -323,5 +330,6 @@ def start_server(report: Report):
     :type report: Report
     """
     app = create_app(report)
-    app.run(host='0.0.0.0', port=int(
-        os.getenv("PCVS_REPORT_PORT", 5000)), debug=True)
+    app.run(host='0.0.0.0',
+            port=int(os.getenv("PCVS_REPORT_PORT", str(5000))),
+            debug=True)

@@ -1,9 +1,6 @@
-import json
 from abc import ABC
-from abc import abstractmethod
 
 from pcvs.dsl import Job
-from pcvs.dsl import Run
 from pcvs.dsl import Serie
 from pcvs.testing.test import Test
 
@@ -19,9 +16,6 @@ class BaseAnalysis(ABC):
 class SimpleAnalysis(BaseAnalysis):
     """TODO:
     """
-
-    def __init__(self, bank):
-        super().__init__(bank)
 
     def generate_serie_trend(self, serie, start=None, end=None):
         """TODO:

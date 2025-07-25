@@ -1,5 +1,5 @@
 def identify(pm_node):
-    """identifies where 
+    """identifies where
 
     :param pm_node: [description]
     :type pm_node: [type]
@@ -31,7 +31,6 @@ class PManager:
         :param spec: specifications for this Package Manager, defaults to None
         :type spec: str, optional
         """
-        pass
 
     def get(self, load, install):
         """Get specified packages for this manager
@@ -41,7 +40,6 @@ class PManager:
         :param install: True to install the package
         :type install: bool
         """
-        pass
 
     def install(self):
         """install specified packages
@@ -75,7 +73,8 @@ class SpackManager(PManager):
         s = list()
         if install:
             s.append("spack location -i {} > /dev/null 2>&1".format(self.spec))
-            s.append("test \"$?\" != \"0\" && spack install {}".format(self.spec))
+            s.append("test \"$?\" != \"0\" && spack install {}".format(
+                self.spec))
         if load:
             s.append("eval `spack load --sh {}`".format(self.spec))
         return "\n".join(s)

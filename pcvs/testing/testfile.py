@@ -5,7 +5,6 @@ import os
 import pathlib
 import pprint
 import re
-import subprocess
 import tempfile
 
 from ruamel.yaml import YAML
@@ -14,10 +13,11 @@ from ruamel.yaml import YAMLError
 from pcvs import io
 from pcvs import PATH_INSTDIR
 from pcvs import testing
+from pcvs.converter import yaml_converter
 from pcvs.helpers import system
 from pcvs.helpers.exceptions import TestException
 from pcvs.helpers.exceptions import ValidationException
-from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import GlobalConfig
 from pcvs.plugins import Plugin
 from pcvs.testing import tedesc
 
@@ -36,15 +36,13 @@ def init_constant_tokens():
         '@HOME@': str(pathlib.Path.home()),
         '@USER@': getpass.getuser(),
     }
-    for comp, comp_node in MetaConfig.root.compiler.items():
-        constant_tokens['@COMPILER_{}@'.format(comp.upper())
-                        ] = comp_node.get('program', "")
+    for comp, comp_node in GlobalConfig.root.get('compiler', {}).get('compilers', {}).items():
+        constant_tokens[f'@COMPILER_{comp.upper()}@'] = comp_node.get('program', "")
 
-    constant_tokens['@RUNTIME_PROGRAM@'] = MetaConfig.root.runtime.get(
-        'program', "")
+    constant_tokens['@RUNTIME_PROGRAM@'] = GlobalConfig.root.get('runtime', {}).get('program', "")
 
 
-def replace_special_token(content, src, build, prefix, list=False):
+def replace_special_token(content, src, build, prefix):
     output = []
     errors = []
 
@@ -89,7 +87,7 @@ class TestFile:
 
     :param _in: YAML input file
     :type _in: str
-    :param _path_out: prefix where to store output artifacts 
+    :param _path_out: prefix where to store output artifacts
     :type _path_out: str
     :param _raw: stream to populate the TestFile rather than opening input file
     :type _raw: dict
@@ -126,8 +124,8 @@ class TestFile:
         self._raw = data
         self._label = label
         self._prefix = prefix
-        self._tests = list()
-        self._debug = dict()
+        self._tests = []
+        self._debug = {}
         if TestFile.val_scheme is None:
             TestFile.val_scheme = system.ValidationScheme('te')
 
@@ -150,18 +148,19 @@ class TestFile:
         stream = replace_special_token(data, source, build, self._prefix)
         try:
             self._raw = YAML(typ='safe').load(stream)
-        except YAMLError as e:
-            raise ValidationException.FormatError(origin="<stream>")
+        except YAMLError as ye:
+            raise ValidationException.FormatError(origin="<stream>") from ye
 
     def save_yaml(self):
-        src, _, build, curbuild = testing.generate_local_variables(
-            self._label,
-            self._prefix)
+        _, _, _, curbuild = testing.generate_local_variables(
+            self._label, self._prefix)
 
         with open(os.path.join(curbuild, "pcvs.setup.yml"), "w") as fh:
             YAML(typ='safe').dump(self._raw, fh)
 
+    @io.capture_exception(Exception, doexit=False)
     def validate(self, allow_conversion=True) -> bool:
+        """Test file validation"""
         try:
             if self._raw:
                 TestFile.val_scheme.validate(self._raw, filepath=self._in)
@@ -182,23 +181,22 @@ class TestFile:
                 raise e
 
             tmpfile = tempfile.mkstemp()[1]
-            with open(tmpfile, 'w') as fh:
+            with open(tmpfile, 'w', encoding='utf-8') as fh:
                 YAML(typ='safe').dump(self._raw, fh)
-            proc = subprocess.Popen(
-                "pcvs_convert {} --stdout -k te --skip-unknown -t '{}'".format(
-                    tmpfile,
-                    os.path.join(PATH_INSTDIR, "templates/config/group-compat.yml")),
-                stderr=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                shell=True)
 
-            fds = proc.communicate()
-            os.remove(tmpfile)
-            if proc.returncode != 0:
-                raise e
-            converted_data = YAML(typ='safe').load(fds[0].decode('utf-8'))
-            # keep only TE conversion
-            # anything else is dropped when converting on-the-fly
+            try:
+                template = os.path.join(PATH_INSTDIR,
+                                        "templates/config/group-compat.yml")
+                yaml_converter.convert(tmpfile, "te", template, None,
+                                       None, False, True, True)
+            except Exception as er:
+                io.console.error(
+                    f"An error occure when trying to update file {self._in}.")
+                raise er from e
+
+            with open(tmpfile, 'r', encoding='utf-8') as fh:
+                converted_data = YAML(typ='safe').load(fh)
+
             self._raw = converted_data
             self.validate(allow_conversion=False)
             io.console.warning("\t--> Legacy syntax for: {}".format(self._in))
@@ -212,60 +210,55 @@ class TestFile:
             return 0
         return len(self._raw.keys())
 
+    @property
+    def nb_tests(self):
+        if self._tests is None:
+            return 0
+        return len(self._tests)
+
     def process(self):
-        try:
-            """Load the YAML file and map YAML nodes to Test()."""
-            src, _, build, _ = testing.generate_local_variables(
-                self._label,
-                self._prefix)
+        """Load the YAML file and map YAML nodes to Test()."""
+        # _, _, _, _ = testing.generate_local_variables(
+        #     self._label, self._prefix)
 
-            # if file hasn't be loaded yet
-            if self._raw is None:
-                self.load_from_file(self._in)
+        # if file hasn't be loaded yet
+        if self._raw is None:
+            self.load_from_file(self._in)
 
-            self.validate()
+        self.validate()
 
-            # main loop, parse each node to register tests
-            for k, content, in self._raw.items():
-                MetaConfig.root.get_internal(
-                    "pColl").invoke_plugins(Plugin.Step.TDESC_BEFORE)
-                if content is None:
-                    # skip empty nodes
-                    continue
-                td = tedesc.TEDescriptor(k, content, self._label, self._prefix)
-                for test in td.construct_tests():
-                    self._tests.append(test)
-                io.console.info("{}: {}".format(
-                    td.name, pprint.pformat(td.get_debug())))
+        # main loop, parse each node to register tests
+        for k, content, in self._raw.items():
+            GlobalConfig.root.get_internal("pColl").invoke_plugins(
+                Plugin.Step.TDESC_BEFORE)
+            if content is None:
+                # skip empty nodes
+                continue
+            td = tedesc.TEDescriptor(k, content, self._label, self._prefix)
+            for test in td.construct_tests():
+                self._tests.append(test)
+            io.console.debug("Test descriptor: {}: {}".format(
+                                td.name,
+                                pprint.pformat(td.get_debug())))
 
-                MetaConfig.root.get_internal(
-                    "pColl").invoke_plugins(Plugin.Step.TDESC_AFTER)
+            GlobalConfig.root.get_internal("pColl").invoke_plugins(
+                Plugin.Step.TDESC_AFTER)
 
-                # register debug informations relative to the loaded TEs
-                self._debug[k] = td.get_debug()
-        except Exception as e:
-            import traceback
-            print(traceback.format_exc())
-            io.console.error("Run test error: {}".format(e))
-            exit(1)
-
+            # register debug informations relative to the loaded TEs
+            self._debug[k] = td.get_debug()
 
     def flush_sh_file(self):
         """Store the given input file into their destination."""
         fn_sh = os.path.join(self._path_out, "list_of_tests.sh")
-        cobj = MetaConfig.root.get_internal('cc_pm')
+        cobj = GlobalConfig.root.get_internal('cc_pm')
         if TestFile.cc_pm_string == "" and cobj:
-            TestFile.cc_pm_string = "\n".join([
-                e.get(load=True, install=False)
-                for e in cobj
-            ])
+            TestFile.cc_pm_string = "\n".join(
+                [e.get(load=True, install=False) for e in cobj])
 
-        robj = MetaConfig.root.get_internal('rt_pm')
+        robj = GlobalConfig.root.get_internal('rt_pm')
         if TestFile.rt_pm_string == "" and robj:
-            TestFile.rt_pm_string = "\n".join([
-                e.get(load=True, install=False)
-                for e in robj
-            ])
+            TestFile.rt_pm_string = "\n".join(
+                [e.get(load=True, install=False) for e in robj])
 
         with open(fn_sh, 'w') as fh_sh:
             fh_sh.write("""#!/bin/sh
@@ -288,35 +281,35 @@ EOF
 fi
 
 for arg in "$@"; do case $arg in
-""".format(simulated="sim" if MetaConfig.root.validation.simulated is True else "",
-                pm_string="\n".join([
-                        TestFile.cc_pm_string,
-                        TestFile.rt_pm_string
-                        ])))
+""".format(simulated="sim"
+                if 'simulated' in GlobalConfig.root['validation'] and
+                GlobalConfig.root['validation']['simulated'] is True else "",
+                pm_string="\n".join([TestFile.cc_pm_string,
+                                    TestFile.rt_pm_string])))
 
             for test in self._tests:
                 fh_sh.write(test.generate_script(fn_sh))
-                MetaConfig.root.get_internal('orchestrator').add_new_job(test)
+                GlobalConfig.root.get_internal('orchestrator').add_new_job(test)
 
             fh_sh.write("""
         --list) printf "{list_of_tests}\\n"; exit 0;;
         *) printf "Invalid test-name \'$arg\'\\n"; exit 1;;
         esac
     done
-    
+
     if test -z "$PCVS_SHOW"; then
         eval "${{pcvs_load}}" || exit "$?"
         eval "${{pcvs_env}}" || exit "$?"
         eval "${{pcvs_cmd}}" || exit "$?"
         exit $?
-    else   
+    else
         if test -n "$PCVS_SHOW_MOD"; then
             test -n "$PCVS_VERBOSE" && echo "#### MODULE LOADED ####"
 cat<<EOF
 ${{pcvs_load}}
 EOF
         fi
-        
+
         if test -n "$PCVS_SHOW_ENV"; then
         test -n "$PCVS_VERBOSE" && echo "###### SETUP ENV ######"
 cat<<EOF
@@ -330,10 +323,8 @@ ${{pcvs_cmd}}
 EOF
         fi
     fi
-    exit $?\n""".format(list_of_tests="\n".join([
-                t.name
-                for t in self._tests
-            ])))
+    exit $?\n""".format(list_of_tests="\n".join([t.name
+                                                 for t in self._tests])))
 
         self.generate_debug_info()
 
@@ -342,17 +333,14 @@ EOF
         if len(self._debug) and io.console.verb_debug:
             with open(os.path.join(self._path_out, "dbg-pcvs.yml"), 'w') as fh:
                 # compute max number of combinations from system iterators
-                sys_cnt = functools.reduce(
-                    operator.mul,
-                    [
-                        len(v['values'])
-                        for v in MetaConfig.root.criterion.values()
-                    ]
-                )
+                sys_cnt = functools.reduce(operator.mul, [
+                    len(v['values'])
+                    for v in GlobalConfig.root['criterion'].values()
+                ])
                 self._debug.setdefault('.system-values', {})
                 self._debug['.system-values'].setdefault('stats', {})
 
-                for c_k, c_v in MetaConfig.root.criterion.items():
+                for c_k, c_v in GlobalConfig.root['criterion'].items():
                     self._debug[".system-values"][c_k] = c_v['values']
                 self._debug[".system-values"]['stats']['theoric'] = sys_cnt
                 yml = YAML(typ='safe')

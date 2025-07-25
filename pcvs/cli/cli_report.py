@@ -1,7 +1,6 @@
 import os
 
 from pcvs import io
-from pcvs import NAME_BUILDFILE
 from pcvs import NAME_BUILDIR
 from pcvs.backend import report as pvReport
 from pcvs.helpers import utils
@@ -16,7 +15,10 @@ except ImportError:
 
 @click.command('report', short_help="Manage PCVS result reporting interface")
 @click.option("-s", "--static-pages", "static", flag_value=".", default=None)
-@click.argument("path_list", nargs=-1, required=False, type=click.Path(exists=True))
+@click.argument("path_list",
+                nargs=-1,
+                required=False,
+                type=click.Path(exists=True))
 @click.pass_context
 def report(ctx, path_list, static):
     """Start a webserver to browse result during or after execution.
@@ -32,7 +34,8 @@ def report(ctx, path_list, static):
         # provide a valid archive-formatted file
         if utils.check_is_build_or_archive(prefix):
             inputs.append(os.path.abspath(prefix))
-        elif utils.check_is_build_or_archive(os.path.join(prefix, NAME_BUILDIR)):
+        elif utils.check_is_build_or_archive(os.path.join(
+                prefix, NAME_BUILDIR)):
             inputs.append(os.path.abspath(os.path.join(prefix, NAME_BUILDIR)))
         else:
             raise click.BadArgumentUsage(

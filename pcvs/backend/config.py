@@ -13,10 +13,9 @@ from pcvs import PATH_INSTDIR
 from pcvs.helpers import system
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ConfigException
-from pcvs.helpers.system import MetaDict
 
 CONFIG_BLOCKS = ['compiler', 'runtime', 'machine', 'criterion', 'group']
-CONFIG_EXISTING = dict()
+CONFIG_EXISTING = {}
 
 
 def init() -> None:
@@ -28,7 +27,7 @@ def init() -> None:
     if hasattr(init, 'done'):
         return
 
-    global CONFIG_BLOCKS, CONFIG_EXISTING
+    global CONFIG_EXISTING
     CONFIG_EXISTING = {}
 
     # this first loop defines configuration order
@@ -38,9 +37,8 @@ def init() -> None:
         priority_paths.reverse()
         for token in priority_paths:  # reverse order (overriding)
             CONFIG_EXISTING[block][token] = []
-            for config_file in glob.glob(os.path.join(utils.STORAGES[token],
-                                                      block,
-                                                      "*.yml")):
+            for config_file in glob.glob(
+                    os.path.join(utils.STORAGES[token], block, "*.yml")):
                 CONFIG_EXISTING[block][token].append(
                     (os.path.basename(config_file)[:-4], config_file))
     init.done = True
@@ -155,7 +153,8 @@ class ConfigurationBlock:
         """
         assert (self._kind in CONFIG_BLOCKS)
         scopes = utils.storage_order() if self._scope is None else [
-            self._scope]
+            self._scope
+        ]
 
         for sc in scopes:
             for pair in CONFIG_EXISTING[self._kind][sc]:
@@ -168,8 +167,8 @@ class ConfigurationBlock:
         # default file position when not found
         if self._scope is None:
             self._scope = 'local'
-        self._file = os.path.join(
-            utils.STORAGES[self._scope], self._kind, self._name + ".yml")
+        self._file = os.path.join(utils.STORAGES[self._scope], self._kind,
+                                  self._name + ".yml")
         if not os.path.isfile(self._file):
             self._exists = False
 
@@ -183,7 +182,7 @@ class ConfigurationBlock:
 
     @property
     def full_name(self) -> str:
-        """Return complete block label (scope + kind + name)
+        """Return complete block label (scope + kind + name).
 
         :return: the fully-qualified name.
         :rtype: str
@@ -217,13 +216,31 @@ class ConfigurationBlock:
         """
         return self._name
 
+    @property
+    def kind(self) -> str:
+        """Return the block kind only.
+
+        :return: the kind of config
+        :rtype: str
+        """
+        return self._kind
+
+    @property
+    def details(self) -> dict:
+        """Return all the class details.
+
+        :return: the _details attribute.
+        :rtype: dict
+        """
+        return self._details
+
     def fill(self, raw) -> None:
         """Populate the block content with parameters.
 
         :param raw: the data to fill.
         :type raw: dict
         """
-        self._details = MetaDict(raw)
+        self._details = raw
 
     def dump(self) -> dict:
         """Convert the configuration Block to a regular dict.
@@ -234,7 +251,7 @@ class ConfigurationBlock:
         :rtype: dict
         """
         self.load_from_disk()
-        return MetaDict(self._details).to_dict()
+        return self._details
 
     def check(self) -> None:
         """
@@ -242,8 +259,8 @@ class ConfigurationBlock:
 
         :raises: ValidationException.SchemeError, ValidationException.FormatError
         """
-        system.ValidationScheme(self._kind).validate(
-            self._details, filepath=self.full_name)
+        system.ValidationScheme(self._kind).validate(self._details,
+                                                     filepath=self.full_name)
 
     def load_from_disk(self) -> None:
         """load the configuration file to populate the current object.
@@ -263,7 +280,7 @@ class ConfigurationBlock:
             raise ConfigException.NotFoundError()
 
         with open(self._file) as f:
-            self._details = MetaDict(YAML(typ='safe').load(f))
+            self._details = YAML(typ='safe').load(f)
 
     def load_template(self, name=None) -> None:
         """
@@ -299,7 +316,7 @@ class ConfigurationBlock:
         with open(self._file, 'w') as f:
             yml = YAML(typ='safe')
             yml.default_flow_style = False
-            yml.dump(self._details.to_dict(), f)
+            yml.dump(self._details, f)
 
         self._exists = True
 
@@ -311,21 +328,21 @@ class ConfigurationBlock:
         :param clone: the object to mirror
         :type clone: :class:`ConfigurationBlock`
         """
-        assert (isinstance(clone, ConfigurationBlock))
-        assert (clone._kind == self._kind)
-        assert (not self.is_found())
-        assert (clone.is_found())
+        assert isinstance(clone, ConfigurationBlock)
+        assert clone.kind == self._kind
+        assert not self.is_found()
+        assert clone.is_found()
 
         self.retrieve_file()
-        assert (not os.path.isfile(self._file))
+        assert not os.path.isfile(self._file)
 
         io.console.info("Compute target prefix: {}".format(self._file))
-        self._details = clone._details
+        self._details = clone.details
 
     def delete(self) -> None:
         """Delete a configuration block from disk"""
-        assert (self.is_found())
-        assert (os.path.isfile(self._file))
+        assert self.is_found()
+        assert os.path.isfile(self._file)
 
         io.console.info("remove {} from '{} ({})'".format(
             self._name, self._kind, self._scope))
@@ -353,11 +370,10 @@ class ConfigurationBlock:
         with open(self._file, 'r') as fh:
             stream = fh.read()
 
-        edited_stream = click.edit(
-            stream, extension=".yml", require_save=True)
+        edited_stream = click.edit(stream, extension=".yml", require_save=True)
         if edited_stream is not None:
-            edited_yaml = MetaDict(YAML(typ='safe').load(edited_stream))
-            system.ValidationScheme(self._kind).validate(edited_yaml)
+            edited_yaml = YAML(typ='safe').load(edited_stream)
+            system.ValidationScheme(self._kind).validate(edited_yaml, self._file)
             self.fill(edited_yaml)
             self.flush_to_disk()
             try:
@@ -398,10 +414,10 @@ class MyPlugin(Plugin):
     return True
 """
 
-        edited_code = click.edit(
-            plugin_code, extension=".py", require_save=True)
+        edited_code = click.edit(plugin_code,
+                                 extension=".py",
+                                 require_save=True)
         if edited_code is not None:
-            stream_yaml['plugin'] = base64.b64encode(
-                edited_code.encode('utf-8'))
-            with open(self._file, 'w') as fh:
+            stream_yaml['plugin'] = edited_code.encode('utf-8')
+            with open(self._file, 'w', encoding='utf-8') as fh:
                 YAML(typ='safe').dump(stream_yaml, fh)

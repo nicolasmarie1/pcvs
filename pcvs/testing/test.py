@@ -4,13 +4,11 @@ import json
 import os
 import re
 import shlex
-import sys
-import zlib
 from enum import IntEnum
 
 from pcvs import io
 from pcvs.helpers.criterion import Combination
-from pcvs.helpers.system import MetaConfig
+from pcvs.helpers.system import GlobalConfig
 from pcvs.helpers.system import ValidationScheme
 from pcvs.helpers.utils import Program
 from pcvs.plugins import Plugin
@@ -135,11 +133,7 @@ class Test:
         self._deps = []
         self._invocation_cmd = self._execmd
         self._sched_cnt = 0
-        self._output_info = {
-            'file': None,
-            'offset': -1,
-            'length': 0
-        }
+        self._output_info = {'file': None, 'offset': -1, 'length': 0}
 
     @property
     def jid(self) -> str:
@@ -154,7 +148,8 @@ class Test:
 
     @property
     def basename(self) -> str:
-        return Test.compute_fq_name(self._id['label'], self._id['subtree'], self._id['te_name'])
+        return Test.compute_fq_name(self._id['label'], self._id['subtree'],
+                                    self._id['te_name'])
 
     @property
     def tags(self):
@@ -314,7 +309,11 @@ class Test:
         :return: True if at least one dep is shown a `Test.State.FAILURE` state.
         :rtype: bool
         """
-        return len([d for d in self._deps if d.state in [Test.State.ERR_DEP, Test.State.ERR_OTHER, Test.State.FAILURE]]) > 0
+        bad_states = [Test.State.ERR_DEP, Test.State.ERR_OTHER, Test.State.FAILURE]
+        for d in self._deps:
+            if d.state in bad_states:
+                return True
+        return False
 
     def first_incomplete_dep(self):
         """Retrive the first ready-for-schedule dep.
@@ -344,23 +343,20 @@ class Test:
         # timeout is (in order):
         # 1. explicitly defined
         # 2. OR extrapolated from defined result.mean
-        # 3. set by default (MetaConfig.root.validation.job_timeout)
+        # 3. set by default (GlobalConfig.root.validation.job_timeout)
         if self._timeout:
             return self._timeout
         elif self._validation['time'] > 0:
             return (self._validation['time'] + self._validation['delta']) * 1.5
         else:
-            return MetaConfig.root.validation.job_timeout
+            return GlobalConfig.root['validation']['job_timeout']
 
-    def get_dim(self, unit="n_node"):
+    def get_dim(self):
         """Return the orch-dimension value for this test.
 
         The dimension can be defined by the user and let the orchestrator knows
         what resource are, and how to 'count' them'. This accessor allow the
         orchestrator to exract the information, based on the key name.
-
-        :param unit: the resource label, such label should exist within the test
-        :type unit: str
 
         :return: The number of resource this Test is requesting.
         :rtype: int
@@ -380,7 +376,8 @@ class Test:
         :type state: :class:`Test.State`, optional
         """
         if state is None:
-            state = Test.State.SUCCESS if self._validation['expect_rc'] == rc else Test.State.FAILURE
+            state = Test.State.SUCCESS if self._validation[
+                'expect_rc'] == rc else Test.State.FAILURE
 
         self.save_raw_run(rc=rc, out=out, time=time)
         self.save_status(state)
@@ -390,8 +387,7 @@ class Test:
         for elt_k, elt_v in self._data['artifacts'].items():
             if os.path.isfile(elt_v):
                 with open(elt_v, 'rb') as fh:
-                    self._data['artifacts'][elt_k] = base64.b64encode(
-                        fh.read()).decode("utf-8")
+                    self._data['artifacts'][elt_k] = fh.read()
 
     def save_raw_run(self, out=None, rc=None, time=None):
         """TODO:
@@ -430,24 +426,26 @@ class Test:
         raw_output = self.output
 
         # if test should be validated through a matching regex
-        if state == Test.State.SUCCESS and self._validation['matchers'] is not None:
-            for k, v in self._validation['matchers'].items():
+        if state == Test.State.SUCCESS and self._validation[
+                'matchers'] is not None:
+            for _, v in self._validation['matchers'].items():
                 expected = (v.get('expect', True) is True)
                 found = re.search(v['expr'], raw_output)
                 if (found and not expected) or (not found and expected):
                     state = Test.State.FAILURE
                     break
 
-        if state == Test.State.SUCCESS and self._validation['analysis'] is not None:
+        if state == Test.State.SUCCESS and self._validation[
+                'analysis'] is not None:
             analysis = self._validation['analysis']
-            args = self._validation.get('args', {})
-            s = MetaConfig.root.get_internal("pColl").invoke_plugins(
+            s = GlobalConfig.root.get_internal("pColl").invoke_plugins(
                 Plugin.Step.TEST_RESULT_EVAL, analysis=analysis, job=self)
             if s is not None:
                 state = s
 
         # if a custom script is provided
-        if state == Test.State.SUCCESS and self._validation['script'] is not None:
+        if state == Test.State.SUCCESS and self._validation[
+                'script'] is not None:
             p = Program(self._validation['script'])
             p.run()
             if self._validation['expect_rc'] != p.rc:
@@ -474,23 +472,27 @@ class Test:
             icon = "fail"
 
         if self._output and \
-            (MetaConfig.root.validation.print_level == 'all' or
-             (self.state == Test.State.FAILURE) and MetaConfig.root.validation.print_level == 'errors'):
+            (GlobalConfig.root['validation']['print_level'] == 'all' or
+             (self.state == Test.State.FAILURE) and GlobalConfig.root['validation']['print_level'] == 'errors'):
             raw_output = self.output
 
-        io.console.print_job(label, self._exectime, self.label,
-                             "/{}".format(self.subtree) if self.subtree else "",
-                             self.name,
-                             colorname=colorname, icon=icon, content=raw_output)
+        io.console.print_job(
+            label,
+            self._exectime,
+            self.label,
+            "/{}".format(self.subtree) if self.subtree else "",
+            self.name,
+            colorname=colorname,
+            icon=icon,
+            content=raw_output)
 
-    def executed(self, state=None):
+    def executed(self, state: State = None):
         """Set current Test as executed.
 
         :param state: give a special state to the test, defaults to FAILED
         :param state: :class:`Test.State`, optional
         """
-        self._state = state if type(
-            state) == Test.State else Test.State.FAILURE
+        self._state = state if isinstance(state, Test.State) else Test.State.FAILURE
 
     def been_executed(self):
         """Cehck if job has been executed (not waiting or in progress).
@@ -578,13 +580,13 @@ class Test:
             "invocation_cmd": self._invocation_cmd,
         }
 
-    def from_minimal_json(self, json: str):
-        if isinstance(json, str):
-            json = json.loads(json)
-        self._invocation_cmd = json.get('invocation_cmd', "exit 1")
-        self._id['jid'] = json.get('jid', "-1")
+    def from_minimal_json(self, jsonstr: str):
+        if isinstance(jsonstr, str):
+            jsonstr = json.loads(jsonstr)
+        self._invocation_cmd = jsonstr.get('invocation_cmd', "exit 1")
+        self._id['jid'] = jsonstr.get('jid', "-1")
 
-    def from_json(self, test_json: str) -> None:
+    def from_json(self, test_json: str, filepath: str) -> None:
         """Replace the whole Test structure based on input JSON.
 
         :param json: the json used to set this Test
@@ -594,8 +596,8 @@ class Test:
         if isinstance(test_json, str):
             test_json = json.loads(test_json)
 
-        assert (isinstance(test_json, dict))
-        self.res_scheme.validate(test_json)
+        assert isinstance(test_json, dict)
+        self.res_scheme.validate(test_json, filepath)
 
         self._id = test_json.get("id", -1)
         self._comb = Combination({}, self._id.get('comb', {}))
@@ -608,7 +610,7 @@ class Test:
         self._exectime = res.get("time", 0)
         self._output_info = res.get("output", {})
         self._output = self._output_info.get('raw', b"")
-        if type(self._output) == str:
+        if self._output is str:
             # should only be managed as bytes (as produced by b64 encoding)
             self._output = self._output.encode('utf-8')
 
@@ -627,10 +629,9 @@ class Test:
         cd_code = ""
         env_code = ""
         cmd_code = ""
-        post_code = ""
 
-        self._invocation_cmd = 'bash {} {}'.format(
-            srcfile, self._id['fq_name'])
+        self._invocation_cmd = 'bash {} {}'.format(srcfile,
+                                                   self._id['fq_name'])
 
         # if changing directory is required by the test
         if self._cwd is not None:
@@ -657,25 +658,26 @@ class Test:
             pcvs_load={pm_code}
             pcvs_env={env_code}
             pcvs_cmd={cmd_code}
-            ;;""".format(
-            cmd_code="{}".format(shlex.quote(cmd_code)),
-            env_code="{}".format(shlex.quote(env_code)),
-            pm_code="{}".format(shlex.quote(pm_code)),
-            cd_code=cd_code,
-            name=self._id['fq_name']
-        )
+            ;;""".format(cmd_code="{}".format(shlex.quote(cmd_code)),
+                         env_code="{}".format(shlex.quote(env_code)),
+                         pm_code="{}".format(shlex.quote(pm_code)),
+                         cd_code=cd_code,
+                         name=self._id['fq_name'])
 
     @classmethod
-    def compute_fq_name(self, label, subtree, name, combination=None, suffix=None):
+    def compute_fq_name(self,
+                        label,
+                        subtree,
+                        name,
+                        combination=None,
+                        suffix=None):
         """Generate the fully-qualified (dq) name for a test, based on :
             - the label & subtree (original FS tree)
             - the name (the TE name it is originated)
             - a potential extra suffix
             - the combination PCVS computed for this iteration."""
-        return "_".join(filter(None, [
-            "/".join(filter(None, [
-                label,
-                subtree,
-                name])),
-            suffix,
-            combination]))
+        return "_".join(
+            filter(None, [
+                "/".join(filter(None, [label, subtree, name])), suffix,
+                combination
+            ]))

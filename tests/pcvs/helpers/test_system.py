@@ -1,5 +1,4 @@
 import os
-from unittest.mock import patch
 
 import pytest
 
@@ -7,50 +6,51 @@ import pcvs
 from pcvs import PATH_INSTDIR
 from pcvs.helpers import pm
 from pcvs.helpers import system
-from pcvs.helpers import system as s
-from pcvs.helpers.system import MetaDict
 
 
 def test_bootstrap_compiler():
-    obj = s.MetaConfig()
+    obj = system.MetaConfig()
     obj.bootstrap_compiler({
-        "cc": {
-            "program": "/path/to/cc",
-            "variants": {
-                "openmp": {
-                    "args": "-fopenmp"
+        "compilers": {
+            "cc": {
+                "program": "/path/to/cc",
+                "variants": {
+                    "openmp": {
+                        "args": "-fopenmp"
+                    }
                 }
             }
         },
         "package_manager": {
-            "spack" : ["mypackage@myversion"],
+            "spack": ["mypackage@myversion"],
             "module": ["mod1", "mod2"]
-        }}
+        }}, filepath=str(__file__)
     )
-    assert(isinstance(obj.compiler, s.Config))
-    assert(obj.compiler.cc.program == "/path/to/cc")
-    assert(obj.compiler.cc.variants.openmp.args == "-fopenmp")
-    
-    assert(isinstance(obj.compiler.package_manager.spack, list))
-    assert(len(obj.compiler.package_manager.spack) == 1)
-    assert(isinstance(obj.compiler.package_manager.module, list))
-    assert(len(obj.compiler.package_manager.module) == 2)
+    assert isinstance(obj['compiler'], system.Config)
+    assert obj['compiler']['compilers']['cc']['program'] == "/path/to/cc"
+    assert obj['compiler']['compilers']['cc']['variants']['openmp']['args'] == "-fopenmp"
+
+    assert isinstance(obj['compiler']['package_manager']['spack'], list)
+    assert len(obj['compiler']['package_manager']['spack']) == 1
+    assert isinstance(obj['compiler']['package_manager']['module'], list)
+    assert len(obj['compiler']['package_manager']['module']) == 2
 
     package_array = obj.get_internal('cc_pm')
-    res = dict()
-    assert(isinstance(package_array, list))
-    assert(len(package_array) == 3)
+    res = {}
+    assert isinstance(package_array, list)
+    assert len(package_array) == 3
     for p in package_array:
-        assert(isinstance(p, pm.PManager))
+        assert isinstance(p, pm.PManager)
         if type(p) in res:
             res[type(p)] += 1
         else:
             res[type(p)] = 1
-    assert(res[pm.SpackManager] == 1)
-    assert(res[pm.ModuleManager] == 2)
+    assert res[pm.SpackManager] == 1
+    assert res[pm.ModuleManager] == 2
+
 
 def test_bootstrap_runtime():
-    obj = s.MetaConfig()
+    obj = system.MetaConfig()
     obj.bootstrap_runtime({
         "program": "/path/to/rt",
         "criterions": {
@@ -59,57 +59,62 @@ def test_bootstrap_runtime():
             }
         },
         "package_manager": {
-            "spack" : ["mypackage@myversion"],
+            "spack": ["mypackage@myversion"],
             "module": ["mod1", "mod2"]
-        }}
+        }}, filepath=str(__file__)
     )
-    assert(isinstance(obj.runtime, s.Config))
-    assert(obj.runtime.program == "/path/to/rt")
-    assert(obj.runtime.criterions.n_mpi.numeric)
-    
-    assert(isinstance(obj.runtime.package_manager.spack, list))
-    assert(len(obj.runtime.package_manager.spack) == 1)
-    assert(isinstance(obj.runtime.package_manager.module, list))
-    assert(len(obj.runtime.package_manager.module) == 2)
+    assert isinstance(obj['runtime'], system.Config)
+    assert obj['runtime']['program'] == "/path/to/rt"
+    assert obj['runtime']['criterions']['n_mpi']['numeric']
+
+    assert isinstance(obj['runtime']['package_manager']['spack'], list)
+    assert len(obj['runtime']['package_manager']['spack']) == 1
+    assert isinstance(obj['runtime']['package_manager']['module'], list)
+    assert len(obj['runtime']['package_manager']['module']) == 2
 
     package_array = obj.get_internal('rt_pm')
-    res = dict()
-    assert(isinstance(package_array, list))
-    assert(len(package_array) == 3)
+    res = {}
+    assert isinstance(package_array, list)
+    assert len(package_array) == 3
     for p in package_array:
-        assert(isinstance(p, pm.PManager))
+        assert isinstance(p, pm.PManager)
         if type(p) in res:
             res[type(p)] += 1
         else:
             res[type(p)] = 1
-    assert(res[pm.SpackManager] == 1)
-    assert(res[pm.ModuleManager] == 2)
+    assert res[pm.SpackManager] == 1
+    assert res[pm.ModuleManager] == 2
+
 
 @pytest.fixture
 def kw_keys():
     return [f.replace('-scheme.yml', '') for f in os.listdir(os.path.join(PATH_INSTDIR, 'schemes/'))]
 
+
 @pytest.fixture
 def init_config():
-    d = MetaDict({"": "value1", "key2": "value2"})
-    conf = system.Config(d)
+    d = {"": "value1", "key2": "value2"}
+    system.Config(d)
 
-def test_validate(kw_keys):
+
+def test_validate(kw_keys):  # pylint: disable=unused-argument,redefined-outer-name
     vs = system.Config()
     compiler = {
-        "cc": {
-            "program": "example",
-            "variants": {
-                "openmp": {"args": "example"},
-                "tbb": {"args": "example"},
-                "cuda": {"args" : "example"},
-                "strict": {"args" : "example"},
+        "compilers": {
+            "cc": {
+                "program": "example",
+                "variants": {
+                    "openmp": {"args": "example"},
+                    "tbb": {"args": "example"},
+                    "cuda": {"args": "example"},
+                    "strict": {"args": "example"},
+                },
             },
+            "cxx": {"program": "example"},
+            "fc": {"program": "example"},
+            "f77": {"program": "example"},
+            "f90": {"program": "example"}
         },
-        "cxx": {"program": "example"},
-        "fc": {"program": "example"},
-        "f77": {"program": "example"},
-        "f90" : {"program": "example"},
         "package_manager": {
             "spack": ["example"],
             "module": ["example"]
@@ -138,40 +143,40 @@ def test_validate(kw_keys):
         }
     }
     criterion = {
-        "example":{
-            "values": [1,2],
+        "example": {
+            "values": [1, 2],
             "subtitle": "example"
         }
     }
     criterion_wrong = {
-        "wrong-key":{
-            "example":{
-                "values": [1,2],
+        "wrong-key": {
+            "example": {
+                "values": [1, 2],
                 "subtitle": "example"
             }
         }
     }
     keywords = [
-        (compiler, "compiler"), 
-        (runtime, "runtime"), 
+        (compiler, "compiler"),
+        (runtime, "runtime"),
         (criterion, "criterion")
     ]
     # for kw in ["compiler", "criterion", "group"]:
     #     with open(os.path.join(PATH_INSTDIR, "templates/{}-format.yml".format(kw))) as blk:
-    #         to_validate = MetaDict(yaml.load(blk))
+    #         to_validate = yaml.load(blk)
     #         conf = system.Config(to_validate)
     #         conf.validate(kw)
     for kw in keywords:
-        to_validate = MetaDict(kw[0])
+        to_validate = kw[0]
         conf = system.Config(to_validate)
-        conf.validate(kw[1])
+        conf.validate(kw[1], filepath=str(__file__))
     with pytest.raises(pcvs.helpers.exceptions.ValidationException.FormatError):
-        to_validate = MetaDict(criterion_wrong)
+        to_validate = criterion_wrong
         conf = system.Config(to_validate)
-        conf.validate(kw[1])
+        conf.validate(kw[1], filepath=str(__file__))
     with pytest.raises(AssertionError):
-        vs.validate("wrong_value")
+        vs.validate("wrong_value", filepath=str(__file__))
 
 
-def test_config(init_config):
+def test_config(init_config):  # pylint: disable=unused-argument,redefined-outer-name
     pass

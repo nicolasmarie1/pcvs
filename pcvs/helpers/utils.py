@@ -1,5 +1,5 @@
-import os
 import fcntl
+import os
 import shutil
 import signal
 import socket
@@ -18,9 +18,9 @@ from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers.exceptions import LockException
 from pcvs.helpers.exceptions import RunException
 
-####################################
-##    STORAGE SCOPE MANAGEMENT    ##
-####################################
+# ###################################
+# #    STORAGE SCOPE MANAGEMENT    ##
+# ###################################
 STORAGES = {
     'global': PATH_INSTDIR,
     'user': PATH_HOMEDIR,
@@ -32,7 +32,10 @@ def create_home_dir():
     """Create a home directory
     """
     if not os.path.exists(PATH_HOMEDIR):
-        os.makedirs(PATH_HOMEDIR)
+        # exist_ok=True is important here to avoid race condition
+        # when launching multiples tests in parallel
+        # with a gitlab runner for example.
+        os.makedirs(PATH_HOMEDIR, exist_ok=True)
 
 
 def storage_order():
@@ -72,7 +75,7 @@ def extract_infos_from_token(s, pair="right", single="right", maxsplit=3):
 
     array = s.split(".")
     if len(array) >= maxsplit:
-        return (array[0], array[1], ".".join(array[maxsplit-1:]))
+        return (array[0], array[1], ".".join(array[maxsplit - 1:]))
     elif len(array) == 2:
         # two cases: a.b or b.c
         if pair == 'left':
@@ -136,21 +139,22 @@ def set_local_path(path):
         found = os.path.join(path, NAME_SRCDIR)
     STORAGES['local'] = found
 
-####################################
-####     PATH MANIPULATION      ####
-####################################
+
+# ###################################
+# ###     PATH MANIPULATION      ####
+# ###################################
 
 
-def create_or_clean_path(prefix, dir=False):
+def create_or_clean_path(prefix, directory=False):
     """Create a path or cleans it if it already exists.
 
     :param prefix: prefix of the path to create
     :type prefix: os.path, str
-    :param dir: True if the path is a directory, defaults to False
-    :type dir: bool, optional
+    :param directory: True if the path is a directory, defaults to False
+    :type directory: bool, optional
     """
     if not os.path.exists(prefix):
-        if dir:
+        if directory:
             os.mkdir(prefix)
         else:
             assert (os.path.isdir(os.path.dirname(prefix)))
@@ -196,12 +200,13 @@ def copy_file(src, dest):
     except SameFileError:
         pass
 
-####################################
-####           MISC.            ####
-####################################
+
+# ###################################
+# ###           MISC.            ####
+# ###################################
 
 
-def check_valid_program(p, succ=None, fail=None, raise_if_fail=True):
+def check_valid_program(p, succ=None, fail=None, raise_on_fail=True):
     """Check if p is a valid program, using the ``which`` function.
 
     :param p: program to check
@@ -210,14 +215,13 @@ def check_valid_program(p, succ=None, fail=None, raise_if_fail=True):
     :type succ: optional
     :param fail: function to call in case of failure, defaults to None
     :type fail: optional
-    :param raise_if_fail: Raise an exception in case of failure, defaults to True
-    :type raise_if_fail: bool, optional
+    :param raise_on_fail: Raise an exception in case of failure, defaults to True
+    :type raise_on_fail: bool, optional
     :raises RunException.ProgramError: p is not a valid program
     :return: True if p is a program, False otherwise
     :rtype: bool
     """
-    if not p:
-        return
+    assert p
     try:
         filepath = shutil.which(p)
         res = os.access(filepath, mode=os.X_OK)
@@ -225,12 +229,13 @@ def check_valid_program(p, succ=None, fail=None, raise_if_fail=True):
         res = False
 
     if res is True and succ is not None:
-        succ("'{}' found at '{}'".format(os.path.basename(p), filepath))
+        basename = os.path.basename(p)
+        succ(f"'{basename}' found at '{filepath}'")
 
     if res is False:
         if fail is not None:
-            fail("{} not found or not an executable".format(p))
-        if raise_if_fail:
+            fail(f"'{p}' not found or not an executable")
+        if raise_on_fail:
             raise RunException.ProgramError(p)
 
     return res
@@ -294,8 +299,8 @@ def unlock_file(f):
                 io.console.debug("Unlock {}".format(lf_name))
     except Exception as e:
         if io.console:
-            io.console.warning("Issue unlocking {}: {}".format(lf_name), e)
-        pass
+            io.console.warning("Issue unlocking {}: {}".format(lf_name, e))
+
 
 def lock_file(f, reentrant=False, timeout=None, force=True):
     """Try to lock a directory.
@@ -339,32 +344,36 @@ def trylock_file(f, reentrant=False):
     :rtype: bool
     """
     lockfile_name = get_lockfile_name(f)
-    
+
     # touch the file if not exist, not care about FileExists.
     try:
         if not os.path.isfile(lockfile_name):
             open(lockfile_name, "x").close()
     except FileExistsError:
         pass
-    
+
     try:
         # attempt to acquire the lock
         with open(lockfile_name, "w") as fh:
             fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
             # from here, lock is taken
-            fh.write("{}||{}||{}".format(socket.gethostname(), os.getpid(), 42))
+            fh.write("{}||{}||{}".format(socket.gethostname(), os.getpid(),
+                                         42))
             if io.console:
                 io.console.debug("Trylock {}".format(lockfile_name))
             return True
-    except OSError as e:
+    except OSError:
         try:
             hostname, pid = get_lock_owner(f)
-            if pid == os.getpid() and hostname == socket.gethostname() and reentrant:
-                io.console.debug("Already locked {} for this process".format(lockfile_name))
+            if pid == os.getpid() and hostname == socket.gethostname(
+            ) and reentrant:
+                io.console.debug(
+                    "Already locked {} for this process".format(lockfile_name))
                 return True
             if io.console:
-                io.console.debug("Not locked, owned by {}:{}".format(hostname, pid))
-            
+                io.console.debug("Not locked, owned by {}:{}".format(
+                    hostname, pid))
+
         except Exception:
             pass  # return False
 
@@ -385,7 +394,7 @@ def is_locked(f):
             data = fh.read()
             if data:
                 return True
-    except:
+    except Exception:
         return False
 
 
@@ -401,25 +410,23 @@ def get_lock_owner(f):
     lf_name = get_lockfile_name(f)
     with open(lf_name, 'r') as fh:
         s = fh.read().strip().split('||')
-        assert(int(s[2]) == 42)
+        assert (int(s[2]) == 42)
         return s[0], int(s[1])
 
 
-def program_timeout(sig, frame):
+def program_timeout(sig):
     """Timeout handler, called when a SIGALRM is received.
 
     :param sig: signal number
     :type sig: int
-    :param frame: the callee (unused)
-    :type f: 
-    :raises CommonException.TimeoutError: timeout is reached
+    :raises TimeoutError: timeout is reached
     """
-    assert (sig == signal.SIGALRM)
+    assert sig == signal.SIGALRM
     raise CommonException.TimeoutError("Timeout reached")
 
 
 def start_autokill(timeout=None):
-    """Initialize a new time to automatically stop the 
+    """Initialize a new time to automatically stop the
     current process once time is expired.
 
     :param timeout: value in seconds before the autokill will be raised
@@ -445,7 +452,7 @@ class Program:
         self._rc = None
         self._except = None
 
-    def run(self, input="", shell=False, timeout=0):
+    def run(self, process_input="", shell=False):
         """Run the given program and capture I/Os
 
         :param input: raw data to be used as stdin
@@ -459,9 +466,11 @@ class Program:
         :rtype: integer
         """
         try:
-            s = subprocess.Popen(self._cmd, shell=shell,
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            self._out = s.communicate(input=input)
+            s = subprocess.Popen(self._cmd,
+                                 shell=shell,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            self._out = s.communicate(input=process_input)
             self._rc = s.returncode
         except Exception as e:
             self._except = e
@@ -526,8 +535,14 @@ def check_is_build_or_archive(x):
 
 
 def list_valid_buildirs_in_dir(p):
-    return [os.path.join(root, d) for root, d, _ in os.walk(p) if check_is_buildir(p)]
+    return [
+        os.path.join(root, d) for root, d, _ in os.walk(p)
+        if check_is_buildir(p)
+    ]
 
 
 def list_valid_archive_in_dir(p):
-    return [os.path.join(root, f) for root, _, f in os.walk(p) if check_is_archive(f)]
+    return [
+        os.path.join(root, f) for root, _, f in os.walk(p)
+        if check_is_archive(f)
+    ]

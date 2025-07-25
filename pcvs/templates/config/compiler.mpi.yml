@@ -1,9 +1,9 @@
 ---
 # List of programs to be used to compile
 # a wide variety of programs
-
-cc: {program: mpicc}
-cxx: {program: mpicxx}
-f77: {program: mpif77}
-f90: {program: mpif90}
-fc: {program: mpif90}
+compilers:
+  cc: {program: mpicc}
+  cxx: {program: mpicxx}
+  f77: {program: mpif77}
+  f90: {program: mpif90}
+  fc: {program: mpif90}

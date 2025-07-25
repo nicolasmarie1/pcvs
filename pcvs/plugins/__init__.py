@@ -22,6 +22,7 @@ class Plugin:
 
     :raises PluginException.NotImplementedError: if run() method is not overriden
     """
+
     class Step(enum.Enum):
         """Possible pass a plugin can be loaded into.
 
@@ -84,12 +85,12 @@ class Collection:
     def register_default_plugins(self):
         """Detect plugins stored in default places."""
         try:
-            self.register_plugin_by_package(
-                "pcvs.plugins.default", activate=True)
+            self.register_plugin_by_package("pcvs.plugins.default",
+                                            activate=True)
 
             self.register_plugin_by_package('contrib')
 
-        except:
+        except Exception:
             io.console.info(
                 "No 'contrib' package found for plugin autoloading")
 
@@ -99,13 +100,13 @@ class Collection:
 
         :param name: the plugin name.
         :type name: str"""
-        for step, plugins in self._plugins.items():
+        for _, plugins in self._plugins.items():
             for p in plugins:
                 if name.lower() == type(p).__name__.lower():
                     io.console.debug("Activate {}".format(name))
                     if self._enabled[p.step]:
-                        io.console.debug(
-                            " -> overrides {}".format(self._enabled[p.step]))
+                        io.console.debug(" -> overrides {}".format(
+                            self._enabled[p.step]))
                     self._enabled[p.step] = p
                     return
         io.console.warn("Unable to find a plugin named '{}'".format(name))
@@ -166,8 +167,8 @@ class Collection:
         for step, e in self._enabled.items():
             if e:
                 empty = False
-                io.console.print_item(
-                    "{}: {}".format(str(step), type(e).__name__))
+                io.console.print_item("{}: {}".format(str(step),
+                                                      type(e).__name__))
 
         if empty:
             io.console.print_item("None")
@@ -180,8 +181,7 @@ class Collection:
         """
 
         # the content is added to "pcvs-contrib" module
-        spec = importlib.util.spec_from_file_location("contrib",
-                                                      modpath)
+        spec = importlib.util.spec_from_file_location("contrib", modpath)
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         self.register_plugin_by_module(mod, activate)
@@ -198,8 +198,8 @@ class Collection:
             if issubclass(the_class, Plugin) and the_class is not Plugin:
                 step_str = str(the_class.step)
                 class_name = the_class.__name__
-                io.console.debug(
-                    "Register {} ({})".format(class_name, step_str))
+                io.console.debug("Register {} ({})".format(
+                    class_name, step_str))
                 self._plugins[the_class.step].append(the_class())
                 if activate:
                     self.activate_plugin(class_name)
@@ -228,9 +228,10 @@ class Collection:
         :raises PluginException.LoadError: Error while importing the package
         """
         mod = importlib.import_module(pkgname)
-        for _, name, _ in pkgutil.iter_modules(mod.__path__, mod.__name__ + "."):
+        for _, name, _ in pkgutil.iter_modules(mod.__path__,
+                                               mod.__name__ + "."):
             try:
                 submod = importlib.import_module(name)
                 self.register_plugin_by_module(submod, activate)
             except Exception as e:
-                raise PluginException.LoadError(name)
+                raise PluginException.LoadError(name) from e
