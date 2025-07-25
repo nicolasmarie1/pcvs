@@ -308,6 +308,12 @@ class Report:
             return {k: self.dict_convert_list_to_cnt(v) for k, v in d.items()}
         return d
 
+    def __repr__(self):
+        return repr(self.__dict__)
+
+    def __rich_repr__(self):
+        return self.__dict__.items()
+
 
 def build_static_pages(buildir) -> None:
     """From a given build directory, generate static pages.
