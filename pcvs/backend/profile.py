@@ -373,6 +373,7 @@ class Profile:
             except Exception as e:
                 raise e
 
+    # TODO: refactoring, this function is a duplicate of config.py:edit_plugin
     def edit_plugin(self):
         """Edit the 'runtime.plugin' section of the current profile.
 
@@ -390,7 +391,15 @@ class Profile:
         self.load_from_disk()
 
         if 'plugin' in self._details['runtime'].keys():
-            plugin_code = self._details['runtime']['plugin'].decode('utf-8')
+            plugin_code = self._details['runtime']['plugin']
+
+            # Temporary, for compatibility with older buold base64 encoded profile. (this is hell) -- start
+            if type(plugin_code) is not str:
+                plugin_code = plugin_code.decode('utf-8')
+            while plugin_code.count('\n') <= 1:
+                import base64
+                plugin_code = base64.b64decode(plugin_code).decode("utf-8")
+            # end
         else:
             plugin_code = """
 import math
@@ -409,7 +418,7 @@ class MyPlugin(Plugin):
                                      extension=".py",
                                      require_save=True)
             if edited_code is not None:
-                self._details['runtime']['plugin'] = edited_code.encode('utf-8')
+                self._details['runtime']['plugin'] = edited_code
                 self.flush_to_disk()
         except Exception as e:
             raise e

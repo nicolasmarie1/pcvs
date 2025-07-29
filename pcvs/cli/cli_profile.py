@@ -347,7 +347,7 @@ def profile_destroy(ctx, token):  # pylint: disable=unused-argument
 @io.capture_exception(ValidationException.FormatError)
 def profile_edit(ctx, token, edit_plugin):  # pylint: disable=unused-argument
     """Edit an existing profile with the given EDITOR. The '-p' option will open
-    the decoded runtime plugin code stored as a base64 string into the profile
+    the runtime plugin code stored as a string into the profile
     for edition.
 
     After edition, the result will be validated to ensure

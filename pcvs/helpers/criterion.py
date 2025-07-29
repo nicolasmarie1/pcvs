@@ -1,4 +1,3 @@
-import base64
 import itertools
 import math
 import os
@@ -492,6 +491,34 @@ def initialize_from_system():
 first = True
 
 
+def load_plugin():
+    rt = GlobalConfig.root['runtime']
+    val = GlobalConfig.root['validation']
+    pCollection = GlobalConfig.root.get_internal('pColl')
+
+    # Temporary, for compatibility with older buold base64 encoded profile. -- start
+    plugin_code = rt['plugin']
+    if type(plugin_code) is not str:
+        plugin_code = plugin_code.decode('utf-8')
+    while plugin_code.count('\n') <= 1:
+        io.console.warning("Profile plugin still encoded in base64,"
+                           " please use pcvs profile edit -p to convert plugin.")
+        import base64
+        plugin_code = base64.b64decode(plugin_code).decode("utf-8")
+    # end
+
+    rt['pluginfile'] = os.path.join(val['buildcache'], "rt-plugin.py")
+    with open(rt['pluginfile'], 'w', encoding='utf-8') as fh:
+        fh.write(plugin_code)
+    try:
+        pCollection.register_plugin_by_file(rt['pluginfile'], activate=True)
+    except SyntaxError:
+        io.console.critical("Profile plugin encoded in base64, "
+                            "update plugin in profile file, "
+                            "base64 -d <<< \"<plugin>\", "
+                            "or by using `pcvs edit -p`")
+
+
 def valid_combination(dic):
     """Check if dict is a valid criterion combination .
 
@@ -502,29 +529,11 @@ def valid_combination(dic):
     """
     global first
     rt = GlobalConfig.root['runtime']
-    val = GlobalConfig.root['validation']
     pCollection = GlobalConfig.root.get_internal('pColl')
 
     if first and 'plugin' in rt:
         first = not first
-
-        rt['pluginfile'] = os.path.join(val['buildcache'], "rt-plugin.py")
-        with open(rt['pluginfile'], 'w', encoding='utf-8') as fh:
-            fh.write(rt['plugin'].decode('utf-8'))
-
-        try:
-            pCollection.register_plugin_by_file(rt['pluginfile'], activate=True)
-        except SyntaxError as e:
-            os.unlink(rt['pluginfile'])
-            with open(rt['pluginfile'], 'w', encoding='utf-8') as fh2:
-                fh2.write(base64.b64decode(rt['plugin']).decode('utf-8'))
-            try:
-                pCollection.register_plugin_by_file(rt['pluginfile'], activate=True)
-            except SyntaxError as er2:
-                raise e from er2
-            io.console.warning("Profile file doubly encoded, "
-                               "consider updating plugin in profile file"
-                               "base64 -d <<< \"<plugin>\"")
+        load_plugin()
 
     ret = pCollection.invoke_plugins(Plugin.Step.TEST_EVAL,
                                      config=GlobalConfig.root,
