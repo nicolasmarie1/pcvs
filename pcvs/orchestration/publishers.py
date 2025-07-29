@@ -167,7 +167,7 @@ class ResultFile:
         """
         Find jobs based on its id or name and return associated Test object.
 
-        Only id OR name should be set (not both). To handle multiple matches,
+        Only job_id OR name should be set (not both). To handle multiple matches,
         this function returns a list of class:`Test`.
 
         :param job_id: job id, defaults to None
@@ -259,6 +259,12 @@ class ResultFile:
         """
         return "{}.bz2".format(self._fileprefix)
 
+    def __repr__(self):
+        return repr(self.__dict__)
+
+    def __rich_repr__(self):
+        return self.__dict__.items()
+
 
 class ResultFileManager:
     """
@@ -317,14 +323,14 @@ class ResultFileManager:
 
     def reconstruct_map_data(self) -> None:
         for job in self.browse_tests():
-            self._mapdata_rev[job.id] = job.output_info['file']
+            self._mapdata_rev[job.jid] = job.output_info['file']
             self._mapdata.setdefault(job.output_info['file'], [])
-            self._mapdata[job.output_info['file']].append(job.id)
+            self._mapdata[job.output_info['file']].append(job.jid)
 
     def reconstruct_view_data(self) -> None:
         for job in self.browse_tests():
             state = str(job.state)
-            job_id = job.id
+            job_id = job.jid
             self._viewdata['status'][state].append(job_id)
             for tag in job.tags:
                 if tag not in self._viewdata['tags']:
@@ -676,6 +682,12 @@ class ResultFileManager:
 
         for f in self._opened_files.values():
             f.close()
+
+    def __repr__(self):
+        return repr(self.__dict__)
+
+    def __rich_repr__(self):
+        return self.__dict__.items()
 
 
 class BuildDirectoryManager:
@@ -1040,3 +1052,9 @@ class BuildDirectoryManager:
         :rtype: str
         """
         return self._scratch
+
+    def __repr__(self):
+        return repr(self.__dict__)
+
+    def __rich_repr__(self):
+        return self.__dict__.items()

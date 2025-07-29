@@ -1,4 +1,3 @@
-import base64
 import glob
 import os
 from typing import Dict
@@ -381,6 +380,7 @@ class ConfigurationBlock:
             except Exception as e:
                 raise e
 
+    # TODO: refactoring, this function is a duplicate of profile.py:edit_plugin
     def edit_plugin(self) -> None:
         """Special case to handle 'plugin' key for 'runtime' blocks.
 
@@ -400,8 +400,7 @@ class ConfigurationBlock:
             stream_yaml = YAML(typ='safe').load(fh)
 
         if 'plugin' in stream_yaml.keys():
-            plugin_code = base64.b64decode(
-                stream_yaml['plugin']).decode('utf-')
+            plugin_code = stream_yaml['plugin']
         else:
             plugin_code = """import math
 from pcvs.plugins import Plugin
@@ -418,6 +417,6 @@ class MyPlugin(Plugin):
                                  extension=".py",
                                  require_save=True)
         if edited_code is not None:
-            stream_yaml['plugin'] = edited_code.encode('utf-8')
+            stream_yaml['plugin'] = edited_code
             with open(self._file, 'w', encoding='utf-8') as fh:
                 YAML(typ='safe').dump(stream_yaml, fh)

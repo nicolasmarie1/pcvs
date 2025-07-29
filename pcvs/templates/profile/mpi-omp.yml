@@ -1,11 +1,25 @@
 compiler:
   compilers:
-    cc: {program: "mpicc", variants: &var {openmp: {args: ['-fopenmp']}}}
-    cxx: {program: mpicxx, variants: *var}
-    f77: {program: mpif77, variants: *var}
-    f90: {program: mpif90, variants: *var}
-    f08: {program: mpifort, variants: *var}
-    fc: {program: mpif90, variants: *var}
+    cc:
+      program: mpicc
+      variants: &id001
+        openmp:
+          args: [-fopenmp]
+    cxx:
+      program: mpicxx
+      variants: *id001
+    f08:
+      program: mpifort
+      variants: *id001
+    f77:
+      program: mpif77
+      variants: *id001
+    f90:
+      program: mpif90
+      variants: *id001
+    fc:
+      program: mpif90
+      variants: *id001
 criterion:
   n_mpi:
     subtitle: n
@@ -36,21 +50,12 @@ runtime:
   criterions:
     n_mpi: {numeric: true, option: '-np '}
     n_omp: {numeric: true, option: OMP_NUM_THREADS=, type: environment}
-  plugin: !!binary |
-    YVcxd2IzSjBJRzFoZEdnS1puSnZiU0J3WTNaekxuQnNkV2RwYm5NZ2FXMXdiM0owSUZCc2RXZHBi
-    Z29LWTJ4aGMzTWdUVkJKVUd4MVoybHVLRkJzZFdkcGJpazZDaUFnSUNCemRHVndJRDBnVUd4MVoy
-    bHVMbE4wWlhBdVZFVlRWRjlGVmtGTUNpQWdJQ0FLSUNBZ0lHUmxaaUJ5ZFc0b2MyVnNaaXdnS21G
-    eVozTXNJQ29xYTNkaGNtZHpLVG9LSUNBZ0lDQWdJQ0FqSUhKbGRIVnlibk1nVkhKMVpTQnBaaUIw
-    YUdVZ1kyOXRZbWx1WVhScGIyNGdjMmh2ZFd4a0lHSmxJSFZ6WldRS0lDQWdJQ0FnSUNCamIyNW1h
-    V2NnUFNCcmQyRnlaM05iSjJOdmJtWnBaeWRkQ2lBZ0lDQWdJQ0FnYm1KZmJtOWtaWE1nUFNCamIy
-    NW1hV2N1YldGamFHbHVaUzVuWlhRb0oyNXZaR1Z6Snl3Z01Ta0tJQ0FnSUNBZ0lDQnVZbDlqYjNK
-    bGN5QTlJR052Ym1acFp5NXRZV05vYVc1bExtZGxkQ2duWTI5eVpYTmZjR1Z5WDI1dlpHVW5MQ0F4
-    S1FvS0lDQWdJQ0FnSUNCamIyMWlJRDBnYTNkaGNtZHpXeWRqYjIxaWFXNWhkR2x2YmlkZENpQWdJ
-    Q0FnSUNBZ2JsOXRjR2tnUFNCamIyMWlMbWRsZENnbmJsOXRjR2tuTENBeEtRb2dJQ0FnSUNBZ0lH
-    NWZiMjF3SUQwZ1kyOXRZaTVuWlhRb0oyNWZiMjF3Snl3Z01Da0tJQ0FnSUNBZ0lDQnVYMjV2WkdV
-    Z1BTQmpiMjFpTG1kbGRDZ25ibDl1YjJSbEp5d2dNU2tLQ2lBZ0lDQWdJQ0FnYVdZZ1hBb2dJQ0Fn
-    SUNBZ0lDQWdJQ0FvYVc1MEtHNWZiWEJwSUM4Z2JsOXViMlJsS1NBK0lHNWlYMk52Y21WektTQnZj
-    aUJjQ2lBZ0lDQWdJQ0FnSUNBZ0lDaHVYMjV2WkdVZ1BpQnVZbDl1YjJSbGN5azZDaUFnSUNBZ0lD
-    QWdJQ0FnSUNBZ0lDQnlaWFIxY200Z1JtRnNjMlVLSUNBZ0lDQWdJQ0JsYkhObE9nb2dJQ0FnSUNB
-    Z0lDQWdJQ0J5WlhSMWNtNGdWSEoxWlFvPQ==
+  plugin: "from pcvs.plugins import Plugin\n\n\nclass MPIPlugin(Plugin):\n    step
+    = Plugin.Step.TEST_EVAL\n\n    def run(self, *args, **kwargs):\n        # returns
+    True if the combination should be used\n        config = kwargs['config']\n        nb_nodes
+    = config['machine'].get('nodes', 1)\n        nb_cores = config['machine'].get('cores_per_node',
+    1)\n\n        comb = kwargs['combination']\n        n_mpi = comb.get('n_mpi',
+    1)\n        # n_omp = comb.get('n_omp', 0)\n        n_node = comb.get('n_node',
+    1)\n\n        if ((int(n_mpi / n_node) > nb_cores) or\n                (n_node
+    > nb_nodes)):\n            return False\n        else:\n            return True\n"
   program: mpirun
