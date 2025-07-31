@@ -529,7 +529,7 @@ class TEDescriptor:
                    time=self._validation.get('time', {}).get("mean", -1),
                    delta=self._validation.get('time', {}).get("tolerance", 0),
                    kill_after=self._validation.get('time', {}).get('kill_after', None),
-                   rc=self._validation.get("expect_exit", 0),
+                   rc=0,
                    artifacts=self._artifacts,
                    analysis=self._validation.get("analysis", {}),
                    resources=1,
