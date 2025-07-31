@@ -1,3 +1,4 @@
+import os
 import sys
 
 from rich.table import Table
@@ -358,7 +359,10 @@ def profile_edit(ctx, token, edit_plugin):  # pylint: disable=unused-argument
     if scope:
         pf = pvProfile.Profile(label, scope)
     else:
-        pf = pvProfile.Profile(profilepath=token)
+        if os.path.isfile(token):
+            pf = pvProfile.Profile(profilepath=token)
+        else:
+            pf = pvProfile.Profile(label, scope)
     if pf.is_found():
         if pf.scope == 'global' and label == 'local':
             raise click.BadArgumentUsage('Wrongly formatted profile token')
