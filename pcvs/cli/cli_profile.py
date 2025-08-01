@@ -355,14 +355,11 @@ def profile_edit(ctx, token, edit_plugin):  # pylint: disable=unused-argument
     coherency. If the test failed a rej*.yml will be created with the edited
     content.
     """
-    (scope, _, label) = utils.extract_infos_from_token(token, maxsplit=2)
-    if scope:
-        pf = pvProfile.Profile(label, scope)
+    if os.path.isfile(token):
+        pf = pvProfile.Profile(profilepath=token)
     else:
-        if os.path.isfile(token):
-            pf = pvProfile.Profile(profilepath=token)
-        else:
-            pf = pvProfile.Profile(label, scope)
+        (scope, _, label) = utils.extract_infos_from_token(token, maxsplit=2)
+        pf = pvProfile.Profile(label, scope)
     if pf.is_found():
         if pf.scope == 'global' and label == 'local':
             raise click.BadArgumentUsage('Wrongly formatted profile token')
