@@ -8,6 +8,8 @@ properties:
   plugin:
     media:
       binaryEncoding: base64
+  defaultplugin:
+    type: string
   criterions:
     type: object
     patternProperties:

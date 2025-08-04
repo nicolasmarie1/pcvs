@@ -136,8 +136,8 @@ class TheConsole(Console):
         err = kwargs.get('stderr', False)
         log_level = "DEBUG" if self._verbose else "INFO"
         # https://rich.readthedocs.io/en/stable/appendix/colors.html#appendix-colors
-        theme = Theme({"debug": Style(color="bright_black"),
-                       "info": Style(color="white"),
+        theme = Theme({"debug": Style(color="white"),
+                       "info": Style(color="bright_white"),
                        "warning": Style(color="yellow", bold=True),
                        "danger": Style(color="red", bold=True)
                        })

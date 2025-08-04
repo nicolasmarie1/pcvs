@@ -102,6 +102,12 @@ class Combination:
         """
         return self._combination
 
+    def __repr__(self):
+        return repr(self.__dict__)
+
+    def __rich_repr__(self):
+        return self.__dict__.items()
+
 
 class Serie:
     """A serie ties a test expression (TEDescriptor) to the possible values
@@ -137,6 +143,12 @@ class Serie:
             if not valid_combination(d):
                 continue
             yield Combination(self._dict, d)
+
+    def __repr__(self):
+        return repr(self.__dict__)
+
+    def __rich_repr__(self):
+        return self.__dict__.items()
 
 
 class Criterion:
@@ -436,6 +448,12 @@ class Criterion:
         io.console.debug(f"EXPANDED {self.name}: {self._values}")
         # TODO: handle criterion dependency (ex: n_mpi: ['n_node * 2'])
 
+    def __repr__(self):
+        return repr(self.__dict__)
+
+    def __rich_repr__(self):
+        return self.__dict__.items()
+
 
 def initialize_from_system():
     """Initialise system-wide criterions
@@ -496,27 +514,30 @@ def load_plugin():
     val = GlobalConfig.root['validation']
     pCollection = GlobalConfig.root.get_internal('pColl')
 
-    # Temporary, for compatibility with older buold base64 encoded profile. -- start
-    plugin_code = rt['plugin']
-    if type(plugin_code) is not str:
-        plugin_code = plugin_code.decode('utf-8')
-    while plugin_code.count('\n') <= 1:
-        io.console.warning("Profile plugin still encoded in base64,"
-                           " please use pcvs profile edit -p to convert plugin.")
-        import base64
-        plugin_code = base64.b64decode(plugin_code).decode("utf-8")
-    # end
+    if 'plugin' in rt:
+        # Temporary, for compatibility with older buold base64 encoded profile. -- start
+        plugin_code = rt['plugin']
+        if type(plugin_code) is not str:
+            plugin_code = plugin_code.decode('utf-8')
+        while plugin_code.count('\n') <= 1:
+            io.console.warning("Profile plugin still encoded in base64,"
+                               " please use pcvs profile edit -p to convert plugin.")
+            import base64
+            plugin_code = base64.b64decode(plugin_code).decode("utf-8")
+        # end
 
-    rt['pluginfile'] = os.path.join(val['buildcache'], "rt-plugin.py")
-    with open(rt['pluginfile'], 'w', encoding='utf-8') as fh:
-        fh.write(plugin_code)
-    try:
-        pCollection.register_plugin_by_file(rt['pluginfile'], activate=True)
-    except SyntaxError:
-        io.console.critical("Profile plugin encoded in base64, "
-                            "update plugin in profile file, "
-                            "base64 -d <<< \"<plugin>\", "
-                            "or by using `pcvs edit -p`")
+        rt['pluginfile'] = os.path.join(val['buildcache'], "rt-plugin.py")
+        with open(rt['pluginfile'], 'w', encoding='utf-8') as fh:
+            fh.write(plugin_code)
+        try:
+            pCollection.register_plugin_by_file(rt['pluginfile'], activate=True)
+        except SyntaxError:
+            io.console.critical("Profile plugin encoded in base64, "
+                                "update plugin in profile file, "
+                                "base64 -d <<< \"<plugin>\", "
+                                "or by using `pcvs edit -p`")
+    elif 'defaultplugin' in rt:
+        pCollection.activate_plugin(rt['defaultplugin'])
 
 
 def valid_combination(dic):
@@ -531,7 +552,7 @@ def valid_combination(dic):
     rt = GlobalConfig.root['runtime']
     pCollection = GlobalConfig.root.get_internal('pColl')
 
-    if first and 'plugin' in rt:
+    if first and ('plugin' in rt or 'defaultplugin' in rt):
         first = not first
         load_plugin()
 

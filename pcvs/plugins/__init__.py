@@ -94,6 +94,14 @@ class Collection:
             io.console.info(
                 "No 'contrib' package found for plugin autoloading")
 
+    def exist_plugin(self, name):
+        """Cehck if a plugin already exist."""
+        for _, plugins in self._plugins.items():
+            for p in plugins:
+                if name.lower() == type(p).__name__.lower():
+                    return True
+        return False
+
     def activate_plugin(self, name):
         """Flag a plugin as active, meaning it will be called when the pass is
         reached.
@@ -179,7 +187,7 @@ class Collection:
         :param modpath: valid python filepath
         :type modpath: str
         """
-
+        io.console.debug(f"Registering plugin by path: {modpath}")
         # the content is added to "pcvs-contrib" module
         spec = importlib.util.spec_from_file_location("contrib", modpath)
         mod = importlib.util.module_from_spec(spec)
@@ -198,8 +206,11 @@ class Collection:
             if issubclass(the_class, Plugin) and the_class is not Plugin:
                 step_str = str(the_class.step)
                 class_name = the_class.__name__
-                io.console.debug("Register {} ({})".format(
-                    class_name, step_str))
+                if self.exist_plugin(class_name):
+                    io.console.critical(f"A plugin with the name {class_name} "
+                                        "is already register.")
+                io.console.debug(f"Registering plugin by module "
+                                 f"{mod}/{class_name} ({step_str})")
                 self._plugins[the_class.step].append(the_class())
                 if activate:
                     self.activate_plugin(class_name)
