@@ -54,7 +54,7 @@ class Bank(dsl.Bank):
             error may be raised.
 
         The token is under the form ``A@B`` where ``A`` depicts its name and
-        ``B`` represents the "default" project" where data will be manipulated.
+        ``B`` represents the "default project" where data will be manipulated.
 
         :param path: location of the bank repo (on disk), defaults to None
         :type path: str, optional
@@ -272,7 +272,7 @@ class Bank(dsl.Bank):
 
         # TODO: populate the run with build-dir content
         # TODO: add metadata to hidden root directory
-        # Init a new fun
+        # Init a new Run
         run = dsl.Run(from_serie=serie)
 
         # now use the handle to populate the bank

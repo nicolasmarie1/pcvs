@@ -68,9 +68,9 @@ def bank(ctx):  # pylint: disable=unused-argument
 @click.pass_context
 def bank_list(ctx):  # pylint: disable=unused-argument
     """List known repositories, stored under ``PATH_BANK``."""
-    io.console.print_header("Bank View")
+    io.console.print_header("Bank List")
     for label, path in pvBank.list_banks().items():
-        io.console.print_item("{:<8}: {}".format(label.upper(), path))
+        io.console.print_item(f"{label.upper()}: {path}")
 
 
 @bank.command(name="show", short_help="Display data stored in a repo.")
@@ -90,14 +90,14 @@ def bank_show(ctx, name, path):  # pylint: disable=unused-argument
     """Display all data stored into NAME repository"""
     b = pvBank.Bank(token=name)
     if not b.exists():
-        raise click.BadArgumentUsage("'{}' does not exist".format(name))
+        raise click.BadArgumentUsage(f"'{name}' does not exist")
     else:
         b.connect()
 
     if path:
         print(b.path)
     else:
-        io.console.print_header("Bank View")
+        io.console.print_header("Bank Show")
         b.show()
 
 
@@ -110,7 +110,7 @@ def bank_show(ctx, name, path):  # pylint: disable=unused-argument
 @click.pass_context
 def bank_create(ctx, name, path):  # pylint: disable=unused-argument
     """Create a new bank, named NAME, data will be stored under PATH."""
-    io.console.print_header("Bank View")
+    io.console.print_header("Bank Init")
     if path is None:
         path = os.getcwd()
 
@@ -118,10 +118,9 @@ def bank_create(ctx, name, path):  # pylint: disable=unused-argument
 
     b = pvBank.Bank(path, token=name)
     if b.exists():
-        raise click.BadArgumentUsage("'{}' already exist".format(name))
-    else:
-        b.connect()
-        b.save_to_global()
+        raise click.BadArgumentUsage(f"'{name}' already exist")
+    b.connect()
+    b.save_to_global()
 
 
 @bank.command(name="destroy", short_help="Delete an existing bank")
@@ -146,7 +145,7 @@ def bank_destroy(ctx, name, symlink):  # pylint: disable=unused-argument
     repository deletion. 'data.yml' and bank entry in the configuratino file
     will be removed but existing data are preserved.
     """
-    io.console.print_header("Bank View")
+    io.console.print_header("Bank Destry")
     b = pvBank.Bank(token=name)
     if not b.exists():
         raise click.BadArgumentUsage("'{}' does not exist".format(name))

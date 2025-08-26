@@ -95,8 +95,11 @@ class Run:
     @property
     def jobs(self):
         for file in self._repo.list_files(rev=self._cid):
-            data = self._repo.get_tree(rev=self._cid, prefix=file)
-            job = Job(json.loads(str(data)))
+            if file in ["README", ".pcvs-cache/conf.json"]:
+                continue
+            io.console.debug(f"Reading: {file}")
+            data = self._repo.get_tree(tree=self._cid, prefix=file)
+            job = Job(json.loads(str(data)), file)
             yield job
 
     @property
@@ -106,7 +109,7 @@ class Run:
 
     def get_data(self, jobname):
         res = Job()
-        data = self._repo.get_tree(rev=self._cid, prefix=jobname)
+        data = self._repo.get_tree(tree=self._cid, prefix=jobname)
         if not data:
             return data
 
