@@ -58,7 +58,11 @@ properties:
             - junit
             - json
             - yaml
-      job_timeout:
+      soft_timeout:
+        OneOf:
+        - {'type': null}
+        - {'type': 'integer'}
+      hard_timeout:
         OneOf:
         - {'type': null}
         - {'type': 'integer'}

@@ -56,6 +56,7 @@ class RunnerAdapter(threading.Thread):
 
         :raises Exception: Something occured while running a test"""
         io.console.nodebug('{}: [LOCAL] Set start'.format(self.ident))
+        hard_timeout = False
         for job in jobs.content:
             try:
                 p = subprocess.Popen('{}'.format(job.invocation_command),
@@ -64,7 +65,7 @@ class RunnerAdapter(threading.Thread):
                                      stdout=subprocess.PIPE,
                                      start_new_session=True)
                 start = time.time()
-                stdout, _ = p.communicate(timeout=job.timeout)
+                stdout, _ = p.communicate(timeout=job.hard_timeout)
                 final = time.time() - start
 
                 # Note: The return code here is coming from the script,
@@ -79,10 +80,12 @@ class RunnerAdapter(threading.Thread):
             except subprocess.TimeoutExpired:
                 os.killpg(os.getpgid(p.pid), signal.SIGTERM)
                 stdout, _ = p.communicate()
-                rc = Test.Timeout_RC  # nah, to be changed
-                final = job.timeout
-            job.save_raw_run(time=final, rc=rc, out=stdout)
-            job.save_status(Test.State.EXECUTED)
+                final = job.hard_timeout
+                rc = None
+                hard_timeout = True
+            job.save_status(job.State.EXECUTED)
+            job.save_raw_run(time=final, rc=rc, out=stdout,
+                             hard_timeout=hard_timeout)
         jobs.complete = True
 
     def remote_exec(self, jobs: Set) -> None:
@@ -272,7 +275,7 @@ class RemoteContext:
                         data = lines[lineum + 1].strip()
                         job.encoded_output = data
                     job.save_raw_run(rc=retcode, time=timexec)
-                    job.save_status(Test.State.EXECUTED)
+                    job.save_status(job.State.EXECUTED)
 
     def mark_as_completed(self):
         if self._outfile:

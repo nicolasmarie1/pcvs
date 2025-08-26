@@ -15,7 +15,7 @@
 					{
 						$(row).addClass("text-success")
 					}
-					else if (data['result']['state'] == "ERR_DEP")
+					else if (data['result']['state'] == "ERR_DEP" || data['result']['state'] == "SOFT_TIMEOUT")
 					{
 						$(row).addClass("text-warning font-weight-bold")
 					}

@@ -283,8 +283,10 @@ class ResultFileManager:
         :rtype: _type_
         """
         ret = {}
-        ret.setdefault(str(Test.State.FAILURE), [])
         ret.setdefault(str(Test.State.SUCCESS), [])
+        ret.setdefault(str(Test.State.FAILURE), [])
+        ret.setdefault(str(Test.State.SOFT_TIMEOUT), [])
+        ret.setdefault(str(Test.State.HARD_TIMEOUT), [])
         ret.setdefault(str(Test.State.ERR_DEP), [])
         ret.setdefault(str(Test.State.ERR_OTHER), [])
         return ret

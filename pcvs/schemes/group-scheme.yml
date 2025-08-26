@@ -156,7 +156,10 @@ patternProperties:
               tolerance:
                 type: number
                 minimum: 0
-              kill_after:
+              soft_timeout:
+                type: number
+                minimum: 0
+              hard_timeout:
                 type: number
                 minimum: 0
             additionalProperties: false

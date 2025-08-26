@@ -86,7 +86,7 @@ class ValidationScheme:
             jsonschema.validate(instance=content, schema=self.schema)
         except jsonschema.exceptions.ValidationError as e:
             raise ValidationException.FormatError(
-                reason=f"Failed to validate input file: '{filepath}'\n"
+                reason=f"\nFailed to validate input file: '{filepath}'\n"
                        f"Validation against schema '{self.schema_name}'\n"
                        f"Context is: \n {content}\n"
                        f"Schema is: \n {self.schema}\n"
@@ -345,7 +345,8 @@ class MetaConfig(Config):
         subtree.set_nosquash('webreport', None)
         subtree.set_nosquash("only_success", False)
         subtree.set_nosquash("enable_report", False)
-        subtree.set_nosquash('job_timeout', 3600)
+        subtree.set_nosquash('hard_timeout', 3600)
+        subtree.set_nosquash('soft_timeout', None)
         subtree.set_nosquash('per_result_file_sz', 10 * 1024 * 1024)
         subtree.set_nosquash('buildcache',
                              os.path.join(subtree['output'], 'cache'))

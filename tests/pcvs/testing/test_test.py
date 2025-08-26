@@ -42,7 +42,7 @@ def test_test():
     assert test.get_dim() == 10
     assert not test.been_executed()
     assert test.state == tested.Test.State.WAITING
-    test.executed()
+    test.save_status(test.State.EXECUTED)
     assert test.been_executed()
     testjson = test.to_json()
     assert testjson["id"]["te_name"] == test.te_name

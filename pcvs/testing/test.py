@@ -26,10 +26,8 @@ class Test:
     attributes. A Test() constructor is initialized via (*args, **kwargs), to
     populate a dict `_array`.
 
-    :cvar int Timeout_RC: special constant given to jobs exceeding their time limit.
     :cvar str NOSTART_STR: constant, setting default output when job cannot be run.
     """
-    Timeout_RC = 127
     SCHED_MAX_ATTEMPTS = 50
     res_scheme = ValidationScheme("test-result")
 
@@ -46,20 +44,26 @@ class Test:
         :var int WAITING: Job is currently waiting to be scheduled
         :var int IN_PROGRESS: A running Set() handle the job, and is scheduled
             for run.
-        :var int SUCCEED: Job successfully run and passes all checks (rc,
+        :var int EXECUTED: Job have been executed, but result status
+            has not been computed yet.
+        :var int SUCCESS: Job successfully run and passes all checks (rc,
             matchers...)
-        :var int FAILED: Job didn't suceed, at least one condition failed.
+        :var int FAILURE: Job didn't suceed, at least one condition failed.
+        :var SOFT_TIMEOUT: Job has exceded his soft time limit but pass.
+        :var HARD_TIMEOUT: Job has exceded his hard time limit and got killed.
         :var int ERR_DEP: Special cases to manage jobs descheduled because at
             least one of its dependencies have failed to complete.
         :var int ERR_OTHER: Any other uncaught situation.
         """
         WAITING = 0
         IN_PROGRESS = 1
-        SUCCESS = 2
-        FAILURE = 3
-        ERR_DEP = 4
-        ERR_OTHER = 5
-        EXECUTED = 6
+        EXECUTED = 2
+        SUCCESS = 3
+        FAILURE = 4
+        SOFT_TIMEOUT = 5
+        HARD_TIMEOUT = 6
+        ERR_DEP = 7
+        ERR_OTHER = 8
 
         def __str__(self):
             """Stringify to return the label.
@@ -122,11 +126,14 @@ class Test:
             'analysis': kwargs.get('analysis'),
             'script': kwargs.get('valscript'),
             'expect_rc': kwargs.get('rc', 0),
-            'time': kwargs.get('time', -1),
-            'delta': kwargs.get('delta', 0),
+            'time': kwargs.get('time_mean', -1),
+            'delta': kwargs.get('time_delta', 0),
+            'coef': kwargs.get('time_coef', 1.5),
         }
 
-        self._timeout = kwargs.get('kill_after', None)
+        self._has_hard_timeout = False
+        self._hard_timeout = kwargs.get('hard_timeout', None)
+        self._soft_timeout = kwargs.get('soft_timeout', None)
 
         self._mod_deps = kwargs.get("mod_deps", [])
         self._depnames = kwargs.get('job_deps', [])
@@ -306,10 +313,11 @@ class Test:
         """Check if at least one dep is blocking this job from ever be
         scheduled.
 
-        :return: True if at least one dep is shown a `Test.State.FAILURE` state.
+        :return: True if at least one dep is shown a Failure state.
         :rtype: bool
         """
-        bad_states = [Test.State.ERR_DEP, Test.State.ERR_OTHER, Test.State.FAILURE]
+        bad_states = [Test.State.ERR_DEP, Test.State.ERR_OTHER,
+                      Test.State.FAILURE, Test.State.HARD_TIMEOUT]
         for d in self._deps:
             if d.state in bad_states:
                 return True
@@ -330,7 +338,7 @@ class Test:
         return None
 
     @property
-    def timeout(self):
+    def soft_timeout(self) -> int | None:
         """Getter for Test timeout in seconds.
 
         It cumulates timeout + tolerance, this value being passed to the
@@ -344,12 +352,24 @@ class Test:
         # 1. explicitly defined
         # 2. OR extrapolated from defined result.mean
         # 3. set by default (GlobalConfig.root.validation.job_timeout)
-        if self._timeout:
-            return self._timeout
+        if self._soft_timeout:
+            return self._soft_timeout
         elif self._validation['time'] > 0:
-            return (self._validation['time'] + self._validation['delta']) * 1.5
+            return ((self._validation['time'] + self._validation['delta'])
+                    * self._validation['coef'])
         else:
-            return GlobalConfig.root['validation']['job_timeout']
+            return GlobalConfig.root['validation']['soft_timeout']
+
+    @property
+    def hard_timeout(self) -> int | None:
+        """Getter for Test hard timeout in seconds.
+        :return: an integer if timeout is defined, None otherwise.
+        :rtype: int or NoneType
+        """
+        if self._hard_timeout:
+            return self._hard_timeout
+        else:
+            return GlobalConfig.root['validation']['hard_timeout']
 
     def get_dim(self):
         """Return the orch-dimension value for this test.
@@ -389,7 +409,7 @@ class Test:
                 with open(elt_v, 'rb') as fh:
                     self._data['artifacts'][elt_k] = fh.read()
 
-    def save_raw_run(self, out=None, rc=None, time=None):
+    def save_raw_run(self, out=None, rc=None, time=None, hard_timeout=False):
         """TODO:
         """
         if rc is not None:
@@ -399,6 +419,7 @@ class Test:
             self._output_info['raw'] = self._output
         if time is not None:
             self._exectime = time
+        self._has_hard_timeout = hard_timeout
 
     def extract_metrics(self):
         """TODO:
@@ -418,23 +439,29 @@ class Test:
     def evaluate(self):
         """TODO:
         """
+        if self._has_hard_timeout:
+            self._state = Test.State.HARD_TIMEOUT
+            return
+
         state = Test.State.SUCCESS
 
+        # validation by return code
         if self._validation['expect_rc'] != self._rc:
             state = Test.State.FAILURE
 
         raw_output = self.output
 
-        # if test should be validated through a matching regex
+        # validation through a matching regex
         if state == Test.State.SUCCESS and self._validation[
                 'matchers'] is not None:
             for _, v in self._validation['matchers'].items():
-                expected = (v.get('expect', True) is True)
+                expected = v.get('expect', True) is True
                 found = re.search(v['expr'], raw_output)
                 if (found and not expected) or (not found and expected):
                     state = Test.State.FAILURE
                     break
 
+        # validation throw a plugin
         if state == Test.State.SUCCESS and self._validation[
                 'analysis'] is not None:
             analysis = self._validation['analysis']
@@ -443,17 +470,28 @@ class Test:
             if s is not None:
                 state = s
 
-        # if a custom script is provided
+        # validation throw a custom script
         if state == Test.State.SUCCESS and self._validation[
                 'script'] is not None:
             p = Program(self._validation['script'])
             p.run()
             if self._validation['expect_rc'] != p.rc:
                 state = Test.State.FAILURE
+
+        # if the test suceed, check for soft timeout
+        if (state == Test.State.SUCCESS and self._soft_timeout is not None
+                and self.time > self._soft_timeout):
+            state = Test.State.SOFT_TIMEOUT
+
         self._state = state
 
     def save_status(self, state):
-        self.executed(state)
+        """Set current Test state.
+
+        :param state: give a special state to the test, defaults to FAILURE
+        :param state: :class:`Test.State`, optional
+        """
+        self._state = state if isinstance(state, Test.State) else Test.State.FAILURE
 
     def display(self):
         """Print the Test into stdout (through the manager)."""
@@ -464,16 +502,24 @@ class Test:
         if self._state == Test.State.SUCCESS:
             colorname = "green"
             icon = "succ"
-        elif self._state == Test.State.FAILURE:
+        elif self._state in [Test.State.FAILURE, Test.State.HARD_TIMEOUT]:
             colorname = "red"
             icon = "fail"
-        elif self._state in [Test.State.ERR_DEP, Test.State.ERR_OTHER]:
+        elif self._state in [Test.State.ERR_DEP, Test.State.ERR_OTHER,
+                             Test.State.SOFT_TIMEOUT]:
             colorname = "yellow"
             icon = "fail"
+        if self._state == Test.State.HARD_TIMEOUT:
+            timeout = self._hard_timeout
+        elif self._state == Test.State.SOFT_TIMEOUT:
+            timeout = self._soft_timeout
+        else:
+            timeout = 0
 
         if self._output and \
             (GlobalConfig.root['validation']['print_level'] == 'all' or
-             (self.state == Test.State.FAILURE) and GlobalConfig.root['validation']['print_level'] == 'errors'):
+             (self.state == Test.State.FAILURE) and
+             GlobalConfig.root['validation']['print_level'] == 'errors'):
             raw_output = self.output
 
         io.console.print_job(
@@ -482,17 +528,10 @@ class Test:
             self.label,
             "/{}".format(self.subtree) if self.subtree else "",
             self.name,
+            timeout,
             colorname=colorname,
             icon=icon,
             content=raw_output)
-
-    def executed(self, state: State = None):
-        """Set current Test as executed.
-
-        :param state: give a special state to the test, defaults to FAILED
-        :param state: :class:`Test.State`, optional
-        """
-        self._state = state if isinstance(state, Test.State) else Test.State.FAILURE
 
     def been_executed(self):
         """Cehck if job has been executed (not waiting or in progress).

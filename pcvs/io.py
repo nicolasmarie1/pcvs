@@ -285,6 +285,7 @@ class TheConsole(Console):
                   tlabel,
                   tsubtree,
                   tname,
+                  timeout=0,
                   colorname="red",
                   icon=None,
                   content=None):
@@ -292,8 +293,9 @@ class TheConsole(Console):
             icon = self.utf(icon)
 
         if self._verbose >= Verbosity.DETAILED:
-            self.print("[{} bold]   {} {:8.2f}s{}{:7}{}{}".format(
+            self.print("[{} bold]   {} {:8.2f}s{}{:7}{}{}{}".format(
                 colorname, icon, time, self.utf("sep_v"), state,
+                f"({timeout})" if timeout > 0 else "",
                 self.utf("sep_v"), tname))
             if content:
                 # print raw input
@@ -305,7 +307,8 @@ class TheConsole(Console):
                 tsubtree, {
                     label: 0
                     for label in
-                    ["SUCCESS", "FAILURE", "ERR_DEP", "ERR_OTHER"]
+                    ["SUCCESS", "FAILURE", "ERR_DEP", "HARD_TIMEOUT",
+                     "SOFT_TIMEOUT", "ERR_OTHER"]
                 })
 
             self.summary_table[tlabel][tsubtree][state] += 1
@@ -315,8 +318,10 @@ class TheConsole(Console):
                 table.add_column("Name", justify="left", ratio=10)
                 table.add_column("SUCCESS", justify="center")
                 table.add_column("FAILURE", justify="center")
-                table.add_column("ERROR", justify="center")
-                table.add_column("OTHER", justify="center")
+                table.add_column("ERR_DEP", justify="center")
+                table.add_column("HARD_TIMEOUT", justify="center")
+                table.add_column("SOFT_TIMEOUT", justify="center")
+                table.add_column("ERR_OTHER", justify="center")
                 for label, lvalue in self.summary_table.items():
                     for subtree, svalue in lvalue.items():
                         if sum(svalue.values()) == svalue.get('SUCCESS', 0):
