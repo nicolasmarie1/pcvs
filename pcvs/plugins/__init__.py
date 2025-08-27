@@ -87,12 +87,9 @@ class Collection:
         try:
             self.register_plugin_by_package("pcvs.plugins.default",
                                             activate=True)
-
-            self.register_plugin_by_package('contrib')
-
-        except Exception:
-            io.console.info(
-                "No 'contrib' package found for plugin autoloading")
+            self.register_plugin_by_package("pcvs.plugins.contrib")
+        except Exception as e:
+            raise PluginException("Error while registering plugin.") from e
 
     def exist_plugin(self, name):
         """Cehck if a plugin already exist."""
