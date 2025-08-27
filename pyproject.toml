@@ -70,6 +70,7 @@ dev = [
 # in addition, files are also included from Manifest.in
 [tool.setuptools.packages.find]
 where = ["."]
+include = ["pcvs*"]
 
 #
 # TOX Configuration
