@@ -295,7 +295,7 @@ class TheConsole(Console):
         if self._verbose >= Verbosity.DETAILED:
             self.print("[{} bold]   {} {:8.2f}s{}{:7}{}{}{}".format(
                 colorname, icon, time, self.utf("sep_v"), state,
-                f"({timeout})" if timeout > 0 else "",
+                f" ({timeout:5.2f}s)" if timeout > 0 else "",
                 self.utf("sep_v"), tname))
             if content:
                 # print raw input

@@ -76,6 +76,7 @@ class ValidationScheme:
         :raises FormatError: data are not valid
         :raises SchemeError: issue while applying scheme
         """
+        assert filepath
         if not filepath:
             io.console.warn("Validation operated on unknown file.")
         # assert filepath

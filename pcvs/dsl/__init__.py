@@ -113,7 +113,7 @@ class Run:
         if not data:
             return data
 
-        res.from_json(str(data), None)
+        res.from_json(str(data), f"Validation from bank {self._cid} for job {jobname}")
         return res
 
     def update(self, prefix, data):
@@ -227,7 +227,7 @@ class Serie:
         return res
 
     def commit(self, run, msg=None, metadata={}, timestamp=None):
-        assert (isinstance(run, Run))
+        assert isinstance(run, Run)
         root_tree = None
         msg = "New run" if not msg else msg
         try:
@@ -291,6 +291,7 @@ class Bank:
     def disconnect(self):
         if self._repo:
             self._repo.close()
+            self._repo = None
 
     def new_serie(self, serie_name=None):
         hdl = self._repo.new_branch(serie_name)
@@ -337,8 +338,8 @@ class Bank:
         :return: A list of available projects
         :rtype: list of str
         """
-        projects = [
-            elt.name.split('/')[0] for elt in self._repo.branches()
-            if elt.name != "master"
-        ]
+        projects = []
+        for elt in self._repo.branches():
+            if elt.name != "master":
+                projects.append(elt.name.split('/')[0])
         return list(set(projects))

@@ -64,7 +64,7 @@ def display_summary(the_session):
     io.console.print_item("Criterion matrix size per job: {}".format(
         GlobalConfig.root.get_internal("comb_cnt")))
 
-    if cfg['target_bank']:
+    if 'target_bank' in cfg:
         io.console.print_item("Bank Management: {}".format(cfg['target_bank']))
     io.console.print_section("User directories:")
     width = max([0] + [len(i) for i in cfg['dirs']])
@@ -128,7 +128,7 @@ def process_main_workflow(the_session=None):
     io.console.print_header("Initialization")
     # prepare PCVS and third-party tools
     prepare()
-    assert (build_manager.config)
+    assert build_manager.config
 
     if valcfg['reused_build'] is not None:
         io.console.print_section("Reusing previously generated inputs")
@@ -146,6 +146,14 @@ def process_main_workflow(the_session=None):
     io.console.print_header("Summary")
     display_summary(the_session)
 
+    bank_token = valcfg['target_bank']
+    bank = None
+    if bank_token is not None:
+        io.console.print_section(
+            f"===> Loading Bank: {bank_token}.")
+        bank = pvBank.Bank(token=bank_token)
+        GlobalConfig.root.set_internal("bank", bank)
+
     if valcfg['onlygen']:
         io.console.warn([
             "====================================================",
@@ -157,16 +165,14 @@ def process_main_workflow(the_session=None):
         return 0
 
     io.console.print_header("Execution")
+
     run_rc = global_config.get_internal('orchestrator').run(the_session)
     rc += run_rc if isinstance(run_rc, int) else 1
 
     io.console.print_header("Finalization")
     # post-actions to build the archive, post-process the webview...
     terminate()
-
-    bank_token = valcfg['target_bank']
-    if bank_token is not None:
-        bank = pvBank.Bank(token=bank_token)
+    if bank is not None:
         pref_proj = bank.default_project
         if bank.exists():
             io.console.print_item("Upload results to bank: '{}{}'".format(
@@ -176,11 +182,12 @@ def process_main_workflow(the_session=None):
             bank.save_new_run_from_instance(None,
                                             build_manager,
                                             msg=valcfg.get('message', None))
+            # TODO: deduplicate code in bank.py
             # bank.save_from_buildir(
             #    None,
             #    os.path.join(valcfg['output'])
             # )
-
+        bank.disconnect()
     buildfile = os.path.join(valcfg['output'], NAME_BUILDFILE)
     if utils.is_locked(buildfile):
         utils.unlock_file(buildfile)

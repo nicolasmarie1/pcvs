@@ -143,7 +143,7 @@ class ResultFile:
     def content(self):
         for _, data in self._data.items():
             elt = Test()
-            elt.from_json(data, None)
+            elt.from_json(data, self._metadata_file)
 
             offset = data['result']['output']['offset']
             length = data['result']['output']['length']

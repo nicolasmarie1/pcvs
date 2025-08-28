@@ -277,7 +277,7 @@ def run(ctx, profilename, profilepath, output, detach, override, anon, settings_
 
     # if dirs not set by config file nor CLI
     if not dirs and not val_cfg['dirs']:
-        dirs = dict()
+        dirs = {}
         if not spack_recipe:
             testpath = os.getcwd()
             dirs = {os.path.basename(testpath): testpath}

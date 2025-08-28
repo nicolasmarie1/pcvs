@@ -54,7 +54,7 @@ class Bank(dsl.Bank):
             error may be raised.
 
         The token is under the form ``A@B`` where ``A`` depicts its name and
-        ``B`` represents the "default project" where data will be manipulated.
+        ``B`` represents the "default project" (git branch)  where data will be manipulated.
 
         :param path: location of the bank repo (on disk), defaults to None
         :type path: str, optional
@@ -180,25 +180,22 @@ class Bank(dsl.Bank):
             self._name = os.path.basename(self._path).lower()
         add_banklink(self._name, self._path)
 
-    def save_from_buildir(self,
-                          tag: str,
-                          buildpath: str,
-                          msg: Optional[str] = None) -> None:
-        """Extract results from the given build directory & store into the bank.
+    def save_from_hdl(self,
+                      target_project: str,
+                      hdl: BuildDirectoryManager,
+                      msg: Optional[str] = None) -> None:
+        """
+        Create a new node into the bank for the given project, based on result handler.
 
-        :param tag: overridable default project (if different)
-        :type tag: str
-        :param buildpath: the directory where PCVS stored results
-        :type buildpath: str
+        :param target_project: valid project (=branch)
+        :type target_project: str
+        :param hdl: the result build directory handler
+        :type hdl: BuildDirectoryManager
         :param msg: the custom message to attach to this run (=commit msg)
         :type msg: str, optional
         """
-        hdl = BuildDirectoryManager(buildpath)
-        hdl.load_config()
-        hdl.init_results()
-
         seriename = self.build_target_branch_name(
-            tag, hdl.config['validation']['pf_hash'])
+            target_project, hdl.config['validation']['pf_hash'])
         serie = self.get_serie(seriename)
         if serie is None:
             serie = self.new_serie(seriename)
@@ -222,6 +219,25 @@ class Bank(dsl.Bank):
                      metadata=metadata,
                      msg=msg,
                      timestamp=int(hdl.config['validation']['datetime'].timestamp()))
+
+    def save_from_buildir(self,
+                          tag: str,
+                          buildpath: str,
+                          msg: Optional[str] = None) -> None:
+        """Extract results from the given build directory & store into the bank.
+
+        :param tag: overridable default project (if different)
+        :type tag: str
+        :param buildpath: the directory where PCVS stored results
+        :type buildpath: str
+        :param msg: the custom message to attach to this run (=commit msg)
+        :type msg: str, optional
+        """
+        hdl = BuildDirectoryManager(buildpath)
+        hdl.load_config()
+        hdl.init_results()
+
+        self.save_from_hdl(tag, hdl, msg)
 
     def save_from_archive(self,
                           tag: str,
@@ -251,55 +267,7 @@ class Bank(dsl.Bank):
                                    target_project: str,
                                    hdl: BuildDirectoryManager,
                                    msg: Optional[str] = None) -> None:
-        """
-        Create a new node into the bank for the given project, based on the open
-        result handler.
-
-        :param target_project: valid project (=branch)
-        :type target_project: str
-        :param hdl: the result build directory handler
-        :type hdl: BuildDirectoryManager
-        :param msg: the custom message to attach to this run (=commit msg)
-        :type msg: str, optional
-        """
-        seriename = self.build_target_branch_name(
-            target_project, hdl.config.validation['pf_hash'])
-        serie = self.get_serie(seriename)
-        metadata = {'cnt': {}}
-
-        if serie is None:
-            serie = self.new_serie(seriename)
-
-        # TODO: populate the run with build-dir content
-        # TODO: add metadata to hidden root directory
-        # Init a new Run
-        run = dsl.Run(from_serie=serie)
-
-        # now use the handle to populate the bank
-        # We chose to make the layout slightly different between
-        # runs & banks as the `git-diff` does not permit to store
-        # other than a JSON file per test output (yet) :(
-        # Still, an hidden root directory will store aliases to easily
-        # maps tests to their on-disk counterparts.
-        d = dict()
-        for job in hdl.results.browse_tests():
-            d[job.name] = job.to_json()
-            metadata['cnt'].setdefault(str(job.state), 0)
-            metadata['cnt'][str(job.state)] += 1
-
-        run.update_flatdict(d)
-
-        self.set_id(an=hdl.config['validation']['author']['name'],
-                    am=hdl.config['validation']['author']['email'],
-                    cn=git.get_current_username(),
-                    cm=git.get_current_usermail())
-
-        run.update(".pcvs-cache/conf.json", hdl.config)
-
-        serie.commit(run,
-                     metadata=metadata,
-                     msg=msg,
-                     timestamp=int(hdl.config['validation']['datetime'].timestamp()))
+        self.save_from_hdl(target_project, hdl, msg)
 
     def save_new_run(self, target_project: str, path: str) -> None:
         """

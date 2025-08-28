@@ -98,7 +98,7 @@ class Test:
         self._id = {
             'te_name': kwargs.get('te_name', 'noname'),
             'label': kwargs.get('label', 'nolabel'),
-            'subtree': kwargs.get('subtree', ''),
+            'subtree': kwargs.get('subtree', 'nosubtree'),
             'comb': self._comb.translate_to_dict() if self._comb else {},
         }
         comb_str = self._comb.translate_to_str() if self._comb else None
@@ -107,8 +107,9 @@ class Test:
             self._id['label'],
             self._id['subtree'],
             self._id['te_name'],
-            comb_str,
-            suffix=kwargs.get('user_suffix'))
+            suffix=kwargs.get('user_suffix', None),
+            combination=comb_str
+        )
 
         # only positive ids
         self._id['jid'] = self.get_jid_from_name(self.name)
@@ -465,10 +466,10 @@ class Test:
         if state == Test.State.SUCCESS and self._validation[
                 'analysis'] is not None:
             analysis = self._validation['analysis']
-            s = GlobalConfig.root.get_internal("pColl").invoke_plugins(
+            res = GlobalConfig.root.get_internal("pColl").invoke_plugins(
                 Plugin.Step.TEST_RESULT_EVAL, analysis=analysis, job=self)
-            if s is not None:
-                state = s
+            if res is not None:
+                state, self._soft_timeout = res
 
         # validation throw a custom script
         if state == Test.State.SUCCESS and self._validation[
@@ -708,15 +709,15 @@ class Test:
                         label,
                         subtree,
                         name,
-                        combination=None,
-                        suffix=None):
+                        suffix=None,
+                        combination=None):
         """Generate the fully-qualified (dq) name for a test, based on :
             - the label & subtree (original FS tree)
             - the name (the TE name it is originated)
             - a potential extra suffix
             - the combination PCVS computed for this iteration."""
-        return "_".join(
-            filter(None, [
-                "/".join(filter(None, [label, subtree, name])), suffix,
-                combination
-            ]))
+        assert label
+        assert subtree
+        assert name
+        path = os.path.normpath(os.path.join(label, subtree, name))
+        return "_".join(filter(None, [path, suffix, combination]))
