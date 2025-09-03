@@ -1,4 +1,5 @@
 import json
+import sys
 from enum import IntEnum
 from typing import Dict
 from typing import List
@@ -80,7 +81,7 @@ class Run:
     @property
     def previous(self):
         runs = self._repo.get_parents(self._cid)
-        if runs[0].get_info()['message'] == "INIT" or len(runs) < 1:
+        if len(runs) <= 0 or runs[0].get_info()['message'] == "INIT":
             return None
         return Run(repo=self._repo, cid=runs[0])
 
@@ -97,7 +98,7 @@ class Run:
         for file in self._repo.list_files(rev=self._cid):
             if file in ["README", ".pcvs-cache/conf.json"]:
                 continue
-            io.console.debug(f"Reading: {file}")
+            io.console.nodebug(f"Reading: {file}")
             data = self._repo.get_tree(tree=self._cid, prefix=file)
             job = Job(json.loads(str(data)), file)
             yield job
@@ -110,8 +111,8 @@ class Run:
     def get_data(self, jobname):
         res = Job()
         data = self._repo.get_tree(tree=self._cid, prefix=jobname)
-        if not data:
-            return data
+        if data is None:
+            return None
 
         res.from_json(str(data), f"Validation from bank {self._cid} for job {jobname}")
         return res
@@ -190,12 +191,14 @@ class Serie:
             res += "* {}\n".format(Run(repo=self._repo, cid=run).oneline)
         return res
 
-    def history(self):
+    def history(self, limit: int = sys.maxsize):
         res = []
+        size = 0
 
-        parent = self.last
-        while parent:
+        parent: Run = self.last
+        while parent and size < limit:
             res.append(parent)
+            size += 1
             parent = parent.previous
 
         return res

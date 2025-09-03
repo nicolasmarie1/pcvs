@@ -50,7 +50,7 @@ class Orchestrator:
             self._manager.get_count('total')))
         io.console.print_item("Max simultaneous Sets: {}".format(
             self._maxconcurrent))
-        io.console.print_item("Resource count: {}".format(self._max_res))
+        io.console.print_item("Configured available nodes: {}".format(self._max_res))
 
     # This func should only be a passthrough to the job manager
     def add_new_job(self, job):

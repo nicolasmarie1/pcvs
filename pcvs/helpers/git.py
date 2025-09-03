@@ -446,19 +446,22 @@ class GitByAPI(GitByGeneric):
         else:
             tid = tree
 
+        if tid is None:
+            return None
         if isinstance(tid, pygit2.Blob):
             return Blob(self, tid, prefix, tid.data)
-        else:
-            return Tree(self, tid, prefix)
+        return Tree(self, tid, prefix)
 
     def _get_tree(self, chain, tree=None):
         if len(chain) <= 0:
             return tree
         subtree = None
-        for i in tree:
-            if chain[0] == i.name:
-                subtree = i
+        for file in tree:
+            if chain[0] == file.name:
+                subtree = file
                 break
+        else:
+            return None  # file you are looking for does not exist in this git
         return self._get_tree(chain[1:], subtree)
 
     def iterate_over(self, ref=None):

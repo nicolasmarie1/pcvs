@@ -721,3 +721,9 @@ class Test:
         assert name
         path = os.path.normpath(os.path.join(label, subtree, name))
         return "_".join(filter(None, [path, suffix, combination]))
+
+    def __repr__(self):
+        return repr(self.__dict__)
+
+    def __rich_repr__(self):
+        return self.__dict__.items()

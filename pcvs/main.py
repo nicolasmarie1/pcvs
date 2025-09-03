@@ -8,6 +8,7 @@ from pcvs.backend import profile
 from pcvs.cli import cli_bank
 from pcvs.cli import cli_config
 from pcvs.cli import cli_convert
+from pcvs.cli import cli_graph
 from pcvs.cli import cli_profile
 from pcvs.cli import cli_remote_run
 from pcvs.cli import cli_report
@@ -169,6 +170,7 @@ cli.add_command(cli_report.report)
 cli.add_command(cli_remote_run.remote_run)
 # cli.add_command(cli_plumbing.resolve)
 cli.add_command(cli_convert.convert)
+cli.add_command(cli_graph.cli_graph)
 
 
 # if __name__ == "__main__":
