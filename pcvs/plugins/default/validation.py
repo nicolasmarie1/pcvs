@@ -26,13 +26,13 @@ class BankValidationPlugin(Plugin):
     def __init__(self):
         super().__init__()
         self._serie = None
-        self._bank_hdl = None
+        self._bank_hdl = GlobalConfig.root.get_internal("bank")
 
     def run(self, *args, **kwargs):
         """TODO:
         """
-        if not self._bank_hdl:
-            self._bank_hdl = GlobalConfig.root.get_internal("bank")
+        if self._bank_hdl is None:
+            return None  # Not running with a bank, stop !
 
         self._serie = self._bank_hdl.get_serie(
             self._bank_hdl.build_target_branch_name(
