@@ -355,11 +355,10 @@ class Test:
         # 3. set by default (GlobalConfig.root.validation.job_timeout)
         if self._soft_timeout:
             return self._soft_timeout
-        elif self._validation['time'] > 0:
+        if self._validation['time'] > 0:
             return ((self._validation['time'] + self._validation['delta'])
                     * self._validation['coef'])
-        else:
-            return GlobalConfig.root['validation']['soft_timeout']
+        return GlobalConfig.root['validation']['soft_timeout']
 
     @property
     def hard_timeout(self) -> int | None:
@@ -369,8 +368,7 @@ class Test:
         """
         if self._hard_timeout:
             return self._hard_timeout
-        else:
-            return GlobalConfig.root['validation']['hard_timeout']
+        return GlobalConfig.root['validation']['hard_timeout']
 
     def get_dim(self):
         """Return the orch-dimension value for this test.
@@ -511,11 +509,12 @@ class Test:
             colorname = "yellow"
             icon = "fail"
         if self._state == Test.State.HARD_TIMEOUT:
-            timeout = self._hard_timeout
+            timeout = self.hard_timeout
         elif self._state == Test.State.SOFT_TIMEOUT:
-            timeout = self._soft_timeout
+            timeout = self.soft_timeout
         else:
             timeout = 0
+        assert isinstance(timeout, int)
 
         if self._output and \
             (GlobalConfig.root['validation']['print_level'] == 'all' or
