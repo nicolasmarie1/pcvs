@@ -600,7 +600,6 @@ class TEDescriptor:
                        tags=self._tags,
                        metrics=self._metrics,
                        environment=env,
-                       dim=comb.get('n_node', 1),
                        time_mean=self._validation.get('time', {}).get("mean", -1),
                        time_delta=self._validation.get('time', {}).get("tolerance", 0),
                        time_coef=self._validation.get('time', {}).get("coef", 1.5),

@@ -162,6 +162,10 @@ class TheConsole(Console):
         self._chars = SpecialChar(
             utf_support=self.encoding.startswith('utf'))
 
+        # Activate when needed
+        self._sched_debug = False
+        self._crit_debug = False
+
     @property
     def logfile(self):
         """
@@ -548,6 +552,26 @@ class TheConsole(Console):
         else:
             self.print_exception(extra_lines=0)
         self._loghdl.exception(e)
+
+    def crit_debug(self, fmt):
+        """Print & log debug  for pxcvs scheduler.
+
+        :param fmt: fmt
+        :param *args: args
+        :param **kwargs: kwargs
+        """
+        if self._crit_debug:
+            self.debug(f"[CRIT]{fmt}")
+
+    def sched_debug(self, fmt):
+        """Print & log debug  for pxcvs scheduler.
+
+        :param fmt: fmt
+        :param *args: args
+        :param **kwargs: kwargs
+        """
+        if self._sched_debug:
+            self.debug(f"[SCHED]{fmt}")
 
     @property
     def logger(self):

@@ -1,4 +1,6 @@
+from pcvs import io
 from pcvs.helpers.exceptions import OrchestratorException
+from pcvs.helpers.ressource_tracker import RessourceTracker
 from pcvs.helpers.system import GlobalConfig
 from pcvs.orchestration.set import Set
 from pcvs.plugins import Plugin
@@ -23,10 +25,10 @@ class Manager:
     :ivar _count: dict gathering various counters (total, executed...)
     :type _count: dict
     """
-    job_hashes = {}
+    jobs = {}
     dep_rules = {}
 
-    def __init__(self, max_size=0, publisher=None):
+    def __init__(self, max_nodes=0, publisher=None):
         """constructor method.
 
         :param max_size: max number of resource allowed to schedule.
@@ -41,8 +43,8 @@ class Manager:
         self._concurrent_level = GlobalConfig.root['machine'].get(
             'concurrent_run', 1)
 
-        self._dims = {}
-        self._max_size = max_size
+        self._max_nodes = max_nodes
+        self._dims = {n: [] for n in range(1, self._max_nodes + 1)}
         self._publisher = publisher
         self._count = {"total": 0, "executed": 0}
 
@@ -59,44 +61,46 @@ class Manager:
         return self._dims[dim]
 
     @property
-    def nb_dims(self):
-        """Get max number of defined dimensions.
+    def nb_max_nodes(self):
+        """Get max number of nodes.
 
-        :return: the max dimension length
+        :return: the max nb nodes
         :rtype: int
         """
-        return self._max_size
+        return self._max_nodes
 
-    def add_job(self, job):
-        """Store a new job to the Manager table.
+    def __add_job(self, job):
+        """Store a new job to the job Queue.
 
         :param job: The job to append
         :type job: :class:`Test`
         """
-        value = min(self._max_size, job.get_dim())
+        test_nodes_nb = min(self._max_nodes, job.get_dim())
 
-        if self._max_size < value:
-            self._max_size = value
+        self._dims[test_nodes_nb].append(job)
 
-        if value not in self._dims:
-            self._dims.setdefault(value, list())
+    def add_job(self, job):
+        """Store a new job to the Job Queue, the Manager table,
+            save the test dependancy rules and count it.
 
-        self._dims[value].append(job)
+        :param job: The job to append
+        :type job: :class:`Test`
+        """
+        self.__add_job(job)
 
-        hashed = job.jid
         # if test is not know yet, add + increment
-        if hashed not in self.job_hashes:
-            self.job_hashes[hashed] = job
+        if job.jid not in self.jobs:
+            self.jobs[job.jid] = job
             self._count['total'] += 1
             self.save_dependency_rule(job.basename, job)
 
     def save_dependency_rule(self, pattern, jobs):
-        assert (isinstance(pattern, str))
+        assert isinstance(pattern, str)
 
         if not isinstance(jobs, list):
             jobs = [jobs]
 
-        self.dep_rules.setdefault(pattern, list())
+        self.dep_rules.setdefault(pattern, [])
         self.dep_rules[pattern] += jobs
 
     def get_count(self, tag="total"):
@@ -151,8 +155,8 @@ class Manager:
         for depname in job.job_depnames:
 
             hashed_dep = Test.get_jid_from_name(depname)
-            if hashed_dep in self.job_hashes:
-                job_dep_list = [self.job_hashes[hashed_dep]]
+            if hashed_dep in self.jobs:
+                job_dep_list = [self.jobs[hashed_dep]]
             elif depname in self.dep_rules:
                 job_dep_list = self.dep_rules[depname]
             else:
@@ -193,114 +197,119 @@ class Manager:
         for k in sorted(self._dims.keys(), reverse=True):
             if len(self._dims[k]) <= 0:
                 continue
-            else:
-                removed_jobs = list()
-                for job in self._dims[k]:
-                    if job.pick_count() > Test.SCHED_MAX_ATTEMPTS:
-                        self.publish_failed_to_run_job(job,
-                                                       Test.MAXATTEMPTS_STR,
-                                                       Test.State.ERR_OTHER)
-                        removed_jobs.append(job)
-                for elt in removed_jobs:
-                    self._dims[k].remove(elt)
+            removed_jobs = []
+            for job in self._dims[k]:
+                if job.pick_count() > Test.SCHED_MAX_ATTEMPTS:
+                    self.publish_failed_to_run_job(job,
+                                                   Test.MAXATTEMPTS_STR,
+                                                   Test.State.ERR_OTHER)
+                    removed_jobs.append(job)
+            for elt in removed_jobs:
+                self._dims[k].remove(elt)
+            return len(removed_jobs) > 0
 
-    def create_subset(self, max_dim):
+    def create_subset(self, ressources_tracker: RessourceTracker):
         """Extract one or more jobs, ready to be run.
 
-        :param max_dim: maximum number of resource allowed by any picked job.
-        :type max_dim: int
+        :param ressources_tracker: job ressource tracker.
+        :type ressources_tracker: list[int]
         :return: A set of jobs
         :rtype: :class:`Set`
         """
-        # in this function should take place a scheduling policy
-        # for instance, gathering multiple tests, and modifying
-        # the set to re-run PCVS as the task command
-        if max_dim <= 0:
-            return None
-
         the_set = None
         self._plugin.invoke_plugins(Plugin.Step.SCHED_SET_BEFORE)
-        user_sched_job = self._plugin.has_enabled_step(
-            Plugin.Step.SCHED_JOB_EVAL)
 
         if self._plugin.has_enabled_step(Plugin.Step.SCHED_SET_EVAL):
             the_set = self._plugin.invoke_plugins(
                 Plugin.Step.SCHED_SET_EVAL,
                 jobman=self,
-                max_dim=max_dim,
                 max_job_limit=int(self._count['total'] / self._concurrent_level))
         else:
-            for k in sorted(self._dims.keys(), reverse=True):
-                if len(self._dims[k]) <= 0 or max_dim < k:
-                    continue
-                else:
-                    # assert(self._builder.job_grabber)
-                    job: Test = self._dims[k].pop(0)
-                    if job:
-                        if job.been_executed(
-                        ) or job.state == Test.State.IN_PROGRESS:
-                            # skip job (only a pop() to do)
-                            continue
+            the_set = self.__default_create_subset(ressources_tracker)
 
-                        elif not job.has_completed_deps():
-
-                            # take the first unresolved dep to be scheduled
-                            # instead
-                            # CAUTION: no schedulable dep may be found at
-                            # present time. In the meantime, the completion may
-                            # occurs concurrently
-                            self._dims[k].append(job)
-                            # pick up a dep
-                            dep_job = job.first_incomplete_dep()
-                            while dep_job and not dep_job.has_completed_deps():
-                                dep_job = dep_job.first_incomplete_dep()
-                            # no "incomplete" task has been found
-                            # this may due to a dep completion in the mean time
-                            # discard for now, wait for another process
-                            # to schedule this job
-                            if dep_job:
-                                job = dep_job
-                            else:
-                                break
-
-                        # from here, it can be the original job or one of its
-                        # dep tree. But we are sure this job can be processed
-
-                        if job.has_failed_dep():
-                            # Cannot be scheduled for dep purposes
-                            # push it to publisher
-                            self.publish_failed_to_run_job(
-                                job, Test.NOSTART_STR, Test.State.ERR_DEP)
-                            # Attempt to find another job to schedule
-                            continue
-
-                        # Reached IF Job hasn't be run yet
-                        # Job has completed its dep scheme
-                        # all deps are successful
-                        # => SCHEDULE
-                        if user_sched_job:
-                            pick_job = self._plugin.invoke_plugins(
-                                Plugin.Step.SCHED_JOB_EVAL,
-                                job=job,
-                                set=the_set)
-                        else:
-                            pick_job = job.get_dim() <= max_dim
-
-                        if job.state != Test.State.IN_PROGRESS and pick_job:
-                            job.pick()
-                            if not the_set:
-                                the_set = Set(execmode=Set.ExecMode.LOCAL)
-                            the_set.add(job)
-                            break
-                        else:
-                            if job.not_picked():
-                                self.publish_failed_to_run_job(
-                                    job, Test.MAXATTEMPTS_STR,
-                                    Test.State.ERR_OTHER)
-                            else:
-                                self._dims[k].append(job)
         self._plugin.invoke_plugins(Plugin.Step.SCHED_SET_AFTER)
         return the_set
+
+    def __get_next_job(self) -> Test:
+        for k in sorted(self._dims.keys(), reverse=True):
+            job: Test = None
+            while len(self._dims[k]) > 0:
+                job = self._dims[k].pop(0)
+                assert job is not None
+                return job
+        return None
+
+    def __default_create_subset(self, ressources_tracker: RessourceTracker):
+        scheduled_set = None
+
+        user_sched_job = self._plugin.has_enabled_step(
+            Plugin.Step.SCHED_JOB_EVAL)
+
+        while (job := self.__get_next_job()) is not None:
+            if (job.been_executed() or
+                    job.state == Test.State.IN_PROGRESS):
+                continue
+
+            # if the job has pending dependancy,
+            # schedule the pending dependancy instead of the job itself.
+            if not job.has_completed_deps():
+                self.__add_job(job)
+                # pick up a dep
+                dep_job = job.first_incomplete_dep()
+                while dep_job and not dep_job.has_completed_deps():
+                    dep_job = dep_job.first_incomplete_dep()
+                if dep_job:
+                    job = dep_job
+                else:
+                    # possible due to race condition, ignore
+                    continue
+
+            # from here, it can be the original job or one of its
+            # dep tree. But we are sure this job can be processed
+            if job.has_failed_dep():
+                # Cannot be scheduled for dep purposes
+                # push it to publisher
+                self.publish_failed_to_run_job(
+                    job, Test.NOSTART_STR, Test.State.ERR_DEP)
+                # Attempt to find another job to schedule
+                continue
+
+            # Reached IF Job hasn't be run yet
+            # Job has completed its dep scheme
+            # all deps are successful
+            # => SCHEDULE
+            if user_sched_job:
+                pick_job = self._plugin.invoke_plugins(
+                    Plugin.Step.SCHED_JOB_EVAL,
+                    job=job,
+                    set=scheduled_set)
+            else:
+                io.console.sched_debug(f"Alloc pool (ALLOC TRY): {job.needed_ressources}")
+                res = ressources_tracker.alloc(job.needed_ressources)
+                pick_job = res > 0
+                if pick_job:
+                    io.console.sched_debug(f"Alloc pool (ALLOC RES) {res}: {ressources_tracker}")
+                    job.alloc_tracking = res
+
+            if job.state != Test.State.IN_PROGRESS and pick_job:
+                job.pick()
+                if scheduled_set is None:
+                    scheduled_set = Set(execmode=Set.ExecMode.LOCAL)
+                scheduled_set.add(job)
+                # Schedule set should only be of size one to avoid
+                # issue with multiples runner scheduling as multiples
+                # jobs in the same set cannot be scheduled at the same time.
+                break
+
+            if job.is_never_picked():
+                self.publish_failed_to_run_job(
+                    job, Test.MAXATTEMPTS_STR,
+                    Test.State.ERR_OTHER)
+            else:
+                self.__add_job(job)
+                break
+
+        return scheduled_set
 
     def publish_failed_to_run_job(self, job, out, state):
         publish_job_args = {"rc": -1, "time": 0.0, "out": out, "state": state}

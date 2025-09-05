@@ -38,32 +38,32 @@ class MpcDefaultPlugin(Plugin):
         comb = (f"Combination: nodes:{n_node}, processes:{n_proc}, "
                 f"mpi:{n_mpi}, cpu:{n_core}, omp:{n_omp}: ")
         if n_node > nb_nodes:
-            io.console.debug(f"{comb}Ask for more nodes that present in the "
-                             f"current partition\t{n_node} > {nb_nodes}")
+            io.console.crit_debug(f"{comb}Ask for more nodes that present in the "
+                                  f"current partition\t{n_node} > {nb_nodes}")
             return False
         if n_node > n_proc:
-            io.console.debug(f"{comb}Ask for more nodes that processes"
-                             f"\t{n_node} > {n_proc}")
+            io.console.crit_debug(f"{comb}Ask for more nodes that processes"
+                                  f"\t{n_node} > {n_proc}")
             return False
         if n_proc > n_mpi:
-            io.console.debug(f"{comb}Ask for more processes than mpi tasks"
-                             f"\t{n_proc} > {n_mpi}")
+            io.console.crit_debug(f"{comb}Ask for more processes than mpi tasks"
+                                  f"\t{n_proc} > {n_mpi}")
             return False
         nb_cores_total = nb_cores * n_node
         if n_proc > nb_cores_total:
-            io.console.debug(f"{comb}Ask for more processes than available "
-                             f"cpus per nodes\t{n_proc} > {nb_cores_total}")
+            io.console.crit_debug(f"{comb}Ask for more processes than available "
+                                  f"cpus per nodes\t{n_proc} > {nb_cores_total}")
             return False
         nb_core_per_proc = (nb_cores * n_node) // n_proc
         if n_core is not None and n_core > 1 and n_core > nb_core_per_proc:
-            io.console.debug(f"{comb}Ask for more cpus per processes than "
-                             f"available cpus on allocated nodes"
-                             f"\t{n_core} > {nb_core_per_proc}")
+            io.console.crit_debug(f"{comb}Ask for more cpus per processes than "
+                                  f"available cpus on allocated nodes"
+                                  f"\t{n_core} > {nb_core_per_proc}")
             return False
         if net is not None and n_node > 1 and net == "shmem":
-            io.console.debug(f"{comb}Ask for multi nodes jobs while using "
-                             f"shared memory\t{n_node} > 1 and net == {net}")
+            io.console.crit_debug(f"{comb}Ask for multi nodes jobs while using "
+                                  f"shared memory\t{n_node} > 1 and net == {net}")
             return False
 
-        io.console.debug(f"{comb}OK")
+        io.console.crit_debug(f"{comb}OK")
         return True

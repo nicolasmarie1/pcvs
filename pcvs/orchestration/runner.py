@@ -56,8 +56,8 @@ class RunnerAdapter(threading.Thread):
 
         :raises Exception: Something occured while running a test"""
         io.console.nodebug('{}: [LOCAL] Set start'.format(self.ident))
-        hard_timeout = False
         for job in jobs.content:
+            hard_timeout = False
             try:
                 p = subprocess.Popen('{}'.format(job.invocation_command),
                                      shell=True,

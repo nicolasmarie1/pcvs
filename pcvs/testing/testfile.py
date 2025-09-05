@@ -237,7 +237,7 @@ class TestFile:
             td = tedesc.TEDescriptor(k, content, self._label, self._prefix)
             for test in td.construct_tests():
                 self._tests.append(test)
-            io.console.debug("Test descriptor: {}: {}".format(
+            io.console.crit_debug("Test descriptor: {}: {}".format(
                                 td.name,
                                 pprint.pformat(td.get_debug())))
 

@@ -427,7 +427,7 @@ class Criterion:
             start = reference.min_value
             end = reference.max_value
 
-        io.console.debug("Expanding {}: {}".format(self.name, self._values))
+        io.console.crit_debug("Expanding {self.name}: {self._values}")
         if self._numeric is True:
             for v in self._values:
 
@@ -445,7 +445,7 @@ class Criterion:
         # now ensure values are unique
         self._values = set(values)
         self._expanded = True
-        io.console.debug(f"EXPANDED {self.name}: {self._values}")
+        io.console.crit_debug(f"EXPANDED {self.name}: {self._values}")
         # TODO: handle criterion dependency (ex: n_mpi: ['n_node * 2'])
 
     def __repr__(self):

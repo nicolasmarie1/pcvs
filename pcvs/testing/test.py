@@ -93,7 +93,9 @@ class Test:
         self._exectime = 0.0
         self._output = b""
         self._state = Test.State.WAITING
-        self._dim = kwargs.get('dim', 1)
+        self._nb_nodes = kwargs.get('comb', {}).get('n_node', 1)
+        self._nb_cores = (kwargs.get('comb', {}).get('n_proc', 1) *
+                          kwargs.get('comb', {}).get('n_core', 1))
         self._testenv = kwargs.get('environment')
         self._id = {
             'te_name': kwargs.get('te_name', 'noname'),
@@ -142,6 +144,8 @@ class Test:
         self._invocation_cmd = self._execmd
         self._sched_cnt = 0
         self._output_info = {'file': None, 'offset': -1, 'length': 0}
+        # alloc tracking number, used by job manager to track job allocation
+        self.alloc_tracking = 0
 
     @property
     def jid(self) -> str:
@@ -380,7 +384,16 @@ class Test:
         :return: The number of resource this Test is requesting.
         :rtype: int
         """
-        return self._dim
+        return self._nb_nodes
+
+    @property
+    def needed_ressources(self) -> list[int]:
+        """Return the ressources used by the jobs
+
+        :return: The number of nodes / cpus used by the jobs.
+        :rtype: int
+        """
+        return [self._nb_nodes, self._nb_cores]
 
     def save_final_result(self, rc=0, time=None, out=b'', state=None):
         """Build the final Test result node.
@@ -545,7 +558,7 @@ class Test:
         """Flag the job as picked up for scheduling."""
         self._state = Test.State.IN_PROGRESS
 
-    def not_picked(self):
+    def is_never_picked(self):
         self._sched_cnt += 1
         return self._sched_cnt >= self.SCHED_MAX_ATTEMPTS
 

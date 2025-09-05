@@ -28,7 +28,6 @@ def test_test():
         tags=None,
         artifacts={},
         command="testcommand",
-        dim=10,
         te_name="testte_name",
         subtree="testsubtree",
         wd="testchdir",
@@ -39,7 +38,6 @@ def test_test():
         valscript="testvalscript",)
     assert test.name == "label/testsubtree/testte_name"
     assert test.command == "testcommand"
-    assert test.get_dim() == 10
     assert not test.been_executed()
     assert test.state == tested.Test.State.WAITING
     test.save_status(test.State.EXECUTED)

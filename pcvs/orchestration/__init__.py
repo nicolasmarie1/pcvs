@@ -2,6 +2,7 @@ import queue
 
 from pcvs import io
 from pcvs.backend import session
+from pcvs.helpers.ressource_tracker import RessourceTracker
 from pcvs.helpers.system import GlobalConfig
 from pcvs.orchestration.manager import Manager
 from pcvs.orchestration.runner import RunnerAdapter
@@ -22,8 +23,10 @@ class Orchestrator:
     :type _conf: :class:`MetaConfig`
     :ivar _pending_sets: started Sets not completed yet
     :type _pending_sets: list
-    :ivar _max_res: number of resources allowed to be used
-    :type _max_res: int
+    :ivar _max_nodes: number of nodes allowed to be used
+    :type _max_nodes: int
+    :ivar _max_cores: number of cores allowed to be used
+    :type _max_cores: int
     :ivar _publisher: Result File Manager
     :type _publisher: :class:`ResultFileManager`
     :ivar _manager: job manager
@@ -37,9 +40,11 @@ class Orchestrator:
         """constructor method"""
         config_tree = GlobalConfig.root
         self._runners = []
-        self._max_res = config_tree['machine'].get('nodes', 1)
+        self._max_nodes = config_tree['machine'].get('nodes', 1)
+        self._max_cores = config_tree['machine'].get('cores_per_node', 1)
+        self._ressources_tracker = RessourceTracker([self._max_nodes, self._max_cores])
         self._publisher = config_tree.get_internal('build_manager').results
-        self._manager = Manager(self._max_res, publisher=self._publisher)
+        self._manager = Manager(self._max_nodes, publisher=self._publisher)
         self._maxconcurrent = config_tree['machine'].get('concurrent_run', 1)
         self._complete_q = queue.Queue()
         self._ready_q = queue.Queue()
@@ -50,7 +55,7 @@ class Orchestrator:
             self._manager.get_count('total')))
         io.console.print_item("Max simultaneous Sets: {}".format(
             self._maxconcurrent))
-        io.console.print_item("Configured available nodes: {}".format(self._max_res))
+        io.console.print_item("Configured available nodes: {}".format(self._max_nodes))
 
     # This func should only be a passthrough to the job manager
     def add_new_job(self, job):
@@ -84,53 +89,62 @@ class Orchestrator:
         if io.console.verb_debug:
             self._manager.print_dep_graph(outfile="./graph.dat")
 
-        nb_res = self._max_res
         last_progress = 0
         pending_list = []
         io.console.info("ORCH: start job scheduling")
         # While some jobs are available to run
         with io.console.table_container(self._manager.get_count()):
-            while self._manager.get_leftjob_count() > 0 or len(
-                    pending_list) > 0:
+            while (self._manager.get_leftjob_count() > 0 or
+                   len(pending_list) > 0):
                 # dummy init value
                 new_set: Set = not None
                 while new_set is not None:
                     # create a new set, if not possible, returns None
-                    new_set = self._manager.create_subset(nb_res)
+                    new_set = self._manager.create_subset(self._ressources_tracker)
                     if new_set is not None:
-                        assert isinstance(nb_res, int)
                         # schedule the set asynchronously
-                        nb_res -= new_set.dim
-                        io.console.nodebug(
+                        io.console.sched_debug(
                             "ORCH: send Set to queue (#{}, sz:{})".format(
                                 new_set.id, new_set.size))
                         self._ready_q.put(new_set)
-                    else:
-                        self._manager.prune_non_runnable_jobs()
 
                 # Now, look for a completion
                 try:
-                    jobs = self._complete_q.get(block=False, timeout=2)
-                    io.console.nodebug(
-                        "ORCH: recv Set from queue (#{}, sz:{})".format(
-                            jobs.id, jobs.size))
-                    nb_res += jobs.dim
-                    self._manager.merge_subset(jobs)
+                    # while queue is not empty
+                    jobs = self._complete_q.get(block=True)
+                    while True:
+                        io.console.sched_debug(
+                            "ORCH: recv Set from queue (#{}, sz:{})".format(
+                                jobs.id, jobs.size))
+                        for job in jobs.content:
+                            self._ressources_tracker.free(job.alloc_tracking)
+                            io.console.sched_debug(f"Alloc pool (FREE) {job.alloc_tracking}:"
+                                                   f" {self._ressources_tracker}")
+                        self._manager.merge_subset(jobs)
+                        # Continue to gather resultes as long as some are available.
+                        jobs = self._complete_q.get(block=False)
                 except queue.Empty:
-                    self._manager.prune_non_runnable_jobs()
-                    # TODO: create backup to allow start/stop
+                    pass
 
+                # prune jobs that are impossible to runs
+                self._manager.prune_non_runnable_jobs()
+
+                # compute progress status
                 current_progress = self._manager.get_count(
                     'executed') / self._manager.get_count('total')
 
+                # TODO: create backup to allow start/stop from these files
                 # Condition to trigger a dump of results
                 # info result file at a periodic step of 5% of
                 # the global workload
                 if (current_progress - last_progress) > 0.05:
-                    # TODO: Publish results periodically
+                    # Publish results periodically
                     # 1. on file system
+                    #    => Done
                     # 2. directly into the selected bank
-                    io.console.nodebug("ORCH: Flush a new progression file")
+                    #    => NO NEVER, not until the end of the test
+                    #       at risk of bank corruption
+                    io.console.sched_debug("ORCH: Flush a new progression file")
                     self._publisher.flush()
                     last_progress = current_progress
                     if the_session is not None:
