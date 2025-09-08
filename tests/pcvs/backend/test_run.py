@@ -45,6 +45,10 @@ def mock_config():
     with CliRunner().isolated_filesystem():
         with patch.object(pcvs.helpers.system.GlobalConfig, 'root', MetaConfig(
             {
+                'compiler': {
+                    'compilers': {}
+                },
+                'criterion': {},
                 'validation': {
                     'output': os.getcwd(),
                     'dirs': {'L1': os.getcwd()},

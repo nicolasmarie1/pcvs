@@ -28,10 +28,9 @@ def detect_compiler(array_of_files) -> str:
     """
     detect = []
     for f in array_of_files:
-        for compiler_name in GlobalConfig.root['compiler']['compilers']:
-            compiler = GlobalConfig.root['compiler']['compilers'][compiler_name]
+        for comp_name, compiler in GlobalConfig.root['compiler']['compilers'].items():
             if compiler['extension'] and re.search(compiler['extension'], f):
-                detect.append(compiler_name)
+                detect.append(comp_name)
                 break
         else:
             detect.append(None)
@@ -39,9 +38,10 @@ def detect_compiler(array_of_files) -> str:
 
 
 def extract_compilers_envs():
+    """Extract compilers environment."""
     envs = []
-    for compiler_name in GlobalConfig.root['compiler']['compilers']:
-        envs += GlobalConfig.root['compiler']['compilers'][compiler_name].get('envs', [])
+    for _, compiler in GlobalConfig.root['compiler']['compilers'].items():
+        envs += compiler.get('envs', [])
     return envs
 
 
@@ -123,7 +123,7 @@ def build_pm_deps(deps_node):
 
 
 class TEDescriptor:
-    """A Test Descriptor (named TD, TE or TED), maps a test prograzm
+    """A Test Descriptor (named TD, TE or TED), maps a test program
     representation, as defined by a root node in a single test files.
 
     A TE Descriptor is not a test but a definition of a program (how to use it,
@@ -153,7 +153,8 @@ class TEDescriptor:
 
     @classmethod
     def init_system_wide(cls, base_criterion_name):
-        """Initialize system-wide information (to shorten accesses).
+        """
+        Initialize system-wide information (to shorten accesses).
 
         :param base_criterion_name: iterator name used as scheduling resource.
         :type base_criterion_name: str
@@ -162,7 +163,8 @@ class TEDescriptor:
         cls._base_it = base_criterion_name
 
     def __init__(self, name, node, label, subprefix):
-        """constructor method.
+        """
+        Constructor method.
 
         :param name: the TE name
         :type name: str
@@ -231,7 +233,9 @@ class TEDescriptor:
         self._compatibility_support(node.get('_compat', None))
 
     def get_binary_name(self):
-        """ Get the binary name for the file at the output of the compiler.
+        """
+        Get the binary name for the file at the output of the compiler.
+
         If a binary name is already defined by the test, use it.
         If a program name is given, use it.
         If none are defined, use the test name.

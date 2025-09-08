@@ -130,6 +130,13 @@ def process_main_workflow(the_session=None):
     prepare()
     assert build_manager.config
 
+    # get environment variables
+    env_config = build_env_from_configuration(GlobalConfig.root)
+    # export to process env
+    os.environ.update(env_config)
+    io.console.debug(f"Environement variables added for configuration:\n"
+                     f"{utils.str_dict_as_envvar(env_config)}")
+
     if valcfg['reused_build'] is not None:
         io.console.print_section("Reusing previously generated inputs")
     else:
@@ -182,11 +189,6 @@ def process_main_workflow(the_session=None):
             bank.save_new_run_from_instance(None,
                                             build_manager,
                                             msg=valcfg.get('message', None))
-            # TODO: deduplicate code in bank.py
-            # bank.save_from_buildir(
-            #    None,
-            #    os.path.join(valcfg['output'])
-            # )
         bank.disconnect()
     buildfile = os.path.join(valcfg['output'], NAME_BUILDFILE)
     if utils.is_locked(buildfile):
@@ -386,43 +388,45 @@ def process_spack():
         pvSpack.generate_from_variants(spec, label, spec)
 
 
-def build_env_from_configuration(current_node, parent_prefix="pcvs"):
-    """create a flat dict of variables mapping to the actual configuration.
-
-    In order to "pcvs.setup" to read current configuration, the whole config is
-    serialized into shell variables. Purpose of this function is to flatten the
-    configuration tree into env vars, each tree level being divided with an
-    underscore.
-
-    This function is called recursively to walk through the whole tree.
-
-    :example:
-        The `compiler.cc` config node become `$compiler_cc_program=<...>`
-
-    :param current_node: current node to flatten
-    :type current_node: dict
-    :param parent_prefix: prefix used to name vars at this depth, defaults to "pcvs"
-    :type parent_prefix: str, optional
-    :return: a flat dict of the whole configuration, keys are shell variables.
-    :rtype: dict
+def build_env_from_configuration(config: dict) -> dict:
     """
-    env_dict = dict()
-    for k, v in current_node.items():
-        if v is None:
-            v = ''
-        if isinstance(v, dict):
-            env_dict.update(
-                build_env_from_configuration(v, parent_prefix + "_" + k))
-            continue
-        elif v is None:
-            v = ''
-        elif isinstance(v, list):
-            v = " ".join(map(str, v))
-        else:
-            v = str(v)
-        k = "{}_{}".format(parent_prefix, k).replace('.', '_')
-        env_dict[k] = v
-    return env_dict
+    Export configuration as env variables.
+
+    Not all configuration are exported, only the one that may be used.
+    compiler variables:
+        PCVS_CMP_CC=mpc_cc
+        PCVS_CMP_CC_ARGS=-O5
+        PCVS_CMP_CC_VAR_OPENMP=mpc_cc_omp
+        PCVS_CMP_CC_VAR_OPENMP_ARGS=-fopenmp
+
+    criterions variables:
+        PCVS_CRIT_MPI='1 2 4'
+
+    :param config: the current config
+    :type config: dict
+    :return: a dict of environment variables to export.
+    """
+    def to_str(item):
+        if item is None:
+            return ""
+        if isinstance(item, list):
+            return " ".join(map(str, item))
+        return str(item)
+
+    env = {}
+    for comp_name, comp in config["compiler"]["compilers"].items():
+        env[f"PCVS_CMP_{comp_name}".upper()] = comp["program"]
+        env[f"PCVS_CMP_{comp_name}_ARGS".upper()] = to_str(comp.get("args", ""))
+        for var_name, variant in comp.get("variants", {}).items():
+            env[f"PCVS_CMP_{comp_name}_VAR_{var_name}".upper()] = variant.get("program", comp["program"])
+            env[f"PCVS_CMP_{comp_name}_VAR_{var_name}_ARGS".upper()] = to_str(comp.get("args", ""))
+    for crit_name, criter in config["criterion"].items():
+        env[f"PCVS_CRIT_{crit_name}".upper()] = to_str(criter["values"])
+    compiler_env = testing.tedesc.extract_compilers_envs()
+    for e in compiler_env:
+        k, v = e.split('=', 1)
+        env[k] = v
+    return env
 
 
 # Needed to keep capture exception at runtime,
@@ -447,9 +451,8 @@ def unsafe_process_dyn_setup_scripts(setup_files):
     :rtype: list
     """
     io.console.info("Convert configuration to Shell variables")
-    env = os.environ.copy()
     env_config = build_env_from_configuration(GlobalConfig.root)
-    env.update(env_config)
+    env = os.environ.copy()
 
     with open(os.path.join(GlobalConfig.root['validation']['output'],
                            NAME_BUILD_CONF_SH), 'w', encoding='utf-8') as fh:
