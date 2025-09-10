@@ -153,6 +153,8 @@ def create_app(iface):
                     sid, selection, subset=request_item, summary=False)
                 # jobs are returned split into 3 lists, depending on their status
                 # -> browse all three lists
+                if struct is None:
+                    return "Not Found !", 404
                 job_list = []
                 for _, m in struct.items():
                     for _, s in m.items():

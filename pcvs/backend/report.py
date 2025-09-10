@@ -292,6 +292,8 @@ class Report:
         :return: the result dict
         :rtype: dict
         """
+        if sid not in self._sessions:
+            return None
 
         d = {}
         if name == "tags":

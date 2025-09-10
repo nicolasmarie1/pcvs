@@ -202,7 +202,7 @@ class ResultFile:
                 rawout = self.extract_output(offset, length)
 
             eltt = Test()
-            eltt.from_json(elt, None)
+            eltt.from_json(elt, "internal, this should not fail")
             eltt.encoded_output = rawout
             res.append(eltt)
 
