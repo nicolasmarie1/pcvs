@@ -533,8 +533,6 @@ class TEDescriptor:
                    time_mean=self._validation.get('time', {}).get("mean", -1),
                    time_delta=self._validation.get('time', {}).get("tolerance", 0),
                    time_coef=self._validation.get('time', {}).get("coef", 1.5),
-                   hard_timeout=self._validation.get('time', {}).get('hard_timeout', None),
-                   soft_timeout=self._validation.get('time', {}).get('soft_timeout', None),
                    rc=0,
                    artifacts=self._artifacts,
                    analysis=self._validation.get("analysis", {}),
