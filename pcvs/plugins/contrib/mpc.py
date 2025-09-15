@@ -1,14 +1,15 @@
+"""Default plugins for the MPC framework."""
 from pcvs import io
 from pcvs.plugins import Plugin
 
 
 class MpcDefaultPlugin(Plugin):
-    """
-    MPC validation plugin
-    """
+    """MPC validation plugin."""
+
     step = Plugin.Step.TEST_EVAL
 
-    def run(self, *args, **kwargs):
+    def run(self, *args, **kwargs) -> bool:
+        """Validate that the criterions are a valide combination."""
         # this dict maps keys (it name) with values (it value)
         # returns True if the combination should be used
         config = kwargs['config']
@@ -67,3 +68,9 @@ class MpcDefaultPlugin(Plugin):
 
         io.console.crit_debug(f"{comb}OK")
         return True
+
+    def get_ressources(self, *args, **kwargs) -> list[int]:  # pylint: disable=unused-argument
+        """Get the ressources allocation for the jobs."""
+        comb = kwargs['combination']
+        return [comb.get('n_node', 1),
+                (comb.get('n_proc', 1) * comb.get('n_core', 1))]

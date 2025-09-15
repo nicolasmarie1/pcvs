@@ -116,7 +116,7 @@ class Collection:
                     return
         io.console.warn("Unable to find a plugin named '{}'".format(name))
 
-    def invoke_plugins(self, step, *args, **kwargs):
+    def invoke_plugins(self, step, method="run", *args, **kwargs):
         """Load the appropriate plugin, given a step
 
         :param step: the step to target
@@ -129,7 +129,9 @@ class Collection:
             raise PluginException.BadStepError(step)
 
         if self._enabled[step]:
-            return self._enabled[step].run(*args, **kwargs)
+            assert method and hasattr(self._enabled[step], method)
+            func = getattr(self._enabled[step], method)
+            return func(*args, **kwargs)
 
         return None
 

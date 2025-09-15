@@ -93,15 +93,15 @@ class Test:
         self._exectime = 0.0
         self._output = b""
         self._state = Test.State.WAITING
-        self._nb_nodes = kwargs.get('comb', {}).get('n_node', 1)
-        self._nb_cores = (kwargs.get('comb', {}).get('n_proc', 1) *
-                          kwargs.get('comb', {}).get('n_core', 1))
+        cores_per_nodes = GlobalConfig.root.get('machine', {}).get('cores_per_nodes', 1)
+        self._ressources: list[int] = kwargs.get("ressources", [1, cores_per_nodes])
+
         self._testenv = kwargs.get('environment')
         self._id = {
             'te_name': kwargs.get('te_name', 'noname'),
             'label': kwargs.get('label', 'nolabel'),
             'subtree': kwargs.get('subtree', 'nosubtree'),
-            'comb': self._comb.translate_to_dict() if self._comb else {},
+            'comb': self._comb.get_combinations() if self._comb else {},
         }
         comb_str = self._comb.translate_to_str() if self._comb else None
 
@@ -374,7 +374,7 @@ class Test:
             return self._hard_timeout
         return GlobalConfig.root['validation']['hard_timeout']
 
-    def get_dim(self):
+    def get_nb_nodes(self):
         """Return the orch-dimension value for this test.
 
         The dimension can be defined by the user and let the orchestrator knows
@@ -384,7 +384,9 @@ class Test:
         :return: The number of resource this Test is requesting.
         :rtype: int
         """
-        return self._nb_nodes
+        if self._ressources and len(self._ressources) > 0:
+            return self._ressources[0]
+        return 1
 
     @property
     def needed_ressources(self) -> list[int]:
@@ -393,7 +395,7 @@ class Test:
         :return: The number of nodes / cpus used by the jobs.
         :rtype: int
         """
-        return [self._nb_nodes, self._nb_cores]
+        return self._ressources
 
     def save_final_result(self, rc=0, time=None, out=b'', state=None):
         """Build the final Test result node.
@@ -652,7 +654,7 @@ class Test:
         self.res_scheme.validate(test_json, filepath)
 
         self._id = test_json.get("id", -1)
-        self._comb = Combination({}, self._id.get('comb', {}))
+        self._comb = Combination({}, self._id.get('comb', {}), None)
         self._execmd = test_json.get("exec", "")
         self._data = test_json.get("data", "")
 

@@ -371,7 +371,7 @@ class TEDescriptor:
             ldflags=self._build['sources'].get('ldflags', ''),
             args=" ".join(args),
             out=f"-o {output_path}")
-        return (command, envs)
+        return (command, envs, None)
 
     def __build_from_makefile(self):
         """How to create build tests from a Makefile.
@@ -388,14 +388,15 @@ class TEDescriptor:
             command.append("-f {}".format(" ".join(self._build['files'])))
 
         envs = extract_compilers_envs()
+        jobs = self._build.get('make', {}).get('jobs', 1)
         # build the 'make' command
-        command.append('-C {path} {target} '.format(
+        command.append(f"-j {jobs}")
+        command.append('-C {path} {target}'.format(
             path=basepath, target=self._build.get('make', {}).get('target', '')))
         command += self._build.get('make', {}).get('args', [])
         envs += self._build.get('make', {}).get('envs', [])
 
-        cmd = (" ".join(command), envs)
-        return cmd
+        return (" ".join(command), envs, jobs)
 
     def __build_from_cmake(self):
         """How to create build tests from a CMake project.
@@ -421,7 +422,7 @@ class TEDescriptor:
         tmp = self.__build_from_makefile()
         next_command = tmp[0]
         envs += tmp[1]
-        return (" && ".join([" ".join(command), next_command]), envs)
+        return (" && ".join([" ".join(command), next_command]), envs, tmp[2])
 
     def __build_from_autotools(self):
         """How to create build tests from a Autotools-based project.
@@ -454,9 +455,7 @@ class TEDescriptor:
         tmp = self.__build_from_makefile()
         next_command = tmp[0]
         envs += tmp[1]
-
-        # TODO: why not creating another test, with a dep on this one ?
-        return (" && ".join([" ".join(command), next_command]), envs)
+        return (" && ".join([" ".join(command), next_command]), envs, tmp[2])
 
     def __build_from_user_script(self):
         command = []
@@ -469,9 +468,10 @@ class TEDescriptor:
         if not os.path.isabs(command):
             command = os.path.join(self._buildir, command)
 
-        return (". {} && {}".format(
+        full_cmd = ". {} && {}".format(
             os.path.join(GlobalConfig.root['validation']['output'],
-                         pcvs.NAME_BUILD_CONF_SH), command), env)
+                         pcvs.NAME_BUILD_CONF_SH), command)
+        return (full_cmd, env, None)
 
     def __build_exec_process(self):
         """Drive compilation command generation based on TE format.
@@ -481,14 +481,13 @@ class TEDescriptor:
         """
         if 'autotools' in self._build:
             return self.__build_from_autotools()
-        elif 'cmake' in self._build:
+        if 'cmake' in self._build:
             return self.__build_from_cmake()
-        elif 'make' in self._build:
+        if 'make' in self._build:
             return self.__build_from_makefile()
-        elif 'custom' in self._build:
+        if 'custom' in self._build:
             return self.__build_from_user_script()
-        else:
-            return self.__build_from_sources()
+        return self.__build_from_sources()
 
     def __construct_compil_tests(self):
         """Meta-function steering compilation tests."""
@@ -516,7 +515,7 @@ class TEDescriptor:
 
         tags = ["compilation"] + self._tags
 
-        command, env = self.__build_exec_process()
+        command, env, jobs = self.__build_exec_process()
 
         # count number of built tests
         self._effective_cnt += 1
@@ -536,7 +535,7 @@ class TEDescriptor:
                    rc=0,
                    artifacts=self._artifacts,
                    analysis=self._validation.get("analysis", {}),
-                   resources=1,
+                   resources=[1, jobs],  # 1 node / jobs cores.
                    wd=chdir)
 
     def __construct_runtime_tests(self, serie):
@@ -607,6 +606,7 @@ class TEDescriptor:
                        valscript=self._validation.get('script', {}).get('path', None),
                        analysis=self._validation.get("analysis", {}),
                        comb=comb,
+                       resources=comb.ressources,
                        wd=chdir,
                        artifacts=self._artifacts,
                        matchers=self._validation.get('match', None))

@@ -15,7 +15,7 @@ class Combination:
     associated value in order to generate the appropriate test
     """
 
-    def __init__(self, crit_desc, dict_comb):
+    def __init__(self, crit_desc, dict_comb, ressources: list[int]):
         """Build a combination from two components:
         - the actual combination dict
         - the dict of criterions
@@ -29,6 +29,7 @@ class Combination:
         """
         self._criterions = crit_desc
         self._combination = dict_comb
+        self._ressources = ressources
 
     def get(self, k, dflt=None):
         """Retrieve the actual value for a given combination element
@@ -94,13 +95,17 @@ class Combination:
                 args.append(value)
         return (envs, args, params)
 
-    def translate_to_dict(self):
+    def get_combinations(self):
         """Translate the combination into a dictionary.
 
         :return: configuration in the shape of a python dict
         :rtype: dict
         """
         return self._combination
+
+    @property
+    def ressources(self):
+        return self._ressources
 
     def __repr__(self):
         return repr(self.__dict__)
@@ -142,7 +147,8 @@ class Serie:
             d = {self._keys[i]: val for i, val in enumerate(combination)}
             if not valid_combination(d):
                 continue
-            yield Combination(self._dict, d)
+            ressources: list[int] = get_ressources(d)
+            yield Combination(self._dict, d, ressources)
 
     def __repr__(self):
         return repr(self.__dict__)
@@ -540,6 +546,19 @@ def load_plugin():
         pCollection.activate_plugin(rt['defaultplugin'])
 
 
+def get_plugin():
+    """Get the current validation plugin for the run."""
+    global first
+    rt = GlobalConfig.root['runtime']
+    plugin = GlobalConfig.root.get_internal('pColl')
+
+    if first and ('plugin' in rt or 'defaultplugin' in rt):
+        first = not first
+        load_plugin()
+
+    return plugin
+
+
 def valid_combination(dic):
     """Check if dict is a valid criterion combination .
 
@@ -548,20 +567,19 @@ def valid_combination(dic):
     :return: True if dic is a valid combination
     :rtype: bool
     """
-    global first
-    rt = GlobalConfig.root['runtime']
-    pCollection = GlobalConfig.root.get_internal('pColl')
-
-    if first and ('plugin' in rt or 'defaultplugin' in rt):
-        first = not first
-        load_plugin()
-
-    ret = pCollection.invoke_plugins(Plugin.Step.TEST_EVAL,
-                                     config=GlobalConfig.root,
-                                     combination=dic)
+    ret = get_plugin().invoke_plugins(Plugin.Step.TEST_EVAL,
+                                      config=GlobalConfig.root,
+                                      combination=dic)
 
     # by default, no plugin = always true
     if ret is None:
         ret = True
 
     return ret
+
+
+def get_ressources(dic) -> list[int] | None:
+    """Get the ressources needed for a job."""
+    return get_plugin().invoke_plugins(Plugin.Step.TEST_EVAL,
+                                       method="get_ressources",
+                                       combination=dic)

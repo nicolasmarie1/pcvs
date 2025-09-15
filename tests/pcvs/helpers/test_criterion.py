@@ -44,7 +44,7 @@ def crit_comb():
 
 
 def test_combination_init(crit_desc, crit_comb):  # pylint: disable=redefined-outer-name
-    obj = tested.Combination(crit_desc, crit_comb)
+    obj = tested.Combination(crit_desc, crit_comb, None)
     assert obj.get('arg') == 10
     assert obj.get('env') == "message"
     assert obj.get('prog-env') == "user_message"
@@ -52,7 +52,7 @@ def test_combination_init(crit_desc, crit_comb):  # pylint: disable=redefined-ou
 
 
 def test_combination_str(crit_desc, crit_comb):  # pylint: disable=redefined-outer-name
-    obj = tested.Combination(crit_desc, crit_comb)
+    obj = tested.Combination(crit_desc, crit_comb, None)
     assert obj.translate_to_str() == "A=10_E=message_pa=parameter_pe=user_message"
 
     crit_desc['arg'] = tested.Criterion(name="arg", numeric=True, description={
@@ -60,19 +60,19 @@ def test_combination_str(crit_desc, crit_comb):  # pylint: disable=redefined-out
         "type": "argument",
         "subtitle": ""
     })
-    obj = tested.Combination(crit_desc, crit_comb)
+    obj = tested.Combination(crit_desc, crit_comb, [])
     assert obj.translate_to_str() == "10_E=message_pa=parameter_pe=user_message"
 
     crit_desc['arg'] = tested.Criterion(name="arg", numeric=True, description={
         "option": "-a ",
         "type": "argument"
     })
-    obj = tested.Combination(crit_desc, crit_comb)
+    obj = tested.Combination(crit_desc, crit_comb, [1, 1, 1])
     assert obj.translate_to_str() == "arg10_E=message_pa=parameter_pe=user_message"
 
 
 def test_combination_command(crit_desc, crit_comb):  # pylint: disable=redefined-outer-name
-    obj = tested.Combination(crit_desc, crit_comb)
+    obj = tested.Combination(crit_desc, crit_comb, None)
     env, args, params = obj.translate_to_command()
     assert ['ENV=message', 'PROG_ENV=user_message'] == env
     assert ['-a 10'] == args

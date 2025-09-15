@@ -75,7 +75,7 @@ class Manager:
         :param job: The job to append
         :type job: :class:`Test`
         """
-        test_nodes_nb = min(self._max_nodes, job.get_dim())
+        test_nodes_nb = min(self._max_nodes, job.get_nb_nodes())
 
         self._dims[test_nodes_nb].append(job)
 

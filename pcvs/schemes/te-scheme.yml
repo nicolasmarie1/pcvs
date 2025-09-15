@@ -58,6 +58,8 @@ patternProperties:
             properties:
               target:
                 type: string
+              jobs:
+                type: integer
               args:
                 type: array
                 items: {type: string}
