@@ -194,11 +194,11 @@ class Bank(dsl.Bank):
         :param msg: the custom message to attach to this run (=commit msg)
         :type msg: str, optional
         """
-        seriename = self.build_target_branch_name(
-            target_project, hdl.config['validation']['pf_hash'])
-        serie = self.get_serie(seriename)
+        if target_project is None:
+            target_project = self.default_project
+        serie = self.get_serie(target_project)
         if serie is None:
-            serie = self.new_serie(seriename)
+            serie = self.new_serie(target_project)
 
         run = dsl.Run(from_serie=serie)
         metadata = {'cnt': {}}
@@ -294,29 +294,6 @@ class Bank(dsl.Bank):
             hdl.load_config()
 
         self.save_new_run_from_instance(target_project, hdl)
-
-    def build_target_branch_name(self,
-                                 tag: str = None,
-                                 hashid: Optional[str] = None) -> str:
-        """Compute the target branch to store data.
-
-        This is used to build the exact Git branch name based on:
-            * default-proj
-            * unique profile hash, used to run the validation
-
-        :param tag: overridable default-proj (if different)
-        :type tag: str
-        :param hash: unique ID to concatenate with the branch name
-        :type hash: str, optional
-        :return: fully-qualified target branch name
-        :rtype: str
-        """
-        # a reference (lightweight branch) is tracking a whole test-suite
-        # history, there are managed directly
-        # TODO: compute the proper name for the current test-suite
-        if tag is None:
-            tag = self.default_project
-        return "{}/{}".format(tag, hashid)
 
     def __repr__(self) -> dict:
         """Bank representation.

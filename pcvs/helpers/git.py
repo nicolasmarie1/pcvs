@@ -403,6 +403,7 @@ class GitByAPI(GitByGeneric):
         return [Branch(self, e) for e in self._repo.branches.local]
 
     def new_branch(self, name, cid=None):
+        assert name is not None
         if not cid:
             cid = self.revparse(Branch(self, name='master')).cid
 

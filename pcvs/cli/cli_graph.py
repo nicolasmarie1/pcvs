@@ -64,12 +64,11 @@ def cli_graph(ctx, bank_name, graph_types, path, show, extension, limit):  # pyl
 
     bank = pvBank.Bank(token=bank_name)
     if not bank.exists():
-        raise click.BadArgumentUsage(f"'{bank_name}' does not exist")
+        raise click.BadArgumentUsage(f"'{bank_name}' bank does not exist")
 
-    series = bank.list_series()
-    # hard code project/series managment has there are not handle right now.
-    # TODO: make the user choose the project
-    serie = series[1]
+    serie = bank.get_serie(bank.default_project)
+    if not serie:
+        raise click.BadArgumentUsage(f"'{bank_name}' project does not exist")
     simple_analysis = analysis.SimpleAnalysis(bank)
 
     graph_types = set(graph_types)

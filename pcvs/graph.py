@@ -37,42 +37,70 @@ def get_status_series(analysis: SimpleAnalysis, serie: Serie, path: str, show: b
         limit).
     """
     status_data = analysis.generate_serie_trend(serie.name, limit)
-    x = []
-    total = []
-    fail = []
-    hard_timeout = []
-    soft_timeout = []
-    succ = []
-    other = []
+    xlabels = []
+    total, fails, htos, stos, succs, other = [], [], [], [], [], []
 
-    for e in status_data:
+    for e in sorted(status_data, key=lambda item: item['date']):
         nb = sum(e['cnt'].values())
-        total.append(nb)
+        fail = e['cnt'].get(str(Test.State.FAILURE), 0)
+        hto = e['cnt'].get(str(Test.State.HARD_TIMEOUT), 0)
+        sto = e['cnt'].get(str(Test.State.SOFT_TIMEOUT), 0)
+        succ = e['cnt'].get(str(Test.State.SUCCESS), 0)
 
-        x.append(e['date'])
-        fail.append(e['cnt'].get(str(Test.State.FAILURE), 0))
-        hard_timeout.append(e['cnt'].get(str(Test.State.HARD_TIMEOUT), 0))
-        soft_timeout.append(e['cnt'].get(str(Test.State.SOFT_TIMEOUT), 0))
-        succ.append(e['cnt'].get(str(Test.State.SUCCESS), 0))
-        other.append(nb
-                     - e['cnt'].get(str(Test.State.SUCCESS), 0)
-                     - e['cnt'].get(str(Test.State.FAILURE), 0)
-                     - e['cnt'].get(str(Test.State.SOFT_TIMEOUT), 0)
-                     - e['cnt'].get(str(Test.State.HARD_TIMEOUT), 0))
+        xlabels.append(e['date'])
+        total.append(nb)
+        fails.append(fail)
+        htos.append(hto)
+        stos.append(sto)
+        succs.append(succ)
+        other.append(nb - (fail + hto + sto + succ))
+
     fig, ax = plt.subplots()
-    ax.stackplot(x, fail, hard_timeout, soft_timeout, succ, other,
-                 labels=["FAILURE", "HARD_TIMEOUT", "SOFT_TIMEOUT", "SUCCESS", "OTHER"],
+    ax.stackplot(range(len(status_data)), fails, htos, stos, succs, other,
+                 labels=[Test.State.FAILURE.name, Test.State.HARD_TIMEOUT.name,
+                         Test.State.SOFT_TIMEOUT.name, Test.State.SUCCESS.name,
+                         Test.State.ERR_OTHER.name],
                  colors=['red', 'orange', 'blue', 'green', "purple"])
+    ax.xaxis.set_ticks(range(len(status_data)))
+    ax.xaxis.set_ticklabels(sorted(xlabels))
     ax.set_title("Sucess Count")
     ax.set_xlabel("Test Date")
     ax.set_ylabel("nb. tests (count)")
+    ax.set_ylim(ymin=0)
     ax.legend(loc="upper left")
     size = fig.get_size_inches()
     if show:
         plt.show()
     if path:
         file_name = serie.name.replace("/", "_")
-        fig.set_size_inches(size[0] * 2, size[1] * 2)
+        fig.set_size_inches(size[0] * 2 * max(1, len(status_data) / 6), size[1] * 2)
+        fig.savefig(os.path.join(path, f"{file_name}.{extension}"))
+    plt.close()
+
+
+def _get_time_serie(jobs_base_name: str, jobs: dict[str, dict[str, list[int]]],
+                    dates: list[int], path: str, show: bool, extension: bool):
+    io.console.debug(f"Times for: {jobs_base_name}")
+    fig, ax = plt.subplots()
+    for job_name, job_data in jobs.items():
+        job_spec: str = job_name[len(jobs_base_name) + 1:]
+        if not job_spec:
+            job_spec = "default"  # no criterions
+        ax.plot(job_data["indexs"], job_data["times"], label=job_spec, marker="+")
+    ax.xaxis.set_ticks(range(len(dates)))
+    ax.xaxis.set_ticklabels(dates)
+
+    ax.set_title(jobs_base_name)
+    ax.set_xlabel("Test Date")
+    ax.set_ylabel("Test Duration (s)")
+    ax.set_ylim(ymin=0)
+    ax.legend(loc="upper left")
+    size = fig.get_size_inches()
+    if show:
+        plt.show()
+    if path:
+        file_name = jobs_base_name.replace("/", "_")
+        fig.set_size_inches(size[0] * 2 * max(1, len(dates) / 6), size[1] * 2)
         fig.savefig(os.path.join(path, f"{file_name}.{extension}"))
     plt.close()
 
@@ -90,47 +118,36 @@ def get_time_series(analysis: SimpleAnalysis, serie: Serie, path: str, show: boo
     :param limit: nb max of run in the serie to query (use sys.maxsize for not
         limit).
     """
-    time_data = analysis.generate_serie_infos(serie.name, limit)
+    all_time_data: dict[int, dict[str, dict[str, str | int]]] = analysis.generate_serie_infos(serie.name, limit)
+    group_jobs: dict[str, dict[str, dict[str, list[int]]]] = {}
+    group_dates: dict[str, list[int]] = {}
 
-    unique_jobs_name = []
-    unique_jobs_base_name = []
-    for run in time_data:
-        for job in time_data[run]:
-            if job not in unique_jobs_name:
-                unique_jobs_name.append(job)
-            basename = time_data[run][job]["basename"]
-            if basename not in unique_jobs_base_name:
-                unique_jobs_base_name.append(basename)
+    # -> move struct from: date { job { data } }
+    #                  to: jobgroup { job ([index], [data.time]) } } }
+    #                   +: jobgroup { [dates] }
+    #   ie: group by job basename + swap job/date key order
+    # + filter data by state == sucess || state == soft_timeout
+    # + make sur we are going by date order to get the right graph.
+    i: int = 0
+    for run_date, jobs in dict(sorted(all_time_data.items())).items():
+        for job_name, job_data in jobs.items():
+            base_name = job_data["basename"]
+            if base_name not in group_jobs:
+                group_jobs[base_name] = {}
+                group_dates[base_name] = []
+            if run_date not in group_dates[base_name]:
+                group_dates[base_name].append(run_date)
+            if job_name not in group_jobs[base_name]:
+                group_jobs[base_name][job_name] = {"indexs": [],
+                                                   "times": []}
+            group_jobs[base_name][job_name]["indexs"].append(i)
+            if (job_data["status"] == Test.State.SUCCESS or
+                    job_data["status"] == Test.State.SOFT_TIMEOUT):
+                group_jobs[base_name][job_name]["times"].append(job_data["time"])
+            else:
+                group_jobs[base_name][job_name]["times"].append(None)
+        i += 1
 
-    for job_base_name in unique_jobs_base_name:
-        jobs_time_series = {}
-        for job_name in unique_jobs_name:
-            if job_name.startswith(job_base_name):
-                jobs_time_series[job_name] = ([], [])
-        for job_name, job_data in jobs_time_series.items():
-            for run in time_data:
-                if job_name in time_data[run]:
-                    job_data[0].append(run)
-                    job_data[1].append(time_data[run][job_name]["time"])
-
-        fig, ax = plt.subplots()
-        for job_name, job_data in jobs_time_series.items():
-            job_spec: str = job_name[len(job_base_name) + 1:]
-            if not job_spec:
-                job_spec = "default"  # no criterions
-            ax.plot(job_data[0], job_data[1], label=job_spec)
-
-        io.console.debug(f"Times for: {job_base_name}")
-        ax.set_title(job_base_name)
-        ax.set_xlabel("Test Date")
-        ax.set_ylabel("Test Duration (s)")
-        ax.set_ylim(ymin=0)
-        ax.legend(loc="upper left")
-        size = fig.get_size_inches()
-        if show:
-            plt.show()
-        if path:
-            file_name = job_base_name.replace("/", "_")
-            fig.set_size_inches(size[0] * 2, size[1] * 2)
-            fig.savefig(os.path.join(path, f"{file_name}.{extension}"))
-        plt.close()
+    for jobs_base_name, jobs_data in group_jobs.items():
+        dates = group_dates[jobs_base_name]
+        _get_time_serie(jobs_base_name, jobs_data, dates, path, show, extension)

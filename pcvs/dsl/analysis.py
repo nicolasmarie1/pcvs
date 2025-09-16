@@ -31,7 +31,7 @@ class SimpleAnalysis(BaseAnalysis):
             run_stat = {}
             for job in run.jobs:
                 run_stat[job.name] = {'basename': job.basename,
-                                      'state': job.state,
+                                      'status': job.state,
                                       'time': job.time}
             stats[date] = run_stat
         return stats

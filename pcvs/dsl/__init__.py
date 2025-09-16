@@ -296,7 +296,8 @@ class Bank:
             self._repo.close()
             self._repo = None
 
-    def new_serie(self, serie_name=None):
+    def new_serie(self, serie_name):
+        assert serie_name is not None
         hdl = self._repo.new_branch(serie_name)
         return Serie(hdl)
 
