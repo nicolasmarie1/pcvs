@@ -10,7 +10,6 @@ Submodules
    pcvs.helpers.criterion
    pcvs.helpers.exceptions
    pcvs.helpers.git
-   pcvs.helpers.log
    pcvs.helpers.pm
    pcvs.helpers.system
    pcvs.helpers.utils

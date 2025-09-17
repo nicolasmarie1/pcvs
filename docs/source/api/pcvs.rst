@@ -8,7 +8,6 @@ Subpackages
    :maxdepth: 4
 
    pcvs.backend
-   pcvs.dsl
    pcvs.cli
    pcvs.testing
    pcvs.converter

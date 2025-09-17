@@ -40,7 +40,7 @@ $ pcvs
 
 
 Create a profile
-###############
+################
 
 A profile contains the whole PCVS configuration in a single place. While
 this approach allow deeply complex approaches, we'll target a simple MPI
@@ -76,7 +76,7 @@ Implement job descriptions
 ###########################
 
 For a short example of implementing test descriptions, please refer to the
-:ref:`Test-suite Layout` shown in the :ref:`Getting-Started` guide. A more
+:ref:`Test-suite Layout` shown in the :ref:`Getting Started` guide. A more
 detailed presentation of test description capabilities is available in its
 own documentation page.
 
