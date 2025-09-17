@@ -7,43 +7,43 @@ available in ``PATH``. This program is the only entry point to PCVS:
 
 .. code-block:: sh
 
-$ pcvs
+ $ pcvs
 
  Usage: pcvs [OPTIONS] COMMAND [ARGS]...
 
  PCVS main program.
 
-╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────╮
-│ --verbose      -v             INTEGER RANGE  Enable PCVS debug verbosity (cumulative)                  │
-│                                              [env var: PCVS_VERBOSE]                                   │
-│ --color        -c/--no-color                 Use colors to beautify the output [env var: PCVS_COLOR]   │
-│ --glyph        -g/--no-glyph                 enable/disable Unicode glyphs [env var: PCVS_ENCODING]    │
-│ --exec-path    -C             DIRECTORY      [env var: PCVS_EXEC_PATH]                                 │
-│ --version      -V                            Display current version                                   │
-│ --width        -w             INTEGER        Terminal width (autodetection if omitted                  │
-│ --plugin-path  -P             PATH           Default Plugin path prefix [env var: PCVS_PLUGIN_PATH]    │
-│ --plugin       -m             TEXT                                                                     │
-│ --help         -h,-help                      Show this message and exit.                               │
-╰────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ─────────────────────────────────────────────────────────────────────────────────────────────╮
-│ bank           Persistent data repository management                                                   │
-│ check          Ensure future input will be conformant to standards                                     │
-│ clean          Remove artifacts generated from PCVS                                                    │
-│ config         Manage Configuration blocks                                                             │
-│ exec           Running aspecific test                                                                  │
-│ profile        Manage Profiles                                                                         │
-│ report         Manage PCVS result reporting interface                                                  │
-│ run            Run a validation                                                                        │
-│ scan           Analyze directories to build up test conf. files                                        │
-│ session        Manage multiple validations                                                             │
-╰────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ ╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────╮
+ │ --verbose      -v             INTEGER RANGE  Enable PCVS debug verbosity (cumulative)                  │
+ │                                              [env var: PCVS_VERBOSE]                                   │
+ │ --color        -c/--no-color                 Use colors to beautify the output [env var: PCVS_COLOR]   │
+ │ --glyph        -g/--no-glyph                 enable/disable Unicode glyphs [env var: PCVS_ENCODING]    │
+ │ --exec-path    -C             DIRECTORY      [env var: PCVS_EXEC_PATH]                                 │
+ │ --version      -V                            Display current version                                   │
+ │ --width        -w             INTEGER        Terminal width (autodetection if omitted                  │
+ │ --plugin-path  -P             PATH           Default Plugin path prefix [env var: PCVS_PLUGIN_PATH]    │
+ │ --plugin       -m             TEXT                                                                     │
+ │ --help         -h,-help                      Show this message and exit.                               │
+ ╰────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ ╭─ Commands ─────────────────────────────────────────────────────────────────────────────────────────────╮
+ │ bank           Persistent data repository management                                                   │
+ │ check          Ensure future input will be conformant to standards                                     │
+ │ clean          Remove artifacts generated from PCVS                                                    │
+ │ config         Manage Configuration blocks                                                             │
+ │ exec           Running aspecific test                                                                  │
+ │ profile        Manage Profiles                                                                         │
+ │ report         Manage PCVS result reporting interface                                                  │
+ │ run            Run a validation                                                                        │
+ │ scan           Analyze directories to build up test conf. files                                        │
+ │ session        Manage multiple validations                                                             │
+ ╰────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 
 
 Create a profile
 ################
 
 A profile contains the whole PCVS configuration in a single place. While
-this approach allow deeply complex approaches, we'll target a simple MPI
+this approach allow deeply complex approaches, we will target a simple MPI
 implementation for this example. To create the most basic profile able to run
 MPI programs, we may herit ours from pre-generated called a template:
 
@@ -55,7 +55,8 @@ This profile can not be references with `user.myprofile` (or `myprofile` in
 short, where there are no possible conflicts. This profile will be available at
 user-level scope. It is also possible to set this profile as ``local`` (only for
 the current directory) or ``global`` (anyone using the PCVS installation). You may
-replace ``newprofile`` by a name of your  choice. For a complete list of available templates, please check ``pcvs profile list --all``.
+replace ``newprofile`` by a name of your choice.
+For a complete list of available templates, please check ``pcvs profile list --all``.
 
 A profile can be edited if necessary with ``pcvs profile edit newprofile``. It
 will open an ``$EDITOR``. When exiting, the profile is validated to ensure
