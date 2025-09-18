@@ -371,10 +371,10 @@ class AutotoolsBuildSystem(BuildSystem):
         """Populate the dict relatively to the build system to build the proper
         YAML representation."""
         name = os.path.basename(self._root)
-        self._stream[name].build.autotools.autogen = ('autogen.sh'
-                                                      in self._files)
-        self._stream[name].build.files = os.path.join(self._root, 'configure')
-        self._stream[name].build.autotools.params = ""
+        self._stream.setdefault(name, {}).setdefault('build', {}).setdefault('autotools', {})
+        self._stream[name]['build']['autotools']['autogen'] = 'autogen.sh' in self._files
+        self._stream[name]['build']['files'] = os.path.join(self._root, 'configure')
+        self._stream[name]['build']['autotools']['params'] = ""
 
 
 class CMakeBuildSystem(BuildSystem):
@@ -384,9 +384,9 @@ class CMakeBuildSystem(BuildSystem):
         """Populate the dict relatively to the build system to build the proper
         YAML representation."""
         name = os.path.basename(self._root)
-        self._stream[name].build.cmake.vars = "CMAKE_BUILD_TYPE=Debug"
-        self._stream[name].build.files = os.path.join(self._root,
-                                                      'CMakeLists.txt')
+        self._stream.setdefault(name, {}).setdefault('build', {}).setdefault('cmake', {})
+        self._stream[name]['build']['cmake']['vars'] = "CMAKE_BUILD_TYPE=Debug"
+        self._stream[name]['build']['files'] = os.path.join(self._root, 'CMakeLists.txt')
 
 
 class MakefileBuildSystem(BuildSystem):
@@ -396,8 +396,9 @@ class MakefileBuildSystem(BuildSystem):
         """Populate the dict relatively to the build system to build the proper
         YAML representation."""
         name = os.path.basename(self._root)
-        self._stream[name].build.make.target = ''
-        self._stream[name].build.files = os.path.join(self._root, 'Makefile')
+        self._stream.setdefault(name, {}).setdefault('build', {}).setdefault('make', {})
+        self._stream[name]['build']['make']['target'] = ''
+        self._stream[name]['build']['files'] = os.path.join(self._root, 'Makefile')
 
 
 def process_discover_directory(path, override=False, force=False):
