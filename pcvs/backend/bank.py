@@ -148,7 +148,7 @@ class Bank(dsl.Bank):
         """Print the bank on stdout.
 
         .. note::
-            This function does not use :class:`log.IOManager
+            This function does not use :class:`log.IOManager`
 
         :param stringify: if True, a string will be returned. Print on stdout
             otherwise

@@ -35,7 +35,6 @@ with open(os.path.join("../../version.txt"), encoding='utf-8') as fh:
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
-    'sphinx.ext.autosectionlabel',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',

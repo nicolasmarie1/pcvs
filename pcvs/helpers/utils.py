@@ -419,7 +419,7 @@ def program_timeout(sig):
 
     :param sig: signal number
     :type sig: int
-    :raises TimeoutError: timeout is reached
+    :raises CommonException.TimeoutError: timeout is reached
     """
     assert sig == signal.SIGALRM
     raise CommonException.TimeoutError("Timeout reached")

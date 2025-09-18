@@ -9,18 +9,19 @@ Setup files
 -----------
 
 Like profiles, setup configurations have nodes to describe different steps of
-the process. These nodes are splitted into subnodes to describe the course of
+the process. These nodes are split into subnodes to describe the course of
 the run.
 
 The validation configuration is specified using setup files. These files can be
 in the yml format, or be an executable files generating a yml configuration in
-stdout. The informations of this configuration are crossed with the profile informations to
+stdout. The information of this configuration are crossed with the profile information
+to run the tests.
 
 When PCVS is launched in a directory, it browses every subdirectory to find any
 ``pcvs.yml`` or ``pcvs.setup`` file and launches itself with the corresponding
 configuration.
 
-example
+Example
 ^^^^^^^
 
 .. code-block::
@@ -93,7 +94,7 @@ following nodes :
 
 The run node owns the ``iterate`` subnode which can contain custom iterators
 desribed in the ``criterion`` node in the selected profile. Moreover, the
-run.iterate node can define custom iterators without defining them in
+``run.iterate`` node can define custom iterators without defining them in
 ``criterion`` by writing them in the run.iterate.program node.
 
 .. code-block:: yaml

@@ -15,7 +15,8 @@ from pcvs.plugins import Plugin
 
 
 class Test:
-    """Smallest component of a validation process.
+    r"""
+    Smallest component of a validation process.
 
     A test is basically a shell command to run. Depending on its post-execution
     status, a success or a failure can be determined. To handle such component
@@ -23,7 +24,7 @@ class Test:
     name, the elapsed time, the output, etc.
 
     In order to make test content flexible, there is no fixed list of
-    attributes. A Test() constructor is initialized via (*args, **kwargs), to
+    attributes. A Test() constructor is initialized via (\*args, \*\*kwargs), to
     populate a dict `_array`.
 
     :cvar str NOSTART_STR: constant, setting default output when job cannot be run.

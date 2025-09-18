@@ -347,14 +347,15 @@ class Session:
             return self._sid
 
     def run(self, *args, **kwargs):
-        """Run the session normally, without detaching the focus.
+        """
+        Run the session normally, without detaching the focus.
 
         Arguments are user function ones. This function is also in charge of
         redirecting I/O properly (stdout, file, logs)
 
         :param args: user function positional arguments
         :type args: tuple
-        :param kwargs user function keyword-based arguments.
+        :param kwargs: user function keyword-based arguments.
         :type kwargs: tuple
         :return: the session ID for this run
         :rtype: int

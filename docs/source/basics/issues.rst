@@ -24,7 +24,7 @@ might be raised:
     <code>libgit2 >= 1.0.0</code>. The latter may not be available on some
     systems, be sure to check out the proper version compatible with your pygit2
     installation.</p>
-    <p>Still, we recommend to rely on wheel packages to avoid
+    <p>Still, we recommend relying on wheel packages to avoid
     installing extra third-party tools. <code>pip3</code> is the best solution.
     An important note: Only Python3.7+ wheel packages are available from PyPI
     for <code>pygit2</code>. The only solution for older Python versions is to

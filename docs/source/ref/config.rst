@@ -19,7 +19,7 @@ It is possible however to share configuration blocks by addressing them in a
 scope that is large enough to reach other users.
 
 Each configuration block contains sub-blocks in order to isolate and classify
-informations.
+information.
 
 Scope
 -----
@@ -44,7 +44,7 @@ This node can contain the subnodes **comands** and **variants**
 commands
 ++++++++
 
-The compiler.commands block contains a collection of compiler commands.
+The ``compiler.commands`` block contains a collection of compiler commands.
 
 .. code-block:: yaml
 
@@ -69,13 +69,13 @@ The ``variants`` block can contain any custom variant. The variant must have a
     strict :
         args: -Werror -Wall -Wextra
 
-I this example the variants "example_variant", "openmp", and "strict" have to be
+In this example the variants "example_variant", "openmp", and "strict" have to be
 specified in the validation setup where the user wants to use them.
 
 criterion node 
 ^^^^^^^^^^^^^^
 
-the criterion node contains a collection of iterators that describe the tests.
+The criterion node contains a collection of iterators that describe the tests.
 PCVS can iterate over custom parameters as such :
 
 .. code-block:: yaml
@@ -104,7 +104,7 @@ In this case the program has to iterate on the core number and has to take the
 values 1 and 2. The name ``n_core`` is arbitrary and has to be put in the
 validation setup file.
 
-group node 
+Group node 
 ^^^^^^^^^^
 
 The group node contains group definitions that describe tests. A group
@@ -127,12 +127,12 @@ machine node
 
 The machine node describes the constraints of the physical machine. 
 
-machine :
-    nodes : number of accessible nodes
+.. code-block:: yaml
 
-    cores_per_node : number of accessible cores per node
-
-    concurrent_run : maximum number of processes that can coexist
+    machine:
+        nodes: number of accessible nodes
+        cores_per_node: number of accessible cores per node
+        concurrent_run: maximum number of processes that can coexist
 
 runtime node 
 ^^^^^^^^^^^^
@@ -150,15 +150,11 @@ args : arguments for the launch command
 
     iterators:
         n_mpi:
-            numeric : true
-
-            option : "-np "
-
-            type : argument
-
-            aliases :
+            numeric: true
+            option: "-np"
+            type: argument
+            aliases:
                 [dictionary of aliases for the option]
-            
-    plugins
+    plugins:
 
 

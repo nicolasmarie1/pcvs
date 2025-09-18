@@ -2,7 +2,7 @@
  Basic usage
 ##############
 
-Once PCVS is installed through the :ref:`Installation Guide`, the ``pcvs`` is
+Once PCVS is installed through the :ref:`installation-guide`, the ``pcvs`` is
 available in ``PATH``. This program is the only entry point to PCVS:
 
 .. code-block:: sh
@@ -54,7 +54,7 @@ MPI programs, we may herit ours from pre-generated called a template:
 This profile can not be references with `user.myprofile` (or `myprofile` in
 short, where there are no possible conflicts. This profile will be available at
 user-level scope. It is also possible to set this profile as ``local`` (only for
-the current directory) or ``global`` (anyone using the PCVS installation). You may
+the current directory or ``global`` (anyone using the PCVS installation)). You may
 replace ``newprofile`` by a name of your choice.
 For a complete list of available templates, please check ``pcvs profile list --all``.
 
@@ -77,7 +77,7 @@ Implement job descriptions
 ###########################
 
 For a short example of implementing test descriptions, please refer to the
-:ref:`Test-suite Layout` shown in the :ref:`Getting Started` guide. A more
+:ref:`test-suite-layout` shown in the :ref:`getting-started` guide. A more
 detailed presentation of test description capabilities is available in its
 own documentation page.
 
@@ -94,7 +94,7 @@ The most basic ``pcvs.yml`` file may look like this:
 PCVS also supports building programs through Make, CMake & Autotools, each system
 having its own set of keys to configure:
 
-* ``build.make.target``: allow to configure a Make target to invoke.
+* ``build.make.target``: allow configuring a Make target to invoke.
 * ``build.cmake.vars``: variables to forward to cmake (to be prefixed w/ ``-D``)
 * ``build.autotools.params``: configure script flags
 * ``build.autotools.autogen``: boolean whether to execute autogen.sh first.

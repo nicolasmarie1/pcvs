@@ -91,34 +91,36 @@ def check_valid_kind(s) -> bool:
 
 
 class ConfigurationBlock:
-    """Handle the basic configuration block, smallest part of a profile.
+    """
+    Handle the basic configuration block, smallest part of a profile.
 
-        From a user persperctive, a basic block is a dict, gathering in a Python
-        object informations relative to the configuration of a single component.
-        In PCVS, there is 5 types of components:
-            * Compiler-oriented (defining compiler commands)
-            * Runtime-oriented (setting runtime & parametrization)
-            * Machine-oriented (Defining resources used for execution)
-            * Group-oriented (used a templates to globally describe tests)
-            * Criterion-oriented (range of parameters used to run a test-suite)
+    From a user persperctive, a basic block is a dict, gathering in a Python
+    object informations relative to the configuration of a single component.
+    In PCVS, there is 5 types of components:
 
-        This class helps to manage any of these config blocks above. The
-        distinction between them is carried over by an instance attribute
-        ``_kind``.
+    * Compiler-oriented (defining compiler commands)
+    * Runtime-oriented (setting runtime & parametrization)
+    * Machine-oriented (Defining resources used for execution)
+    * Group-oriented (used a templates to globally describe tests)
+    * Criterion-oriented (range of parameters used to run a test-suite)
 
-        .. note::
-            This object can easily be confused with :class:`system.Config`.
-            While ConfigurationBlocks are from a user perspective,
-            system.Config handles the internal configuration tree, on which runs
-            rely. Nonetheless, both could be merged into a single representation
-            in later versions.
+    This class helps to manage any of these config blocks above. The
+    distinction between them is carried over by an instance attribute
+    ``_kind``.
 
-        :param str _kind: which component this object describes
-        :param str _name: block name
-        :param dict details: block content
-        :param str _scope: block scope, may be None
-        :param str _file: absolute path for the block on disk
-        :param bool _exists: True if the block exist on disk
+    .. note::
+        This object can easily be confused with :class:`system.Config`.
+        While ConfigurationBlocks are from a user perspective,
+        system.Config handles the internal configuration tree, on which runs
+        rely. Nonetheless, both could be merged into a single representation
+        in later versions.
+
+    :param str _kind: which component this object describes
+    :param str _name: block name
+    :param dict details: block content
+    :param str _scope: block scope, may be None
+    :param str _file: absolute path for the block on disk
+    :param bool _exists: True if the block exist on disk
     """
 
     def __init__(self, kind, name, scope=None):
@@ -285,7 +287,7 @@ class ConfigurationBlock:
         """
         load from the specific template, to create a new config block
 
-        :param name:template name, defaults to None
+        :param name: template name, defaults to None
         :type name: str, optional
         :raises NotFoundError: template not found
         """

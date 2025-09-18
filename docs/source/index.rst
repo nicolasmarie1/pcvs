@@ -11,7 +11,7 @@ Parallel Computing Validation System
 Orchestrator designed by and for software at scale. Its primary target is HPC
 applications & runtimes but can flawlessly address smaller use cases. PCVS can
 help users to create their test scenarios and reuse them among multiples
-implementations, an high value when it comes to validating Programmation
+implementations, a high value when it comes to validating Programmation
 standards (like APIs & ABIs). No matter the number of programs, benchmarks,
 languages, or tech non-regression bases use, PCVS gathers in a single execution,
 and, with a focus on interacting with HPC batch managers efficiently, run jobs
@@ -32,7 +32,7 @@ execute) from application to validate, the effort of writing tests and setting
 validation plaform is strongly reduced, for instance:
 
 #. The dev team writes tests and describes scenarii.
-#. Cluster admins sets up the architecture for testing (compilers, tools...).
+#. Cluster admins set up the architecture for testing (compilers, tools...).
 #. Q/A dept. executes applications on given resource.
 
 Splitting the effort will enforce reusability and flexibility. In many cases,
@@ -47,7 +47,7 @@ frameworks).
 
 .. note::
    PCVS does not act as a test framework on its own. It does not have all the
-   features from a test reporting interface either. Its purposes is to provide a
+   features from a test reporting interface either. Its purposes are to provide a
    new approach when building test-bases to dissociate testers from tested, to
    increase flexbility, reusability, ease maintenance and speed up test
    scheduling to minimize time to result. It is compatible with multiple build

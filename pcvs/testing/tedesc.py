@@ -21,10 +21,11 @@ from pcvs.testing.test import Test
 
 
 def detect_compiler(array_of_files) -> str:
-    """Determine compilers to use for a target file (or list of files).
+    """
+    Determine compilers to use for a target file (or list of files).
 
     :param array_of_files: list of files to identify
-    :return the chosen compilers
+    :return: the chosen compilers
     """
     detect = []
     for f in array_of_files:
@@ -82,7 +83,8 @@ def extract_compiler_config(lang, variants):
 
 
 def build_job_deps(deps_node, pkg_label, pkg_prefix):
-    """Build the dependency list from a given depenency YAML node.
+    """
+    Build the dependency list from a given depenency YAML node.
 
     A ``depends_on`` is used by test to establish their relationship. It looks
     like:
@@ -96,7 +98,7 @@ def build_job_deps(deps_node, pkg_label, pkg_prefix):
     :param pkg_label: the label where this TE is from (to compute depnames)
     :type pkg_label: str
     :param pkg_prefix: the subtree where this TE is from (to compute depnames)
-    :type pkg_prefix, str or NoneType
+    :type pkg_prefix: str or NoneType
 
     :return: a list of dependencies, either as depnames or PManager objects
     :rtype: list

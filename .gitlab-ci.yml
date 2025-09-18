@@ -58,7 +58,7 @@ Build Doc:
     # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
     #- tox -e doc
     - cd docs
-    - make html
+    - make clean && make html
 
 Lint Doc:
   <<: *scope

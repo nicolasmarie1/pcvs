@@ -1,3 +1,5 @@
+.. _getting-started:
+
 ##################
  Getting Started
 ##################
@@ -5,9 +7,9 @@
 Installation
 ############
 
-The simplest way to install PCVS is through **PyPI** repositories. It will fetch
-the lastest release but a specific version can be specified (detailed
-documentation in :doc:`installation`):
+The simplest way to install PCVS is through **PyPI** repositories.
+It will fetch the lastest release, but a specific version can be specified
+(detailed documentation in :doc:`installation`):
 
 .. code-block:: bash
 
@@ -20,7 +22,7 @@ documentation in :doc:`installation`):
 	PCVS main program.
 	...
 
-Full completion (options & arguments) is provide an can be activated with:
+Full completion (options & arguments) is provided and can be activated with:
 
 .. code-block:: bash
 
@@ -33,13 +35,15 @@ Full completion (options & arguments) is provide an can be activated with:
 PCVS-formatted test-suite
 #########################
 
+.. _test-suite-layout:
+
 Test-suite layout
 =================
 
 While PCVS is highly customizable, it comes with templates to locally test it
 without any prior knowledge. Before using PCVS, let's consider a provided
-test-suite as any ``tests/`` directory (
-:download:`all-reduce.c <../examples/all-reduce.c>` &
+test-suite as any ``tests/`` directory
+(:download:`all-reduce.c <../examples/all-reduce.c>` &
 :download:`wave.c <../examples/wave.c>` provided for convenience):
 
 .. code-block:: bash
@@ -60,9 +64,9 @@ directory for this example. Here is the content of this file:
 
 .. note::
 	A test is the combination of a program, its arguments and the environment
-	used to execute it. from PCVS' point of view, a test file does not carry the
-	whole test environment. the orchestrator itself manage to build it directly
-	from specification. Thus ``pcvs.yml`` expects the user to decribe programs
+	used to execute it. From PCVS' point of view, a test file does not carry the
+	whole test environment. The orchestrator itself manage to build it directly
+	from specification. Thus, ``pcvs.yml`` expects the user to decribe programs
 	to be used to build the test-suite.
 
 .. code-block:: yaml
@@ -80,9 +84,9 @@ directory for this example. Here is the content of this file:
 			program: "a.out"
 
 This file specifies two root nodes referred as *Test Expressions* (TE) or *Test
-Descriptors* (TD). It contains subondes describing how to build programs. A ``build``
-gives informations about how to build the program. ``files`` (a list *or* a
-string) contains the whole list of files required to
+Descriptors* (TD). It contains subondes describing how to build programs.
+A ``build`` gives information about how to build the program.
+``files`` (a list *or* a string) contains the whole list of files required to
 build the program (in case of a C file for instance).  With no other
 information, PCVS will assume the program to be built with a compiler (no
 invocation to a build system here). A ``run`` subnode instructs PCVS to execute
@@ -115,7 +119,7 @@ directory used when running PCVS. To learn more about profile scope, please see 
 .. note::
 	As this profile uses MPI, we need to source an MPI implementation in the
 	environment. Please use the method suiting your needs (spack/module/source).
-	If interested by autoloading spack-or-module-based MPI implementation,
+	If interested in autoloading spack-or-module-based MPI implementation,
 	please read :doc:`/ref/profile`.
 
 Now, start PCVS. You must provide the profile & the directory where tests are
@@ -132,11 +136,11 @@ located:
 Access the results
 ##################
 
-Results are stored in ``$PWD/.pcvs-build/rawdata/*.json`` by default. the
+Results are stored in ``$PWD/.pcvs-build/rawdata/*.json`` by default. The
 default output directory may be changed with `pcvs run --output`. JSON files can
-directly processed by this-party tools. The :download:`scheme
+directly process by third-party tools. The :download:`scheme
 <../../../pcvs/schemes/test-result-scheme.yml>` can be used to update the input
-parser with compliant output. Currently PCVS only provides specific JSON format.
+parser with compliant output. Currently, PCVS only provides specific JSON format.
 It is planned to support common validation format (like JUnit).
 
 If no third-party tool is available, PCVS comes with a lightweight web server

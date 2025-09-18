@@ -214,10 +214,11 @@ class Criterion:
     # only allow overriding values (for now)
 
     def override(self, desc):
-        """Replace the value of the criterion using a descriptor containing the
-            said value
+        """
+        Replace the value of the criterion using a descriptor containing the
+        said value
 
-        :param desc: descriptor supposedly containing a ``value``entry
+        :param desc: descriptor supposedly containing a ``value`` entry
         :type desc: dict
         """
         if 'values' in desc:

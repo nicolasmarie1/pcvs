@@ -394,13 +394,13 @@ def build_env_from_configuration(config: dict) -> dict:
 
     Not all configuration are exported, only the one that may be used.
     compiler variables:
-        PCVS_CMP_CC=mpc_cc
-        PCVS_CMP_CC_ARGS=-O5
-        PCVS_CMP_CC_VAR_OPENMP=mpc_cc_omp
-        PCVS_CMP_CC_VAR_OPENMP_ARGS=-fopenmp
+    - PCVS_CMP_CC=mpc_cc
+    - PCVS_CMP_CC_ARGS=-O5
+    - PCVS_CMP_CC_VAR_OPENMP=mpc_cc_omp
+    - PCVS_CMP_CC_VAR_OPENMP_ARGS=-fopenmp
 
     criterions variables:
-        PCVS_CRIT_MPI='1 2 4'
+    - PCVS_CRIT_MPI='1 2 4'
 
     :param config: the current config
     :type config: dict
@@ -574,10 +574,12 @@ def unsafe_process_static_yaml_files(yaml_files):
 
 
 def anonymize_archive():
-    """Erase from results any undesired output from the generated archive.
+    """
+    Erase from results any undesired output from the generated archive.
 
     This process is disabled by default as it may increase significantly the
     validation process on large test bases.
+
     .. note::
         It does not alter results in-place, only the generated archive. To
         preserve the anonymization, only the archive must be exported/shared,

@@ -11,9 +11,3 @@ TE nodes: The complete list
     :language: yaml
     :linenos:
 
-Profile: The complete list
-##########################
-
-.. litaralinclude:: ../examples/
-    :language: yaml
-    :lineos:

@@ -9,7 +9,7 @@ Dedicated benchmark repository
 ##############################
 
 Benchmark description
-====================
+=====================
 
 PCVS is a program built for current HPC structures, it allows the launch of
 programs with a large coverage of parameters. Moreover, PCVS allows users to log
@@ -93,7 +93,7 @@ Many other options are available such as tags, flags, etc, these are referenced 
 Visualize results
 =================
 
-PCVS owns an html report generator, it can be used with :
+PCVS owns a HTML report generator, it can be used with :
 
 .. code-block:: bash
 

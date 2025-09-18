@@ -3,7 +3,7 @@
 ##################
 
 Here is a quick overview of features that make PCVS a robust solution different
-than other validation engines.
+from other validation engines.
 
 Run the validation from anywhere
 ################################
@@ -19,12 +19,12 @@ After installation, PCVS can be configured in a minute for the current directory
 Scale a test-suite depending on the target machine
 ##################################################
 
-From PCVS approach, a benchmarks is a collection of programs. coupled with a
-compiler and a launcher, sets of tests can be build to dynamically adapt the
+From PCVS approach, a benchmark is a collection of programs. Coupled with a
+compiler and a launcher, sets of tests can be built to dynamically adapt the
 machine to test. With a single edition, a test-suite can be ported from a
 validating an MPI implementation on a simple workstation (no tests requiring
-more than one node & 4-8 MPI processes) to largest supercomputers (thousands of
-nodes). PCVS allow this thanks to **criterions**, a variadic component to apply
+more than one node & 4-8 MPI processes) to the largest supercomputers (thousands
+of nodes). PCVS allow this thanks to **criterions**, a variadic component to apply
 to a program to build tests. It may be populated as follows in a profile:
 
 .. code-block:: yaml

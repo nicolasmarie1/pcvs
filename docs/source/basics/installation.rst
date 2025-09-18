@@ -1,3 +1,5 @@
+.. _installation-guide:
+
 ####################
  Installation Guide
 ####################
@@ -46,8 +48,8 @@ Here some quickstarts for each approach:
 Installation from PyPI
 ######################
 
-The simplest way to install PCVS is through **PyPI** repositories. It will fetch
-the lastest release but a specific version can be specified:
+The simplest way to install PCVS is through **PyPI** repositories.
+It will fetch the lastest release, but a specific version can be specified:
 
 .. code-block:: bash
 
@@ -59,7 +61,7 @@ the lastest release but a specific version can be specified:
 Installation from sources
 #########################
 
-The source code is also available on Github, based on Setuptools, the manual
+The source code is also available on GitHub, based on Setuptools, the manual
 installation is pretty simple. The latest release (and any previous archive) is
 also available on the `website <https://pcvs.io/download>`_. To checkout the
 latest release:
@@ -74,7 +76,7 @@ latest release:
 Managing Dependencies
 #####################
 
-Installing only dependencies come in two way: ``requirements.txt`` gathers
+Installing only dependencies come in two-way: ``requirements.txt`` gathers
 production-side deps, required for PCVS to work, while
 ``requirements-dev.txt`` contains (in addition to the base) the validation
 toolkit (pytest, coverage, etc.):
@@ -120,10 +122,11 @@ PCVS), we are still considering PCVS is cloned locally:
     target machine.
 
 pip provides options to select a given platform/target python version, which
-differ from the current one. Note in that case no intermediate source package will be used, only
-distributed versions (compiled one). To 'accept' it, you must specify
+differ from the current one.
+Note in that case no intermediate source package will be used,
+only distributed versions (compiled one). To 'accept' it, you must specify
 ``--only-binary=:all:`` to force downloading distrution packages (but will
-failed if not provided) or ``--no-deps`` to exclude any dependencies to be
+fail if not provided) or ``--no-deps`` to exclude any dependencies to be
 downloade (and should be taken care manually):
 
 .. code-block:: bash
