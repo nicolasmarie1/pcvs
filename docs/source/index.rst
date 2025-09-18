@@ -55,7 +55,7 @@ frameworks).
    inside already-existing projects.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Basics
 
    basics/features
@@ -66,9 +66,17 @@ frameworks).
    basics/workflow
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Reference
 
+   ref/test-file
+   ref/config
+   ref/profile
+   ref/session
+   ref/utils
+   ref/examples
+
+..
    ref/run
    ref/report
    ref/test-file
@@ -81,9 +89,11 @@ frameworks).
    ref/examples
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Development
-   
+
+   api/pcvs
+..
    dev/overview
    dev/contribution
    api/pcvs
