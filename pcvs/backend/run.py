@@ -158,7 +158,7 @@ def process_main_workflow(the_session=None):
     if bank_token is not None:
         io.console.print_section(
             f"===> Loading Bank: {bank_token}.")
-        bank = pvBank.Bank(token=bank_token)
+        bank = pvBank.Bank(bank_token)
         GlobalConfig.root.set_internal("bank", bank)
 
     if valcfg['onlygen']:
@@ -180,15 +180,10 @@ def process_main_workflow(the_session=None):
     # post-actions to build the archive, post-process the webview...
     terminate()
     if bank is not None:
-        pref_proj = bank.default_project
-        if bank.exists():
-            io.console.print_item("Upload results to bank: '{}{}'".format(
-                bank.name.upper(),
-                " (@{})".format(pref_proj) if pref_proj else ""))
-
-            bank.save_new_run_from_instance(None,
-                                            build_manager,
-                                            msg=valcfg.get('message', None))
+        io.console.print_item(f"Upload results to bank: '{bank_token}'")
+        bank.save_new_run_from_instance(None,
+                                        build_manager,
+                                        msg=valcfg.get('message', None))
         bank.disconnect()
     buildfile = os.path.join(valcfg['output'], NAME_BUILDFILE)
     if utils.is_locked(buildfile):

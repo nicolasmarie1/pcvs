@@ -89,10 +89,7 @@ def bank_list(ctx):  # pylint: disable=unused-argument
 def bank_show(ctx, name, path):  # pylint: disable=unused-argument
     """Display all data stored into NAME repository"""
     b = pvBank.Bank(token=name)
-    if not b.exists():
-        raise click.BadArgumentUsage(f"'{name}' does not exist")
-    else:
-        b.connect()
+    b.connect()
 
     if path:
         print(b.path)
@@ -112,15 +109,11 @@ def bank_create(ctx, name, path):  # pylint: disable=unused-argument
     """Create a new bank, named NAME, data will be stored under PATH."""
     io.console.print_header("Bank Init")
     if path is None:
-        path = os.getcwd()
-
+        path = os.path.join(os.getcwd(), name)
     path = os.path.abspath(path)
 
-    b = pvBank.Bank(path, token=name)
-    if b.exists():
-        raise click.BadArgumentUsage(f"'{name}' already exist")
-    b.connect()
-    b.save_to_global()
+    if not pvBank.create_bank(name, path):
+        raise click.BadArgumentUsage(f"'{name}' already exist or can't be created")
 
 
 @bank.command(name="destroy", short_help="Delete an existing bank")
@@ -147,15 +140,12 @@ def bank_destroy(ctx, name, symlink):  # pylint: disable=unused-argument
     """
     io.console.print_header("Bank Destry")
     b = pvBank.Bank(token=name)
-    if not b.exists():
-        raise click.BadArgumentUsage("'{}' does not exist".format(name))
-    else:
-        if not symlink:
-            io.console.warn(
-                "To delete a bank, just remove the directory {}".format(
-                    b.prefix))
-        io.console.print_item("Bank '{}' unlinked".format(name))
-        pvBank.rm_banklink(name)
+    if not symlink:
+        io.console.warn(
+            "To delete a bank, just remove the directory {}".format(
+                b.prefix))
+    io.console.print_item("Bank '{}' unlinked".format(name))
+    pvBank.rm_banklink(name)
 
 
 @bank.command(name="save", short_help="Save a new run to the datastore")
@@ -176,9 +166,6 @@ def bank_save_run(ctx, name, path, msg):  # pylint: disable=unused-argument
     the target bank name, PATH the build directory"""
 
     b = pvBank.Bank(token=name)
-    if not b.exists():
-        raise click.BadArgumentUsage("'{}' does not exist".format(name))
-
     path = os.path.abspath(path)
     project = b.default_project
 
@@ -196,15 +183,6 @@ def bank_save_run(ctx, name, path, msg):  # pylint: disable=unused-argument
                 required=True,
                 type=str,
                 shell_complete=compl_list_banks)
-# unused
-#@click.option("--since",
-#              "start",
-#              default=None,
-#              help="Select a starting point from where data will be extracted")
-#@click.option("--until",
-#              "end",
-#              default=None,
-#              help="Select the last date (included) where data will be searched for")
 @click.option("-s",
               "--startswith",
               "prefix",
@@ -227,16 +205,3 @@ def bank_load(ctx, name, prefix):  # pylint: disable=unused-argument
                 data.append(j.to_json())
     import json
     print(json.dumps(data))
-
-# TODO: implement bank extract command
-# @bank.command(name="extract", short_help="Extract infos from the datastore")
-# @click.argument("name",
-#                 nargs=1,
-#                 required=True,
-#                 type=str,
-#                 shell_complete=compl_list_banks)
-# @click.argument("key", nargs=1, required=True)
-# @click.pass_context
-# def bank_extract(ctx, name, key):
-#
-#     pass

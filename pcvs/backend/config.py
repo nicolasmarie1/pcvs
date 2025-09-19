@@ -268,7 +268,7 @@ class ConfigurationBlock:
 
         :raises BadTokenError: the scope/kind/name tuple does not refer to a
             valid file.
-        :raises NotFoundError: The target file does not exist
+        :raises ConfigException.NotFoundError: The target file does not exist
         """
 
         if not self._exists:
@@ -289,7 +289,7 @@ class ConfigurationBlock:
 
         :param name: template name, defaults to None
         :type name: str, optional
-        :raises NotFoundError: template not found
+        :raises ConfigException.NotFoundError: template not found
         """
         self._exists = True
         if not name:

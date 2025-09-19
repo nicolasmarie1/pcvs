@@ -51,7 +51,6 @@ async def bank_cmd(ctx, *args):
         elif args[0] == "save":
             assert args[1]
             b = bank.Bank(token=args[1])
-            assert b.exists()
             assert len(ctx.message.attachments) == 1
             tmp = ctx.message.attachments[0]
             assert tmp.content_type == "application/x-tar"
@@ -78,7 +77,6 @@ async def analyze_cmd(ctx, *args):
         if args[0] == "render":
             assert args[1] and args[2]
             req_bank = bank.Bank(token=args[2])
-            assert req_bank.exists()
             req_analysis = analysis.SimpleAnalysis(bank=req_bank)
             for fname, f in inspect.getmembers(req_analysis.__class__, inspect.isfunction):
                 if fname == args[1]:

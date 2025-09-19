@@ -217,8 +217,8 @@ class Profile:
     def load_from_disk(self):
         """Load the profile from its representation on disk.
 
-        :raises NotFoundError: profile does not exist
-        :raises NotFoundError: profile path is not valid
+        :raises ProfileException.NotFoundError: profile does not exist
+        :raises ProfileException.NotFoundError: profile path is not valid
         """
 
         if not self._exists:
@@ -238,7 +238,7 @@ class Profile:
 
         :param name: the profile template name
         :type name: str, optional
-        :raises NotFoundError: target profile isn't found
+        :raises ProfileException.NotFoundError: target profile isn't found
         """
         self._exists = True
         self._file = None

@@ -63,9 +63,6 @@ def cli_graph(ctx, bank_name, graph_types, path, show, extension, limit):  # pyl
         limit = sys.maxsize
 
     bank = pvBank.Bank(token=bank_name)
-    if not bank.exists():
-        raise click.BadArgumentUsage(f"'{bank_name}' bank does not exist")
-
     serie = bank.get_serie(bank.default_project)
     if not serie:
         raise click.BadArgumentUsage(f"'{bank_name}' project does not exist")

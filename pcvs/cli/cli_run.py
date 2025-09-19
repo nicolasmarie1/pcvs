@@ -286,11 +286,8 @@ def run(ctx, profilename, profilepath, output, detach, override, anon, settings_
     val_cfg.set_ifdef("dirs", dirs)
 
     if bank is not None:
-        obj = pvBank.Bank(token=bank, path=None)
+        obj = pvBank.Bank(bank)
         io.console.debug("PRE-RUN: configure target bank: {}".format(obj.name))
-        if not obj.exists():
-            raise click.BadOptionUsage(
-                "--bank", "'{}' bank does not exist".format(obj.name))
         obj.disconnect()
 
     # BEFORE the build dir still does not exist !

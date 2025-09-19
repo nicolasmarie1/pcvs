@@ -8,6 +8,7 @@ from typing import Optional
 from ruamel.yaml import YAML
 
 from pcvs import dsl
+from pcvs import io
 from pcvs import PATH_BANK
 from pcvs.helpers import git
 from pcvs.helpers import utils
@@ -42,59 +43,67 @@ class Bank(dsl.Bank):
     #: :type BANKS: dict, keys are bank names, values are file path
     BANKS: Dict[str, str] = {}
 
-    def __init__(self, path: Optional[str] = None, token: str = "") -> None:
+    def __init__(self, token: str) -> None:
         """Build a Bank.
 
-        The path may be omitted if the bank is already known (=stored in
-        ``PATH_BANK`` file). If not, the path is mandatory in order to be saved.
+        A Bank is describe by an optional token follow by a bank name or bank path.
 
-        .. warning::
-            A bank name should be resolved either by its presence in
-            ``PATH_BANK`` file **or** with a valid provided path. Otherwise, an
-            error may be raised.
+        Example: ``cholesky@mpc_ci_bank``, ``nas@/home/mpc/mpc_ci_bank``
 
-        The token is under the form ``A@B`` where ``A`` depicts its name and
-        ``B`` represents the "default project" (git branch)  where data will be manipulated.
-
-        :param path: location of the bank repo (on disk), defaults to None
-        :type path: str, optional
-        :param token: name & default project to manipulate, defaults to ""
+        :param token: name, path, project@name or project@path
         :type token: str
         """
-        self._dflt_proj: Optional[str] = None
-        self._name: Optional[str] = None
-        self._path: str = path
+        self._dflt_proj: str = None
+        self._name: str = None
+        self._path: str = None
 
-        # split name & default-proj from token
+        path_or_name: str = token
+        self._dflt_proj = "default"
+
+        # split name/path & default-proj from token
         array: List[str] = token.split('@', 1)
         if len(array) > 1:
-            self._dflt_proj = array[1]
-        self._name = array[0]
+            self._dflt_proj = array[0]
+            path_or_name = array[1]
 
-        if self.exists():
-            if self.name_exist():
-                path = Bank.BANKS[self._name.lower()]
-            else:
-                for k, v in Bank.BANKS.items():
-                    if v == path:
-                        self._name = k
-                        break
+        # by name
+        if path_or_name in Bank.BANKS:
+            self._name = path_or_name
+            self._path = Bank.BANKS[path_or_name]
+        # by paths
+        elif path_or_name in Bank.BANKS.values():
+            for k, v in Bank.BANKS.items():
+                if v == path_or_name:
+                    self._name = k
+                    break
+            self._path = path_or_name
+        # by unregistered existing path
+        elif os.path.isdir(path_or_name):
+            io.console.warning(f"Loading unregistered Bank from: '{path_or_name}'")
+            self._path = path_or_name
+            self._name = os.path.basename(path_or_name)
+        # We did not found the bank.
+        else:
+            raise BankException.NotFoundError(f"Unable to find bank: '{path_or_name}'")
 
-        super().__init__(path, self._dflt_proj)
+        super().__init__(self._path, self._dflt_proj)
 
     @property
     def default_project(self) -> str:
         """
-        Get project set as default when none are provided.
+        Get the default project select at the bank creation.
+
+        Return 'default' when no default project are specify at bank creation.
 
         :return: the project name (as a Ref branch)
         :rtype: str
         """
-        return "unknown" if not self._dflt_proj else self._dflt_proj
+        return self._dflt_proj
 
     @property
     def prefix(self) -> Optional[str]:
-        """Get path to bank directory.
+        """
+        Get path to bank directory.
 
         :return: absolute path to directory
         :rtype: str
@@ -103,38 +112,13 @@ class Bank(dsl.Bank):
 
     @property
     def name(self) -> str:
-        """Get bank name.
+        """
+        Get bank name.
 
-        :return: the exact label (without default-project suffix)
+        :return: the bank name
         :rtype: str
         """
-        return self._name if self._name else ""
-
-    def exists(self) -> bool:
-        """Check if the bank is stored in ``PATH_BANK`` file.
-
-        Verification is made either on name **or** path.
-
-        :return: True if both the bank exist and globally registered
-        :rtype: bool
-        """
-        return self.name_exist() or self.path_exist()
-
-    def name_exist(self) -> bool:
-        """Check if the bank name is registered into ``PATH_BANK`` file.
-
-        :return: True if the name (lowered) is in the keys()
-        :rtype: bool
-        """
-        return self._name.lower() in Bank.BANKS.keys() if self._name else False
-
-    def path_exist(self) -> bool:
-        """Check if the bank path is registered into ``PATH_BANK`` file.
-
-        :return: True if the path is known.
-        :rtype: bool
-        """
-        return self._path in Bank.BANKS.values()
+        return self._name
 
     def __str__(self) -> str:
         """Stringification of a bank.
@@ -173,12 +157,6 @@ class Bank(dsl.Bank):
         Close / disconnet a bank (releasing lock)
         """
         self.disconnect()
-
-    def save_to_global(self) -> None:
-        """Store the current bank into ``PATH_BANK`` file."""
-        if self._name in Bank.BANKS:
-            self._name = os.path.basename(self._path).lower()
-        add_banklink(self._name, self._path)
 
     def save_from_hdl(self,
                       target_project: str,
@@ -337,16 +315,37 @@ def list_banks() -> dict:
     return Bank.BANKS
 
 
-def add_banklink(name: str, path: str) -> None:
-    """Store a new bank to the global system.
+def create_bank(name: str, path: str) -> bool:
+    """
+    Create a new bank and store it to the global system.
 
     :param name: bank label
     :type name: str
     :param path: path to bank directory
     :type path: str
+    :return: if bank was sucessfuly created
+    :rtype: bool
     """
+    # check if the bank name already exist
+    if name in Bank.BANKS[name]:
+        return False
+
+    # check if the folder of the bank can be created
+    # allow already existing bank to be reimported
+    try:
+        os.makedirs(path, exist_ok=True)
+    except OSError:
+        return False
+
+    # register bank name/path in pcvs home configuration
     Bank.BANKS[name] = path
     flush_to_disk()
+
+    # create the bank
+    b = Bank(name)
+    b.connect()
+
+    return True
 
 
 def rm_banklink(name: str) -> None:

@@ -77,15 +77,13 @@ def dummy_run():
 def test_bank_connect(mock_repo_fs):  # pylint: disable=redefined-outer-name
     # first test with a specific dir to create the Git repo
     pcvs.io.init()
-    obj = tested.Bank(path=mock_repo_fs)
-    assert not obj.exists()
+    obj = tested.Bank(mock_repo_fs)
     obj.connect()
     assert os.path.isfile(os.path.join(mock_repo_fs, "HEAD"))
     obj.disconnect()
 
     # Then use the recursive research to let pygit2 detect the Git repo
-    obj = tested.Bank(path=mock_repo_fs)
-    assert not obj.exists()
+    obj = tested.Bank(mock_repo_fs)
     obj.connect()
     assert obj.prefix == mock_repo_fs  # pygit2 should detect the old repo
     assert os.path.isfile(os.path.join(mock_repo_fs, "HEAD"))
@@ -95,8 +93,7 @@ def test_bank_connect(mock_repo_fs):  # pylint: disable=redefined-outer-name
 
 def test_save_run(mock_repo_fs, dummy_run, capsys):  # pylint: disable=redefined-outer-name
     pcvs.io.init()
-    obj = tested.Bank(path=mock_repo_fs, token="dummy@original-tag")
-    assert not obj.exists()
+    obj = tested.Bank(f"original-tag@{mock_repo_fs}")
     obj.connect()
     prefix = utils.find_buildir_from_prefix(dummy_run)
     obj.save_from_buildir("override-tag", prefix)

@@ -116,6 +116,9 @@ class CommonException(BaseException):
 class BankException(CommonException):
     "Bank-specific exceptions." ""
 
+    class NotFoundError(GenericException):
+        """Bank not Found."""
+
     class ProjectNameError(GenericException):
         """name is not a valid project under the given bank."""
 
