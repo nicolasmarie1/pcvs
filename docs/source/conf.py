@@ -18,7 +18,12 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import sys
 from datetime import datetime
+
+pcvs_path = os.path.abspath("../../")
+print(f"Using pcvs in: {pcvs_path}")
+sys.path.insert(0, pcvs_path)
 
 with open(os.path.join("../../version.txt"), encoding='utf-8') as fh:
     __version = fh.readline()[:-1]
