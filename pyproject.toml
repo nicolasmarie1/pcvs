@@ -177,6 +177,9 @@ allowlist_externals = ['make']
 changedir = 'docs'
 commands = [
   [
+    'make', 'clean'
+  ],
+  [
     'make', 'html'
   ],
 ]
