@@ -61,10 +61,9 @@ sources. It contains the following subndoes :
         files: path/to/the/file/to/build
         sources:
             binary: name of the binary to be built (if necessary)
+            cflags: extra cflags 
+            ldflags: extra ldflags 
         depends_on: ["list of test names it depends on"]
-        
-        cflags: extra cflags 
-        ldflags: extra ldflags 
         cwd: directory where the binary should be built 
         variants: [list of variants (CF Configuration basic blocks -> compiler
         node)]
@@ -75,6 +74,7 @@ sources. It contains the following subndoes :
             params: [list of options for cmake]
         make:
             target: target for make command
+            jobs: make -j n option
 
 Run
 ---
@@ -86,8 +86,8 @@ following nodes :
 
     run:
         cwd: path to build directory
-        depends_on: 
-            test: [list of tests on which it depends]
+        depends_on: [list of tests on which it depends]
+        package_manager:
             spack: [list of spack dependencies used by this test]
             module: [list of installed modules this test needs]
         program: name of the binary file
@@ -101,7 +101,7 @@ desribed in the ``criterion`` node in the selected profile. Moreover, the
 
     run:
         iterate: 
-            iterator_described_in_profile.runtime.criterion:
+            iterator_described_in_'profile.runtime.criterion':
                 values: [list of values for the corresponding iterator]
             program:
                 custom_iterator: 
@@ -124,14 +124,20 @@ and matching output.
         time:
             mean: expected time to compute the test (seconds / float) tolerance:
             standard deviation for expected time (seconds / float)
-            kill_after: maximum time after which process has to be killed
-            (seconds / float)
+            hard_timeout: maximum time after which process has to be killed (seconds / float)
+            soft_timeout: maximum time after which the test is considerd failed (but can still finish, so you can run test correcness localy without testing optimisation (even on your slow computer))
         match:
             label:
                 expr:
                 expect:
         script:
             path: Path to a validating script
+        method: name of the function in the plugin you  are using
+            args: list of arguments for thefunction (see example below)
+        method: 'not_longer_than_previous_runs' # check previous run in database
+            args:
+                history_depth: -1 # look at n previous run (-1 for all)
+                tolerance: 10 # time can be 10% slower than the fastest of all previous runs
 
 Group
 -----

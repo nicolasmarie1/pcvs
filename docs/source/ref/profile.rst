@@ -1,8 +1,8 @@
-Profiles 
+Profiles
 ========
 
-Generalities 
--------------
+Generalities
+------------
 
 A PCVS profile defines a configuration in which PCVS will launch. This
 configuration is divided in nodes, and it can be customized within pcvs or in
@@ -31,8 +31,8 @@ which project should be affected by it. The 3 scopes are the following :
 * User : The profile is seeable from everywhere in an userspace.
 * Global : The profile is accessible to everyone and from everywhere.
 
-Building a new Profile 
----------------------- 
+Building a new Profile
+----------------------
 
 To create a blank
 profile, one can use the command :
@@ -85,8 +85,8 @@ With the interactive mode
 For the configuration blocks setting please refer to the Configuration
 blocks section.
 
-Managing Profiles 
------------------ 
+Managing Profiles
+-----------------
 
 Besides being built, exported or imported, profiles can be altered or destroyed
 with the corresponding commands.
@@ -95,15 +95,14 @@ Use pcvs profile list to see every available profiles.
 
 ``pcvs profile edit [profile]`` launches a text editor in order to manually
 change the profile. PCVS scans editors to give a choice to users.
+``pcvs profile edit -p [profile]`` to edit the plugin inside the profile.
 
-``pcvs profile destroy [profile]`` deletes a profile 
-
-TBW
-
-Using Profiles 
+``pcvs profile destroy [profile]`` deletes a profile.
 
 Profiles are used at runtime, they are specified with the ``-p`` option.
 
 .. code-block:: bash
 
     pcvs run -p example_profile
+    pcvs run --profile-path /path/to/not/imported/profile
+

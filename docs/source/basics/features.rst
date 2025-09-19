@@ -21,8 +21,8 @@ Scale a test-suite depending on the target machine
 
 From PCVS approach, a benchmark is a collection of programs. Coupled with a
 compiler and a launcher, sets of tests can be built to dynamically adapt the
-machine to test. With a single edition, a test-suite can be ported from a
-validating an MPI implementation on a simple workstation (no tests requiring
+machine to test. With a single edition, a test-suite validating an MPI
+implementationcan can be ported from a simple workstation (no tests requiring
 more than one node & 4-8 MPI processes) to the largest supercomputers (thousands
 of nodes). PCVS allow this thanks to **criterions**, a variadic component to apply
 to a program to build tests. It may be populated as follows in a profile:

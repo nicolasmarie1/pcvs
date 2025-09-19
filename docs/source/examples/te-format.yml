@@ -62,7 +62,7 @@
       - openmp
       - accel
       - mpi
-    # PM interaction, allow to load package/module BEFORE running jobs
+    # PM interaction, allow loading package/module BEFORE running jobs
     # This load will be done for every job, it may create overhead.
     # currently, only spack recipes & module will be allowed.
     # If a spack recipe is not available, it will be installed first.
@@ -92,7 +92,7 @@
       # criterion values will be given by the "values" field
       # criterion label (used to generate test-name) will be given by "subtitle"
       # parameter position will be given by "type": "argument" or "environment"
-      # numeric attributes allow to use sequence to generate values.
+      # numeric attributes allow using sequence to generate values.
       # for instance, to generate only power of 2 values:
       #  => values: [{from: 0; to: 100, op: "mul": of: 2}]
       program:
@@ -129,9 +129,13 @@
       # note that PCVS cannot be able to handle every job kill mechanism.
       # Our approach is to terminate the process which spawned the test on
       # resources. With some batch-managers, it may lead to leaks.
-      kill_after: 20
+      hard_timeout: 40
+      # Mark the job as failed without killing it.
+      # This allow you to run the test for code correctness on a slow machine
+      # without testing for speed.
+      soft_timeout: 20
     # Output formatting compliance
-    # It is based on rule definition as regex. These regex has to be matched (or
+    # It is based on rule definition as regex. These regexs has to be matched (or
     # not) to pass.
     match:
       # rule name
@@ -202,10 +206,10 @@
     # (default: false)
     copy_input: false
     # duplicates outputs defined by this TE for any generated test.
-    # This is the opposite of copy_input, to allow generate concurrent artifacts
+    # This is the opposite of copy_input, to allow generating concurrent artifacts
     # from this single specification (default: false)
     copy_output: false
-    
+
 
 #########################################################
 

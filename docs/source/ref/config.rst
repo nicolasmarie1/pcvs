@@ -33,46 +33,71 @@ PCVS allows 3 scopes :
 Blocks description
 ------------------
 
-compiler node 
-^^^^^^^^^^^^^
+compilers node
+^^^^^^^^^^^^^^
 
-The compiler node describes the building sequence of tests, from the compiler
-command to options, arguments, tags, libraries, etc.
+The compiler node describes how to use a compiler, it include the following nodes:
+* ``program``: the name of the program to execute
+* ``envs``: the env to export at build time for that compiler, usefull if you are using a Makefile
+* ``extension``: the source code extension match by the compilers.
+* ``variants``: differents version of the same compiler configuration entry.
 
-This node can contain the subnodes **comands** and **variants**
 
-commands
-++++++++
+compilers node example
+++++++++++++++++++++++
 
-The ``compiler.commands`` block contains a collection of compiler commands.
+The ``compiler.compilers`` block contains a collection of compiler configurations.
 
 .. code-block:: yaml
 
-    cc: compilation command for C code
-    cxx: compilation command for C++ code
-    f77: compilation command for Fortran77 code
-    f90: compilation command for Fortran90 code
-    fc: compilation command for generic Fortran code
+  compilers:
+    cc:
+      program: mpicc
+      envs: [PCVS_CC=mpicc]
+      extension: "\\.(h|H|i|I|s|S|c|c90|c99|c11)$"
+      variants: &openmp
+        openmp:
+          args: [-fopenmp]
+    cxx:
+      program: mpicxx
+      envs: [PCVS_CXX=mpicxx]
+      extension: "\\.(hpp|C|cc|cxx|cpp|c\\+\\+)$"
+      variants: *openmp
+    f77:
+      program: mpif77
+      envs: [PCVS_FC=mpif77]
+      extension: "\\.(f|F)(77)?$"
+      variants: *openmp
+    f90:
+      program: mpif90
+      envs: [PCVS_FC=mpif90]
+      extension: "\\.(f|F)(90)?$"
+      variants: *openmp
+    fc:
+      program: mpifort
+      envs: [PCVS_FC=mpifort]
+      extension: "\\.(f|F)(95|(20)?(03|08)|c)?$"
+      variants: *openmp
 
 variants
 ++++++++
 
-The ``variants`` block can contain any custom variant. The variant must have a
-**name**, and **arguments** as such :
+The ``variants`` block can contain any custom variant.
+The variant must have a **name**, and **arguments** as such:
 
 .. code-block:: yaml
 
     example_variant:
         args: additionnal arguments for the example variant
-    openmp:  
-        args:  -fopenmp
-    strict :
+    openmp:
+        args: -fopenmp
+    strict:
         args: -Werror -Wall -Wextra
 
 In this example the variants "example_variant", "openmp", and "strict" have to be
 specified in the validation setup where the user wants to use them.
 
-criterion node 
+criterion node
 ^^^^^^^^^^^^^^
 
 The criterion node contains a collection of iterators that describe the tests.
@@ -82,9 +107,7 @@ PCVS can iterate over custom parameters as such :
 
     iterators :
         n_[iterator] :
-            **subtitle** : string used to indicate the number of [iterator] in
-            the test description
-
+            **subtitle** : string used to indicate the number of [iterator] in the test description
             **values** : values that [iterator] allowed to take
 
 Example
@@ -96,15 +119,13 @@ Example
     iterators:
         n_core:
             subtitle: C
-            values:
-            - 1
-            - 2
+            values: [1, 2]
 
 In this case the program has to iterate on the core number and has to take the
 values 1 and 2. The name ``n_core`` is arbitrary and has to be put in the
 validation setup file.
 
-Group node 
+Group node
 ^^^^^^^^^^
 
 The group node contains group definitions that describe tests. A group
@@ -113,6 +134,8 @@ description can contain any node present in the Configuration basic blocks (CF
 
 Example
 +++++++
+
+The following example allow you to disable the ``n_omp`` criterion of the group ``GRPMPI``.
 
 .. code-block:: yaml
 
@@ -141,10 +164,10 @@ The runtime node specifies entries that must be passed to the launch command. It
 contains subnodes such as ``args``, ```iterators``, etc. The ``iterator`` node
 contains arguments passed to the launching command. For example, if prterun
 takes the "-np" argument, which corresponds to the number of MPI threads, let's
-say ``n_mpi``, we will get the following runtime profile :
+say ``n_mpi``, we will get the following runtime profile:
 
 
-args : arguments for the launch command
+args: arguments for the launch command
 
 .. code-block:: yaml
 

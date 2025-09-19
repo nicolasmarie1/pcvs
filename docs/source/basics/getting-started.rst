@@ -7,15 +7,13 @@
 Installation
 ############
 
-The simplest way to install PCVS is through **PyPI** repositories.
-It will fetch the lastest release, but a specific version can be specified
+The source code is available on GitHub. To checkout the latest release:
 (detailed documentation in :doc:`installation`):
 
 .. code-block:: bash
 
-	$ pip3 install pcvs
-	# OR
-	$ pip3 install pcvs<=0.5.0
+	$ git clone https://github.com/cea-hpc/pcvs.git pcvs
+	$ pip3 install ./pcvs
 	$ pcvs
 	Usage: pcvs [OPTIONS] COMMAND [ARGS]...
 
