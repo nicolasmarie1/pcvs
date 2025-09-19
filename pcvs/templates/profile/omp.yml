@@ -1,11 +1,17 @@
 compiler:
   compilers:
-    cc: {program: gcc}
-    cxx: {program: g++}
-    f08: {program: gfortran}
-    f77: {program: gfortran}
-    f90: {program: gfortran}
-    fc: {program: gfortran}
+    cc:
+      envs: [PCVS_CC=gcc]
+      program: gcc
+      extension: "\\.(h|H|i|I|s|S|c|c90|c99|c11)$"
+    cxx:
+      envs: [PCVS_CXX=g++]
+      program: g++
+      extension: "\\.(hpp|C|cc|cxx|cpp|c\\+\\+)$"
+    fc:
+      envs: [PCVS_FC=gfortran]
+      program: gfortran
+      extension: "\\.(f|F)(77|90|95|(20)?(03|08)|c)?$"
 criterion:
   n_omp:
     subtitle: o

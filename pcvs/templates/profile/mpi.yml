@@ -1,11 +1,25 @@
 compiler:
   compilers:
-    cc: {program: mpicc}
-    cxx: {program: mpicxx}
-    f08: {program: mpifort}
-    f77: {program: mpif77}
-    f90: {program: mpif90}
-    fc: {program: mpifort}
+    cc:
+      envs: [PCVS_CC=mpicc]
+      program: mpicc
+      extension: "\\.(h|H|i|I|s|S|c|c90|c99|c11)$"
+    cxx:
+      envs: [PCVS_CXX=mpicxx]
+      program: mpicxx
+      extension: "\\.(hpp|C|cc|cxx|cpp|c\\+\\+)$"
+    f77:
+      envs: [PCVS_FC=mpif77]
+      program: mpif77
+      extension: "\\.(f|F)(77)?$"
+    f90:
+      envs: [PCVS_FC=mpif90]
+      program: mpif90
+      extension: "\\.(f|F)(90)?$"
+    fc:
+      envs: [PCVS_FC=mpifort]
+      program: mpifort
+      extension: "\\.(f|F)(95|(20)?(03|08)|c)?$"
 criterion:
   n_mpi:
     subtitle: n
