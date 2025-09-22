@@ -247,8 +247,51 @@
           </label>
         </div>
         <article role="main">
-          <div class="section" id="pcvs-cli-cli-profile-module">
-<h1>pcvs.cli.cli_profile module<a class="headerlink" href="#pcvs-cli-cli-profile-module" title="Permalink to this headline">¶</a></h1>
+          <div class="section" id="module-pcvs.cli.cli_profile">
+<span id="pcvs-cli-cli-profile-module"></span><h1>pcvs.cli.cli_profile module<a class="headerlink" href="#module-pcvs.cli.cli_profile" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.cli.cli_profile.compl_list_templates">
+<span class="sig-prename descclassname"><span class="pre">pcvs.cli.cli_profile.</span></span><span class="sig-name descname"><span class="pre">compl_list_templates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incomplete</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/cli/cli_profile.html#compl_list_templates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.cli.cli_profile.compl_list_templates" title="Permalink to this definition">¶</a></dt>
+<dd><p>the profile template completion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Click.Context</span></code>) – Click context</p></li>
+<li><p><strong>args</strong> (<em>str</em>) – the option/argument requesting completion.</p></li>
+<li><p><strong>incomplete</strong> (<em>str</em>) – the user input</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.cli.cli_profile.compl_list_token">
+<span class="sig-prename descclassname"><span class="pre">pcvs.cli.cli_profile.</span></span><span class="sig-name descname"><span class="pre">compl_list_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incomplete</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/cli/cli_profile.html#compl_list_token"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.cli.cli_profile.compl_list_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>profile name completion function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Click.Context</span></code>) – Click context</p></li>
+<li><p><strong>args</strong> (<em>str</em>) – the option/argument requesting completion.</p></li>
+<li><p><strong>incomplete</strong> (<em>str</em>) – the user input</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.cli.cli_profile.profile_interactive_select">
+<span class="sig-prename descclassname"><span class="pre">pcvs.cli.cli_profile.</span></span><span class="sig-name descname"><span class="pre">profile_interactive_select</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/cli/cli_profile.html#profile_interactive_select"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.cli.cli_profile.profile_interactive_select" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interactive selection of config blocks to build a profile.</p>
+<p>Based on user input, this function displays, for each kind, possible blocks
+and waits for a selection. A final profile is built from them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>concatenation of basic blokcs</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
 </div>
 
         </article>

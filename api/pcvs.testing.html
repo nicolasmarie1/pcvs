@@ -259,8 +259,39 @@
 </ul>
 </div>
 </div>
-<div class="section" id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-pcvs.testing">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pcvs.testing" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.testing.generate_local_variables">
+<span class="sig-prename descclassname"><span class="pre">pcvs.testing.</span></span><span class="sig-name descname"><span class="pre">generate_local_variables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subprefix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing.html#generate_local_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.generate_local_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return directories from PCVS working tree :</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>the base source directory</p></li>
+<li><p>the current source directory</p></li>
+<li><p>the base build directory</p></li>
+<li><p>the current build directory</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>label</strong> (<em>str</em>) – name of the object used to generate paths</p></li>
+<li><p><strong>subprefix</strong> (<em>str</em>) – path to the subdirectories in the base path</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.CommonException.NotFoundError" title="pcvs.helpers.exceptions.CommonException.NotFoundError"><strong>CommonException.NotFoundError</strong></a> – the label is not recognized as to be
+validated</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>paths for PCVS working tree</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
 </div>
 </div>
 
@@ -317,7 +348,7 @@
             <ul>
 <li><a class="reference internal" href="#">pcvs.testing package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li><a class="reference internal" href="#module-pcvs.testing">Module contents</a></li>
 </ul>
 </li>
 </ul>

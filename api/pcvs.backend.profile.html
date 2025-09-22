@@ -247,8 +247,362 @@
           </label>
         </div>
         <article role="main">
-          <div class="section" id="pcvs-backend-profile-module">
-<h1>pcvs.backend.profile module<a class="headerlink" href="#pcvs-backend-profile-module" title="Permalink to this headline">¶</a></h1>
+          <div class="section" id="module-pcvs.backend.profile">
+<span id="pcvs-backend-profile-module"></span><h1>pcvs.backend.profile module<a class="headerlink" href="#module-pcvs.backend.profile" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.backend.profile.</span></span><span class="sig-name descname"><span class="pre">Profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profilepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A profile represents the most complete object the user can provide.</p>
+<p>It is built upon 5 components, called configuration blocks (or basic
+blocks), one of each kind (compiler, runtime, machine, criterion &amp; group)
+and gathers all required information to start a validation process. A
+profile object is the basic representation to be manipulated by the user.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A profile object can be confused with
+<a class="reference internal" href="pcvs.helpers.system.html#pcvs.helpers.system.MetaConfig" title="pcvs.helpers.system.MetaConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">pcvs.helpers.system.MetaConfig</span></code></a>. While both are carrying the
+whole user configuration, a Profile object is used to build/manipulate
+it, while a Metaconfig is the actual internal representation of a
+complete run config.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_name</strong> (<em>str</em>) – profile name, should be unique for a given scope</p></li>
+<li><p><strong>_scope</strong> (<em>str</em>) – profile scope, allowed values in <cite>storage_order()</cite>, defaults
+to None</p></li>
+<li><p><strong>_exists</strong> (<em>bool</em>) – return True if the profile exists on disk.</p></li>
+<li><p><strong>_file</strong> (<em>str</em>) – profile file absolute path</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.check">
+<span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">allow_legacy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile.check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile.check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure profile meets scheme requirements, as a concatenation of 5
+configuration block schemes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>allow_legacy</strong> (<em>(</em><em>Optional</em><em>[</em><em>str</em><em>]</em><em>)</em>) – if the check failed, attempt to validate through
+legacy syntax (recursive call)</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.ValidationException.FormatError" title="pcvs.helpers.exceptions.ValidationException.FormatError"><strong>FormatError</strong></a> – A ‘kind’ is missing from
+profile</p></li>
+<li><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.ValidationException.FormatError" title="pcvs.helpers.exceptions.ValidationException.FormatError"><strong>ValidationException.FormatError</strong></a> – incorrect profile.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.clone">
+<span class="sig-name descname"><span class="pre">clone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clone</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile.clone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Duplicate a valid profile into the current one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>clone</strong> (<a class="reference internal" href="#pcvs.backend.profile.Profile" title="pcvs.backend.profile.Profile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code></a>) – a valid profile object</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.compiler">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compiler</span></span><a class="headerlink" href="#pcvs.backend.profile.Profile.compiler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access the ‘compiler’ section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the ‘compiler’ dict segment</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.criterion">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">criterion</span></span><a class="headerlink" href="#pcvs.backend.profile.Profile.criterion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access the ‘criterion’ section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the ‘criterion’ dict segment</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.delete">
+<span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile.delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the current profile from disk.</p>
+<p>It does not destroy the Python object, though.</p>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.details">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">details</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#pcvs.backend.profile.Profile.details" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access all the object details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>all the details object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.display">
+<span class="sig-name descname"><span class="pre">display</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile.display"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile.display" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display profile data into stdout/file.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.dump">
+<span class="sig-name descname"><span class="pre">dump</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile.dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile.dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the full profile content as a single regular dict.</p>
+<p>This function loads the profile on disk first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a regular dict for this profile</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.edit">
+<span class="sig-name descname"><span class="pre">edit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile.edit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile.edit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open the editor to manipulate profile content.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>Exception</strong> – Something happened while editing the file</p>
+</dd>
+</dl>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If the edition failed (validation failed) a rejected file is created
+in the current directory containing the rejected profile. Once
+manually edited, it may be submitted again through <cite>pcvs profile
+import</cite>.</p>
+</div>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.edit_plugin">
+<span class="sig-name descname"><span class="pre">edit_plugin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile.edit_plugin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile.edit_plugin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Edit the ‘runtime.plugin’ section of the current profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>Exception</strong> – Something happened while editing the file.</p>
+</dd>
+</dl>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If the edition failed (validation failed) a rejected file is created
+in the current directory containing the rejected profile. Once
+manually edited, it may be submitted again through <cite>pcvs profile
+import</cite>.</p>
+</div>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.fill">
+<span class="sig-name descname"><span class="pre">fill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile.fill"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile.fill" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the given profile with content stored in parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>raw</strong> (<em>dict</em>) – tree of (key, values) pairs to update</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.flush_to_disk">
+<span class="sig-name descname"><span class="pre">flush_to_disk</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile.flush_to_disk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile.flush_to_disk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write down profile to disk.</p>
+<p>Also, ensure the filepath is valid and profile content is compliant with
+schemes.</p>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.full_name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">full_name</span></span><a class="headerlink" href="#pcvs.backend.profile.Profile.full_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return fully-qualified profile name (scope + name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the unique profile name.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.get_unique_id">
+<span class="sig-name descname"><span class="pre">get_unique_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile.get_unique_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile.get_unique_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute unique hash string identifying a profile.</p>
+<p>This is required to make distinction between multiple profiles, based on
+its content (banks relies on such unicity).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>an hashed version of profile content</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.group">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">group</span></span><a class="headerlink" href="#pcvs.backend.profile.Profile.group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access the ‘group’ section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the ‘group’ dict segment</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.is_found">
+<span class="sig-name descname"><span class="pre">is_found</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile.is_found"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile.is_found" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the current profile exists on disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if the file exist on disk</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.load_from_disk">
+<span class="sig-name descname"><span class="pre">load_from_disk</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile.load_from_disk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile.load_from_disk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the profile from its representation on disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ProfileException.NotFoundError</strong> – profile does not exist</p></li>
+<li><p><strong>ProfileException.NotFoundError</strong> – profile path is not valid</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.load_template">
+<span class="sig-name descname"><span class="pre">load_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile.load_template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile.load_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Populate the profile from templates of 5 basic config. blocks.</p>
+<p>Filepath still need to be determined via <cite>retrieve_file()</cite> call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – the profile template name</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ProfileException.NotFoundError</strong> – target profile isn’t found</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.machine">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">machine</span></span><a class="headerlink" href="#pcvs.backend.profile.Profile.machine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access the ‘machine’ section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the ‘machine’ dict segment</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.runtime">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">runtime</span></span><a class="headerlink" href="#pcvs.backend.profile.Profile.runtime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access the ‘runtime’ section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the ‘runtime’ dict segment</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.scope">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scope</span></span><a class="headerlink" href="#pcvs.backend.profile.Profile.scope" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the profile scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>profile scope</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.profile.Profile.split_into_configs">
+<span class="sig-name descname"><span class="pre">split_into_configs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocklist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#Profile.split_into_configs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.Profile.split_into_configs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the given profile into a list of basic blocks.</p>
+<p>This is the reverse operation of creating a profile (not the ‘opposite’).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prefix</strong> (<em>str</em>) – common prefix name used to name basic blocks.</p></li>
+<li><p><strong>blocklist</strong> (<em>list</em>) – list of config.blocks to generate (all 5 by default
+but can be retrained)</p></li>
+<li><p><strong>scope</strong> (<em>str</em><em>, </em><em>optional</em>) – config block scope, defaults to None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.CommonException.AlreadyExistError" title="pcvs.helpers.exceptions.CommonException.AlreadyExistError"><strong>AlreadyExistError</strong></a> – the created configuration
+block name already exist</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>list of created <code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationBlock</span></code></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.profile.init">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.profile.</span></span><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize callback, loading available profiles on disk.</p>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.profile.list_profiles">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.profile.</span></span><span class="sig-name descname"><span class="pre">list_profiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#list_profiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.list_profiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of valid profiles found on disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>scope</strong> (<em>str</em><em>, </em><em>optional</em>) – restriction on scope, defaults to None</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dict of 3 dicts (‘user’, ‘local’ &amp; ‘global’) or a single dict (if
+‘scope’ was set), containing, for each profile name, the filepath.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.profile.list_templates">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.profile.</span></span><span class="sig-name descname"><span class="pre">list_templates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/profile.html#list_templates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.profile.list_templates" title="Permalink to this definition">¶</a></dt>
+<dd><p>List available templates to be used for boostraping profiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a list of valid templates.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
 </div>
 
         </article>
