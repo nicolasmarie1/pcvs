@@ -21,8 +21,8 @@ dependencies = [
 requires-python = ">=3.5"
 authors = [
   {name = "Julien Adam", email = "adamj@paratools.com"},
-  {name = "Nicolas Marie", email = "nicolas.marie@uvsq.fr"},
   {name = "Paul Canat", email = "pcanat@paratools.com"},
+  {name = "Nicolas Marie", email = "nicolas.marie@uvsq.fr"},
 ]
 maintainers = [
 # Nobody right now

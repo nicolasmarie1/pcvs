@@ -16,9 +16,10 @@ variables:
     - web
 
 stages:
-  - Installation
+#  - Installation
   - PCVS
   - Documentation
+  - Deploy
 
 # pcvs is installed for testing via tox, no need to install it.
 #Install PCVS:
@@ -81,3 +82,16 @@ Test Doc:
     # TODO: install docstr-coverage on inti with spack organizer
     - docstr-coverage --skip-file-doc --exclude '.*pcvs/cli/cli.*.py' --accept-empty --verbose=2 pcvs --fail-under 70
 
+Deploy Doc:
+  <<: *scope
+#  only:
+#    - devel
+  pages: true
+  stage: Deploy
+  script:
+    - cd docs && make html
+  after_script:
+    - mv docs/build/html/ ./public/
+  artifacts:
+    paths:
+      - public
