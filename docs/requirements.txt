@@ -1,0 +1,8 @@
+ruamel.yaml
+click>=8.0
+jsonschema>=3.0.0
+flask
+sh
+rich
+furo==2021.11.16
+sphinx-autodoc-typehints
