@@ -63,8 +63,8 @@ dev = [
   "mypy",
   "sphinx<7.0.0",
   "sphinx-autodoc-typehints",
-  #"sphinx-rtd-theme",
-  "furo",
+  "sphinx-rtd-theme",
+  #"furo",
 ]
 
 # tell setuptools look for all python packages to include,

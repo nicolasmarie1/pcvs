@@ -4,5 +4,6 @@ jsonschema>=3.0.0
 flask
 sh
 rich
-furo==2021.11.16
+sphinx-rtd-theme
 sphinx-autodoc-typehints
+#furo==2021.11.16

@@ -46,9 +46,10 @@ Multiple documentation can be generated from this repo:
 ## Authors
 
 This work is currently supported by the French Alternative Energies and Atomic
-Energy Commission (CEA). For any question and/or remarks, please contact :
+Energy Commission (CEA). For any question and/or remarks, please contact:
 
-* TODO
+* Hugo TABOADA <hugo.taboada@cea.fr>
+* Nicolas MARIE <nicolas.marie@uvsq.fr>
 
 ## Licensing
 
