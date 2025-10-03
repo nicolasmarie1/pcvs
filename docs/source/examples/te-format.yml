@@ -98,6 +98,9 @@
       program:
         give_it_a_name:
           numeric: true
+          # false send the argument to the wrapper of the program
+          # true (default) send the argument to the program itself
+          local: true
           type: "argument"
           values: ["-iter 1000", "-fast"]
           subtitle: "lol"

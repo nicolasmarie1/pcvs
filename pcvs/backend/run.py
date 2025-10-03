@@ -414,7 +414,7 @@ def build_env_from_configuration(config: dict) -> dict:
         env[f"PCVS_CMP_{comp_name}_ARGS".upper()] = to_str(comp.get("args", ""))
         for var_name, variant in comp.get("variants", {}).items():
             env[f"PCVS_CMP_{comp_name}_VAR_{var_name}".upper()] = variant.get("program", comp["program"])
-            env[f"PCVS_CMP_{comp_name}_VAR_{var_name}_ARGS".upper()] = to_str(comp.get("args", ""))
+            env[f"PCVS_CMP_{comp_name}_VAR_{var_name}_ARGS".upper()] = to_str(variant.get("args", ""))
     for crit_name, criter in config["criterion"].items():
         env[f"PCVS_CRIT_{crit_name}".upper()] = to_str(criter["values"])
     compiler_env = testing.tedesc.extract_compilers_envs()
