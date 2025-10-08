@@ -68,9 +68,8 @@ master_doc = "index"
 
 # General information about the project.
 project = "PCVS"
-copyright = "2020-{}, Commissariat a l'Energie Atomique et aux Energies Alternatives".format(
-    datetime.now().date().year
-)  # pylint: disable=redefined-builtin
+this_year = datetime.now().date().year
+copyright = f"2020-{this_year}, Commissariat a l'Energie Atomique et aux Energies Alternatives"  # pylint: disable=redefined-builtin
 author = "Julien Adam"
 
 # The version info for the project you're documenting, acts as replacement for
