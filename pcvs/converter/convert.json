@@ -6,7 +6,7 @@
 		"<it>": "(?P<it>.*)",
 		"<te_it>": "(?P<te_it>(?!(type|build|run|validate|metric|files|bin|cargs|chdir|target|deps|args|time|tolerance|timeout|returns|herit|tbb|accl|openmp))[a-zA-Z0-9-_]+)",
 		"<compiler>": "(?P<compiler>[a-z0-9]+)"
-		
+
 	},
 
 	"__modifiers": {
@@ -37,7 +37,7 @@
 	"environment.validation.sched_policy": "validation.scheduling.model",
 	"environment.validation.resource_level": "validation.scheduling.sched_on",
 	"environment.validation.logging": "validation.result.logs",
-	"environment.validation.formats": "validation.result.format", 
+	"environment.validation.formats": "validation.result.format",
 	"environment.validation.verbose": "validation.verbose",
 	"environment.validation.job_meantime": "validation.result.job_timeout",
 
@@ -54,7 +54,7 @@
 	"compiler.tbb": "compiler.cc.variants.tbb.args",
 	"compiler.accl": "compiler.cc.variants.accl.args",
 	"compiler.strict": "compiler.cc.variants.scrict.args",
-	
+
 	"runtime.cmd": "runtime.program",
 	"runtime.args": "runtime.args",
 	"runtime.module": "runtime.plugin",

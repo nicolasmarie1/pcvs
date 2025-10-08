@@ -53,7 +53,7 @@ net:
 # - from: lowerbound (inclusive)
 # - to: upperbound (inclusive)
 # - of: the 'stride/factor/power' to apply
-# - op: type of operation: 
+# - op: type of operation:
 #            - "seq" | "ari" | "arithmetic"
 #            - "mul" | "geo" | "geometric"
 #            - "pow" | "powerof"

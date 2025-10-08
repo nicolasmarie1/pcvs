@@ -22,8 +22,8 @@ cc:
 # please use YAML anchors (&, *) when possible:
 # cc:
 #   variant: &variants_below
-#     openmp: 
-#       args: ['-fopenmp'] 
+#     openmp:
+#       args: ['-fopenmp']
 # cxx:
 #   variant: *variants_below
 

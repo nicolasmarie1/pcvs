@@ -9,13 +9,13 @@
 
 ## Description
 
-Describe here the situation, Try to produce as much detail as possible. 
+Describe here the situation, Try to produce as much detail as possible.
 
 ## Steps to Reproduce
 
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 Please attach any sample code to help to reproduce the bug (minimal extracted example)
 

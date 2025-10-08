@@ -18,7 +18,7 @@ job_manager:
   #     - program: the program to be used (as $CMD)
   #     - args: list of extra args to invoke the program with
   #     - wrapper: if specified, the program is overriden with the wrapper.
-  # resource allocation properties (jobs won't spawn by themself on a 
+  # resource allocation properties (jobs won't spawn by themself on a
   # remote node. Useful when batch managers is part of the test launching sequence
   allocate:
     program: "echo"

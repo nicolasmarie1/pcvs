@@ -25,7 +25,7 @@ properties:
   target_bank: {type: string}
   timeout: {type: integer}
   verbose: {type: integer}
-  
+
   only_success:
     type: boolean
   scheduling:
@@ -67,4 +67,3 @@ properties:
         - {'type': null}
         - {'type': 'integer'}
     additionalProperties: false
-    

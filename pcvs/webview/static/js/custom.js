@@ -6,25 +6,25 @@ function generate_diff_summary(){
 	var nbRegressPerf = document.getElementsByClassName('regress_perf').length;
 	var nbTotal = nbUnchangedSuccess+nbUnchangedFailure+nbFixed+nbRegressFail+nbRegressPerf;
 
-	document.getElementById('nb_unchanged_success').innerHTML = nbUnchangedSuccess;	
-	document.getElementById('nb_unchanged_failure').innerHTML = nbUnchangedFailure;	
-	document.getElementById('nb_fixed').innerHTML = nbFixed;	
-	document.getElementById('nb_regress_failure').innerHTML = nbRegressFail;	
-	document.getElementById('nb_regress_perf').innerHTML = nbRegressPerf;	
+	document.getElementById('nb_unchanged_success').innerHTML = nbUnchangedSuccess;
+	document.getElementById('nb_unchanged_failure').innerHTML = nbUnchangedFailure;
+	document.getElementById('nb_fixed').innerHTML = nbFixed;
+	document.getElementById('nb_regress_failure').innerHTML = nbRegressFail;
+	document.getElementById('nb_regress_perf').innerHTML = nbRegressPerf;
 
 	document.getElementById('nb_total').innerHTML = nbTotal;
 
-	document.getElementById('bar_unchanged_success').setAttribute("style", "width: " + Math.round(100*(nbUnchangedSuccess/nbTotal)) + '%;');	
-	document.getElementById('bar_unchanged_failure').setAttribute("style", "width: " + Math.round(100*(nbUnchangedFailure/nbTotal)) + '%;');	
-	document.getElementById('bar_fixed').setAttribute("style", "width: " + Math.round(100*(nbFixed/nbTotal)) + '%;');	
+	document.getElementById('bar_unchanged_success').setAttribute("style", "width: " + Math.round(100*(nbUnchangedSuccess/nbTotal)) + '%;');
+	document.getElementById('bar_unchanged_failure').setAttribute("style", "width: " + Math.round(100*(nbUnchangedFailure/nbTotal)) + '%;');
+	document.getElementById('bar_fixed').setAttribute("style", "width: " + Math.round(100*(nbFixed/nbTotal)) + '%;');
 	document.getElementById('bar_regress_perf').setAttribute("style", "width: " + Math.round(100*(nbRegressPerf/nbTotal)) + '%;');
-	document.getElementById('bar_regress_failure').setAttribute("style", "width: " + Math.round(100*(nbRegressFail/nbTotal)) + '%;');	
+	document.getElementById('bar_regress_failure').setAttribute("style", "width: " + Math.round(100*(nbRegressFail/nbTotal)) + '%;');
 
-	document.getElementById('percent_unchanged_success').innerHTML = Math.round(100*(nbUnchangedSuccess/nbTotal)) + ' %';	
-	document.getElementById('percent_unchanged_failure').innerHTML = Math.round(100*(nbUnchangedFailure/nbTotal)) + ' %';	
-	document.getElementById('percent_fixed').innerHTML = Math.round(100*(nbFixed/nbTotal)) + ' %';	
-	document.getElementById('percent_regress_failure').innerHTML = Math.round(100*(nbRegressFail/nbTotal)) + ' %';	
-	document.getElementById('percent_regress_perf').innerHTML = Math.round(100*(nbRegressPerf/nbTotal)) + ' %';	
+	document.getElementById('percent_unchanged_success').innerHTML = Math.round(100*(nbUnchangedSuccess/nbTotal)) + ' %';
+	document.getElementById('percent_unchanged_failure').innerHTML = Math.round(100*(nbUnchangedFailure/nbTotal)) + ' %';
+	document.getElementById('percent_fixed').innerHTML = Math.round(100*(nbFixed/nbTotal)) + ' %';
+	document.getElementById('percent_regress_failure').innerHTML = Math.round(100*(nbRegressFail/nbTotal)) + ' %';
+	document.getElementById('percent_regress_perf').innerHTML = Math.round(100*(nbRegressPerf/nbTotal)) + ' %';
 }
 
 function toggle_visibility(id)

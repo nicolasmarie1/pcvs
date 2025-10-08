@@ -61,10 +61,10 @@ sources. It contains the following subndoes :
         files: path/to/the/file/to/build
         sources:
             binary: name of the binary to be built (if necessary)
-            cflags: extra cflags 
-            ldflags: extra ldflags 
+            cflags: extra cflags
+            ldflags: extra ldflags
         depends_on: ["list of test names it depends on"]
-        cwd: directory where the binary should be built 
+        cwd: directory where the binary should be built
         variants: [list of variants (CF Configuration basic blocks -> compiler
         node)]
 
@@ -100,11 +100,11 @@ desribed in the ``criterion`` node in the selected profile. Moreover, the
 .. code-block:: yaml
 
     run:
-        iterate: 
+        iterate:
             iterator_described_in_'profile.runtime.criterion':
                 values: [list of values for the corresponding iterator]
             program:
-                custom_iterator: 
+                custom_iterator:
                     numeric: true/false
                     type: "argument" or "environment"
                     values: [list of values taken by the iterator]
@@ -158,7 +158,7 @@ multiple tags and tags do not have to be defined upstream.
 
 .. code-block:: yaml
 
-    tag: 
+    tag:
         - tag1
         - tag2
 

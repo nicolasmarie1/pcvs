@@ -8,7 +8,7 @@ Error installing Pygit2
 Status: **Unresolved**
 
 **Typical Error message**: While running ``pip3 install``, Such error messages
-might be raised: 
+might be raised:
 
 .. code-block:: bash
 

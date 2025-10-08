@@ -117,7 +117,7 @@
         - protobuf
         - gnu/gcc/7.3.0
   # How to validate jobs generated from this specification ?
-  # each of these subkeys are cumulative, all of them has to be true to 
+  # each of these subkeys are cumulative, all of them has to be true to
   # mark the job as a success
   validate:
     # expected return code

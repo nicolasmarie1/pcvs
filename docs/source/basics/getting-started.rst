@@ -46,7 +46,7 @@ test-suite as any ``tests/`` directory
 
 .. code-block:: bash
 
-	$ tree tests 
+	$ tree tests
 	tests
 	├── coll
 	│   └── all-reduce.c
@@ -106,7 +106,7 @@ comes with default profiles for default scenarios. Here, we select the
 `mpi` base profile to build our own:
 
 .. code-block:: bash
-	
+
 	$ pcvs profile create user.my-profile --base mpi
 	$ pcvs profile list
 
@@ -129,7 +129,7 @@ located:
 
 .. note::
 	the ``user.`` prefix to the profile name may be removed as there is no
-	name ambiguity, PCVS will detect the proper scope. 
+	name ambiguity, PCVS will detect the proper scope.
 
 Access the results
 ##################
@@ -145,7 +145,7 @@ If no third-party tool is available, PCVS comes with a lightweight web server
 (=Flask) to serve results in a web browser:
 
 .. code-block:: bash
-	
+
 	# where pcvs run has been run:
 	$ pcvs report
 	# OR you may specify the run path

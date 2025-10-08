@@ -18,7 +18,7 @@ properties:
   author:
     type: object
     properties:
-      name: {type: string} 
+      name: {type: string}
       email: {type: string}
   scheduling:
     type: object
@@ -38,4 +38,3 @@ properties:
           enum: ['junit', 'json', 'yaml']
     additionalProperties: false
 additionalProperties: false
-        

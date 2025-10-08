@@ -16,7 +16,7 @@
 			content: "{{success_nb}} tests ({{success_percent}} %)"
 		});
 		$("#success_bar").css("width", {{ success_percent }}+"%" );
-		
+
 		$("#failure_bar").popover({
 			trigger: 'hover',
 			placement: 'auto',
@@ -25,7 +25,7 @@
 			content: "{{failure_nb}} tests ({{failure_percent}} %)"
 		});
 		$("#failure_bar").css("width", {{ failure_percent }}+"%" );
-		
+
 		$("#warning_bar").popover({
 			trigger: 'hover',
 			placement: 'auto',
@@ -69,7 +69,7 @@ return percentage / 100 * 360
 	</div>
 </div>
 
-	
+
 <h2 class="container-fuild text-center">Per-label results</h2>
 <table id='theTable' class="display" style="width:100%">
 	<thead>

@@ -5,7 +5,7 @@
 # a criterion name
 n_node:
   # the range of values it can take (any type)
-  values: [1] 
+  values: [1]
   # the prefix to use when labelling test name for this IT
   subtitle: "N"
 n_mpi:
@@ -47,7 +47,7 @@ n_omp:
 # - from: lowerbound (inclusive)
 # - to: upperbound (inclusive)
 # - of: the 'stride/factor/power' to apply
-# - op: type of operation: 
+# - op: type of operation:
 #            - "seq" | "ari" | "arithmetic"
 #            - "mul" | "geo" | "geometric"
 #            - "pow" | "powerof"

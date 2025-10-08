@@ -2,15 +2,15 @@
  *
  * Adapted for use as a profiling example from the original code found at:
  * http://www.new-npac.org/projects/cdroms/cewes-1999-06-vol2/cps615course
- * 
- * This program implements the concurrent wave equation described  
- * in Chapter 5 of Fox et al., 1988, Solving Problems on Concurrent
- * Processors, vol 1.   
  *
- * A vibrating string is decomposed into points.  Each task is  
+ * This program implements the concurrent wave equation described
+ * in Chapter 5 of Fox et al., 1988, Solving Problems on Concurrent
+ * Processors, vol 1.
+ *
+ * A vibrating string is decomposed into points.  Each task is
  * responsible for updating the amplitude of a number of points over
  * time.
- *       
+ *
  * At each iteration, each task exchanges boundary points with
  * nearest neighbors.  This version uses low level sends and receives
  * to exchange boundary points.
@@ -101,7 +101,7 @@ void init_line(void)
             {
                 x = (double)k/(double)(tpoints - 1);
                 values[j] = sin (fac * x);
-            }  
+            }
         }
         else
             k += npts;
@@ -118,12 +118,12 @@ void do_math(int i)
 {
     const double dtime = 0.3;
     const double c = 1.0;
-    const double dx = 1.0; 
+    const double dx = 1.0;
     double tau, sqtau;
 
     tau = (c * dtime / dx);
     sqtau = tau * tau;
-    newval[i] = (2.0 * values[i]) - oldval[i]  
+    newval[i] = (2.0 * values[i]) - oldval[i]
         + (sqtau * (values[i-1] - (2.0 * values[i]) + values[i+1]));
 }
 
@@ -139,7 +139,7 @@ void reduce_print(const char *format_string, int value)
 }
 
 /*---------------------------------------------------------------------
- *      All tasks update their points a specified number of times  
+ *      All tasks update their points a specified number of times
  *---------------------------------------------------------------------*/
 
 void update(int left, int right)
@@ -187,10 +187,10 @@ void update(int left, int right)
             clock_gettime(CLOCK_MONOTONIC, &tv2);
             /* time the overhead incurred by clock_gettime */
             clock_gettime(CLOCK_MONOTONIC, &overhead);
-            overhead_nsec = ((overhead.tv_sec - tv2.tv_sec) * 1000000000 + overhead.tv_nsec 
+            overhead_nsec = ((overhead.tv_sec - tv2.tv_sec) * 1000000000 + overhead.tv_nsec
                     - tv2.tv_nsec);
             /* work out how much time we spent communicating, not calling clock_gettime */
-            communication_usec = communication_usec + (tv2.tv_sec - tv1.tv_sec) * 1000000 + (tv2.tv_nsec 
+            communication_usec = communication_usec + (tv2.tv_sec - tv1.tv_sec) * 1000000 + (tv2.tv_nsec
                     - tv1.tv_nsec) / 1000 - overhead_nsec / 1000;
 
             /* update points along line */
@@ -220,7 +220,7 @@ void update(int left, int right)
  *      Master receives results from workers and prints
  *------------------------------------------------------------------ */
 
-void output_master(void)  
+void output_master(void)
 {
     int i, start, npts, buffer[2], istep, source;
     double *results;
@@ -251,7 +251,7 @@ void output_master(void)
     printf ("\nPoints for validation:\n");
     for (i = 0; i < tpoints; i+=istep)
         printf ("%d:%4.2f  ", i, results[i]);
-    if (i-istep != tpoints - 1) 
+    if (i-istep != tpoints - 1)
         printf ("%d:%4.2f  ", tpoints-1, results[tpoints-1]);
     printf("\n");
 

@@ -24,10 +24,10 @@ information.
 Scope
 -----
 
-PCVS allows 3 scopes : 
+PCVS allows 3 scopes :
 
 * **global** for everyone on the machine having access to the PCVS installation
-* **user** accessible from everywhere for the corresponding user 
+* **user** accessible from everywhere for the corresponding user
 * **local** accessible only from a directory
 
 Blocks description
@@ -145,10 +145,10 @@ The following example allow you to disable the ``n_omp`` criterion of the group 
                 n_omp:
                     **values**: null
 
-machine node 
+machine node
 ^^^^^^^^^^^^
 
-The machine node describes the constraints of the physical machine. 
+The machine node describes the constraints of the physical machine.
 
 .. code-block:: yaml
 
@@ -157,7 +157,7 @@ The machine node describes the constraints of the physical machine.
         cores_per_node: number of accessible cores per node
         concurrent_run: maximum number of processes that can coexist
 
-runtime node 
+runtime node
 ^^^^^^^^^^^^
 
 The runtime node specifies entries that must be passed to the launch command. It
@@ -179,5 +179,3 @@ args: arguments for the launch command
             aliases:
                 [dictionary of aliases for the option]
     plugins:
-
-

@@ -9,7 +9,7 @@
             "program": {"arg": "c"}
         }
     },
-    "exec": "sh /.../list_of_tests.sh &apos;tmp/test_main&apos;", 
+    "exec": "sh /.../list_of_tests.sh &apos;tmp/test_main&apos;",
     "result": {
         "rc": 0,
         "output": "RmFrZSBleGVjdXRpb24=",
@@ -20,6 +20,6 @@
         "tags": ["compilation", "tag_1", "tag_2"],
         "artifacts": {"file.txt": "ZHVtbXlfYXJ0aWZhY3QK"},
         "metrics": {"metric_a": "value_a"}
-        
+
     }
 }

@@ -137,7 +137,7 @@ Important note
     (not an issue any more)
     * :strike:`To manage dict-based configuration object`, PCVS relies on `Addict
       <https://github.com/mewwts/addict>`_. Not common, planned to be replaced but
-      still required to ease configuration management process through PCVS. 
+      still required to ease configuration management process through PCVS.
 
 .. note::
     A quick fix to install pygit2/libgit2 is to rely on `Spack
