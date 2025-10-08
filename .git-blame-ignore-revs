@@ -1,1 +1,11 @@
+# Run YAPF code formatter
 35caea738d5b80a28765bbea669dc5fd86b9d06c
+
+# Run black code formatter
+815a24afbf0aff5ce1b91170569d3eeeea202837
+
+# Run pre-commit trailing space + EOF
+cfe200b8f7f8601973510989370175acd1a1b9c4
+
+# Run typos
+c2ed63ad4c392e97aba70dc9f45162d298654c9c
