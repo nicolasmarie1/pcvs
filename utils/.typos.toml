@@ -1,6 +1,7 @@
 [default.extend-words]
 comman = "comman"
 rto = "rto"
+thr = "thr"
 
 [type.js]
 extend-glob = ["*.js"]

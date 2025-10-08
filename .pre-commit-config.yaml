@@ -34,7 +34,7 @@ repos:
         stages: ['pre-commit', 'pre-merge-commit', 'pre-push', 'manual']
         exclude: |-
           (?x)
-            ^pcvs/webview/static/js/
+            ^pcvs/webview/static/.*
 
       - id: 'isort'
         name: 'isort'

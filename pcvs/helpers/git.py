@@ -267,7 +267,7 @@ class GitByGeneric(ABC):
         The list can be shrunk with a start & end
 
         :param rev: the revision to extract commit from
-        :typ rev: any
+        :type rev: any
         :param since: the oldest commit should be newer than this date
         :type since: date
         :param until: the newest commit should be older than this date
