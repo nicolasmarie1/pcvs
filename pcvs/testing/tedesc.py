@@ -373,7 +373,7 @@ class TEDescriptor:
             args=" ".join(args),
             out=f"-o {output_path}",
         )
-        return (command, envs, None)
+        return (command, envs, 1)
 
     def __build_from_makefile(self):
         """How to create build tests from a Makefile.
@@ -476,7 +476,7 @@ class TEDescriptor:
             os.path.join(GlobalConfig.root["validation"]["output"], pcvs.NAME_BUILD_CONF_SH),
             command,
         )
-        return (full_cmd, env, None)
+        return (full_cmd, env, 1)
 
     def __build_exec_process(self):
         """Drive compilation command generation based on TE format.
@@ -519,6 +519,7 @@ class TEDescriptor:
         tags = ["compilation"] + self._tags
 
         command, env, jobs = self.__build_exec_process()
+        assert jobs is not None
 
         # count number of built tests
         self._effective_cnt += 1
@@ -609,7 +610,7 @@ class TEDescriptor:
                 valscript=self._validation.get("script", {}).get("path", None),
                 analysis=self._validation.get("analysis", {}),
                 comb=comb,
-                resources=comb.resources,
+                resources=comb.resources if comb.resources is not None else [1, 1],
                 wd=chdir,
                 artifacts=self._artifacts,
                 matchers=self._validation.get("match", None),

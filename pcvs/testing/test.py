@@ -98,6 +98,8 @@ class Test:
         self._state = Test.State.WAITING
         cores_per_nodes = GlobalConfig.root.get("machine", {}).get("cores_per_nodes", 1)
         self._resources: list[int] = kwargs.get("resources", [1, cores_per_nodes])
+        for r in self._resources:
+            assert r is not None
 
         self._testenv = kwargs.get("environment")
         self._id = {

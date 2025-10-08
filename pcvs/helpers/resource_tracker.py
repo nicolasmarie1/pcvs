@@ -38,6 +38,7 @@ class ResourceTracker:
             return False
         if alloc_dim == self.dim:
             alloc_resources = allocation[0]
+            assert alloc_resources is not None
             count_resources = 0
             for resource in self.resources:
                 if resource.do_alloc(allocation[1:], alloc_tracking_id):
