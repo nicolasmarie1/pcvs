@@ -1,0 +1,10 @@
+[default.extend-words]
+comman = "comman"
+rto = "rto"
+
+[type.js]
+extend-glob = ["*.js"]
+check-file = false
+
+[files]
+extend-exclude = []

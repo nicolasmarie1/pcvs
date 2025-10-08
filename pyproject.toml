@@ -50,7 +50,6 @@ pcvs = "pcvs.main:cli"
 
 [project.optional-dependencies]
 dev = [
-  "black",
   "autopep8",
   "darglint",
   "pydocstyle",
@@ -60,7 +59,9 @@ dev = [
   "coverage",
   "docstr-coverage",
   "tox",
+  "pre-commit",
   "isort",
+  "black",
   "mypy",
   "sphinx<7.0.0",
   "sphinx-autodoc-typehints",
@@ -92,7 +93,7 @@ skip_missing_interpreters = true
 #deps = [{ replace = "ref", of = ["project", "dependencies"], extend = true},
 #        { replace = "ref", of = ["project", "optional-dependencies", "dev"], extend = true}]
 passenv = ["HOME", "USER"]
-allowlist_externals = ["coverage", "pylint", "flake8", "isort", "mypy", "docstr-coverage", "darglint", "pydocstyle", "make"]
+allowlist_externals = ["coverage", "pre-commit", "mypy", "docstr-coverage", "darglint", "pydocstyle", "make"]
 
 # pcvs coverage
 [tool.tox.env.pcvs-coverage]
@@ -114,42 +115,14 @@ skip_install = true
 ignore_errors = true
 commands = [
   [
-    'pylint', '.',
-    '--fail-under=10',
-    '--ignore=.tox,build,examples',
-    '--extension-pkg-whitelist=pygit2',
-    '--disable=R,C',
-    '--disable=unspecified-encoding',
-    '--disable=keyword-arg-before-vararg,dangerous-default-value',
-    '--disable=global-variable-not-assigned,global-statement',
-    '--disable=broad-exception-caught',
-    '--disable=fixme',
-  ],
-  # add more type and import checking
-  [
-    'flake8', '.', '--exclude', '.tox,build',
-    '--ignore',
-    'DAR101,DAR102,DAR201,DAR202,DAR301,DAR401,DAR402,E501,E125,E126,E127,E128,E203,E265,F824,W503,W504'
-  ],
-  # sort and lint imports
-  [
-    'isort', '--sl', '--fass', '--check', '--diff', '.'
-  ],
+    'pre-commit', 'run', '--all-files',
+  ]
   # TODO: reenable mypy
   # add strict typing check
   #[
   #  'mypy', '--config-file', './mypy.ini', './pcvs'
   #],
 ]
-
-# TODO: replace pylint --disable=R,C with the following
-#'--disable=line-too-long,too-many-lines'
-#'--disable=missing-module-docstring,missing-class-docstring,missing-function-docstring'
-#'--disable=too-many-instance-attributes,too-few-public-methods'
-#'--disable=too-many-arguments,too-many-positional-arguments'
-#'--disable=too-many-nested-blocks,too-many-branches,too-many-locals'
-#'--disable=consider-using-f-string'
-
 
 # Documentation coverage
 [tool.tox.env.doc-coverage]

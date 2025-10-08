@@ -1,0 +1,104 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: 'https://github.com/pre-commit/pre-commit-hooks'
+    rev: 'v6.0.0'
+    hooks:
+      - id: 'check-executables-have-shebangs'
+      - id: 'check-merge-conflict'
+      - id: 'no-commit-to-branch'
+        args: ['--branch', 'devel', '--branch', 'master']
+      - id: 'check-ast'
+      - id: 'check-json'
+      - id: 'check-yaml'
+      - id: 'end-of-file-fixer'
+      - id: 'trailing-whitespace'
+        args: ['--markdown-linebreak-ext=md']
+  - repo: 'local'
+    hooks:
+      - id: 'git-blame-ignore-revs'
+        name: 'configure git blame to ignore reformatting commits'
+        description: 'Configure git blame to ignore commits listed in .git-blame-ignore-revs'
+        entry: 'git config blame.ignoreRevsFile .git-blame-ignore-revs'
+        language: 'system'
+        pass_filenames: false
+        minimum_pre_commit_version: '0'
+
+      - id: 'typos'
+        name: 'typos'
+        description: 'Source code spell checker'
+        language: 'system'
+        entry: 'typos'
+        args: ['-c', 'utils/.typos.toml', '--force-exclude']
+        types: ['text']
+        stages: ['pre-commit', 'pre-merge-commit', 'pre-push', 'manual']
+        exclude: |-
+          (?x)
+            ^pcvs/webview/static/js/
+
+      - id: 'isort'
+        name: 'isort'
+        stages: ['pre-commit', 'pre-merge-commit', 'pre-push', 'manual']
+        entry: 'isort'
+        args: ['--profile', 'black', '--line-length', '100', '--filter-file', '--sl', '--fass', '--check', '--diff']
+        language: 'python'
+        types_or: ['cython', 'pyi', 'python']
+        require_serial: true
+        minimum_pre_commit_version: '3.2.0'
+
+
+      # TODO: Activate black once formatting has been done
+      # - id: 'black'
+      #   name: 'black'
+      #   description: 'Black: The uncompromising Python code formatter'
+      #   stages: ['pre-commit', 'pre-merge-commit', 'pre-push', 'manual']
+      #   entry: 'black'
+      #   args: ['-l', '100']
+      #   language: 'python'
+      #   types_or: ['python', 'pyi']
+      #   require_serial: true
+      #   minimum_pre_commit_version: '2.9.2'
+
+      - id: 'pylint'
+        name: 'pylint'
+        stages: ['pre-commit', 'pre-merge-commit', 'pre-push']
+        entry: 'pylint'
+        args:
+          - --fail-under=10
+          - --extension-pkg-whitelist=pygit2
+        # TODO: replace pylint --disable=R,C with the following
+        # - '--disable=line-too-long,too-many-lines'
+        # - '--disable=missing-module-docstring,missing-class-docstring,missing-function-docstring'
+        # - '--disable=too-many-instance-attributes,too-few-public-methods'
+        # - '--disable=too-many-arguments,too-many-positional-arguments'
+        # - '--disable=too-many-nested-blocks,too-many-branches,too-many-locals'
+        # - '--disable=consider-using-f-string'
+          - --disable=R,C
+          - --disable=unspecified-encoding
+          - --disable=keyword-arg-before-vararg,dangerous-default-value
+          - --disable=global-variable-not-assigned,global-statement
+          - --disable=broad-exception-caught
+          - --disable=fixme
+
+        language: 'system'
+        types: ['python']
+        require_serial: true
+        exclude: |-
+          (?x)
+            .tox|
+            examples|
+            build
+
+      - id: 'flake8'
+        name: 'flake8'
+        description: '`flake8` is a command-line utility for enforcing style consistency across Python projects'
+        stages: ['pre-commit', 'pre-merge-commit', 'pre-push']
+        entry: 'flake8'
+        args: ['--ignore', 'DAR101,DAR102,DAR201,DAR202,DAR301,DAR401,DAR402,E501,E125,E126,E127,E128,E203,E265,F824,W503,W504']
+        language: 'python'
+        types: ['python']
+        require_serial: true
+        exclude: |-
+          (?x)
+            .tox|
+            build
