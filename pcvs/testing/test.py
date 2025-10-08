@@ -472,6 +472,7 @@ class Test:
             for _, v in self._validation['matchers'].items():
                 expected = v.get('expect', True) is True
                 found = re.search(v['expr'], raw_output)
+                io.console.debug(f"Looking for expr: {v['expr']}, foud: {found}, expected: {expected}")
                 if (found and not expected) or (not found and expected):
                     state = Test.State.FAILURE
                     break
