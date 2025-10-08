@@ -120,7 +120,7 @@ class GitByGeneric(ABC):
     """
     Create a Git endpoint able to discuss efficiently with repositories.
 
-    This base classe serves abstract methods to be implemented to create a new
+    This base class serves abstract methods to be implemented to create a new
     derived class. Currently are provided:
     - GitByAPI: relies on python module pygit2 (requires libgit2)
     - GitByCLI: based on regular Git program invocations (require git program)
@@ -171,7 +171,7 @@ class GitByGeneric(ABC):
 
     def _lock(self):
         """
-        Lock the current reposiotry (BLOCKING)
+        Lock the current repository (BLOCKING)
 
         :return: true if the file is locked, false otherwise
         :rtype: boolean
@@ -224,7 +224,7 @@ class GitByGeneric(ABC):
     @abstractmethod
     def branches(self):
         """
-        Returns the list of available local branche names from this repo.
+        Returns the list of available local branch names from this repo.
 
         This is an abstract function as its behavior depends on derived classes.
         """
@@ -605,7 +605,7 @@ class GitByAPI(GitByGeneric):
 
         # recursive call, as we didn't reach the subtree bottom
         subtree_oid = self.__insert_path(sub_treebuild, path[1:], data)
-        # Pygit2 insert, to build the actual intemediate node
+        # Pygit2 insert, to build the actual intermediate node
         treebuild.insert(subtree_name, subtree_oid, pygit2.GIT_FILEMODE_TREE)
         return treebuild.write()
 
@@ -624,7 +624,7 @@ class GitByAPI(GitByGeneric):
 
 class GitByCLI(GitByGeneric):
     """
-    Git endpoint ot manipulate a repository through basic CLI.
+    Git endpoint to manipulate a repository through basic CLI.
 
     Currently relying on the `sh` module.
     """

@@ -50,15 +50,15 @@ class Job(Test):
 class Run:
     """Depict a given run -> Git commit"""
 
-    def __init__(self, repo=None, cid=None, from_serie=None):
+    def __init__(self, repo=None, cid=None, from_series=None):
         """Create a new run.
 
         :param repo: the associated repo this run is coming from
         :type repo: Bank
         """
         # this attribute prevails
-        if from_serie:
-            repo = from_serie.repo
+        if from_series:
+            repo = from_series.repo
 
         self._repo = repo
         self._stage = {}
@@ -147,7 +147,7 @@ class Run:
         return json.loads(meta)
 
 
-class Serie:
+class Series:
     """TODO:"""
 
     class Request(IntEnum):
@@ -173,7 +173,7 @@ class Serie:
 
     @property
     def last(self):
-        """Return the last run for this serie."""
+        """Return the last run for this series."""
         return Run(self._repo, self._repo.revparse(self._hdl))
 
     def __len__(self):
@@ -282,22 +282,22 @@ class Bank:
             self._repo.close()
             self._repo = None
 
-    def new_serie(self, serie_name):
-        assert serie_name is not None
-        hdl = self._repo.new_branch(serie_name)
-        return Serie(hdl)
+    def new_series(self, series_name):
+        assert series_name is not None
+        hdl = self._repo.new_branch(series_name)
+        return Series(hdl)
 
-    def get_serie(self, serie_name=None):
+    def get_series(self, series_name=None):
         """TODO"""
-        if not serie_name:
-            serie_name = self._repo.get_head().name
+        if not series_name:
+            series_name = self._repo.get_head().name
 
-        branch = self._repo.get_branch_from_str(serie_name)
+        branch = self._repo.get_branch_from_str(series_name)
 
         if not branch:
             return None
 
-        return Serie(branch)
+        return Series(branch)
 
     def list_series(self, project=None):
         """TODO:"""
@@ -305,7 +305,7 @@ class Bank:
         for elt in self._repo.branches():
             array = elt.name.split("/")
             if project is None or array[0].lower() == project.lower():
-                res.append(Serie(elt))
+                res.append(Series(elt))
         return res
 
     def list_all(self) -> Dict[str, List]:

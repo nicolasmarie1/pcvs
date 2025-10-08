@@ -153,7 +153,7 @@ class Bank(dsl.Bank):
 
     def __del__(self) -> None:
         """
-        Close / disconnet a bank (releasing lock)
+        Close / disconnect a bank (releasing lock)
         """
         self.disconnect()
 
@@ -172,11 +172,11 @@ class Bank(dsl.Bank):
         """
         if target_project is None:
             target_project = self.default_project
-        serie = self.get_serie(target_project)
-        if serie is None:
-            serie = self.new_serie(target_project)
+        series = self.get_series(target_project)
+        if series is None:
+            series = self.new_series(target_project)
 
-        run = dsl.Run(from_serie=serie)
+        run = dsl.Run(from_series=series)
         metadata = {"cnt": {}}
 
         for job in hdl.results.browse_tests():
@@ -193,7 +193,7 @@ class Bank(dsl.Bank):
 
         run.update(".pcvs-cache/conf.json", hdl.config.dump_for_export())
 
-        serie.commit(
+        series.commit(
             run,
             metadata=metadata,
             msg=msg,
@@ -318,7 +318,7 @@ def create_bank(name: str, path: str) -> bool:
     :type name: str
     :param path: path to bank directory
     :type path: str
-    :return: if bank was sucessfuly created
+    :return: if bank was successfully created
     :rtype: bool
     """
     # check if the bank name already exist

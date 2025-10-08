@@ -91,7 +91,7 @@ def create_app(iface):
 
     @app.route("/compare")
     def compare():
-        """Provide the archive comparaison interface.
+        """Provide the archive comparison interface.
 
         :return: webpage content
         :rtype: str

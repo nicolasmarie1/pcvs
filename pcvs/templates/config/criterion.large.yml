@@ -47,7 +47,7 @@ net:
 # dict instead of a single value. Three types of sequences:
 # - sequence | arithmeric: to create an arithmetic sequence: U(n+1) = U(n) + k
 # - multiplication | geometric : to create a geometric sequence: U(n+1) U(n) ^ k
-# - powerof: to create a list withing a range where values are power of k
+# - powerof: to create a list within a range where values are power of k
 #
 # Each operation comes with three parameters:
 # - from: lowerbound (inclusive)

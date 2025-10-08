@@ -162,7 +162,7 @@ def bank_destroy(ctx, name, symlink):  # pylint: disable=unused-argument
     repository deletion. 'data.yml' and bank entry in the configuratino file
     will be removed but existing data are preserved.
     """
-    io.console.print_header("Bank Destry")
+    io.console.print_header("Bank Destroy")
     b = pvBank.Bank(token=name)
     if not symlink:
         io.console.warn("To delete a bank, just remove the directory {}".format(b.prefix))
@@ -233,8 +233,8 @@ def bank_save_run(ctx, name, path, msg):  # pylint: disable=unused-argument
 @click.pass_context
 def bank_load(ctx, name, prefix):  # pylint: disable=unused-argument
     b = pvBank.Bank(token=name)
-    serie = b.get_serie()
-    run = serie.last
+    series = b.get_series()
+    run = series.last
     data = []
     from rich.progress import Progress
 

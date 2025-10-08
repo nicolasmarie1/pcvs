@@ -1,6 +1,6 @@
 from abc import ABC
 
-from pcvs.dsl import Serie
+from pcvs.dsl import Series
 
 
 class BaseAnalysis(ABC):
@@ -11,22 +11,22 @@ class BaseAnalysis(ABC):
 
 class SimpleAnalysis(BaseAnalysis):
 
-    def generate_serie_trend(self, serie, limit: int):
-        if not isinstance(serie, Serie):
-            serie = self._bank.get_serie(serie)
+    def generate_series_trend(self, series, limit: int):
+        if not isinstance(series, Series):
+            series = self._bank.get_series(series)
         stats = []
-        for run in serie.history(limit):
+        for run in series.history(limit):
             ci_meta = run.get_info()
             run_meta = run.get_metadata()
             stats.append({"date": ci_meta["date"], **run_meta})
 
         return stats
 
-    def generate_serie_infos(self, serie: Serie, limit: int):
-        if not isinstance(serie, Serie):
-            serie = self._bank.get_serie(serie)
+    def generate_series_infos(self, series: Series, limit: int):
+        if not isinstance(series, Series):
+            series = self._bank.get_series(series)
         stats = {}
-        for run in serie.history(limit):
+        for run in series.history(limit):
             date = run.get_info()["date"]
             run_stat = {}
             for job in run.jobs:

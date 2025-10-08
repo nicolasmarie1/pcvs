@@ -27,7 +27,7 @@ def test_token_extraction_2(token):
 
 @pytest.mark.parametrize(
     "token",
-    ["local.runtime.test1", "global.compiler.test/test1", "global.comppiler.this.is.a.test"],
+    ["local.runtime.test1", "global.compiler.test/test1", "global.compiler.this.is.a.test"],
 )
 def test_token_extraction_3(token):
     split = token.split(".")

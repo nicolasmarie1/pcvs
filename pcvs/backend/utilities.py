@@ -338,7 +338,7 @@ class BuildSystem:
         self._stream = {}
 
     def fill(self):
-        """This function should be overriden by overriden classes.
+        """This function should be overridden by overridden classes.
 
         Nothing to do, by default.
         """
@@ -400,19 +400,19 @@ class MakefileBuildSystem(BuildSystem):
 
 
 def process_discover_directory(path, override=False, force=False):
-    """Path discovery to detect & intialize build systems found.
+    """Path discovery to detect & initialize build systems found.
 
     :param path: the root path to start with
     :type path: str
     :param override: True if test files should be generated, default to False
     :type override: bool
-    :param force: True if test files should be replaced if exist, defaut to False
+    :param force: True if test files should be replaced if exist, default to False
     :type force: bool
     """
     for root, dirs, files in os.walk(path):
         obj, n = None, None
         if "configure" in files:
-            n = "[yello bold]Autotools[/]"
+            n = "[yellow bold]Autotools[/]"
             obj = AutotoolsBuildSystem(root, dirs, files)
         if "CMakeLists.txt" in files:
             n = "[cyan bold]CMake[/]"

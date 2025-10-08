@@ -101,7 +101,7 @@ class Report:
         """
         Load currently active sessions as reference in PATH_SESSION.
 
-        A issue with this function,  as invalid sessions are not managet yet.
+        A issue with this function,  as invalid sessions are not manager yet.
         """
         self._alive_session_infos = list_alive_sessions()
 
@@ -145,7 +145,7 @@ class Report:
 
     def session_infos(self) -> Iterable[Dict]:
         """
-        Get sesion metadata for each session currently loaded into the instance.
+        Get session metadata for each session currently loaded into the instance.
         :rtype: Iterator[Dict[str, Any]]
         """
         for sid, sdata in self._sessions.items():
@@ -167,7 +167,7 @@ class Report:
         """
         Get the configuration map from a single session.
 
-        :param sid: the sesion ID
+        :param sid: the session ID
         :type sid: int
         :return: the configuration node (=conf.yml)
         :rtype: dict
@@ -253,7 +253,7 @@ class Report:
 
     def single_session_map_id(self, sid, jid) -> pcvs.testing.test.Test:
         """
-        For a given session id, convert a job it into its relative clas:`Test` object.
+        For a given session id, convert a job it into its relative class:`Test` object.
 
         :param sid: Session ID
         :type sid: int

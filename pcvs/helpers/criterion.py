@@ -15,7 +15,7 @@ class Combination:
     associated value in order to generate the appropriate test
     """
 
-    def __init__(self, crit_desc, dict_comb, ressources: list[int]):
+    def __init__(self, crit_desc, dict_comb, resources: list[int]):
         """Build a combination from two components:
         - the actual combination dict
         - the dict of criterions
@@ -29,7 +29,7 @@ class Combination:
         """
         self._criterions = crit_desc
         self._combination = dict_comb
-        self._ressources = ressources
+        self._resources = resources
 
     def get(self, k, dflt=None):
         """Retrieve the actual value for a given combination element
@@ -103,8 +103,8 @@ class Combination:
         return self._combination
 
     @property
-    def ressources(self):
-        return self._ressources
+    def resources(self):
+        return self._resources
 
     def __repr__(self):
         return repr(self.__dict__)
@@ -113,10 +113,10 @@ class Combination:
         return self.__dict__.items()
 
 
-class Serie:
-    """A serie ties a test expression (TEDescriptor) to the possible values
+class Series:
+    """A series ties a test expression (TEDescriptor) to the possible values
     which can be taken for each criterion to build test sets.
-    A serie can be seen as the Combination generator for a given TEDescriptor
+    A series can be seen as the Combination generator for a given TEDescriptor
     """
 
     @classmethod
@@ -125,9 +125,9 @@ class Serie:
         cls.sys_iterators = system_criterion
 
     def __init__(self, dict_of_criterion):
-        """Build a serie, by extracting the list of values.
+        """Build a series, by extracting the list of values.
         Note that here, the dict also contains program-based criterions
-        :param dict_of_criterion: values to build the serie with
+        :param dict_of_criterion: values to build the series with
         :type dict_of_criterion: dict"""
         self._values = list()
         self._keys = list()
@@ -145,8 +145,8 @@ class Serie:
             d = {self._keys[i]: val for i, val in enumerate(combination)}
             if not valid_combination(d):
                 continue
-            ressources: list[int] = get_ressources(d)
-            yield Combination(self._dict, d, ressources)
+            resources: list[int] = get_resources(d)
+            yield Combination(self._dict, d, resources)
 
     def __repr__(self):
         return repr(self.__dict__)
@@ -193,7 +193,7 @@ class Criterion:
         Check for any inconsistent values in the current Criterion.
 
         Currently, only scalar items or dict (=> sequence) are allowed.
-        Will raise an exeption in case of inconsistency (Maybe this should be
+        Will raise an exception in case of inconsistency (Maybe this should be
         managed in another way through the error handling)
         """
         if self.is_discarded():
@@ -225,10 +225,10 @@ class Criterion:
             self.sanitize_values()
 
     def intersect(self, other):
-        """Update the calling Criterion with the interesection of the current
+        """Update the calling Criterion with the intersection of the current
         range of possible values with the one given as a parameters.
 
-        This is used to refine overriden per-TE criterion according to
+        This is used to refine overridden per-TE criterion according to
         system-wide's"""
         assert isinstance(other, Criterion)
         assert self._name == other.name
@@ -351,7 +351,7 @@ class Criterion:
 
         # these must be integers
         def _convert_sequence_item_to_int(val):
-            """helper to convert a string-formated number to a valid repr.
+            """helper to convert a string-formatted number to a valid repr.
 
             :param val: the string-based number to convert
             :type val: str
@@ -580,8 +580,8 @@ def valid_combination(dic):
     return ret
 
 
-def get_ressources(dic) -> list[int] | None:
-    """Get the ressources needed for a job."""
+def get_resources(dic) -> list[int] | None:
+    """Get the resources needed for a job."""
     return get_plugin().invoke_plugins(
-        Plugin.Step.TEST_EVAL, method="get_ressources", combination=dic
+        Plugin.Step.TEST_EVAL, method="get_resources", combination=dic
     )

@@ -130,7 +130,7 @@ class ResultFile:
         Load job data from disk to populate the cache.
         """
         with open(self._metadata_file, "r") as fh:
-            # when reading metdata_file,
+            # when reading metadata_file,
             # convert string-based keys to int (as managed by Python)
             content = json.load(fh)
             self._data = {k: v for k, v in content.items()}
@@ -206,7 +206,7 @@ class ResultFile:
         """
         Current rawdata size
 
-        :return: lenght of the rawdata file.
+        :return: length of the rawdata file.
         :rtype: int
         """
         return self._sz
@@ -413,7 +413,7 @@ class ResultFileManager:
         """
         Add a new job to be saved to the result directory.
 
-        May not be flushed righ away to disk, some caching may be used to
+        May not be flushed right away to disk, some caching may be used to
         improve performance. While adding the Test to low-level manager, this
         function also updates view & maps accordingly.
 
@@ -729,7 +729,7 @@ class BuildDirectoryManager:
         Initialize the result handler.
 
         This function is not called directly from the __init__ method as this
-        isntance may be used for both reading & writing into the destination
+        instance may be used for both reading & writing into the destination
         directory. This function implies storing a new execution.
 
         :param per_file_max_sz: max file size, defaults to unlimited
@@ -843,7 +843,7 @@ class BuildDirectoryManager:
     @property
     def config(self) -> MetaConfig:
         """
-        Return the configuation associated with the current build directory
+        Return the configuration associated with the current build directory
 
         :return: config struct
         :rtype: class:`MetaConfig`

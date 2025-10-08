@@ -127,7 +127,7 @@ class DataRepresentation:
         :return: a boolean, True if test has been successfully inserted
         :rtype: bool
         """
-        # first, insert the test in the hierachy
+        # first, insert the test in the hierarchy
         label = test.label
         subtree = test.subtree
         te_name = test.te_name
@@ -141,7 +141,7 @@ class DataRepresentation:
             self.__insert_in_tree(test, sid_tree["tags"], [tag])
 
         if test.combination:
-            # insert fo each combination subtree
+            # insert for each combination subtree
             for iter_k, iter_v in test.combination.items():
                 self.__insert_in_tree(test, sid_tree["iterators"], [iter_k, iter_v])
 
@@ -180,7 +180,7 @@ class DataRepresentation:
         return len(self.rootree[sid]["fs-tree"]["__elems"].keys())
 
     def get_test_cnt(self, sid: str):
-        """Get the numbe rof tests for a given session.
+        """Get the number of tests for a given session.
 
         :param sid: session id
         :type sid: str

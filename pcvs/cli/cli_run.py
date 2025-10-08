@@ -26,7 +26,7 @@ except ImportError:
 def iterate_dirs(ctx, param, value) -> dict:  # pylint: disable=unused-argument
     """Validate directories provided by users & format them correctly.
 
-    Set the defaul label for a given path if not specified & Configure default
+    Set the default label for a given path if not specified & Configure default
     directories if none was provided.
 
     :param ctx: Click Context
@@ -87,7 +87,7 @@ def compl_list_dirs(ctx, args, incomplete) -> list:  # pylint: disable=unused-ar
 
 
 def handle_build_lockfile(exc=None):
-    """Remove the file lock in build dir if the application stops abrubtly.
+    """Remove the file lock in build dir if the application stops abruptly.
 
     This function will automatically forward the raising exception to the next
     handler.
@@ -378,7 +378,7 @@ def run(
         try:
             io.console.debug("PRE-RUN: previous build: {}".format(val_cfg["reused_build"]))
             global_config = pvRun.dup_another_build(val_cfg["reused_build"], val_cfg["output"])
-            # TODO: Currently nothing can be overriden from cloned build except:
+            # TODO: Currently nothing can be overridden from cloned build except:
             # - 'output'
         except FileNotFoundError as fnfe:
             raise click.BadOptionUsage(

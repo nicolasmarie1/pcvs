@@ -25,7 +25,7 @@ class BankValidationPlugin(Plugin):
 
     def __init__(self):
         super().__init__()
-        self._serie = None
+        self._series = None
         self._bank_hdl = GlobalConfig.root.get_internal("bank")
 
     def run(self, *args, **kwargs):
@@ -33,12 +33,12 @@ class BankValidationPlugin(Plugin):
         if self._bank_hdl is None:
             return None  # Not running with a bank, stop !
 
-        self._serie = self._bank_hdl.get_serie(
+        self._series = self._bank_hdl.get_series(
             self._bank_hdl.build_target_branch_name(
                 hashid=GlobalConfig.root["validation"]["pf_hash"]
             )
         )
-        if not self._serie:
+        if not self._series:
             # no history, stop !
             return None
 
@@ -65,7 +65,7 @@ class BankValidationPlugin(Plugin):
         tolerance = args.get("tolerance", 2)
         min_time = sys.maxsize
         cnt = 0
-        run = self._serie.last
+        run = self._series.last
         while cnt < max_runs:
             res = run.get_data(job.name)
             if res and res.state == Test.State.SUCCESS:

@@ -380,7 +380,7 @@ def is_locked(f):
 
     :param f: the file to test
     :type f: str
-    :return: a boolean indicating wether the lock is hold or not.
+    :return: a boolean indicating whether the lock is hold or not.
     :rtype: bool
     """
     lf_name = get_lockfile_name(f)
@@ -505,7 +505,7 @@ def str_dict_as_envvar(d):
 
     :param d: the dict containing env vars to serialize
     :type d: dict
-    :return: the str, containing mulitple lines, each of them being a var.
+    :return: the str, containing multiple lines, each of them being a var.
     :rtype: str
     """
     return "\n".join(["{}='{}'".format(i, d[i]) for i in sorted(d.keys())])

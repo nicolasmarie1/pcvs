@@ -2,7 +2,7 @@ import queue
 
 from pcvs import io
 from pcvs.backend import session
-from pcvs.helpers.ressource_tracker import RessourceTracker
+from pcvs.helpers.resource_tracker import ResourceTracker
 from pcvs.helpers.system import GlobalConfig
 from pcvs.orchestration.manager import Manager
 from pcvs.orchestration.runner import RunnerAdapter
@@ -42,7 +42,7 @@ class Orchestrator:
         self._runners = []
         self._max_nodes = config_tree["machine"].get("nodes", 1)
         self._max_cores = config_tree["machine"].get("cores_per_node", 1)
-        self._ressources_tracker = RessourceTracker([self._max_nodes, self._max_cores])
+        self._resources_tracker = ResourceTracker([self._max_nodes, self._max_cores])
         self._publisher = config_tree.get_internal("build_manager").results
         self._manager = Manager(self._max_nodes, publisher=self._publisher)
         self._maxconcurrent = config_tree["machine"].get("concurrent_run", 1)
@@ -96,7 +96,7 @@ class Orchestrator:
                 new_set: Set = not None
                 while new_set is not None:
                     # create a new set, if not possible, returns None
-                    new_set = self._manager.create_subset(self._ressources_tracker)
+                    new_set = self._manager.create_subset(self._resources_tracker)
                     if new_set is not None:
                         # schedule the set asynchronously
                         io.console.sched_debug(
@@ -113,10 +113,10 @@ class Orchestrator:
                             "ORCH: recv Set from queue (#{}, sz:{})".format(jobs.id, jobs.size)
                         )
                         for job in jobs.content:
-                            self._ressources_tracker.free(job.alloc_tracking)
+                            self._resources_tracker.free(job.alloc_tracking)
                             io.console.sched_debug(
                                 f"Alloc pool (FREE) {job.alloc_tracking}:"
-                                f" {self._ressources_tracker}"
+                                f" {self._resources_tracker}"
                             )
                         self._manager.merge_subset(jobs)
                         # Continue to gather resultes as long as some are available.

@@ -18,12 +18,12 @@ tests = ["_".join(elt).replace(" ", "-") for elt in product(words, words)]
 
 bank = Bank("./demo.git")
 if "mpc/b6ffe2123be606eab75f75b7dec00eba7d943461" not in bank.list_series():
-    bank.new_serie("mpc/b6ffe2123be606eab75f75b7dec00eba7d943461")
-serie = bank.get_serie("mpc/b6ffe2123be606eab75f75b7dec00eba7d943461")
+    bank.new_series("mpc/b6ffe2123be606eab75f75b7dec00eba7d943461")
+series = bank.get_series("mpc/b6ffe2123be606eab75f75b7dec00eba7d943461")
 
 thr = 100
 for i in range(0, MAX):
-    r = Run(serie)
+    r = Run(series)
     d = {}
     cnt_succ = 0
     cnt_fail = 0
@@ -65,6 +65,6 @@ for i in range(0, MAX):
         }
 
     r.update_flatdict(d)
-    serie.commit(
+    series.commit(
         r, metadata={"cnt": {str(Test.State.SUCCESS): cnt_succ, str(Test.State.FAILURE): cnt_fail}}
     )

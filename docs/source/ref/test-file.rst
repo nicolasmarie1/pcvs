@@ -93,7 +93,7 @@ following nodes :
         program: name of the binary file
 
 The run node owns the ``iterate`` subnode which can contain custom iterators
-desribed in the ``criterion`` node in the selected profile. Moreover, the
+described in the ``criterion`` node in the selected profile. Moreover, the
 ``run.iterate`` node can define custom iterators without defining them in
 ``criterion`` by writing them in the run.iterate.program node.
 
@@ -125,7 +125,7 @@ and matching output.
             mean: expected time to compute the test (seconds / float) tolerance:
             standard deviation for expected time (seconds / float)
             hard_timeout: maximum time after which process has to be killed (seconds / float)
-            soft_timeout: maximum time after which the test is considerd failed (but can still finish, so you can run test correcness localy without testing optimisation (even on your slow computer))
+            soft_timeout: maximum time after which the test is considered failed (but can still finish, so you can run test correcness locally without testing optimisation (even on your slow computer))
         match:
             label:
                 expr:

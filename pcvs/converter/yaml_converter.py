@@ -298,7 +298,7 @@ def convert(input_file, kind, template, scheme, out, stdout, skip_unknown, in_pl
         f.close()
 
 
-# FIXEME:
+# FIXME:
 # MISSING:
 # - compiler.package_manager
 # - runtime.package_manager

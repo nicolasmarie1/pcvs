@@ -97,7 +97,7 @@ def stop_pending_jobs(exc=None):
     :param exc: exception to raise, defaults to None
     :type exc: Exception, optional
     :raises exc: the exception to raise (this function is generally called when
-        a exception is raised, this do some actions without capturing the exeception)
+        a exception is raised, this do some actions without capturing the exception)
     """
     orch = GlobalConfig.root.get_internal("orchestrator")
     if orch:
@@ -138,7 +138,7 @@ def process_main_workflow(the_session=None):
     # export to process env
     os.environ.update(env_config)
     io.console.debug(
-        f"Environement variables added for configuration:\n"
+        f"Environment variables added for configuration:\n"
         f"{utils.str_dict_as_envvar(env_config)}"
     )
 
@@ -218,7 +218,7 @@ def __check_defined_program_validity():
 
     for compiler_name in GlobalConfig.root["compiler"]["compilers"]:
         compiler = GlobalConfig.root["compiler"]["compilers"][compiler_name]
-        compiler["valide"] = utils.check_valid_program(
+        compiler["valid"] = utils.check_valid_program(
             compiler["program"], fail=io.console.warning, raise_on_fail=False
         )
 
@@ -335,7 +335,7 @@ def process_files():
     It includes walking through user directories to find definitions AND
     generating the associated tests.
 
-    :raises TestExpressionError: An error occured while processing files
+    :raises TestExpressionError: An error occurred while processing files
     """
     io.console.print_item("Locate benchmarks from user directories")
     setup_files, yaml_files = find_files_to_process(GlobalConfig.root["validation"]["dirs"])
@@ -485,10 +485,10 @@ def unsafe_process_dyn_setup_scripts(setup_files):
             # with open(out_file, 'w') as fh:
             # fh.write(fdout.decode('utf-8'))
         except CalledProcessError as callerror:
-            io.console.error(f"{f}: Error when lauching setup script: {callerror}")
+            io.console.error(f"{f}: Error when launching setup script: {callerror}")
             raise callerror
         except RunException.NonZeroSetupScript as runerror:
-            io.console.error(f"{f}: Error durring the execution of setup script: {runerror}")
+            io.console.error(f"{f}: Error during the execution of setup script: {runerror}")
             raise runerror
         end_time = time.time()
         elapsed_time = end_time - start_time
@@ -528,7 +528,7 @@ def process_static_yaml_files(yaml_files):
 
 def unsafe_process_static_yaml_files(yaml_files):
     """
-    Process 'pcvs.yml' files to contruct the test base.
+    Process 'pcvs.yml' files to construct the test base.
 
     :param yaml_files: list of tuples, each describing a single input file.
     :type yaml_files: list

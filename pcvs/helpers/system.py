@@ -47,7 +47,7 @@ class ValidationScheme:
 
     def __init__(self, name):
         """
-        Create a new ValidationScheme instancen based on a given model.
+        Create a new ValidationScheme instance based on a given model.
 
         During initialisation the file scheme is loaded from disk.
         :param name: name

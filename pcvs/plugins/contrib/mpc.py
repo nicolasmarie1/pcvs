@@ -10,7 +10,7 @@ class MpcDefaultPlugin(Plugin):
     step = Plugin.Step.TEST_EVAL
 
     def run(self, *args, **kwargs) -> bool:
-        """Validate that the criterions are a valide combination."""
+        """Validate that the criterions are a valid combination."""
         # this dict maps keys (it name) with values (it value)
         # returns True if the combination should be used
         config = kwargs["config"]
@@ -82,7 +82,7 @@ class MpcDefaultPlugin(Plugin):
         io.console.crit_debug(f"{comb}OK")
         return True
 
-    def get_ressources(self, *args, **kwargs) -> list[int]:  # pylint: disable=unused-argument
-        """Get the ressources allocation for the jobs."""
+    def get_resources(self, *args, **kwargs) -> list[int]:  # pylint: disable=unused-argument
+        """Get the resources allocation for the jobs."""
         comb = kwargs["combination"]
         return [comb.get("n_node", 1), (comb.get("n_proc", 1) * comb.get("n_core", 1))]

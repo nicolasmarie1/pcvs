@@ -82,7 +82,7 @@ class TestFile:
     """A TestFile manipulates source files to be processed as benchmarks
     (pcvs.yml & pcvs.setup).
 
-        It handles global informations about source imports & building one execution
+        It handles global information about source imports & building one execution
         script (``list_of_tests.sh``) per input file.
 
         :param _in: YAML input file
@@ -186,7 +186,7 @@ class TestFile:
                 template = os.path.join(PATH_INSTDIR, "templates/config/group-compat.yml")
                 yaml_converter.convert(tmpfile, "te", template, None, None, False, True, True)
             except Exception as er:
-                io.console.error(f"An error occure when trying to update file {self._in}.")
+                io.console.error(f"An error occurred when trying to update file {self._in}.")
                 raise er from e
 
             with open(tmpfile, "r", encoding="utf-8") as fh:
@@ -236,7 +236,7 @@ class TestFile:
 
             GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.TDESC_AFTER)
 
-            # register debug informations relative to the loaded TEs
+            # register debug information relative to the loaded TEs
             self._debug[k] = td.get_debug()
 
     def flush_sh_file(self):

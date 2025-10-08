@@ -29,7 +29,7 @@ the parallelism brought by HPC architectures, able to run thousands of tests at
 the same time. This decrease in the time to result boosts productivity of
 development, leading to a better software. By separating tests (=code to
 execute) from application to validate, the effort of writing tests and setting
-validation plaform is strongly reduced, for instance:
+validation platform is strongly reduced, for instance:
 
 #. The dev team writes tests and describes scenarii.
 #. Cluster admins set up the architecture for testing (compilers, tools...).
@@ -38,7 +38,7 @@ validation plaform is strongly reduced, for instance:
 Splitting the effort will enforce reusability and flexibility. In many cases,
 multiple test bases share same compilers, runtimes, tools or even machine
 partition, it is then convenient (for administration purposes) to gather at a
-higher level this type of responsability.*
+higher level this type of responsibility.*
 
 Using PCVS may have a slight cost as test logic must be converted to a new
 semantics (not the tests themselves but the testing system behind it), without

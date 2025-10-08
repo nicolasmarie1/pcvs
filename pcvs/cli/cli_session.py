@@ -49,7 +49,7 @@ def print_sessions(sessions):
     table.add_column("SID", justify="center", max_width=10)
     table.add_column("Status", justify="right")
     table.add_column("Started", justify="center")
-    table.add_column("Elasped", justify="right")
+    table.add_column("Elapsed", justify="right")
     table.add_column("Location", justify="left")
 
     for sk, sv in sessions.items():
@@ -135,5 +135,5 @@ def session(ctx, ack, list_sessions, ack_all):  # pylint: disable=unused-argumen
         utils.unlock_file(lockfile)
     elif list_sessions:
         print_sessions(sessions)
-    else:  # listing is the defualt
+    else:  # listing is the default
         print_sessions(sessions)

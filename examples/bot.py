@@ -56,7 +56,7 @@ async def bank_cmd(ctx, *args):
             assert tmp.content_type == "application/x-tar"
             await tmp.save(fp=tmp.filename)
             b.save_from_archive(tag=None, archivepath=tmp.filename)
-            await ctx.send("Serie {} successfully updated !".format(b.name))
+            await ctx.send("Series {} successfully updated !".format(b.name))
         else:
             await ctx.send("Unknown syntax: {}".format(" ".join(args)))
 

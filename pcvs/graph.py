@@ -6,11 +6,11 @@ mathplotlib graphs.
 Used by cli.cli_graph to draw graph from the command line.
 
 We create 2 types of graphs:
-    - a stacked graph representing the sucess rate over time of a serie of run
+    - a stacked graph representing the success rate over time of a series of run
     where all the test state are represented as a layer.
     - a graph for each basetest (test without criterions) in witch we
     represent the test duration evolution per run for each criterions
-    combinaison.
+    combination.
 """
 
 import os
@@ -18,26 +18,26 @@ import os
 from matplotlib import pyplot as plt
 
 from pcvs import io
-from pcvs.dsl import Serie
+from pcvs.dsl import Series
 from pcvs.dsl.analysis import SimpleAnalysis
 from pcvs.testing.test import Test
 
 
 def get_status_series(
-    analysis: SimpleAnalysis, serie: Serie, path: str, show: bool, extension: str, limit: int
+    analysis: SimpleAnalysis, series: Series, path: str, show: bool, extension: str, limit: int
 ):
     """
     get_status_series: create a test state graph.
 
     :param analysis: the analysis object that will be used to query the bank.
-    :param serie: the serie of test used.
+    :param series: the series of test used.
     :param path: the path to save the enerated graphs.
     :param show: do we try to show the graphs to the user directly, (need PyQt5).
     :param extension: format/file extension to use when saving the graphs.
-    :param limit: nb max of run in the serie to query (use sys.maxsize for not
+    :param limit: nb max of run in the series to query (use sys.maxsize for not
         limit).
     """
-    status_data = analysis.generate_serie_trend(serie.name, limit)
+    status_data = analysis.generate_series_trend(series.name, limit)
     xlabels = []
     total, fails, htos, stos, succs, other = [], [], [], [], [], []
 
@@ -75,7 +75,7 @@ def get_status_series(
     )
     ax.xaxis.set_ticks(range(len(status_data)))
     ax.xaxis.set_ticklabels(sorted(xlabels))
-    ax.set_title("Sucess Count")
+    ax.set_title("Success Count")
     ax.set_xlabel("Test Date")
     ax.set_ylabel("nb. tests (count)")
     ax.set_ylim(ymin=0)
@@ -84,13 +84,13 @@ def get_status_series(
     if show:
         plt.show()
     if path:
-        file_name = serie.name.replace("/", "_")
+        file_name = series.name.replace("/", "_")
         fig.set_size_inches(size[0] * 2 * max(1, len(status_data) / 6), size[1] * 2)
         fig.savefig(os.path.join(path, f"{file_name}.{extension}"))
     plt.close()
 
 
-def _get_time_serie(
+def _get_time_series(
     jobs_base_name: str,
     jobs: dict[str, dict[str, list[int]]],
     dates: list[int],
@@ -104,7 +104,7 @@ def _get_time_serie(
         job_spec: str = job_name[len(jobs_base_name) + 1 :]
         if not job_spec:
             job_spec = "default"  # no criterions
-        ax.plot(job_data["indexs"], job_data["times"], label=job_spec, marker="+")
+        ax.plot(job_data["indexes"], job_data["times"], label=job_spec, marker="+")
     ax.xaxis.set_ticks(range(len(dates)))
     ax.xaxis.set_ticklabels(dates)
 
@@ -124,21 +124,21 @@ def _get_time_serie(
 
 
 def get_time_series(
-    analysis: SimpleAnalysis, serie: Serie, path: str, show: bool, extension: str, limit: int
+    analysis: SimpleAnalysis, series: Series, path: str, show: bool, extension: str, limit: int
 ):
     """
     get_time_series: create a test state graph.
 
     :param analysis: the analysis object that will be used to query the bank.
-    :param serie: the serie of test used.
+    :param series: the series of test used.
     :param path: the path to save the enerated graphs.
     :param show: do we try to show the graphs to the user directly, (need PyQt5).
     :param extension: format/file extension to use when saving the graphs.
-    :param limit: nb max of run in the serie to query (use sys.maxsize for not
+    :param limit: nb max of run in the series to query (use sys.maxsize for not
         limit).
     """
-    all_time_data: dict[int, dict[str, dict[str, str | int]]] = analysis.generate_serie_infos(
-        serie.name, limit
+    all_time_data: dict[int, dict[str, dict[str, str | int]]] = analysis.generate_series_infos(
+        series.name, limit
     )
     group_jobs: dict[str, dict[str, dict[str, list[int]]]] = {}
     group_dates: dict[str, list[int]] = {}
@@ -147,8 +147,8 @@ def get_time_series(
     #                  to: jobgroup { job ([index], [data.time]) } } }
     #                   +: jobgroup { [dates] }
     #   ie: group by job basename + swap job/date key order
-    # + filter data by state == sucess || state == soft_timeout
-    # + make sur we are going by date order to get the right graph.
+    # + filter data by state == success || state == soft_timeout
+    # + make sure we are going by date order to get the right graph.
     i: int = 0
     for run_date, jobs in dict(sorted(all_time_data.items())).items():
         for job_name, job_data in jobs.items():
@@ -159,8 +159,8 @@ def get_time_series(
             if run_date not in group_dates[base_name]:
                 group_dates[base_name].append(run_date)
             if job_name not in group_jobs[base_name]:
-                group_jobs[base_name][job_name] = {"indexs": [], "times": []}
-            group_jobs[base_name][job_name]["indexs"].append(i)
+                group_jobs[base_name][job_name] = {"indexes": [], "times": []}
+            group_jobs[base_name][job_name]["indexes"].append(i)
             if (
                 job_data["status"] == Test.State.SUCCESS
                 or job_data["status"] == Test.State.SOFT_TIMEOUT
@@ -172,4 +172,4 @@ def get_time_series(
 
     for jobs_base_name, jobs_data in group_jobs.items():
         dates = group_dates[jobs_base_name]
-        _get_time_serie(jobs_base_name, jobs_data, dates, path, show, extension)
+        _get_time_series(jobs_base_name, jobs_data, dates, path, show, extension)

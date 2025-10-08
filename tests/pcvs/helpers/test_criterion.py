@@ -135,5 +135,5 @@ def test_value_expansion(op):
         assert c.values == elt[1]
 
 
-def test_serie_init(crit_desc):  # pylint: disable=unused-argument,redefined-outer-name
-    tested.Serie(crit_desc)
+def test_series_init(crit_desc):  # pylint: disable=unused-argument,redefined-outer-name
+    tested.Series(crit_desc)

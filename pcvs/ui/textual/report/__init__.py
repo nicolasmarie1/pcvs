@@ -87,7 +87,7 @@ class FileBrowser(Widget):
         yield self.log
 
     @on(DirectoryTree.FileSelected)
-    def on_seleted_line(self, event: DirectoryTree.FileSelected):
+    def on_selected_line(self, event: DirectoryTree.FileSelected):
         event.stop()
         FileBrowser.last_select = event.path
 

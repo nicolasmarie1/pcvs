@@ -62,7 +62,7 @@ def list_blocks(kind, scope=None) -> Union[List[str], Dict[str, List[str]]]:
 
 
 def list_templates() -> List[str]:
-    """List available templates to be used for boostraping config. blocks.
+    """List available templates to be used for bootstrapping config. blocks.
 
     :return: a list of valid templates.
     :rtype: list"""
@@ -95,7 +95,7 @@ class ConfigurationBlock:
     Handle the basic configuration block, smallest part of a profile.
 
     From a user persperctive, a basic block is a dict, gathering in a Python
-    object informations relative to the configuration of a single component.
+    object information relative to the configuration of a single component.
     In PCVS, there is 5 types of components:
 
     * Compiler-oriented (defining compiler commands)
@@ -124,7 +124,7 @@ class ConfigurationBlock:
     """
 
     def __init__(self, kind, name, scope=None):
-        """Constructer method
+        """Constructor method
 
         :param kind: which component to initialize this basicblock with
         :type kind: str, one of ``CONFIG_BLOCKS`` values
@@ -356,7 +356,7 @@ class ConfigurationBlock:
     def edit(self) -> None:
         """Open the current block for edition.
 
-        :raises Exception: Something occured on the edited version.
+        :raises Exception: Something occurred on the edited version.
         """
         assert self._file is not None
 

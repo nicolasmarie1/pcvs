@@ -38,9 +38,9 @@ compilers node
 
 The compiler node describes how to use a compiler, it include the following nodes:
 * ``program``: the name of the program to execute
-* ``envs``: the env to export at build time for that compiler, usefull if you are using a Makefile
+* ``envs``: the env to export at build time for that compiler, useful if you are using a Makefile
 * ``extension``: the source code extension match by the compilers.
-* ``variants``: differents version of the same compiler configuration entry.
+* ``variants``: different version of the same compiler configuration entry.
 
 
 compilers node example
@@ -88,7 +88,7 @@ The variant must have a **name**, and **arguments** as such:
 .. code-block:: yaml
 
     example_variant:
-        args: additionnal arguments for the example variant
+        args: additional arguments for the example variant
     openmp:
         args: -fopenmp
     strict:

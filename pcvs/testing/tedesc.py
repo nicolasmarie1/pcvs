@@ -9,7 +9,7 @@ from pcvs import io
 from pcvs import testing
 from pcvs.helpers import pm
 from pcvs.helpers.criterion import Criterion
-from pcvs.helpers.criterion import Serie
+from pcvs.helpers.criterion import Series
 from pcvs.helpers.exceptions import ProfileException
 from pcvs.helpers.exceptions import TestException
 from pcvs.helpers.system import GlobalConfig
@@ -80,13 +80,13 @@ def extract_compiler_config(lang, variants):
         config["program"],
         config.get("args", []),
         config.get("envs", []),
-        config.get("valide", False),
+        config.get("valid", False),
     )
 
 
 def build_job_deps(deps_node, pkg_label, pkg_prefix):
     """
-    Build the dependency list from a given depenency YAML node.
+    Build the dependency list from a given dependency YAML node.
 
     A ``depends_on`` is used by test to establish their relationship. It looks
     like:
@@ -300,8 +300,8 @@ class TEDescriptor:
     def _configure_criterions(self):
         """Prepare the list of components this TE will be built against.
 
-        It consists in interesecting system-wide criterions and their
-        definitions with this overriden criterion by this TE. The result is then
+        It consists in intersecting system-wide criterions and their
+        definitions with this overridden criterion by this TE. The result is then
         what tests will be built on. If there is no intersection between
         system-wide and this TE declaration, the whole TE is skipped.
         """
@@ -316,7 +316,7 @@ class TEDescriptor:
             tmp = {}
             # browse declared criterions (system-wide)
             for k_sys, v_sys in self._sys_crit.items():
-                # if key is overriden by the test
+                # if key is overridden by the test
                 if k_sys in te_keys:
                     cur_criterion = copy.deepcopy(v_sys)
                     cur_criterion.override(self._run["iterate"][k_sys])
@@ -332,7 +332,7 @@ class TEDescriptor:
                         self._skipped = True
                     else:
                         tmp[k_sys] = cur_criterion
-                else:  # key is not overriden
+                else:  # key is not overridden
                     tmp[k_sys] = v_sys
 
             self._criterion = tmp
@@ -355,8 +355,8 @@ class TEDescriptor:
         compiler = compilers[0]
 
         compiler_config = extract_compiler_config(compiler, self._build.get("variants", {}))
-        program, args, envs, valide = compiler_config
-        if not valide:
+        program, args, envs, valid = compiler_config
+        if not valid:
             io.console.warn(f"Compiler program '{program}' not found for test '{self.name}'")
 
         binary = self.get_binary_name()
@@ -384,7 +384,7 @@ class TEDescriptor:
         command = ["make"]
         basepath = self._srcdir
 
-        # change makefile path if overriden by 'files'
+        # change makefile path if overridden by 'files'
         if "files" in self._build:
             basepath = os.path.dirname(self._build["files"][0])
             command.append("-f {}".format(" ".join(self._build["files"])))
@@ -543,7 +543,7 @@ class TEDescriptor:
             wd=chdir,
         )
 
-    def __construct_runtime_tests(self, serie):
+    def __construct_runtime_tests(self, series):
         """Generate tests to be run by the runtime command."""
         te_job_deps = build_job_deps(self._run, self._te_label, self._te_subtree)
         te_mod_deps = build_pm_deps(self._run)
@@ -554,7 +554,7 @@ class TEDescriptor:
                 te_job_deps.append(fq_name)
 
         # for each combination generated from the collection of criterions
-        for comb in serie.generate():
+        for comb in series.generate():
             chdir = None
 
             # start to build the proper command, three parts:
@@ -609,7 +609,7 @@ class TEDescriptor:
                 valscript=self._validation.get("script", {}).get("path", None),
                 analysis=self._validation.get("analysis", {}),
                 comb=comb,
-                resources=comb.ressources,
+                resources=comb.resources,
                 wd=chdir,
                 artifacts=self._artifacts,
                 matchers=self._validation.get("match", None),
@@ -640,10 +640,10 @@ class TEDescriptor:
             yield from self.__construct_compil_tests()
         if self._run:
             if self.get_attr("command_wrap", True) is False:
-                serie = Serie({**self._program_criterion})
+                series = Series({**self._program_criterion})
             else:
-                serie = Serie({**self._criterion, **self._program_criterion})
-            yield from self.__construct_runtime_tests(serie)
+                series = Series({**self._criterion, **self._program_criterion})
+            yield from self.__construct_runtime_tests(series)
 
     def get_debug(self):
         """Build information debug for the current TE.
@@ -659,11 +659,11 @@ class TEDescriptor:
 
         # count actual tests built
         if self._run:
-            # for system-wide iterators, count max number of possibilites
+            # for system-wide iterators, count max number of possibilities
             for k, v in self._criterion.items():
                 debug_yaml[k] = list(v.values)
 
-            # for program-lavel iterators, count number of possibilies
+            # for program-level iterators, count number of possibilities
             debug_yaml["program"] = dict()
             for k, v in self._program_criterion.items():
                 debug_yaml["program"][k] = list(v.values)

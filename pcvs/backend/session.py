@@ -117,7 +117,7 @@ def main_detached_session(sid, user_func, *args, **kwargs):
     This function is called by Session.run_detached() and is launched from
     cloned process (same global env, new main function).
 
-    :raises Exception: any error occuring during the main process is re-raised.
+    :raises Exception: any error occurring during the main process is re-raised.
 
     :param sid: the session id
     :param user_func: the Python function used as the new main()
@@ -129,11 +129,11 @@ def main_detached_session(sid, user_func, *args, **kwargs):
 
     # When calling a subprocess, the parent is attached to its child
     # Parent won't terminate if a single child is still running.
-    # Setting a child 'deamon' will allow parent to terminate children at exit
+    # Setting a child 'daemon' will allow parent to terminate children at exit
     # (still not what we want)
     # the trick is to double fork: the parent creates a child, also crating a
     # a child (child2). When the process is run, the first child completes
-    # immediately, relasing the parent.
+    # immediately, releasing the parent.
     if os.fork() != 0:
         return
 

@@ -50,9 +50,9 @@ class Test:
             has not been computed yet.
         :var int SUCCESS: Job successfully run and passes all checks (rc,
             matchers...)
-        :var int FAILURE: Job didn't suceed, at least one condition failed.
-        :var SOFT_TIMEOUT: Job has exceded his soft time limit but pass.
-        :var HARD_TIMEOUT: Job has exceded his hard time limit and got killed.
+        :var int FAILURE: Job didn't succeed, at least one condition failed.
+        :var SOFT_TIMEOUT: Job has exceeded his soft time limit but pass.
+        :var HARD_TIMEOUT: Job has exceeded his hard time limit and got killed.
         :var int ERR_DEP: Special cases to manage jobs descheduled because at
             least one of its dependencies have failed to complete.
         :var int ERR_OTHER: Any other uncaught situation.
@@ -97,7 +97,7 @@ class Test:
         self._output = b""
         self._state = Test.State.WAITING
         cores_per_nodes = GlobalConfig.root.get("machine", {}).get("cores_per_nodes", 1)
-        self._ressources: list[int] = kwargs.get("ressources", [1, cores_per_nodes])
+        self._resources: list[int] = kwargs.get("resources", [1, cores_per_nodes])
 
         self._testenv = kwargs.get("environment")
         self._id = {
@@ -335,7 +335,7 @@ class Test:
         return False
 
     def first_incomplete_dep(self):
-        """Retrive the first ready-for-schedule dep.
+        """Retrieve the first ready-for-schedule dep.
 
         This is mainly used to ease the scheduling process by following the job
         dependency graph.
@@ -384,23 +384,23 @@ class Test:
 
         The dimension can be defined by the user and let the orchestrator knows
         what resource are, and how to 'count' them'. This accessor allow the
-        orchestrator to exract the information, based on the key name.
+        orchestrator to extract the information, based on the key name.
 
         :return: The number of resource this Test is requesting.
         :rtype: int
         """
-        if self._ressources and len(self._ressources) > 0:
-            return self._ressources[0]
+        if self._resources and len(self._resources) > 0:
+            return self._resources[0]
         return 1
 
     @property
-    def needed_ressources(self) -> list[int]:
-        """Return the ressources used by the jobs
+    def needed_resources(self) -> list[int]:
+        """Return the resources used by the jobs
 
         :return: The number of nodes / cpus used by the jobs.
         :rtype: int
         """
-        return self._ressources
+        return self._resources
 
     def save_final_result(self, rc=0, time=None, out=b"", state=None):
         """Build the final Test result node.
@@ -495,7 +495,7 @@ class Test:
             if self._validation["expect_rc"] != p.rc:
                 state = Test.State.FAILURE
 
-        # if the test suceed, check for soft timeout
+        # if the test succeed, check for soft timeout
         if (
             state == Test.State.SUCCESS
             and self._soft_timeout is not None
@@ -556,7 +556,7 @@ class Test:
         )
 
     def been_executed(self):
-        """Cehck if job has been executed (not waiting or in progress).
+        """Check if job has been executed (not waiting or in progress).
 
         :return: False if job is waiting for scheduling or in progress.
         :rtype: bool
@@ -650,7 +650,7 @@ class Test:
         """Replace the whole Test structure based on input JSON.
 
         :param json: the json used to set this Test
-        :type json: test-result-valid JSON-formated str
+        :type json: test-result-valid JSON-formatted str
         """
 
         if isinstance(test_json, str):

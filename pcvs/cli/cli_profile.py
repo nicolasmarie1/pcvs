@@ -162,7 +162,7 @@ def profile_interactive_select():
     Based on user input, this function displays, for each kind, possible blocks
     and waits for a selection. A final profile is built from them.
 
-    :return: concatenation of basic blokcs
+    :return: concatenation of basic blocks
     :rtype: dict
     """
     composition = {}

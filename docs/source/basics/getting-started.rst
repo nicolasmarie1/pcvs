@@ -64,7 +64,7 @@ directory for this example. Here is the content of this file:
 	A test is the combination of a program, its arguments and the environment
 	used to execute it. From PCVS' point of view, a test file does not carry the
 	whole test environment. The orchestrator itself manage to build it directly
-	from specification. Thus, ``pcvs.yml`` expects the user to decribe programs
+	from specification. Thus, ``pcvs.yml`` expects the user to describe programs
 	to be used to build the test-suite.
 
 .. code-block:: yaml

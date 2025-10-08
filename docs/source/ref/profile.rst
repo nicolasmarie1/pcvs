@@ -60,7 +60,7 @@ but a profile can be built with custom configuration blocks.
 Building a profile with existing configuration blocks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Buiding a profile based on configuration blocks can be done in two ways :
+Building a profile based on configuration blocks can be done in two ways :
 
 * in the CLI
 * with the interactive mode

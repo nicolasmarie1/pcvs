@@ -20,7 +20,7 @@ class Plugin:
 
     List of possible values is defined by the per-step API.
 
-    :raises PluginException.NotImplementedError: if run() method is not overriden
+    :raises PluginException.NotImplementedError: if run() method is not overridden
     """
 
     class Step(enum.Enum):
@@ -67,7 +67,7 @@ class Plugin:
 
     @abstractmethod
     def run(self, *args, **kwargs):
-        """To-be-overriden method."""
+        """To-be-overridden method."""
         raise PluginException.NotImplementedError(type(self))
 
 
@@ -92,7 +92,7 @@ class Collection:
             raise PluginException("Error while registering plugin.") from e
 
     def exist_plugin(self, name):
-        """Cehck if a plugin already exist."""
+        """Check if a plugin already exist."""
         for _, plugins in self._plugins.items():
             for p in plugins:
                 if name.lower() == type(p).__name__.lower():

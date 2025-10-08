@@ -34,7 +34,7 @@ except ImportError:
     type=click.Choice(["rate", "duration", "all"]),
     default=["all"],
     multiple=True,
-    help="Type of graphs to show, (sucess rate or test durations).",
+    help="Type of graphs to show, (success rate or test durations).",
 )
 @click.option(
     "-p",
@@ -47,7 +47,7 @@ except ImportError:
         dir_okay=True,
         writable=True,
     ),
-    help="Folder to save the images. (Exisintg images with the same names will be overidden)",
+    help="Folder to save the images. (Exisintg images with the same names will be overridden)",
 )
 @click.option(
     "-s",
@@ -55,7 +55,7 @@ except ImportError:
     "show",
     is_flag=True,
     default=False,
-    help="Show the images instead/in addition of saving thems. (Default when --path is not specify)",
+    help="Show the images instead/in addition of saving themes. (Default when --path is not specify)",
 )
 @click.option(
     "-e",
@@ -86,8 +86,8 @@ def cli_graph(
         limit = sys.maxsize
 
     bank = pvBank.Bank(token=bank_name)
-    serie = bank.get_serie(bank.default_project)
-    if not serie:
+    series = bank.get_series(bank.default_project)
+    if not series:
         raise click.BadArgumentUsage(f"'{bank_name}' project does not exist")
     simple_analysis = analysis.SimpleAnalysis(bank)
 
@@ -98,7 +98,7 @@ def cli_graph(
     io.console.debug(f"graph types: {graph_types}")
 
     if "rate" in graph_types:
-        graph.get_status_series(simple_analysis, serie, path, show, extension, limit)
+        graph.get_status_series(simple_analysis, series, path, show, extension, limit)
 
     if "duration" in graph_types:
-        graph.get_time_series(simple_analysis, serie, path, show, extension, limit)
+        graph.get_time_series(simple_analysis, series, path, show, extension, limit)

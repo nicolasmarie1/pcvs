@@ -183,7 +183,7 @@
     metric2:
       key: "regex"
       attributes:
-        # if multiple occurences of the regex are found, only keep the first
+        # if multiple occurrences of the regex are found, only keep the first
         # match. (default: false)
         unique: true
 

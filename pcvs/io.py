@@ -122,7 +122,7 @@ class TheConsole(Console):
 
         :param args: any argument to be forwarded to Rich console, as list
         :type args: list
-        :param kwargs: any argument to be forwared to Rich Console as dict
+        :param kwargs: any argument to be forwarded to Rich Console as dict
         :type kwargs: dict
         """
         self._display_table = None
@@ -622,7 +622,7 @@ def capture_exception(
     function not to crash.
     :param e_type: errors to be caught
     :type: e_type: Exception
-    :param user_func: Optional, a function to call to manage the exeption
+    :param user_func: Optional, a function to call to manage the exception
     :type: a function pointer
     :return: function handler to manage exception
     :rtype: function pointer

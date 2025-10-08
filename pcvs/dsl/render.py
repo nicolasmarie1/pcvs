@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from pcvs.testing.test import Test
 
 
-def generate_serie_trend(res, out):
+def generate_series_trend(res, out):
     x = []
     total = []
     succ = []

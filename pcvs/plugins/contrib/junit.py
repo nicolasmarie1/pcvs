@@ -38,7 +38,7 @@ class JUnit(Plugin):
                 )
             elif state != Test.State.SUCCESS:
                 tt.add_error_info(
-                    message="Unkown error", output=t["result"]["output"], error_type=str(state)
+                    message="Unknown error", output=t["result"]["output"], error_type=str(state)
                 )
 
             test_cases.append(tt)

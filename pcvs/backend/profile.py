@@ -51,7 +51,7 @@ def list_profiles(scope=None):
 
 
 def list_templates():
-    """List available templates to be used for boostraping profiles.
+    """List available templates to be used for bootstrapping profiles.
 
     :return: a list of valid templates.
     :rtype: list"""
@@ -282,7 +282,7 @@ class Profile:
                     self._file, "profile", None, None, tmpfile, False, True, False
                 )
             except Exception as convert_error:
-                io.console.error(f"An error occure when trying to update profile: {self._file}")
+                io.console.error(f"An error occurred when trying to update profile: {self._file}")
                 raise convert_error from parsing_error
 
             with open(tmpfile, "r", encoding="utf-8") as f:

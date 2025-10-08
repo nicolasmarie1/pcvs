@@ -48,7 +48,7 @@ class RunnerAdapter(threading.Thread):
     def local_exec(self, jobs) -> None:
         """Execute the Set and jobs within it.
 
-        :raises Exception: Something occured while running a test"""
+        :raises Exception: Something occurred while running a test"""
         io.console.nodebug("{}: [LOCAL] Set start".format(self.ident))
         for job in jobs.content:
             hard_timeout = False

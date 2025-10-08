@@ -17,7 +17,7 @@ job_manager:
     args: ""
     wrapper: ""
     #  batch:
-    # comand: "srun"
+    # command: "srun"
     # args: "-p sandy"
     # wrapper: "/pat/to/batch_wrapper"
 # default partition to load (None by default)

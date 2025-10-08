@@ -55,7 +55,7 @@ def compl_list_templates(ctx, args, incomplete) -> list:  # pylint: disable=unus
 def config(ctx) -> None:  # pylint: disable=unused-argument
     """The 'config' command helps user to manage configuration basic blocks in
     order to set up a future validation to process. A basic block is the
-    smallest piece of configuration gathering similar informations. Multiple
+    smallest piece of configuration gathering similar information. Multiple
     KIND exist:
 
     \b
@@ -88,7 +88,7 @@ def config_list_single_kind(kind, scope) -> None:
         return
     elif scope is None:  # if no scope has been provided by the user
         for sc in utils.storage_order():
-            # aggregate names for each sccope
+            # aggregate names for each scope
             names = sorted([elt[0] for elt in [array for array in blocks[sc]]])
             if not names:
                 io.console.print_item("[bright_black]{: <6s}: None".format(sc.upper()))
@@ -227,7 +227,7 @@ def config_show(ctx, token) -> None:  # pylint: disable=unused-argument
 def config_create(ctx, token, clone, base, interactive) -> None:  # pylint: disable=unused-argument
     """Create a new configuration block for the given KIND. The newly created
     block will be labeled NAME. It is inherited from a default template. This
-    can be overriden by spefifying a CLONE argument.
+    can be overridden by specifying a CLONE argument.
 
     The CLONE may be given raw (as a regular label) or prefixed by the scope
     this label is coming from. For instance, the user may pass 'global.mylabel'

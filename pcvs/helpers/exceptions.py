@@ -3,7 +3,7 @@ class GenericException(Exception):
 
     def __init__(
         self,
-        reason="Unkown error",
+        reason="Unknown error",
         help_msg="Please check pcvs --help for more information.",
         dbg_info={},
     ):
@@ -182,7 +182,7 @@ class RunException(CommonException):
     """Run-specific exceptions."""
 
     class InProgressError(GenericException):
-        """A run is currently occuring in the given dir."""
+        """A run is currently occurring in the given dir."""
 
         def __init__(self, reason="Build directory currently used by another instance", **kwargs):
             """Updated constructor"""
@@ -239,7 +239,7 @@ class TestException(CommonException):
             super().__init__(
                 reason=reason,
                 help_msg="\n".join(
-                    ["Please check input files with `pcvs check`", "Invalide files are:", "{}"]
+                    ["Please check input files with `pcvs check`", "Invalid files are:", "{}"]
                 ).format("\n".join(input_files)),
                 dbg_info=kwargs,
             )

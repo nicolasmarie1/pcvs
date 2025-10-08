@@ -1,6 +1,6 @@
 from pcvs import io
 from pcvs.helpers.exceptions import OrchestratorException
-from pcvs.helpers.ressource_tracker import RessourceTracker
+from pcvs.helpers.resource_tracker import ResourceTracker
 from pcvs.helpers.system import GlobalConfig
 from pcvs.orchestration.set import Set
 from pcvs.plugins import Plugin
@@ -81,7 +81,7 @@ class Manager:
 
     def add_job(self, job):
         """Store a new job to the Job Queue, the Manager table,
-            save the test dependancy rules and count it.
+            save the test dependency rules and count it.
 
         :param job: The job to append
         :type job: :class:`Test`
@@ -174,7 +174,7 @@ class Manager:
                 job.resolve_a_dep(depname, job_dep)
 
     def get_leftjob_count(self):
-        """Return the number of jobs remainig to be executed.
+        """Return the number of jobs remaining to be executed.
 
         :return: a number of jobs
         :rtype: int
@@ -206,11 +206,11 @@ class Manager:
                 self._dims[k].remove(elt)
             return len(removed_jobs) > 0
 
-    def create_subset(self, ressources_tracker: RessourceTracker):
+    def create_subset(self, resources_tracker: ResourceTracker):
         """Extract one or more jobs, ready to be run.
 
-        :param ressources_tracker: job ressource tracker.
-        :type ressources_tracker: list[int]
+        :param resources_tracker: job resource tracker.
+        :type resources_tracker: list[int]
         :return: A set of jobs
         :rtype: :class:`Set`
         """
@@ -224,7 +224,7 @@ class Manager:
                 max_job_limit=int(self._count["total"] / self._concurrent_level),
             )
         else:
-            the_set = self.__default_create_subset(ressources_tracker)
+            the_set = self.__default_create_subset(resources_tracker)
 
         self._plugin.invoke_plugins(Plugin.Step.SCHED_SET_AFTER)
         return the_set
@@ -238,7 +238,7 @@ class Manager:
                 return job
         return None
 
-    def __default_create_subset(self, ressources_tracker: RessourceTracker):
+    def __default_create_subset(self, resources_tracker: ResourceTracker):
         scheduled_set = None
 
         user_sched_job = self._plugin.has_enabled_step(Plugin.Step.SCHED_JOB_EVAL)
@@ -247,8 +247,8 @@ class Manager:
             if job.been_executed() or job.state == Test.State.IN_PROGRESS:
                 continue
 
-            # if the job has pending dependancy,
-            # schedule the pending dependancy instead of the job itself.
+            # if the job has pending dependency,
+            # schedule the pending dependency instead of the job itself.
             if not job.has_completed_deps():
                 self.__add_job(job)
                 # pick up a dep
@@ -279,11 +279,11 @@ class Manager:
                     Plugin.Step.SCHED_JOB_EVAL, job=job, set=scheduled_set
                 )
             else:
-                io.console.sched_debug(f"Alloc pool (ALLOC TRY): {job.needed_ressources}")
-                res = ressources_tracker.alloc(job.needed_ressources)
+                io.console.sched_debug(f"Alloc pool (ALLOC TRY): {job.needed_resources}")
+                res = resources_tracker.alloc(job.needed_resources)
                 pick_job = res > 0
                 if pick_job:
-                    io.console.sched_debug(f"Alloc pool (ALLOC RES) {res}: {ressources_tracker}")
+                    io.console.sched_debug(f"Alloc pool (ALLOC RES) {res}: {resources_tracker}")
                     job.alloc_tracking = res
 
             if job.state != Test.State.IN_PROGRESS and pick_job:
