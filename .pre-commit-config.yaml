@@ -102,3 +102,8 @@ repos:
           (?x)
             .tox|
             build
+exclude: |
+  (?x)
+    ^.*\.min\.js$|
+    ^.*\.min\.css$|
+    ^.*\.svg$
