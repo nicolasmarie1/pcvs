@@ -13,11 +13,7 @@ class GenericServer:
 
     def __init__(self, session_id):
         self._waitlist = []
-        self._metadata = {
-            "rootdir": "remote server",
-            "sid": session_id,
-            "count": {}
-        }
+        self._metadata = {"rootdir": "remote server", "sid": session_id, "count": {}}
 
     @abstractmethod
     def send(self, data):
@@ -55,18 +51,19 @@ class RemoteServer(GenericServer):
 
     def open_connection(self):
         self._json_send(
-            "/submit/session_init", {
-                "sid": self._metadata['sid'],
+            "/submit/session_init",
+            {
+                "sid": self._metadata["sid"],
                 "state": Session.State.IN_PROGRESS,
-                "buildpath": GlobalConfig.root['validation']['output'],
-                "dirs": GlobalConfig.root['validation']['dirs']
-            })
+                "buildpath": GlobalConfig.root["validation"]["output"],
+                "dirs": GlobalConfig.root["validation"]["dirs"],
+            },
+        )
 
     def close_connection(self):
-        self._json_send("/submit/session_fini", {
-            "sid": self._metadata['sid'],
-            "state": Session.State.COMPLETED
-        })
+        self._json_send(
+            "/submit/session_fini", {"sid": self._metadata["sid"], "state": Session.State.COMPLETED}
+        )
 
     @property
     def endpoint(self):
@@ -85,12 +82,8 @@ class RemoteServer(GenericServer):
                 self._waitlist.append(prev_test[1])
 
     def _send_unitary_test(self, test):
-        assert (isinstance(test, Test))
-        to_send = {
-            "metadata": self._metadata,
-            "test_data": test.to_json(),
-            "state": test.state
-        }
+        assert isinstance(test, Test)
+        to_send = {"metadata": self._metadata, "test_data": test.to_json(), "state": test.state}
         return self._json_send("/submit/test", to_send)
 
     def _json_send(self, prefix, json_data):

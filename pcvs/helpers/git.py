@@ -12,6 +12,7 @@ from pcvs.helpers.exceptions import GitException
 
 try:
     import pygit2
+
     has_pygit2 = True
 except ModuleNotFoundError:
     has_pygit2 = False
@@ -35,7 +36,7 @@ def elect_handler(prefix=None):
 
 class Reference:
     """Maps an object which can be "pointed" (as a Git semantic). It can usually
-    be used to refer a commit, a simple hash or a branch. """
+    be used to refer a commit, a simple hash or a branch."""
 
     def __init__(self, repo):
         self._repo = repo
@@ -49,7 +50,7 @@ class Reference:
 class Branch(Reference):
     """Maps to a regular Git branch."""
 
-    def __init__(self, repo, name='master'):
+    def __init__(self, repo, name="master"):
         super().__init__(repo)
         self._name = name
 
@@ -76,7 +77,7 @@ class Commit(Reference):
 class Tree(Reference):
     """Maps to a git-lowlevel Tree object"""
 
-    def __init__(self, repo, tid, prefix='', children=[]):
+    def __init__(self, repo, tid, prefix="", children=[]):
         super().__init__(repo)
         self.tid = tid
         self.prefix = prefix
@@ -96,13 +97,13 @@ class Tree(Reference):
         :rtype: Tree
         """
         cls.hdl = hdl
-        return cls(repo=repo, tid=None, prefix='', children=children)
+        return cls(repo=repo, tid=None, prefix="", children=children)
 
 
 class Blob(Tree):
     """Maps a Git 'blob' object, dedicated to hold data ("leaves" in Git trees)"""
 
-    def __init__(self, repo, tid, prefix='', data=''):
+    def __init__(self, repo, tid, prefix="", data=""):
         super().__init__(repo, tid, prefix, children=[])
         self.data = data
 
@@ -274,12 +275,7 @@ class GitByGeneric(ABC):
         """
 
     @abstractmethod
-    def commit(self,
-               tree,
-               msg="No data",
-               timestamp=None,
-               parent=None,
-               orphan=False):
+    def commit(self, tree, msg="No data", timestamp=None, parent=None, orphan=False):
         """Create a commit from changes.
 
         :param tree: the changes tree to store as a commit
@@ -362,10 +358,12 @@ class GitByAPI(GitByGeneric):
             if not self._is_locked():
                 self._repo = pygit2.init_repository(
                     self._path,
-                    flags=(pygit2.GIT_REPOSITORY_INIT_MKPATH
-                           | pygit2.GIT_REPOSITORY_INIT_NO_REINIT),
+                    flags=(
+                        pygit2.GIT_REPOSITORY_INIT_MKPATH | pygit2.GIT_REPOSITORY_INIT_NO_REINIT
+                    ),
                     mode=pygit2.GIT_REPOSITORY_INIT_SHARED_GROUP,
-                    bare=bare)
+                    bare=bare,
+                )
                 self._lock()
         else:
             rep = pygit2.discover_repository(self._path)
@@ -387,16 +385,18 @@ class GitByAPI(GitByGeneric):
 
     def __obj_to_commit(self, obj):
         assert isinstance(obj, pygit2.Commit)
-        return Commit(repo=self._repo,
-                      obj=obj,
-                      metadata={
-                          'obj': obj,
-                          'date': datetime.fromtimestamp(obj.author.time),
-                          'author': obj.author.name,
-                          'authmail': obj.author.email,
-                          'message': obj.message,
-                          'parents': obj.parents
-                      })
+        return Commit(
+            repo=self._repo,
+            obj=obj,
+            metadata={
+                "obj": obj,
+                "date": datetime.fromtimestamp(obj.author.time),
+                "author": obj.author.name,
+                "authmail": obj.author.email,
+                "message": obj.message,
+                "parents": obj.parents,
+            },
+        )
 
     def branches(self):
         assert self._repo
@@ -405,7 +405,7 @@ class GitByAPI(GitByGeneric):
     def new_branch(self, name, cid=None):
         assert name is not None
         if not cid:
-            cid = self.revparse(Branch(self, name='master')).cid
+            cid = self.revparse(Branch(self, name="master")).cid
 
         assert name not in self._repo.branches.local
         self._repo.branches.local.create(name, cid)
@@ -419,8 +419,7 @@ class GitByAPI(GitByGeneric):
         ref = "refs/heads/{}".format(branch.name)
         if ref in self._repo.references:
             self._repo.references.delete(branch.name)
-        self._repo.references.create("refs/heads/{}".format(branch.name),
-                                     pygit_obj)
+        self._repo.references.create("refs/heads/{}".format(branch.name), pygit_obj)
 
     def revparse(self, rev):
         assert self._repo
@@ -433,7 +432,7 @@ class GitByAPI(GitByGeneric):
         return self.__obj_to_commit(o)
 
     def get_tree(self, tree=None, prefix=""):
-        assert (not tree or isinstance(tree, Reference))
+        assert not tree or isinstance(tree, Reference)
         rev = self._set_or_head(tree)
 
         tree = None
@@ -482,7 +481,8 @@ class GitByAPI(GitByGeneric):
         assert isinstance(rev, Commit)
         tree = rev.cid.tree
         return [
-            e.old_file.path for e in tree.diff_to_tree().deltas
+            e.old_file.path
+            for e in tree.diff_to_tree().deltas
             if e.old_file.path.startswith(prefix)
         ]
 
@@ -498,7 +498,7 @@ class GitByAPI(GitByGeneric):
 
     def list_commits(self, rev=None, since=None, until=None):
         res = []
-        assert (not rev or isinstance(rev, Reference))
+        assert not rev or isinstance(rev, Reference)
 
         if since is None:
             since = datetime.now().timestamp()
@@ -512,12 +512,7 @@ class GitByAPI(GitByGeneric):
                 res.append(self.__obj_to_commit(pygit_obj))
         return res
 
-    def commit(self,
-               tree,
-               msg="No data",
-               timestamp=None,
-               parent=None,
-               orphan=False):
+    def commit(self, tree, msg="No data", timestamp=None, parent=None, orphan=False):
         assert self._repo
         assert isinstance(tree, Tree)
         assert not parent or isinstance(parent, Reference)
@@ -525,12 +520,8 @@ class GitByAPI(GitByGeneric):
         if not timestamp:
             timestamp = int(datetime.now().timestamp())
 
-        author = pygit2.Signature(name=self._authname,
-                                  email=self._authmail,
-                                  time=timestamp)
-        committer = pygit2.Signature(name=self._commname,
-                                     email=self._commname,
-                                     time=timestamp)
+        author = pygit2.Signature(name=self._authname, email=self._authmail, time=timestamp)
+        committer = pygit2.Signature(name=self._commname, email=self._commname, time=timestamp)
 
         parents = []
         update_ref = None
@@ -543,11 +534,13 @@ class GitByAPI(GitByGeneric):
                 update_ref = None
                 parents = [parent.cid.oid]
             else:
-                raise GitException.BadEntryError(reason="Parent is unknown",
-                                                 dbg_info={"ref": parent})
+                raise GitException.BadEntryError(
+                    reason="Parent is unknown", dbg_info={"ref": parent}
+                )
 
-        coid = self._repo.create_commit(update_ref, author, committer, msg,
-                                        tree.hdl.write(), parents)
+        coid = self._repo.create_commit(
+            update_ref, author, committer, msg, tree.hdl.write(), parents
+        )
         ci = self._repo.get(coid)
         return self.__obj_to_commit(ci)
 
@@ -556,7 +549,7 @@ class GitByAPI(GitByGeneric):
             root = Tree.as_root(self._repo, self._repo.TreeBuilder())
 
         pygit_obj = root.hdl
-        self.__insert_path(pygit_obj, prefix.split('/'), data)
+        self.__insert_path(pygit_obj, prefix.split("/"), data)
         # root.tid = pygit_obj.
 
         return root
@@ -626,7 +619,7 @@ class GitByAPI(GitByGeneric):
         ref = self._set_or_head(ref)
         ref = self.revparse(ref)
 
-        return [self.__obj_to_commit(p) for p in ref.meta['parents']]
+        return [self.__obj_to_commit(p) for p in ref.meta["parents"]]
 
 
 class GitByCLI(GitByGeneric):
@@ -641,16 +634,12 @@ class GitByCLI(GitByGeneric):
         self._git = None
 
     def branches(self):
-        array = self._git('for-each-ref', 'refs/heads/').strip().split("\n")
-        return [
-            Branch(self,
-                   elt.split('\t')[-1].replace("refs/heads/", ""))
-            for elt in array
-        ]
+        array = self._git("for-each-ref", "refs/heads/").strip().split("\n")
+        return [Branch(self, elt.split("\t")[-1].replace("refs/heads/", "")) for elt in array]
 
     def iterate_over(self, ref):
         assert isinstance(ref, Reference)
-        for elt in self._git('rev-list', '--reverse', ref).strip().split("\n"):
+        for elt in self._git("rev-list", "--reverse", ref).strip().split("\n"):
             yield Commit(repo=self, obj=elt)
 
     def open(self, bare=True):
@@ -678,7 +667,7 @@ class GitByCLI(GitByGeneric):
 
     def _create_blob(self, name, data):
         oid = ""
-        oid = self._git('hash-object', "--stdin", "-w", _in=str(data)).strip()
+        oid = self._git("hash-object", "--stdin", "-w", _in=str(data)).strip()
         return (oid, "100644 blob {}\t{}".format(oid, name))
 
     def __valid_object(self, hashid):
@@ -721,7 +710,7 @@ class GitByCLI(GitByGeneric):
 
     def get_tree(self, tree=None, prefix=""):
         oid = None
-        assert (not tree or isinstance(tree, Reference))
+        assert not tree or isinstance(tree, Reference)
         rev = self._set_or_head(tree)
 
         try:
@@ -729,30 +718,27 @@ class GitByCLI(GitByGeneric):
         except sh.ErrorReturnCode:
             oid = None
 
-        if self._git('cat-file', '-t', oid) == "blob":
-            data = self._git('cat-file', "-p", oid).strip()
+        if self._git("cat-file", "-t", oid) == "blob":
+            data = self._git("cat-file", "-p", oid).strip()
             return Blob(self, oid, prefix, data)
         return Tree(self, oid, prefix)
 
     def __obj_to_commit(self, cid):
-        s = self.__commit_info_getter("%at:%an:%ae", "-1", cid).split(':')
+        s = self.__commit_info_getter("%at:%an:%ae", "-1", cid).split(":")
         msg = self.__commit_info_getter("%B", "-1", cid)
-        return Commit(repo=self,
-                      obj=cid,
-                      metadata={
-                          'obj': cid,
-                          'date': datetime.fromtimestamp(int(s[0])),
-                          'author': s[1],
-                          'authmail': s[2],
-                          'message': msg
-                      })
+        return Commit(
+            repo=self,
+            obj=cid,
+            metadata={
+                "obj": cid,
+                "date": datetime.fromtimestamp(int(s[0])),
+                "author": s[1],
+                "authmail": s[2],
+                "message": msg,
+            },
+        )
 
-    def commit(self,
-               tree,
-               msg="VOID",
-               timestamp=None,
-               parent=None,
-               orphan=False):
+    def commit(self, tree, msg="VOID", timestamp=None, parent=None, orphan=False):
         assert not parent or isinstance(parent, Reference)
         assert isinstance(tree, Tree)
         # if this commit should have parents
@@ -760,11 +746,11 @@ class GitByCLI(GitByGeneric):
 
             parent = self._set_or_head(parent)
             parents = self.revparse(parent)
-            commit_id = self._git("commit-tree", tree, "-m '{}'".format(msg),
-                                  "-p {}".format(parents.cid)).strip()
+            commit_id = self._git(
+                "commit-tree", tree, "-m '{}'".format(msg), "-p {}".format(parents.cid)
+            ).strip()
             if isinstance(parent, Branch):
-                self._git.push(
-                    ".", "{}:refs/heads/{}".format(commit_id, parent.name))
+                self._git.push(".", "{}:refs/heads/{}".format(commit_id, parent.name))
         # The commit will have no parent
         else:
             commit_id = self._git(
@@ -783,19 +769,18 @@ class GitByCLI(GitByGeneric):
 
     def new_branch(self, name, cid=None):
         if not cid:
-            cid = self.revparse(Branch(self, name='master')).cid
+            cid = self.revparse(Branch(self, name="master")).cid
 
-        self._git.push('.', '{}:refs/heads/{}'.format(cid, name))
+        self._git.push(".", "{}:refs/heads/{}".format(cid, name))
         return Branch(self, name=name)
 
     def set_branch(self, branch, commit):
-        self._git.push("-f", ".",
-                       "{}:refs/heads/{}".format(commit.cid, branch.name))
+        self._git.push("-f", ".", "{}:refs/heads/{}".format(commit.cid, branch.name))
 
     def list_files(self, rev):
         if not rev:
             rev = ""
-        return [self._git('ls-files', rev).strip().split("\n")]
+        return [self._git("ls-files", rev).strip().split("\n")]
 
     def list_commits(self, rev=None, since="", until=""):
         rev = self._set_or_head(rev)
@@ -807,8 +792,7 @@ class GitByCLI(GitByGeneric):
         return [self.__commit_info_getter("%H", rev, since, until)]
 
     def __commit_info_getter(self, pattern, *args):
-        return self._git('--no-pager', 'log', "--format={}".format(pattern),
-                         *args).strip()
+        return self._git("--no-pager", "log", "--format={}".format(pattern), *args).strip()
 
     def diff_tree(self, prefix=None, src_rev=None, dst_rev=None):
 
@@ -818,17 +802,17 @@ class GitByCLI(GitByGeneric):
         src_rev = self._set_or_head(src_rev)
         src_rev = self.revparse(src_rev)
 
-        return self._git('diff-tree', src_rev, dst_rev).strip()
+        return self._git("diff-tree", src_rev, dst_rev).strip()
 
     def gc(self):
-        self._git.gc('--aggressive')
+        self._git.gc("--aggressive")
 
     def get_parents(self, ref):
         ref = self._set_or_head(ref)
         ref = self.revparse(ref)
 
         parents = []
-        for elt in self._git('cat-file', '-p', ref).strip().split('\n'):
+        for elt in self._git("cat-file", "-p", ref).strip().split("\n"):
             parents.append(self.__obj_to_commit(elt))
         return parents
 
@@ -847,7 +831,7 @@ def request_git_attr(k) -> str:
         if has_pygit2:
             git_conf = pygit2.Config.get_global_config()
         else:
-            git_conf[k] = sh.git.config('--get', k).strip()
+            git_conf[k] = sh.git.config("--get", k).strip()
         if k in git_conf:
             return git_conf[k]
     except IOError:
@@ -878,7 +862,7 @@ def get_current_username() -> str:
     :rtype: str
     """
     try:
-        u = request_git_attr('user.name')
+        u = request_git_attr("user.name")
         if u is None:
             u = getpass.getuser()
     except Exception:
@@ -897,7 +881,7 @@ def get_current_usermail():
     :rtype: str
     """
     try:
-        m = request_git_attr('user.email')
+        m = request_git_attr("user.email")
         # if m is None:
         #    m = "{}@{}".format(get_current_username(), socket.getfqdn())
     except Exception:

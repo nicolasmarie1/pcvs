@@ -17,13 +17,7 @@ from pcvs.testing.test import Test
 class RunnerAdapter(threading.Thread):
     sched_in_progress = True
 
-    def __init__(self,
-                 buildir,
-                 context=None,
-                 ready=None,
-                 complete=None,
-                 *args,
-                 **kwargs):
+    def __init__(self, buildir, context=None, ready=None, complete=None, *args, **kwargs):
         self._prefix = buildir
         self._ctx = context
         self._rq = ready
@@ -55,15 +49,17 @@ class RunnerAdapter(threading.Thread):
         """Execute the Set and jobs within it.
 
         :raises Exception: Something occured while running a test"""
-        io.console.nodebug('{}: [LOCAL] Set start'.format(self.ident))
+        io.console.nodebug("{}: [LOCAL] Set start".format(self.ident))
         for job in jobs.content:
             hard_timeout = False
             try:
-                p = subprocess.Popen('{}'.format(job.invocation_command),
-                                     shell=True,
-                                     stderr=subprocess.STDOUT,
-                                     stdout=subprocess.PIPE,
-                                     start_new_session=True)
+                p = subprocess.Popen(
+                    "{}".format(job.invocation_command),
+                    shell=True,
+                    stderr=subprocess.STDOUT,
+                    stdout=subprocess.PIPE,
+                    start_new_session=True,
+                )
                 start = time.time()
                 stdout, _ = p.communicate(timeout=job.hard_timeout)
                 final = time.time() - start
@@ -84,61 +80,56 @@ class RunnerAdapter(threading.Thread):
                 rc = None
                 hard_timeout = True
             job.save_status(job.State.EXECUTED)
-            job.save_raw_run(time=final, rc=rc, out=stdout,
-                             hard_timeout=hard_timeout)
+            job.save_raw_run(time=final, rc=rc, out=stdout, hard_timeout=hard_timeout)
         jobs.complete = True
 
     def remote_exec(self, jobs: Set) -> None:
         jobman_cfg = {}
         if jobs.execmode == Set.ExecMode.ALLOC:
-            jobman_cfg = GlobalConfig.root['machine']['job_manager']['allocate']
+            jobman_cfg = GlobalConfig.root["machine"]["job_manager"]["allocate"]
         elif jobs.execmode == Set.ExecMode.REMOTE:
-            jobman_cfg = GlobalConfig.root['machine']['job_manager']['remote']
+            jobman_cfg = GlobalConfig.root["machine"]["job_manager"]["remote"]
         elif jobs.execmode == Set.ExecMode.BATCH:
-            jobman_cfg = GlobalConfig.root['machine']['job_manager']['batch']
+            jobman_cfg = GlobalConfig.root["machine"]["job_manager"]["batch"]
 
-        parallel = GlobalConfig.root['validation']['scheduling'].get("parallel", 1)
+        parallel = GlobalConfig.root["validation"]["scheduling"].get("parallel", 1)
 
         # TODO: Prepare exec context
-        wrapper = jobman_cfg.get('wrapper', "")
+        wrapper = jobman_cfg.get("wrapper", "")
         env = os.environ.copy()
-        ctx_path = os.path.join(self._prefix, pcvs.NAME_BUILD_CONTEXTDIR,
-                                str(jobs.id))
+        ctx_path = os.path.join(self._prefix, pcvs.NAME_BUILD_CONTEXTDIR, str(jobs.id))
         os.makedirs(ctx_path)
         updated_env = {
             "PCVS_JOB_MANAGER_{}".format(i.upper()): jobman_cfg[i]
-            for i in ['program', 'args'] if i in jobman_cfg
+            for i in ["program", "args"]
+            if i in jobman_cfg
         }
-        updated_env['PCVS_SET_DIM'] = str(jobs.dim)
-        updated_env[
-            'PCVS_SET_CMD'] = jobman_cfg['program'] if jobman_cfg['program'] else ""
-        updated_env[
-            'PCVS_SET_CMD_ARGS'] = jobman_cfg['args'] if jobman_cfg['args'] else ""
+        updated_env["PCVS_SET_DIM"] = str(jobs.dim)
+        updated_env["PCVS_SET_CMD"] = jobman_cfg["program"] if jobman_cfg["program"] else ""
+        updated_env["PCVS_SET_CMD_ARGS"] = jobman_cfg["args"] if jobman_cfg["args"] else ""
         env.update(updated_env)
 
         cmd = "{script} pcvs remote-run -c {ctx} -p {parallel}".format(
-            script=wrapper, ctx=ctx_path, parallel=parallel)
+            script=wrapper, ctx=ctx_path, parallel=parallel
+        )
         try:
             ctx = RemoteContext(ctx_path)
             ctx.save_input_to_disk(jobs)
             assert ctx.check_input_avail()
-            _process_hdl = subprocess.Popen(cmd,
-                                            shell=True,
-                                            env=env,
-                                            stdout=subprocess.PIPE,
-                                            stderr=subprocess.PIPE)
+            _process_hdl = subprocess.Popen(
+                cmd, shell=True, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
             _, err = _process_hdl.communicate()
             if err:
-                io.console.warning("Set {} - error output: {}".format(
-                    jobs.id, err.decode('utf-8')))
+                io.console.warning("Set {} - error output: {}".format(jobs.id, err.decode("utf-8")))
             if ctx.check_output_avail():
                 ctx.load_result_from_disk(jobs)
             else:
-                io.console.warning("Set {} did not produce any output".format(
-                    jobs.id))
+                io.console.warning("Set {} did not produce any output".format(jobs.id))
         except Exception as e:
             raise RunnerException.LaunchError(
-                reason="Fail to start a remote Runner", dbg_info={'cmd': cmd}) from e
+                reason="Fail to start a remote Runner", dbg_info={"cmd": cmd}
+            ) from e
 
 
 def progress_jobs(q, ctx, ev):
@@ -175,8 +166,7 @@ class RunnerRemote:
         pq = queue.Queue()
         ev = threading.Event()
 
-        progress = threading.Thread(target=progress_jobs,
-                                    args=(pq, self._ctx, ev))
+        progress = threading.Thread(target=progress_jobs, args=(pq, self._ctx, ev))
         progress.start()
 
         for _ in range(0, parallel):
@@ -223,9 +213,7 @@ class RemoteContext:
 
     def save_input_to_disk(self, jobs):
         with open(os.path.join(self._path, "input.json"), "w") as f:
-            f.write(
-                json.dumps(
-                    list(map(lambda x: x.to_minimal_json(), jobs.content))))
+            f.write(json.dumps(list(map(lambda x: x.to_minimal_json(), jobs.content))))
 
     def check_input_avail(self):
         f = os.path.join(self._path, "input.json")
@@ -236,7 +224,7 @@ class RemoteContext:
         return os.path.isfile(f)
 
     def load_input_from_disk(self):
-        assert (os.path.isdir(os.path.join(self._path)))
+        assert os.path.isdir(os.path.join(self._path))
         jobs = Set(execmode=Set.ExecMode.LOCAL)
         with open(os.path.join(self._path, "input.json"), "r") as f:
             data = json.load(f)
@@ -249,13 +237,17 @@ class RemoteContext:
 
     def save_result_to_disk(self, job: Test):
         if not self._outfile:
-            self._outfile = open(os.path.join(self._path, "output.bin"), 'wb')
+            self._outfile = open(os.path.join(self._path, "output.bin"), "wb")
         data = job.encoded_output
-        self._outfile.writelines([
-            "{}:{}:{}:{}:{}\n".format(self.MAGIC_TOKEN, job.jid, len(data),
-                                      job.time, job.retcode).encode("utf-8"),
-            data, "\n".encode('utf-8')
-        ])
+        self._outfile.writelines(
+            [
+                "{}:{}:{}:{}:{}\n".format(
+                    self.MAGIC_TOKEN, job.jid, len(data), job.time, job.retcode
+                ).encode("utf-8"),
+                data,
+                "\n".encode("utf-8"),
+            ]
+        )
 
     def load_result_from_disk(self, jobs):
         with open(os.path.join(self._path, "output.bin"), "rb") as fh:
@@ -263,7 +255,7 @@ class RemoteContext:
             for lineum, linedata in enumerate(lines):
                 if lineum % 2 == 0:
                     # metadata:
-                    magic, jobid, datalen, timexec, retcode = linedata.decode('utf-8').split(":")
+                    magic, jobid, datalen, timexec, retcode = linedata.decode("utf-8").split(":")
                     assert magic == self.MAGIC_TOKEN
                     datalen = int(datalen)
                     timexec = float(timexec)
@@ -280,7 +272,7 @@ class RemoteContext:
     def mark_as_completed(self):
         if self._outfile:
             self._outfile.close()
-        open(self._completed_file, 'w').close()
+        open(self._completed_file, "w").close()
 
     def mark_as_not_completed(self):
         if os.path.exists(self._completed_file):

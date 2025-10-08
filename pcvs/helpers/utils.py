@@ -22,15 +22,14 @@ from pcvs.helpers.exceptions import RunException
 # #    STORAGE SCOPE MANAGEMENT    ##
 # ###################################
 STORAGES = {
-    'global': PATH_INSTDIR,
-    'user': PATH_HOMEDIR,
-    'local': os.path.realpath(os.path.join(os.getcwd(), NAME_SRCDIR))
+    "global": PATH_INSTDIR,
+    "user": PATH_HOMEDIR,
+    "local": os.path.realpath(os.path.join(os.getcwd(), NAME_SRCDIR)),
 }
 
 
 def create_home_dir():
-    """Create a home directory
-    """
+    """Create a home directory"""
     if not os.path.exists(PATH_HOMEDIR):
         # exist_ok=True is important here to avoid race condition
         # when launching multiples tests in parallel
@@ -44,7 +43,7 @@ def storage_order():
     :return: a list of scopes
     :rtype: list
     """
-    return ['local', 'user', 'global']
+    return ["local", "user", "global"]
 
 
 def check_valid_scope(s):
@@ -75,12 +74,12 @@ def extract_infos_from_token(s, pair="right", single="right", maxsplit=3):
 
     array = s.split(".")
     if len(array) >= maxsplit:
-        return (array[0], array[1], ".".join(array[maxsplit - 1:]))
+        return (array[0], array[1], ".".join(array[maxsplit - 1 :]))
     elif len(array) == 2:
         # two cases: a.b or b.c
-        if pair == 'left':
+        if pair == "left":
             return (array[0], array[1], None)
-        elif pair == 'span':
+        elif pair == "span":
             return (array[0], None, array[1])
         else:
             return (None, array[0], array[1])
@@ -131,13 +130,13 @@ def set_local_path(path):
     if path is None:
         return
 
-    assert (os.path.isdir(path))
+    assert os.path.isdir(path)
     found = __determine_local_prefix(path, NAME_SRCDIR)
 
     # if local is the same as user path, discard
     if found in STORAGES.values():
         found = os.path.join(path, NAME_SRCDIR)
-    STORAGES['local'] = found
+    STORAGES["local"] = found
 
 
 # ###################################
@@ -157,8 +156,8 @@ def create_or_clean_path(prefix, directory=False):
         if directory:
             os.mkdir(prefix)
         else:
-            assert (os.path.isdir(os.path.dirname(prefix)))
-            open(prefix, 'w+').close()
+            assert os.path.isdir(os.path.dirname(prefix))
+            open(prefix, "w+").close()
         return
 
     # else, a previous path exists
@@ -357,22 +356,18 @@ def trylock_file(f, reentrant=False):
         with open(lockfile_name, "w") as fh:
             fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
             # from here, lock is taken
-            fh.write("{}||{}||{}".format(socket.gethostname(), os.getpid(),
-                                         42))
+            fh.write("{}||{}||{}".format(socket.gethostname(), os.getpid(), 42))
             if io.console:
                 io.console.debug("Trylock {}".format(lockfile_name))
             return True
     except OSError:
         try:
             hostname, pid = get_lock_owner(f)
-            if pid == os.getpid() and hostname == socket.gethostname(
-            ) and reentrant:
-                io.console.debug(
-                    "Already locked {} for this process".format(lockfile_name))
+            if pid == os.getpid() and hostname == socket.gethostname() and reentrant:
+                io.console.debug("Already locked {} for this process".format(lockfile_name))
                 return True
             if io.console:
-                io.console.debug("Not locked, owned by {}:{}".format(
-                    hostname, pid))
+                io.console.debug("Not locked, owned by {}:{}".format(hostname, pid))
 
         except Exception:
             pass  # return False
@@ -408,9 +403,9 @@ def get_lock_owner(f):
     :rtype: int
     """
     lf_name = get_lockfile_name(f)
-    with open(lf_name, 'r') as fh:
-        s = fh.read().strip().split('||')
-        assert (int(s[2]) == 42)
+    with open(lf_name, "r") as fh:
+        s = fh.read().strip().split("||")
+        assert int(s[2]) == 42
         return s[0], int(s[1])
 
 
@@ -433,8 +428,7 @@ def start_autokill(timeout=None):
     :type timeout: positive integer
     """
     if isinstance(timeout, int):
-        io.console.print_item(
-            "Setting timeout to {} second(s)".format(timeout))
+        io.console.print_item("Setting timeout to {} second(s)".format(timeout))
         signal.signal(signal.SIGALRM, program_timeout)
 
         signal.alarm(timeout)
@@ -466,10 +460,9 @@ class Program:
         :rtype: integer
         """
         try:
-            s = subprocess.Popen(self._cmd,
-                                 shell=shell,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
+            s = subprocess.Popen(
+                self._cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
             self._out = s.communicate(input=process_input)
             self._rc = s.returncode
         except Exception as e:
@@ -535,14 +528,8 @@ def check_is_build_or_archive(x):
 
 
 def list_valid_buildirs_in_dir(p):
-    return [
-        os.path.join(root, d) for root, d, _ in os.walk(p)
-        if check_is_buildir(p)
-    ]
+    return [os.path.join(root, d) for root, d, _ in os.walk(p) if check_is_buildir(p)]
 
 
 def list_valid_archive_in_dir(p):
-    return [
-        os.path.join(root, f) for root, _, f in os.walk(p)
-        if check_is_archive(f)
-    ]
+    return [os.path.join(root, f) for root, _, f in os.walk(p) if check_is_archive(f)]

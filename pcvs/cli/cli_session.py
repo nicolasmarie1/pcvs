@@ -11,6 +11,7 @@ from pcvs.helpers import utils
 
 try:
     import rich_click as click
+
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
     import click
@@ -33,8 +34,9 @@ def compl_session_token(ctx, args, incomplete) -> list:  # pylint: disable=unuse
     if sessions is None:
         return []
     return [
-        CompletionItem(k, help=str(pvSession.Session.State(v['state'])))
-        for k, v in sessions.items() if incomplete in str(k)
+        CompletionItem(k, help=str(pvSession.Session.State(v["state"])))
+        for k, v in sessions.items()
+        if incomplete in str(k)
     ]
 
 
@@ -57,46 +59,55 @@ def print_sessions(sessions):
         duration = timedelta()
         line_style = "default"
         if s.state == pvSession.Session.State.IN_PROGRESS:
-            duration = datetime.now() - s.property('started')
-            status = "{:3.2f} %".format(s.property('progress'))
+            duration = datetime.now() - s.property("started")
+            status = "{:3.2f} %".format(s.property("progress"))
             line_style = "yellow"
         elif s.state == pvSession.Session.State.COMPLETED:
-            duration = s.property('ended') - s.property('started')
+            duration = s.property("ended") - s.property("started")
             status = "100.00 %"
             line_style = "green bold"
         elif s.state == pvSession.Session.State.WAITING:
-            duration = datetime.now() - s.property('started')
+            duration = datetime.now() - s.property("started")
             status = "Waiting"
             line_style = "yellow"
 
         table.add_row(
             "[{}]{:0>6}".format(line_style, s.id),
-            "[{}]{}".format(line_style, status), "[{}]{}".format(
-                line_style,
-                datetime.strftime(s.property("started"),
-                                  "%Y-%m-%d %H:%M")),
+            "[{}]{}".format(line_style, status),
+            "[{}]{}".format(line_style, datetime.strftime(s.property("started"), "%Y-%m-%d %H:%M")),
             "[{}]{}".format(
                 "red bold" if duration.days > 0 else line_style,
-                timedelta(days=duration.days, seconds=duration.seconds)),
-            "[{}]{}".format(line_style, s.property("path")))
+                timedelta(days=duration.days, seconds=duration.seconds),
+            ),
+            "[{}]{}".format(line_style, s.property("path")),
+        )
     io.console.print(table)
 
 
 @click.command(name="session", short_help="Manage multiple validations")
 @click.option(
-    '-c',
-    '--clear',
-    'ack',
+    "-c",
+    "--clear",
+    "ack",
     type=int,
     default=None,
-    help="Clear a 'completed' remote session, for removing from logs")
-@click.option('-C',
-              '--clear-all',
-              'ack_all',
-              is_flag=True,
-              default=False,
-              help="Clear all completed sessions, for removing from logs")
-@click.option('-l', '--list', 'list_sessions', is_flag=True, help="List detached sessions")
+    help="Clear a 'completed' remote session, for removing from logs",
+)
+@click.option(
+    "-C",
+    "--clear-all",
+    "ack_all",
+    is_flag=True,
+    default=False,
+    help="Clear all completed sessions, for removing from logs",
+)
+@click.option(
+    "-l",
+    "--list",
+    "list_sessions",
+    is_flag=True,
+    help="List detached sessions",
+)
 @click.pass_context
 def session(ctx, ack, list_sessions, ack_all):  # pylint: disable=unused-argument
     """Manage sessions by listing or acknowledging their completion."""
@@ -106,25 +117,21 @@ def session(ctx, ack, list_sessions, ack_all):  # pylint: disable=unused-argumen
 
     if ack_all is True:
         for session_id in sessions.keys():
-            if sessions[session_id][
-                    'state'] != pvSession.Session.State.IN_PROGRESS:
+            if sessions[session_id]["state"] != pvSession.Session.State.IN_PROGRESS:
                 pvSession.remove_session_from_file(session_id)
-                lockfile = os.path.join(sessions[session_id]['path'],
-                                        NAME_BUILDFILE)
+                lockfile = os.path.join(sessions[session_id]["path"], NAME_BUILDFILE)
                 utils.unlock_file(lockfile)
     elif ack is not None:
         if ack not in sessions.keys():
-            raise click.BadOptionUsage(
-                '--ack', "No such Session id (see pcvs session)")
-        elif sessions[ack]['state'] not in [
-                pvSession.Session.State.ERROR,
-                pvSession.Session.State.COMPLETED
+            raise click.BadOptionUsage("--ack", "No such Session id (see pcvs session)")
+        elif sessions[ack]["state"] not in [
+            pvSession.Session.State.ERROR,
+            pvSession.Session.State.COMPLETED,
         ]:
-            raise click.BadOptionUsage('--ack',
-                                       "This session is not completed yet")
+            raise click.BadOptionUsage("--ack", "This session is not completed yet")
 
         pvSession.remove_session_from_file(ack)
-        lockfile = os.path.join(sessions[ack]['path'], NAME_BUILDFILE)
+        lockfile = os.path.join(sessions[ack]["path"], NAME_BUILDFILE)
         utils.unlock_file(lockfile)
     elif list_sessions:
         print_sessions(sessions)

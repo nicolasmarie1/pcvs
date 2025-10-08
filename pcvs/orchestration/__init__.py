@@ -40,21 +40,19 @@ class Orchestrator:
         """constructor method"""
         config_tree = GlobalConfig.root
         self._runners = []
-        self._max_nodes = config_tree['machine'].get('nodes', 1)
-        self._max_cores = config_tree['machine'].get('cores_per_node', 1)
+        self._max_nodes = config_tree["machine"].get("nodes", 1)
+        self._max_cores = config_tree["machine"].get("cores_per_node", 1)
         self._ressources_tracker = RessourceTracker([self._max_nodes, self._max_cores])
-        self._publisher = config_tree.get_internal('build_manager').results
+        self._publisher = config_tree.get_internal("build_manager").results
         self._manager = Manager(self._max_nodes, publisher=self._publisher)
-        self._maxconcurrent = config_tree['machine'].get('concurrent_run', 1)
+        self._maxconcurrent = config_tree["machine"].get("concurrent_run", 1)
         self._complete_q = queue.Queue()
         self._ready_q = queue.Queue()
 
     def print_infos(self):
         """display pre-run infos."""
-        io.console.print_item("Test count: {}".format(
-            self._manager.get_count('total')))
-        io.console.print_item("Max simultaneous Sets: {}".format(
-            self._maxconcurrent))
+        io.console.print_item("Test count: {}".format(self._manager.get_count("total")))
+        io.console.print_item("Max simultaneous Sets: {}".format(self._maxconcurrent))
         io.console.print_item("Configured available nodes: {}".format(self._max_nodes))
 
     # This func should only be a passthrough to the job manager
@@ -78,8 +76,7 @@ class Orchestrator:
         :type restart: False for a brand new run.
         """
 
-        GlobalConfig.root.get_internal("pColl").invoke_plugins(
-            Plugin.Step.SCHED_BEFORE)
+        GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.SCHED_BEFORE)
 
         io.console.info("ORCH: initialize runners")
         for _ in range(0, self._maxconcurrent):
@@ -94,8 +91,7 @@ class Orchestrator:
         io.console.info("ORCH: start job scheduling")
         # While some jobs are available to run
         with io.console.table_container(self._manager.get_count()):
-            while (self._manager.get_leftjob_count() > 0 or
-                   len(pending_list) > 0):
+            while self._manager.get_leftjob_count() > 0 or len(pending_list) > 0:
                 # dummy init value
                 new_set: Set = not None
                 while new_set is not None:
@@ -104,8 +100,8 @@ class Orchestrator:
                     if new_set is not None:
                         # schedule the set asynchronously
                         io.console.sched_debug(
-                            "ORCH: send Set to queue (#{}, sz:{})".format(
-                                new_set.id, new_set.size))
+                            "ORCH: send Set to queue (#{}, sz:{})".format(new_set.id, new_set.size)
+                        )
                         self._ready_q.put(new_set)
 
                 # Now, look for a completion
@@ -114,12 +110,14 @@ class Orchestrator:
                     jobs = self._complete_q.get(block=True)
                     while True:
                         io.console.sched_debug(
-                            "ORCH: recv Set from queue (#{}, sz:{})".format(
-                                jobs.id, jobs.size))
+                            "ORCH: recv Set from queue (#{}, sz:{})".format(jobs.id, jobs.size)
+                        )
                         for job in jobs.content:
                             self._ressources_tracker.free(job.alloc_tracking)
-                            io.console.sched_debug(f"Alloc pool (FREE) {job.alloc_tracking}:"
-                                                   f" {self._ressources_tracker}")
+                            io.console.sched_debug(
+                                f"Alloc pool (FREE) {job.alloc_tracking}:"
+                                f" {self._ressources_tracker}"
+                            )
                         self._manager.merge_subset(jobs)
                         # Continue to gather resultes as long as some are available.
                         jobs = self._complete_q.get(block=False)
@@ -130,8 +128,9 @@ class Orchestrator:
                 self._manager.prune_non_runnable_jobs()
 
                 # compute progress status
-                current_progress = self._manager.get_count(
-                    'executed') / self._manager.get_count('total')
+                current_progress = self._manager.get_count("executed") / self._manager.get_count(
+                    "total"
+                )
 
                 # TODO: create backup to allow start/stop from these files
                 # Condition to trigger a dump of results
@@ -149,28 +148,31 @@ class Orchestrator:
                     last_progress = current_progress
                     if the_session is not None:
                         session.update_session_from_file(
-                            the_session.id,
-                            {'progress': current_progress * 100})
+                            the_session.id, {"progress": current_progress * 100}
+                        )
 
         self._publisher.flush()
-        assert (self._manager.get_count('executed') == self._manager.get_count(
-            'total'))
+        assert self._manager.get_count("executed") == self._manager.get_count("total")
 
-        GlobalConfig.root.get_internal("pColl").invoke_plugins(
-            Plugin.Step.SCHED_AFTER)
+        GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.SCHED_AFTER)
 
         io.console.info("ORCH: Stop active runners")
         self.stop_runners()
 
-        return 0 if self._manager.get_count('total') - self._manager.get_count(
-            Test.State.SUCCESS) == 0 else 1
+        return (
+            0
+            if self._manager.get_count("total") - self._manager.get_count(Test.State.SUCCESS) == 0
+            else 1
+        )
 
     def start_new_runner(self):
         """Start a new Runner thread & register comm queues."""
         RunnerAdapter.sched_in_progress = True
-        r = RunnerAdapter(buildir=GlobalConfig.root['validation']['output'],
-                          ready=self._ready_q,
-                          complete=self._complete_q)
+        r = RunnerAdapter(
+            buildir=GlobalConfig.root["validation"]["output"],
+            ready=self._ready_q,
+            complete=self._complete_q,
+        )
         r.start()
         self._runners.append(r)
 

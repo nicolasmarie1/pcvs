@@ -16,8 +16,8 @@ tests = ["_".join(elt).replace(" ", "-") for elt in product(words, words)]
 
 # open a bank
 
-bank = Bank('./demo.git')
-if 'mpc/b6ffe2123be606eab75f75b7dec00eba7d943461' not in bank.list_series():
+bank = Bank("./demo.git")
+if "mpc/b6ffe2123be606eab75f75b7dec00eba7d943461" not in bank.list_series():
     bank.new_serie("mpc/b6ffe2123be606eab75f75b7dec00eba7d943461")
 serie = bank.get_serie("mpc/b6ffe2123be606eab75f75b7dec00eba7d943461")
 
@@ -33,7 +33,7 @@ for i in range(0, MAX):
     for idx, name in enumerate(tests):
         label = "SAMPLED"
         short_name = name
-        subtree = '{}/{}'.format(group[idx % len(group)], sub[idx % len(sub)])
+        subtree = "{}/{}".format(group[idx % len(group)], sub[idx % len(sub)])
         long_name = "{}/{}/{}".format(label, subtree, short_name)
 
         n = randint(0, 100)
@@ -51,17 +51,20 @@ for i in range(0, MAX):
                 "subtree": subtree,
                 "fq_name": long_name,
                 "comb": {
-                    "n_nreg": i, "n_test": idx,
-                }
+                    "n_nreg": i,
+                    "n_test": idx,
+                },
             },
             "exec": "./run this_program",
             "result": {
                 "rc": 0,
                 "output": "RmFrZSBleGVjdXRpb24=",
                 "state": state,
-                "time": 10.34
+                "time": 10.34,
             },
         }
 
     r.update_flatdict(d)
-    serie.commit(r, metadata={'cnt': {str(Test.State.SUCCESS): cnt_succ, str(Test.State.FAILURE): cnt_fail}})
+    serie.commit(
+        r, metadata={"cnt": {str(Test.State.SUCCESS): cnt_succ, str(Test.State.FAILURE): cnt_fail}}
+    )

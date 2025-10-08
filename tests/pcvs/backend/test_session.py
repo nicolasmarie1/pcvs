@@ -20,29 +20,31 @@ def dummy_main_function(arg_a, arg_b):
 @pytest.fixture
 def mock_home_config():
     with CliRunner().isolated_filesystem():
-        mock.patch.object(pcvs, 'PATH_SESSION', os.path.join(os.getcwd(), "sessions"))
+        mock.patch.object(pcvs, "PATH_SESSION", os.path.join(os.getcwd(), "sessions"))
 
 
 def test_session_init():
     date = datetime.now()
     obj = tested.Session(date)
     assert str(obj.state) == "WAITING"
-    assert obj.property('started') == date
+    assert obj.property("started") == date
 
 
 def test_session_file():
     with CliRunner().isolated_filesystem():
         date = datetime.now()
-        session = {
-            "path": os.getcwd(),
-            "started": date
-        }
+        session = {"path": os.getcwd(), "started": date}
 
         with patch.object(tested, "PATH_SESSION", os.getcwd()) as mock_session:
             session_id = tested.store_session_to_file(session)
             assert os.path.isfile(os.path.join(mock_session, "{}.yml".format(session_id)))
             assert session_id == tested.session_file_hash(session)
-            assert session_id == hashlib.sha1("{}:{}".format(session['path'], session['started']).encode()).hexdigest()
+            assert (
+                session_id
+                == hashlib.sha1(
+                    "{}:{}".format(session["path"], session["started"]).encode()
+                ).hexdigest()
+            )
 
             with open(os.path.join(mock_session, "{}.yml".format(session_id)), "r") as fh:
                 data = YAML().load(fh)
@@ -55,9 +57,7 @@ def test_session_file():
             assert session_id in sessions
 
             end_date = datetime.now()
-            tested.update_session_from_file(session_id, {
-                "ended": end_date
-            })
+            tested.update_session_from_file(session_id, {"ended": end_date})
 
             with open(os.path.join(mock_session, "{}.yml".format(session_id)), "r") as fh:
                 data = YAML().load(fh)

@@ -10,27 +10,28 @@ from pcvs.helpers.exceptions import RunException
 
 @pytest.mark.parametrize("token", ["test1", "test/test1"])
 def test_token_extraction_1(token):
-    assert (tested.extract_infos_from_token(token) == (None, None, token))
-    assert (tested.extract_infos_from_token(token, single="right") == (None, None, token))
-    assert (tested.extract_infos_from_token(token, single="center") == (None, token, None))
-    assert (tested.extract_infos_from_token(token, single="left") == (token, None, None))
+    assert tested.extract_infos_from_token(token) == (None, None, token)
+    assert tested.extract_infos_from_token(token, single="right") == (None, None, token)
+    assert tested.extract_infos_from_token(token, single="center") == (None, token, None)
+    assert tested.extract_infos_from_token(token, single="left") == (token, None, None)
 
 
 @pytest.mark.parametrize("token", ["runtime.test1", "compiler.test/test1"])
 def test_token_extraction_2(token):
     split = token.split(".")
-    assert (tested.extract_infos_from_token(token) == (None, split[0], split[1]))
-    assert (tested.extract_infos_from_token(token, pair="right") == (None, split[0], split[1]))
-    assert (tested.extract_infos_from_token(token, pair="span") == (split[0], None, split[1]))
-    assert (tested.extract_infos_from_token(token, pair="left") == (split[0], split[1], None))
+    assert tested.extract_infos_from_token(token) == (None, split[0], split[1])
+    assert tested.extract_infos_from_token(token, pair="right") == (None, split[0], split[1])
+    assert tested.extract_infos_from_token(token, pair="span") == (split[0], None, split[1])
+    assert tested.extract_infos_from_token(token, pair="left") == (split[0], split[1], None)
 
 
-@pytest.mark.parametrize("token", ["local.runtime.test1",
-                                   "global.compiler.test/test1"
-                                   "global.comppiler.this.is.a.test"])
+@pytest.mark.parametrize(
+    "token",
+    ["local.runtime.test1", "global.compiler.test/test1", "global.comppiler.this.is.a.test"],
+)
 def test_token_extraction_3(token):
     split = token.split(".")
-    assert (tested.extract_infos_from_token(token) == (split[0], split[1], ".".join(split[2:])))
+    assert tested.extract_infos_from_token(token) == (split[0], split[1], ".".join(split[2:]))
 
 
 def test_path_cleaner():
@@ -54,12 +55,18 @@ def test_cwd_manager(wd_dir):
             assert os.getcwd() == ref_path
 
 
-@patch("pcvs.helpers.system.GlobalConfig.root", {
-    "validation": {
-        "output": "/prefix_build",
-        "dirs": {'LABEL1': '/prefix1', 'LABEL2': "/prefix2"}
-    }
-})
+@patch(
+    "pcvs.helpers.system.GlobalConfig.root",
+    {
+        "validation": {
+            "output": "/prefix_build",
+            "dirs": {
+                "LABEL1": "/prefix1",
+                "LABEL2": "/prefix2",
+            },
+        }
+    },
+)
 @pytest.mark.parametrize("program", ["ls", "/bin/sh"])
 def test_check_program(program):
     class Success(Exception):

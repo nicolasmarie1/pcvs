@@ -62,8 +62,7 @@ class Combination:
             if subtitle is None:
                 subtitle = f"{n}"
 
-            string.append(subtitle +
-                          str(self._combination[n]).replace(" ", "-"))
+            string.append(subtitle + str(self._combination[n]).replace(" ", "-"))
         return "_".join(string)
 
     def translate_to_command(self):
@@ -122,8 +121,7 @@ class Serie:
 
     @classmethod
     def register_sys_criterion(cls, system_criterion):
-        """copy/inherit the system-defined criterion (shortcut to global config)
-        """
+        """copy/inherit the system-defined criterion (shortcut to global config)"""
         cls.sys_iterators = system_criterion
 
     def __init__(self, dict_of_criterion):
@@ -177,15 +175,15 @@ class Criterion:
             self._values = None
             return
 
-        self._numeric = description.get('numeric', numeric)
-        self._prefix = description.get('option', '')
-        self._after = description.get('position', 'after') == 'after'
-        self._alias = description.get('aliases', {})
-        self._is_env = description.get('type', 'argument') == 'environment'
+        self._numeric = description.get("numeric", numeric)
+        self._prefix = description.get("option", "")
+        self._after = description.get("position", "after") == "after"
+        self._alias = description.get("aliases", {})
+        self._is_env = description.get("type", "argument") == "environment"
         # this should be only set by per-TE criterion definition
-        self._local = description.get('local', local)
-        self._str = description.get('subtitle', None)
-        self._values = description.get('values', [])
+        self._local = description.get("local", local)
+        self._str = description.get("subtitle", None)
+        self._values = description.get("values", [])
         self._expanded = False
         # Sanity check
         self.sanitize_values()
@@ -205,11 +203,11 @@ class Criterion:
         for v in self._values:
             if isinstance(v, list):
                 raise CommonException.UnclassifiableError(
-                    reason="list elements should be scalar OR dict",
-                    dbg_info={"element": v})
+                    reason="list elements should be scalar OR dict", dbg_info={"element": v}
+                )
             if isinstance(v, dict):
                 for key in v.keys():
-                    assert key in ['op', 'of', 'from', 'to']
+                    assert key in ["op", "of", "from", "to"]
 
     # only allow overriding values (for now)
 
@@ -221,8 +219,8 @@ class Criterion:
         :param desc: descriptor supposedly containing a ``value`` entry
         :type desc: dict
         """
-        if 'values' in desc:
-            self._values = desc['values']
+        if "values" in desc:
+            self._values = desc["values"]
             self._expanded = False
             self.sanitize_values()
 
@@ -304,7 +302,7 @@ class Criterion:
         """
         return self._numeric
 
-    def concretize_value(self, val=''):
+    def concretize_value(self, val=""):
         """Return the exact string mapping this criterion, according to the
         specification. (is it aliased ? should the option be put before/after
         the value?...)
@@ -374,15 +372,15 @@ class Criterion:
             else:
                 return val
 
-        start = _convert_sequence_item_to_int(node.get('from', s))
-        end = _convert_sequence_item_to_int(node.get('to', e))
-        of = _convert_sequence_item_to_int(node.get('of', 1))
+        start = _convert_sequence_item_to_int(node.get("from", s))
+        end = _convert_sequence_item_to_int(node.get("to", e))
+        of = _convert_sequence_item_to_int(node.get("of", 1))
 
-        op = node.get('op', 'seq').lower()
+        op = node.get("op", "seq").lower()
 
-        if op in ['seq', 'arithmetic', 'ari']:
+        if op in ["seq", "arithmetic", "ari"]:
             values = range(start, end + 1, of)
-        elif op in ['mul', 'geometric', 'geo']:
+        elif op in ["mul", "geometric", "geo"]:
             if start == 0:
                 values.append(0)
             elif of in [-1, 0, 1]:
@@ -392,11 +390,11 @@ class Criterion:
                 while cur <= end:
                     values.append(cur)
                     cur *= of
-        elif op in ['pow', 'powerof']:
+        elif op in ["pow", "powerof"]:
             if of == 0:
                 values.append()
-            start = math.ceil(start**(1 / of))
-            end = math.floor(end**(1 / of))
+            start = math.ceil(start ** (1 / of))
+            end = math.floor(end ** (1 / of))
             for i in range(start, end + 1):
                 values.append(i**of)
         else:
@@ -439,14 +437,13 @@ class Criterion:
             for v in self._values:
 
                 if isinstance(v, dict):
-                    values += self.__convert_sequence_to_list(v,
-                                                              s=start,
-                                                              e=end)
+                    values += self.__convert_sequence_to_list(v, s=start, e=end)
                 elif isinstance(v, (int, float, str)):
                     values.append(v)
                 else:
-                    raise TypeError("Only accept int or sequence (as string)"
-                                    " as values for numeric iterators")
+                    raise TypeError(
+                        "Only accept int or sequence (as string) as values for numeric iterators"
+                    )
         else:
             values = self._values
         # now ensure values are unique
@@ -467,12 +464,12 @@ def initialize_from_system():
 
     TODO: Move this function elsewhere."""
     # sanity checks
-    if 'criterion' not in GlobalConfig.root:
-        GlobalConfig.root.set_internal('crit_obj', {})
+    if "criterion" not in GlobalConfig.root:
+        GlobalConfig.root.set_internal("crit_obj", {})
     else:
         # raw YAML objects
-        runtime_iterators = GlobalConfig.root['runtime']['criterions']
-        criterion_iterators = GlobalConfig.root['criterion']
+        runtime_iterators = GlobalConfig.root["runtime"]["criterions"]
+        criterion_iterators = GlobalConfig.root["criterion"]
         it_to_remove = []
 
         # if a criterion defined in criterion.yaml but
@@ -481,11 +478,11 @@ def initialize_from_system():
         # here is the purpose
         for it in criterion_iterators.keys():
             if it not in runtime_iterators:
-                io.console.warn("Undeclared criterion "
-                                "as part of runtime: '{}' ".format(it))
-            elif criterion_iterators[it]['values'] is None:
-                io.console.debug('No combination found for {},'
-                                 ' removing from schedule'.format(it))
+                io.console.warn("Undeclared criterion " "as part of runtime: '{}' ".format(it))
+            elif criterion_iterators[it]["values"] is None:
+                io.console.debug(
+                    "No combination found for {}," " removing from schedule".format(it)
+                )
             else:
                 continue
 
@@ -495,19 +492,19 @@ def initialize_from_system():
         # register the new dict {criterion_name: Criterion object}
         # the criterion object gathers both information from runtime & criterion
         GlobalConfig.root.set_internal(
-            'crit_obj', {
-                k: Criterion(k, {
-                    **runtime_iterators[k],
-                    **criterion_iterators[k]
-                })
-                for k in criterion_iterators.keys() if k not in it_to_remove
-            })
+            "crit_obj",
+            {
+                k: Criterion(k, {**runtime_iterators[k], **criterion_iterators[k]})
+                for k in criterion_iterators.keys()
+                if k not in it_to_remove
+            },
+        )
 
     # convert any sequence into valid range of integers for
 
     # numeric criterions
     comb_cnt = 1
-    for criterion in GlobalConfig.root.get_internal('crit_obj').values():
+    for criterion in GlobalConfig.root.get_internal("crit_obj").values():
         criterion.expand_values()
         comb_cnt *= len(criterion)
     GlobalConfig.root.set_internal("comb_cnt", comb_cnt)
@@ -517,43 +514,47 @@ first = True
 
 
 def load_plugin():
-    rt = GlobalConfig.root['runtime']
-    val = GlobalConfig.root['validation']
-    pCollection = GlobalConfig.root.get_internal('pColl')
+    rt = GlobalConfig.root["runtime"]
+    val = GlobalConfig.root["validation"]
+    pCollection = GlobalConfig.root.get_internal("pColl")
 
-    if 'plugin' in rt:
+    if "plugin" in rt:
         # Temporary, for compatibility with older buold base64 encoded profile. -- start
-        plugin_code = rt['plugin']
+        plugin_code = rt["plugin"]
         if type(plugin_code) is not str:
-            plugin_code = plugin_code.decode('utf-8')
-        while plugin_code.count('\n') <= 1:
-            io.console.warning("Profile plugin still encoded in base64,"
-                               " please use pcvs profile edit -p to convert plugin.")
+            plugin_code = plugin_code.decode("utf-8")
+        while plugin_code.count("\n") <= 1:
+            io.console.warning(
+                "Profile plugin still encoded in base64, please use pcvs profile edit -p to convert plugin."
+            )
             import base64
+
             plugin_code = base64.b64decode(plugin_code).decode("utf-8")
         # end
 
-        rt['pluginfile'] = os.path.join(val['buildcache'], "rt-plugin.py")
-        with open(rt['pluginfile'], 'w', encoding='utf-8') as fh:
+        rt["pluginfile"] = os.path.join(val["buildcache"], "rt-plugin.py")
+        with open(rt["pluginfile"], "w", encoding="utf-8") as fh:
             fh.write(plugin_code)
         try:
-            pCollection.register_plugin_by_file(rt['pluginfile'], activate=True)
+            pCollection.register_plugin_by_file(rt["pluginfile"], activate=True)
         except SyntaxError:
-            io.console.critical("Profile plugin encoded in base64, "
-                                "update plugin in profile file, "
-                                "base64 -d <<< \"<plugin>\", "
-                                "or by using `pcvs edit -p`")
-    elif 'defaultplugin' in rt:
-        pCollection.activate_plugin(rt['defaultplugin'])
+            io.console.critical(
+                "Profile plugin encoded in base64, "
+                "update plugin in profile file, "
+                'base64 -d <<< "<plugin>", '
+                "or by using `pcvs edit -p`"
+            )
+    elif "defaultplugin" in rt:
+        pCollection.activate_plugin(rt["defaultplugin"])
 
 
 def get_plugin():
     """Get the current validation plugin for the run."""
     global first
-    rt = GlobalConfig.root['runtime']
-    plugin = GlobalConfig.root.get_internal('pColl')
+    rt = GlobalConfig.root["runtime"]
+    plugin = GlobalConfig.root.get_internal("pColl")
 
-    if first and ('plugin' in rt or 'defaultplugin' in rt):
+    if first and ("plugin" in rt or "defaultplugin" in rt):
         first = not first
         load_plugin()
 
@@ -568,9 +569,9 @@ def valid_combination(dic):
     :return: True if dic is a valid combination
     :rtype: bool
     """
-    ret = get_plugin().invoke_plugins(Plugin.Step.TEST_EVAL,
-                                      config=GlobalConfig.root,
-                                      combination=dic)
+    ret = get_plugin().invoke_plugins(
+        Plugin.Step.TEST_EVAL, config=GlobalConfig.root, combination=dic
+    )
 
     # by default, no plugin = always true
     if ret is None:
@@ -581,6 +582,6 @@ def valid_combination(dic):
 
 def get_ressources(dic) -> list[int] | None:
     """Get the ressources needed for a job."""
-    return get_plugin().invoke_plugins(Plugin.Step.TEST_EVAL,
-                                       method="get_ressources",
-                                       combination=dic)
+    return get_plugin().invoke_plugins(
+        Plugin.Step.TEST_EVAL, method="get_ressources", combination=dic
+    )

@@ -5,23 +5,22 @@ from pcvs.helpers import system
 from pcvs.testing import test as tested
 
 
-@patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig(
-    {
-        "validation": {
-            "output": "test_output",
-            "dirs": {
-                "keytestdir": "valuetestdir"
-            }
+@patch(
+    "pcvs.helpers.system.GlobalConfig.root",
+    system.MetaConfig(
+        {
+            "validation": {
+                "output": "test_output",
+                "dirs": {"keytestdir": "valuetestdir"},
+            },
+            "group": {"GRPSERIAL": {}},
+            "criterion": {},
         },
-        "group": {
-            "GRPSERIAL": {}
+        {
+            "cc_pm": "test_cc_pm",
         },
-        "criterion": {}
-    },
-    {
-        "cc_pm": "test_cc_pm"
-    }
-))
+    ),
+)
 def test_test():
     test = tested.Test(
         label="label",
@@ -35,7 +34,8 @@ def test_test():
         mod_deps=[pm.SpackManager("recipe")],
         env=["testenv"],
         matchers={"matcher1": {"expr": "test"}},
-        valscript="testvalscript",)
+        valscript="testvalscript",
+    )
     assert test.name == "label/testsubtree/testte_name"
     assert test.command == "testcommand"
     assert not test.been_executed()

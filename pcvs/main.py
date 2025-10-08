@@ -22,14 +22,17 @@ from pcvs.plugins import Plugin
 
 try:
     import rich_click as click
+
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
     import click
 
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-help'],
-                        ignore_unknown_options=True,
-                        allow_interspersed_args=False,
-                        auto_envvar_prefix='PCVS')
+CONTEXT_SETTINGS = dict(
+    help_option_names=["-h", "--help", "-help"],
+    ignore_unknown_options=True,
+    allow_interspersed_args=False,
+    auto_envvar_prefix="PCVS",
+)
 
 
 def print_version(ctx, param, value):  # pylint: disable=unused-argument
@@ -45,52 +48,63 @@ def print_version(ctx, param, value):  # pylint: disable=unused-argument
     if not value or ctx.resilient_parsing:
         return
     pcvs_version = version("pcvs")
-    click.echo(
-        f'Parallel Computing Validation System (pcvs) -- version {pcvs_version}')
+    click.echo(f"Parallel Computing Validation System (pcvs) -- version {pcvs_version}")
     ctx.exit()
 
 
 @click.group(context_settings=CONTEXT_SETTINGS, name="cli")
-@click.option("-v",
-              "--verbose",
-              "verbose",
-              show_envvar=True,
-              count=True,
-              default=0,
-              help="Enable PCVS verbosity (cumulative)")
-@click.option("-d",
-              "--debug",
-              show_envvar=True,
-              default=False,
-              help="Enable Debug mode (implies `-vvv`)",
-              is_flag=True)
-@click.option("-c",
-              "--color/--no-color",
-              "color",
-              default=True,
-              is_flag=True,
-              show_envvar=True,
-              help="Use colors to beautify the output")
-@click.option("-g",
-              "--glyph/--no-glyph",
-              "encoding",
-              default=True,
-              is_flag=True,
-              show_envvar=True,
-              help="enable/disable Unicode glyphs")
-@click.option("-C",
-              "--exec-path",
-              "exec_path",
-              show_envvar=True,
-              default=None,
-              type=click.Path(exists=True, file_okay=False))
-@click.option("-V",
-              "--version",
-              expose_value=False,
-              is_eager=True,
-              callback=print_version,
-              is_flag=True,
-              help="Display current version")
+@click.option(
+    "-v",
+    "--verbose",
+    "verbose",
+    show_envvar=True,
+    count=True,
+    default=0,
+    help="Enable PCVS verbosity (cumulative)",
+)
+@click.option(
+    "-d",
+    "--debug",
+    show_envvar=True,
+    default=False,
+    help="Enable Debug mode (implies `-vvv`)",
+    is_flag=True,
+)
+@click.option(
+    "-c",
+    "--color/--no-color",
+    "color",
+    default=True,
+    is_flag=True,
+    show_envvar=True,
+    help="Use colors to beautify the output",
+)
+@click.option(
+    "-g",
+    "--glyph/--no-glyph",
+    "encoding",
+    default=True,
+    is_flag=True,
+    show_envvar=True,
+    help="enable/disable Unicode glyphs",
+)
+@click.option(
+    "-C",
+    "--exec-path",
+    "exec_path",
+    show_envvar=True,
+    default=None,
+    type=click.Path(exists=True, file_okay=False),
+)
+@click.option(
+    "-V",
+    "--version",
+    expose_value=False,
+    is_eager=True,
+    callback=print_version,
+    is_flag=True,
+    help="Display current version",
+)
 # unused
 # @click.option("-w",
 #               "--width",
@@ -98,43 +112,46 @@ def print_version(ctx, param, value):  # pylint: disable=unused-argument
 #               type=int,
 #               default=None,
 #               help="Terminal width (autodetection if omitted")
-@click.option("-P",
-              "--plugin-path",
-              "plugin_path",
-              multiple=True,
-              type=click.Path(exists=True),
-              show_envvar=True,
-              help="Default Plugin path prefix")
+@click.option(
+    "-P",
+    "--plugin-path",
+    "plugin_path",
+    multiple=True,
+    type=click.Path(exists=True),
+    show_envvar=True,
+    help="Default Plugin path prefix",
+)
 @click.option("-m", "--plugin", "select_plugins", multiple=True)
-@click.option("-t",
-              "--tui",
-              is_flag=True,
-              default=False,
-              show_envvar=True,
-              help="USe TUI-based interface instead of console (if applicable)")
+@click.option(
+    "-t",
+    "--tui",
+    is_flag=True,
+    default=False,
+    show_envvar=True,
+    help="USe TUI-based interface instead of console (if applicable)",
+)
 @click.pass_context
 @io.capture_exception(PluginException.NotFoundError)
 @io.capture_exception(PluginException.LoadError)
-def cli(ctx, verbose, color, encoding, exec_path, plugin_path,
-        select_plugins, tui, debug):
+def cli(ctx, verbose, color, encoding, exec_path, plugin_path, select_plugins, tui, debug):
     """PCVS main program."""
     ctx.ensure_object(dict)
-    ctx.obj['verbose'] = verbose if not debug else 10
-    ctx.obj['color'] = color
-    ctx.obj['encode'] = encoding
-    ctx.obj['exec'] = exec_path
-    ctx.obj['tui'] = tui
+    ctx.obj["verbose"] = verbose if not debug else 10
+    ctx.obj["color"] = color
+    ctx.obj["encode"] = encoding
+    ctx.obj["exec"] = exec_path
+    ctx.obj["tui"] = tui
 
     # Click specific-related
     ctx.color = color
 
     io.init(color=color, verbose=verbose)
-    utils.set_local_path(ctx.obj['exec'])
+    utils.set_local_path(ctx.obj["exec"])
 
     utils.create_home_dir()
 
     pcoll = Collection()
-    ctx.obj['plugins'] = pcoll
+    ctx.obj["plugins"] = pcoll
 
     pcoll.register_default_plugins()
 
@@ -143,7 +160,7 @@ def cli(ctx, verbose, color, encoding, exec_path, plugin_path,
             pcoll.register_plugin_by_dir(path)
 
     for arg in select_plugins:
-        for select in arg.split(','):
+        for select in arg.split(","):
             pcoll.activate_plugin(select)
 
     pcoll.invoke_plugins(Plugin.Step.START_BEFORE)

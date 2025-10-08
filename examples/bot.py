@@ -17,9 +17,9 @@ async def help_cmd(ctx):
 
 class TheBot(commands.Bot):
     async def on_ready(self):
-        await bot.change_presence(activity=discord.Activity(
-                        type=discord.ActivityType.listening,
-                        name="/pcvs"))
+        await bot.change_presence(
+            activity=discord.Activity(type=discord.ActivityType.listening, name="/pcvs")
+        )
         logging.info("Bot started")
 
 
@@ -38,12 +38,12 @@ async def bank_cmd(ctx, *args):
     bank.init()
     logging.debug("Process BANK cmd")
     if args:
-        if args[0] == 'list':
+        if args[0] == "list":
             s = "List of available banks:\n"
             for bn, bp in bank.list_banks().items():
                 s += "{}: {}\n".format(bn, bp)
             await ctx.send("Available banks:\n```{}```".format(s))
-        elif args[0] == 'show':
+        elif args[0] == "show":
             assert args[1]
             b = bank.Bank(token=args[1])
             s = b.show(stringify=True)
@@ -63,8 +63,7 @@ async def bank_cmd(ctx, *args):
 
 @bot.command(name="analyze")
 async def analyze_cmd(ctx, *args):
-    """TODO:
-    """
+    """TODO:"""
     bank.init()
     logging.debug("Process ANALYZE cmd")
     if args:
@@ -96,6 +95,6 @@ async def analyze_cmd(ctx, *args):
                             await ctx.send("Results are attached below", file=discord.File(fh.name))
 
 
-LOGLEVEL = os.environ.get('LOGLEVEL', "INFO").upper()
+LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 logging.basicConfig(level=LOGLEVEL)
-bot.run(os.getenv('DISCORD_TOKEN'))
+bot.run(os.getenv("DISCORD_TOKEN"))

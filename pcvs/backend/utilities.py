@@ -29,7 +29,7 @@ def locate_scriptpaths(output=None):
     scripts = list()
     for root, _, files in os.walk(output):
         for f in files:
-            if f == 'list_of_tests.sh':
+            if f == "list_of_tests.sh":
                 scripts.append(os.path.join(root, f))
     return scripts
 
@@ -50,7 +50,7 @@ def compute_scriptpath_from_testname(testname, output=None):
 
     buildir = utils.find_buildir_from_prefix(output)
     prefix = os.path.dirname(testname)
-    return os.path.join(buildir, 'test_suite', prefix, "list_of_tests.sh")
+    return os.path.join(buildir, "test_suite", prefix, "list_of_tests.sh")
 
 
 def get_logged_output(prefix, testname) -> str:
@@ -72,7 +72,7 @@ def get_logged_output(prefix, testname) -> str:
         man = BuildDirectoryManager(build_dir=buildir)
         man.init_results()
         for test in man.results.retrieve_tests_by_name(name=testname):
-            s += test.get_raw_output(encoding='utf-8')
+            s += test.get_raw_output(encoding="utf-8")
         man.finalize()
     if not s:
         s = "No test named '{}' found here.".format(testname)
@@ -94,16 +94,16 @@ def process_check_configs():
     for kind in config.CONFIG_BLOCKS:
         for scope in utils.storage_order():
             for blob in config.list_blocks(kind, scope):
-                token = io.console.utf('fail')
+                token = io.console.utf("fail")
                 err_msg = ""
                 obj = config.ConfigurationBlock(kind, blob[0], scope)
                 obj.load_from_disk()
 
                 try:
                     obj.check()
-                    token = io.console.utf('succ')
+                    token = io.console.utf("succ")
                 except ValidationException.FormatError as e:
-                    err_msg = str(e.dbg).encode('utf-8')
+                    err_msg = str(e.dbg).encode("utf-8")
                     errors.setdefault(err_msg, 0)
                     errors[err_msg] += 1
                     io.console.debug(str(e))
@@ -128,14 +128,14 @@ def process_check_profiles(conversion=True):
 
     for scope in utils.storage_order():
         for blob in profile.list_profiles(scope):
-            token = io.console.utf('fail')
+            token = io.console.utf("fail")
             obj = profile.Profile(blob[0], scope)
             obj.load_from_disk()
             try:
                 obj.check(allow_legacy=conversion)
-                token = io.console.utf('succ')
+                token = io.console.utf("succ")
             except ValidationException.FormatError as e:
-                err_msg = str(e.dbg).encode('utf-8')
+                err_msg = str(e.dbg).encode("utf-8")
                 errors.setdefault(err_msg, 0)
                 errors[err_msg] += 1
                 io.console.debug(str(e))
@@ -165,29 +165,31 @@ def process_check_setup_file(root, prefix, run_configuration):
     try:
         tdir = tempfile.mkdtemp()
         with utils.cwd(tdir):
-            env['pcvs_src'] = root
-            env['pcvs_testbuild'] = tdir
+            env["pcvs_src"] = root
+            env["pcvs_testbuild"] = tdir
 
             if not os.path.isdir(os.path.join(tdir, prefix)):
                 os.makedirs(os.path.join(tdir, prefix))
             if not prefix:
-                prefix = ''
+                prefix = ""
             proc = subprocess.Popen(
                 [os.path.join(root, prefix, "pcvs.setup"), prefix],
                 env=env,
                 stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE)
+                stdout=subprocess.PIPE,
+            )
             fdout, fderr = proc.communicate()
 
             if proc.returncode != 0:
                 if not fderr:
-                    fderr = "Non-zero status (no stderr): {}".format(
-                        proc.returncode).encode('utf-8')
+                    fderr = "Non-zero status (no stderr): {}".format(proc.returncode).encode(
+                        "utf-8"
+                    )
                 err_msg = fderr
             else:
-                data = fdout.decode('utf-8')
+                data = fdout.decode("utf-8")
     except subprocess.CalledProcessError as e:
-        err_msg = str(e.stderr).encode('utf-8')
+        err_msg = str(e.stderr).encode("utf-8")
 
     return (err_msg, data)
 
@@ -237,14 +239,14 @@ def process_check_directory(directory, pf_name="default", conversion=True):
         pf.load_from_disk()
         pf.check(allow_legacy=conversion)
     system.GlobalConfig.root = system.MetaConfig()
-    system.GlobalConfig.root['validation'] = {}
+    system.GlobalConfig.root["validation"] = {}
     system.GlobalConfig.root.bootstrap_from_profile(pf.dump(), pf.full_name)
-    system.GlobalConfig.root['validation']['output'] = "/tmp"
+    system.GlobalConfig.root["validation"]["output"] = "/tmp"
     buildenv = run.build_env_from_configuration(pf.dump())
-    setup_files, yaml_files = run.find_files_to_process(
-        {os.path.basename(directory): directory})
+    setup_files, yaml_files = run.find_files_to_process({os.path.basename(directory): directory})
 
     from rich.table import Table
+
     table = Table(title="Results", expand=True, row_styles=["dim", ""])
     table.add_column("Runnable Script", justify="center", max_width=5)
     table.add_column("Valid", justify="center", max_width=5)
@@ -252,8 +254,7 @@ def process_check_directory(directory, pf_name="default", conversion=True):
     table.add_column("File Path", justify="left")
     # with io.console.pager():
     # with Live(table, refresh_per_second=4):
-    for _, subprefix, f in io.console.progress_iter(
-            [*setup_files, *yaml_files]):
+    for _, subprefix, f in io.console.progress_iter([*setup_files, *yaml_files]):
         setup_ok = __set_token(None)
         yaml_ok = __set_token(None)
         nb_nodes = __set_token(None, "----")
@@ -267,7 +268,7 @@ def process_check_directory(directory, pf_name="default", conversion=True):
             err, data = process_check_setup_file(directory, subprefix, buildenv)
             setup_ok = __set_token(err is None)
         else:
-            with open(os.path.join(directory, subprefix, f), 'r') as fh:
+            with open(os.path.join(directory, subprefix, f), "r") as fh:
                 data = fh.read()
 
         if not err:
@@ -275,10 +276,7 @@ def process_check_directory(directory, pf_name="default", conversion=True):
             dflt = None
             err = None
             try:
-                cur = TestFile(file_in="",
-                               path_out="",
-                               label="",
-                               prefix=subprefix)
+                cur = TestFile(file_in="", path_out="", label="", prefix=subprefix)
                 cur.load_from_str(data)
                 converted = not cur.validate(allow_conversion=conversion)
                 nb_nodes = cur.nb_descs
@@ -286,25 +284,25 @@ def process_check_directory(directory, pf_name="default", conversion=True):
                 success = True
 
             except YAMLError as e:
-                err = str(e).encode('utf-8')
+                err = str(e).encode("utf-8")
                 success = False
             except ValidationException.FormatError as e:
-                err = str(e).encode('utf-8')
+                err = str(e).encode("utf-8")
                 success = False
 
             if converted is True:
                 # yaml VALID but old syntax
                 # --> yellow
                 success = None
-                dflt = "{} {}".format(io.console.utf('succ'),
-                                      io.console.utf('copy'))
+                dflt = "{} {}".format(io.console.utf("succ"), io.console.utf("copy"))
             yaml_ok = __set_token(success, nset=dflt)
 
-        table.add_row(setup_ok, yaml_ok, "{:>4}".format(nb_nodes),
-                      "./" if not subprefix else subprefix)
+        table.add_row(
+            setup_ok, yaml_ok, "{:>4}".format(nb_nodes), "./" if not subprefix else subprefix
+        )
 
         if err:
-            io.console.info("FAILED: {}".format(err.decode('utf-8')))
+            io.console.info("FAILED: {}".format(err.decode("utf-8")))
             errors.setdefault(err, 0)
             errors[err] += 1
     io.console.print(table)
@@ -360,8 +358,8 @@ class BuildSystem:
             io.console.warn(" --> skipped, already exist;")
             return
 
-        with open(out_file, 'w') as fh:
-            YAML(typ='safe').dump(self._stream, fh)
+        with open(out_file, "w") as fh:
+            YAML(typ="safe").dump(self._stream, fh)
 
 
 class AutotoolsBuildSystem(BuildSystem):
@@ -371,10 +369,10 @@ class AutotoolsBuildSystem(BuildSystem):
         """Populate the dict relatively to the build system to build the proper
         YAML representation."""
         name = os.path.basename(self._root)
-        self._stream.setdefault(name, {}).setdefault('build', {}).setdefault('autotools', {})
-        self._stream[name]['build']['autotools']['autogen'] = 'autogen.sh' in self._files
-        self._stream[name]['build']['files'] = os.path.join(self._root, 'configure')
-        self._stream[name]['build']['autotools']['params'] = ""
+        self._stream.setdefault(name, {}).setdefault("build", {}).setdefault("autotools", {})
+        self._stream[name]["build"]["autotools"]["autogen"] = "autogen.sh" in self._files
+        self._stream[name]["build"]["files"] = os.path.join(self._root, "configure")
+        self._stream[name]["build"]["autotools"]["params"] = ""
 
 
 class CMakeBuildSystem(BuildSystem):
@@ -384,9 +382,9 @@ class CMakeBuildSystem(BuildSystem):
         """Populate the dict relatively to the build system to build the proper
         YAML representation."""
         name = os.path.basename(self._root)
-        self._stream.setdefault(name, {}).setdefault('build', {}).setdefault('cmake', {})
-        self._stream[name]['build']['cmake']['vars'] = "CMAKE_BUILD_TYPE=Debug"
-        self._stream[name]['build']['files'] = os.path.join(self._root, 'CMakeLists.txt')
+        self._stream.setdefault(name, {}).setdefault("build", {}).setdefault("cmake", {})
+        self._stream[name]["build"]["cmake"]["vars"] = "CMAKE_BUILD_TYPE=Debug"
+        self._stream[name]["build"]["files"] = os.path.join(self._root, "CMakeLists.txt")
 
 
 class MakefileBuildSystem(BuildSystem):
@@ -396,9 +394,9 @@ class MakefileBuildSystem(BuildSystem):
         """Populate the dict relatively to the build system to build the proper
         YAML representation."""
         name = os.path.basename(self._root)
-        self._stream.setdefault(name, {}).setdefault('build', {}).setdefault('make', {})
-        self._stream[name]['build']['make']['target'] = ''
-        self._stream[name]['build']['files'] = os.path.join(self._root, 'Makefile')
+        self._stream.setdefault(name, {}).setdefault("build", {}).setdefault("make", {})
+        self._stream[name]["build"]["make"]["target"] = ""
+        self._stream[name]["build"]["files"] = os.path.join(self._root, "Makefile")
 
 
 def process_discover_directory(path, override=False, force=False):
@@ -413,13 +411,13 @@ def process_discover_directory(path, override=False, force=False):
     """
     for root, dirs, files in os.walk(path):
         obj, n = None, None
-        if 'configure' in files:
+        if "configure" in files:
             n = "[yello bold]Autotools[/]"
             obj = AutotoolsBuildSystem(root, dirs, files)
-        if 'CMakeLists.txt' in files:
+        if "CMakeLists.txt" in files:
             n = "[cyan bold]CMake[/]"
             obj = CMakeBuildSystem(root, dirs, files)
-        if 'Makefile' in files:
+        if "Makefile" in files:
             n = "[red bold]Make[/]"
             obj = MakefileBuildSystem(root, dirs, files)
 

@@ -39,8 +39,8 @@ def test_configuration_templates(configpath):
     config = os.path.basename(configpath)
     conf_kind = config.split(".")[0]
     conf_blk = ConfigurationBlock(conf_kind, "test", "local")
-    with open(configpath, 'r', encoding='utf-8') as fh:
-        data = YAML(typ='safe').load(fh)
+    with open(configpath, "r", encoding="utf-8") as fh:
+        data = YAML(typ="safe").load(fh)
         conf_blk.fill(data)
     manage_validation(config, conf_blk.check)
 
@@ -49,8 +49,8 @@ def test_configuration_templates(configpath):
 def test_profile_template(profilepath):
     pinit()
     prof = Profile("tmp", "local")
-    with open(profilepath, 'r', encoding='utf-8') as fh:
-        data = YAML(typ='safe').load(fh)
+    with open(profilepath, "r", encoding="utf-8") as fh:
+        data = YAML(typ="safe").load(fh)
         print(data)
         prof.fill(data)
     manage_validation(os.path.basename(profilepath), prof.check)

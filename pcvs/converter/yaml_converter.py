@@ -15,15 +15,15 @@ desc_dict = dict()
 
 
 def separate_key_and_value(s: str, c: str) -> tuple:
-    """ helper to split the key and value from a string"""
+    """helper to split the key and value from a string"""
     array = s.split(c)
     if len(array) > 1:
         k = array[0]
         v = "".join(array[1:])
 
-        if v.lower() == 'true':
+        if v.lower() == "true":
             v = True
-        elif v.lower() == 'false':
+        elif v.lower() == "false":
             v = False
 
         return (k, v)
@@ -55,18 +55,20 @@ def set_with(data, klist, val, append=False):
         data[klist[-1]] = val
 
 
-def flatten(dd, prefix='') -> dict:
-    """ make the n-depth dict 'dd' a "flat" version, where the successive keys
+def flatten(dd, prefix="") -> dict:
+    """make the n-depth dict 'dd' a "flat" version, where the successive keys
     are chained in a tuple. for instance:
     {'a': {'b': {'c': value}}} --> {('a', 'b', 'c'): value}
     """
-    return {
-        prefix + "||" + k if prefix else k: v
-        for kk, vv in dd.items()
-        for k, v in flatten(vv, kk).items()
-    } if isinstance(dd, dict) else {
-        prefix: dd
-    }
+    return (
+        {
+            prefix + "||" + k if prefix else k: v
+            for kk, vv in dd.items()
+            for k, v in flatten(vv, kk).items()
+        }
+        if isinstance(dd, dict)
+        else {prefix: dd}
+    )
 
 
 def compute_new_key(k, m) -> str:
@@ -117,7 +119,7 @@ def process(data, ref_array=None, warn_if_missing=True) -> dict:
     # desc_dict['second'] is set to contain all keys
     # by opposition to desc_dict['first'] containing modifiers
     if not ref_array:
-        ref_array = desc_dict['second']
+        ref_array = desc_dict["second"]
 
     # browse original data
     for k, v in data.items():
@@ -138,30 +140,29 @@ def process(data, ref_array=None, warn_if_missing=True) -> dict:
 
             # Process each of the new keys
             for elt_dest_k in dest_k:
-                (final_k, final_v, token) = (elt_dest_k, None, '')
+                (final_k, final_v, token) = (elt_dest_k, None, "")
                 # src key won't be kept
                 if final_k is None:
                     continue
                 # if a split is required
-                for token in ['|+|', '|=|']:
-                    (final_k,
-                     final_v) = separate_key_and_value(elt_dest_k, token)
+                for token in ["|+|", "|=|"]:
+                    (final_k, final_v) = separate_key_and_value(elt_dest_k, token)
                     # the split() succeeded ? stop
                     if final_v:
                         break
 
                 # special case to handle the "+" operator to append a value
-                should_append = token == '+'
+                should_append = token == "+"
                 # if none of the split() succeeded, just keep the old value
                 final_v = v if not final_v else final_v
                 # set the new key with the new value
-                set_with(output, final_k.split('||'), final_v, should_append)
+                set_with(output, final_k.split("||"), final_v, should_append)
         else:
             # warn when an old_key hasn't be declared in spec.
             io.console.info("DISCARDING {}".format(k))
             if warn_if_missing:
                 io.console.warn("Key {} undeclared in spec.".format(k))
-                set_with(output, ['pcvs_missing'] + k.split("||"), v)
+                set_with(output, ["pcvs_missing"] + k.split("||"), v)
             else:
                 set_with(output, k.split("||"), v)
     return output
@@ -185,11 +186,11 @@ def replace_placeholder(tmp, refs) -> dict:
 
     final = dict()
     for old, new in tmp.items():
-        if old.startswith('__'):
+        if old.startswith("__"):
             continue
 
         replacement = []
-        for elt in old.split('.'):
+        for elt in old.split("."):
             insert = False
             for valid_k in refs.keys():
                 if valid_k in elt:
@@ -202,8 +203,7 @@ def replace_placeholder(tmp, refs) -> dict:
     return final
 
 
-def convert(input_file, kind, template, scheme, out,
-            stdout, skip_unknown, in_place) -> None:
+def convert(input_file, kind, template, scheme, out, stdout, skip_unknown, in_place) -> None:
     """
     Process the conversion from one YAML format to another.
     Conversion specifications are described by the SCHEME file.
@@ -214,48 +214,47 @@ def convert(input_file, kind, template, scheme, out,
     if in_place and (stdout or out is not None):
         raise click.BadOptionUsage(
             "--stdout/--in-place",
-            "Cannot use --in-place option with any other output options (--output/--stdout)"
+            "Cannot use --in-place option with any other output options (--output/--stdout)",
         )
     elif in_place:
         out = input_file
 
     if template is None and kind == "te":
-        io.console.warn("\n".join([
-            "If the TE file contains YAML aliases, the conversion may",
-            "fail. Use the '--template' option to provide the YAML file",
-            "containing these aliases"
-        ]))
+        io.console.warn(
+            "\n".join(
+                [
+                    "If the TE file contains YAML aliases, the conversion may",
+                    "fail. Use the '--template' option to provide the YAML file",
+                    "containing these aliases",
+                ]
+            )
+        )
     if kind == "profile":
         kind = ""
     # load the input file
-    f = sys.stdin if input_file == '-' else open(input_file, 'r')
+    f = sys.stdin if input_file == "-" else open(input_file, "r")
     try:
         io.console.print_item("Load data file: {}".format(f.name))
         stream = f.read()
         if template:
             io.console.print_item("Load template file: {}".format(template))
-            stream = open(template, 'r').read() + stream
-        data_to_convert = YAML(typ='safe').load(stream)
+            stream = open(template, "r").read() + stream
+        data_to_convert = YAML(typ="safe").load(stream)
     except YAML.composer.ComposerError as e:
         raise CommonException.IOError(e, template) from e
 
     # load the scheme
     if not scheme:
-        scheme = open(os.path.join(pcvs.PATH_INSTDIR,
-                                   "converter/convert.json"))
+        scheme = open(os.path.join(pcvs.PATH_INSTDIR, "converter/convert.json"))
     io.console.print_item("Load scheme file: {}".format(scheme.name))
     tmp = json.load(scheme)
 
     # if modifiers are declared, replace token with regexes
-    if '__modifiers' in tmp.keys():
-        desc_dict['first'] = replace_placeholder(tmp['__modifiers'],
-                                                 tmp['__tokens'])
-    desc_dict['second'] = replace_placeholder(tmp, tmp['__tokens'])
+    if "__modifiers" in tmp.keys():
+        desc_dict["first"] = replace_placeholder(tmp["__modifiers"], tmp["__tokens"])
+    desc_dict["second"] = replace_placeholder(tmp, tmp["__tokens"])
 
-    io.console.info([
-        "Conversion list {old_key -> new_key):",
-        f"{tmp}"
-    ])
+    io.console.info(["Conversion list {old_key -> new_key):", f"{tmp}"])
 
     # first, "flattening" the original array: {(1, 2, 3): "val"}
     data_to_convert = flatten(data_to_convert, kind)
@@ -275,9 +274,8 @@ def convert(input_file, kind, template, scheme, out,
     final_data = final_data.get(kind, final_data)
     # remove template key from the output to avoid polluting the caller
     io.console.print_item("Pruning templates from the final data")
-    invalid_nodes = [k for k in final_data.keys() if k.startswith('pcvst_')]
-    io.console.info(
-        ["Prune the following:", "{}".format(pprint.pformat(invalid_nodes))])
+    invalid_nodes = [k for k in final_data.keys() if k.startswith("pcvst_")]
+    io.console.info(["Prune the following:", "{}".format(pprint.pformat(invalid_nodes))])
 
     for x in invalid_nodes + ["pcvs_missing"]:
         final_data.pop(x, None)
@@ -288,13 +286,12 @@ def convert(input_file, kind, template, scheme, out,
         f = sys.stdout
     else:
         if out is None:
-            prefix, base = os.path.split("./file.yml" if input_file ==
-                                         "-" else input_file)
+            prefix, base = os.path.split("./file.yml" if input_file == "-" else input_file)
             out = os.path.join(prefix, "convert-" + base)
         f = open(out, "w")
 
     io.console.print_section("Converted data written into {}".format(f.name))
-    YAML(typ='safe').dump(final_data, f)
+    YAML(typ="safe").dump(final_data, f)
 
     f.flush()
     if not stdout:

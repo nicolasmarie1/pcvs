@@ -27,9 +27,9 @@ class SchedMultiJobs(Plugin):
         return the_set
 
     def run(self, *args, **kwargs):
-        jobman = kwargs['jobman']
-        max_dim_allowed = kwargs.get('max_dim', jobman.nb_max_nodes)
-        job_limit = kwargs.get('max_job_limit', None)
+        jobman = kwargs["jobman"]
+        max_dim_allowed = kwargs.get("max_dim", jobman.nb_max_nodes)
+        job_limit = kwargs.get("max_job_limit", None)
 
         if self.first_run_with_compilation:
             self.first_run_with_compilation = not self.first_run_with_compilation

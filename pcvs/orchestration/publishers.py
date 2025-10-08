@@ -99,7 +99,7 @@ class ResultFile:
         :type output: bytes
         """
         assert isinstance(data, dict)
-        assert 'result' in data.keys()
+        assert "result" in data.keys()
         insert = {}
         start = 0
         length = 0
@@ -110,16 +110,12 @@ class ResultFile:
             length = self._rawout.write(self.MAGIC_TOKEN.encode("utf-8"))
             length += self._rawout.write(output)
 
-            insert = {
-                'file': self.rawdata_prefix,
-                'offset': start,
-                'length': length
-            }
+            insert = {"file": self.rawdata_prefix, "offset": start, "length": length}
 
         else:
-            insert = {'file': "", 'offset': -1, 'length': 0}
+            insert = {"file": "", "offset": -1, "length": 0}
 
-        data['result']['output'] = insert
+        data["result"]["output"] = insert
 
         assert job_id not in self._data.keys()
         self._data[job_id] = data
@@ -145,8 +141,8 @@ class ResultFile:
             elt = Test()
             elt.from_json(data, self._metadata_file)
 
-            offset = data['result']['output']['offset']
-            length = data['result']['output']['length']
+            offset = data["result"]["output"]["offset"]
+            length = data["result"]["output"]["length"]
             if offset >= 0 and length > 0:
                 elt.encoded_output = self.extract_output(offset, length)
             yield elt
@@ -156,12 +152,12 @@ class ResultFile:
         assert length > 0
 
         self._rawout_reader.seek(offset)
-        rawout = self._rawout_reader.read(length).decode('utf-8')
+        rawout = self._rawout_reader.read(length).decode("utf-8")
 
         if not rawout.startswith(self.MAGIC_TOKEN):
             raise PublisherException.BadMagicTokenError()
 
-        return rawout[len(self.MAGIC_TOKEN):]
+        return rawout[len(self.MAGIC_TOKEN) :]
 
     def retrieve_test(self, job_id=None, name=None) -> List[Test]:
         """
@@ -177,8 +173,7 @@ class ResultFile:
         :return: A list of class:`Test`
         :rtype: list
         """
-        if (job_id is None and name is None) or \
-                (job_id is not None and name is not None):
+        if (job_id is None and name is None) or (job_id is not None and name is not None):
             raise PublisherException.UnknownJobError(job_id, name)
 
         lookup_table = []
@@ -188,17 +183,15 @@ class ResultFile:
             else:
                 lookup_table = [self._data[job_id]]
         elif name is not None:
-            lookup_table = list(
-                filter(lambda x: name in x['id']['fq_name'],
-                       self._data.values()))
+            lookup_table = list(filter(lambda x: name in x["id"]["fq_name"], self._data.values()))
 
         res = []
         for elt in lookup_table:
-            offset = elt['result']['output']['offset']
-            length = elt['result']['output']['length']
+            offset = elt["result"]["output"]["offset"]
+            length = elt["result"]["output"]["length"]
             rawout = ""
             if length > 0:
-                assert elt['result']['output']['file'] in self.rawdata_prefix
+                assert elt["result"]["output"]["file"] in self.rawdata_prefix
                 rawout = self.extract_output(offset, length)
 
             eltt = Test()
@@ -271,6 +264,7 @@ class ResultFileManager:
     Manages multiple class:`ResultFile`. Main purpose is to manage files to
     ensure files stored on disk remain consistent.
     """
+
     increment = 0
     file_format = "jobs-{}"
 
@@ -296,8 +290,10 @@ class ResultFileManager:
         Load existing results from prefix.
         """
         jobs = list(
-            filter(lambda x: x.startswith('jobs-') and x.endswith(".json"),
-                   os.listdir(self._outdir)))
+            filter(
+                lambda x: x.startswith("jobs-") and x.endswith(".json"), os.listdir(self._outdir)
+            )
+        )
         if len(jobs) > 0:
             curfile = None
             for f in list(map(lambda x: os.path.join(self._outdir, x), jobs)):
@@ -325,34 +321,31 @@ class ResultFileManager:
 
     def reconstruct_map_data(self) -> None:
         for job in self.browse_tests():
-            self._mapdata_rev[job.jid] = job.output_info['file']
-            self._mapdata.setdefault(job.output_info['file'], [])
-            self._mapdata[job.output_info['file']].append(job.jid)
+            self._mapdata_rev[job.jid] = job.output_info["file"]
+            self._mapdata.setdefault(job.output_info["file"], [])
+            self._mapdata[job.output_info["file"]].append(job.jid)
 
     def reconstruct_view_data(self) -> None:
         for job in self.browse_tests():
             state = str(job.state)
             job_id = job.jid
-            self._viewdata['status'][state].append(job_id)
+            self._viewdata["status"][state].append(job_id)
             for tag in job.tags:
-                if tag not in self._viewdata['tags']:
-                    self.register_view_item(view='tags', item=tag)
-                self._viewdata['tags'][tag][state].append(job_id)
+                if tag not in self._viewdata["tags"]:
+                    self.register_view_item(view="tags", item=tag)
+                self._viewdata["tags"][tag][state].append(job_id)
 
-            self.register_view_item('tree', job.label)
-            self._viewdata['tree'][job.label][state].append(job_id)
+            self.register_view_item("tree", job.label)
+            self._viewdata["tree"][job.label][state].append(job_id)
             if job.subtree:
-                nodes = job.subtree.split('/')
+                nodes = job.subtree.split("/")
                 nb_nodes = len(nodes)
                 for i in range(1, nb_nodes + 1):
                     name = "/".join([job.label] + nodes[:i])
-                    self.register_view_item('tree', name)
-                    self._viewdata['tree'][name][state].append(job_id)
+                    self.register_view_item("tree", name)
+                    self._viewdata["tree"][name][state].append(job_id)
 
-    def __init__(self,
-                 prefix=".",
-                 per_file_max_ent=0,
-                 per_file_max_sz=0) -> None:
+    def __init__(self, prefix=".", per_file_max_ent=0, per_file_max_sz=0) -> None:
         """
         Initialize a new instance to manage results in a build directory.
 
@@ -368,8 +361,8 @@ class ResultFileManager:
         self._outdir = prefix
         self._opened_files: Dict[ResultFile] = {}
 
-        map_filename = os.path.join(prefix, 'maps.json')
-        view_filename = os.path.join(prefix, 'views.json')
+        map_filename = os.path.join(prefix, "maps.json")
+        view_filename = os.path.join(prefix, "views.json")
 
         def preload_if_exist(path, default) -> dict:
             """
@@ -383,7 +376,7 @@ class ResultFileManager:
             :rtype: dict
             """
             if os.path.isfile(path):
-                with open(path, 'r') as fh:
+                with open(path, "r") as fh:
                     try:
                         return json.load(fh)
                     except Exception:
@@ -394,9 +387,11 @@ class ResultFileManager:
         self._mapdata = preload_if_exist(map_filename, {})
         self._mapdata_rev = {}
         self._viewdata = preload_if_exist(
-            view_filename, {
-                'status': self._ret_state_split_dict(),
-            })
+            view_filename,
+            {
+                "status": self._ret_state_split_dict(),
+            },
+        )
 
         self._max_entries = per_file_max_ent
         self._max_size = per_file_max_sz
@@ -409,10 +404,10 @@ class ResultFileManager:
 
         # the state view's layout is special, create directly from definition
         # now create basic view as well through the proper API
-        self.register_view('tags')
-        self.register_view_item(view='tags', item='compilation')
+        self.register_view("tags")
+        self.register_view_item(view="tags", item="compilation")
 
-        self.register_view('tree')
+        self.register_view("tree")
 
     def save(self, job: Test):
         """
@@ -430,8 +425,9 @@ class ResultFileManager:
             raise PublisherException.AlreadyExistJobError(job.name)
 
         # create a new file if the current one is 'large' enough
-        if (self._current_file.size >= self._max_size and self._max_size) or \
-           (self._current_file.count >= self._max_entries and self._max_entries):
+        if (self._current_file.size >= self._max_size and self._max_size) or (
+            self._current_file.count >= self._max_entries and self._max_entries
+        ):
             self.create_new_result_file()
 
         # save info to file
@@ -443,21 +439,21 @@ class ResultFileManager:
         self._mapdata[self._current_file.prefix].append(job_id)
         # record this save as a FAILURE/SUCCESS statistic for multiple views
         state = str(job.state)
-        self._viewdata['status'][state].append(job_id)
+        self._viewdata["status"][state].append(job_id)
         for tag in job.tags:
-            if tag not in self._viewdata['tags']:
-                self.register_view_item(view='tags', item=tag)
-            self._viewdata['tags'][tag][state].append(job_id)
+            if tag not in self._viewdata["tags"]:
+                self.register_view_item(view="tags", item=tag)
+            self._viewdata["tags"][tag][state].append(job_id)
 
-        self.register_view_item('tree', job.label)
-        self._viewdata['tree'][job.label][state].append(job_id)
+        self.register_view_item("tree", job.label)
+        self._viewdata["tree"][job.label][state].append(job_id)
         if job.subtree:
-            nodes = job.subtree.split('/')
+            nodes = job.subtree.split("/")
             nb_nodes = len(nodes)
             for i in range(1, nb_nodes + 1):
                 name = "/".join([job.label] + nodes[:i])
-                self.register_view_item('tree', name)
-                self._viewdata['tree'][name][state].append(job_id)
+                self.register_view_item("tree", name)
+                self._viewdata["tree"][name][state].append(job_id)
 
     def retrieve_test(self, job_id) -> Optional[Test]:
         """
@@ -487,10 +483,8 @@ class ResultFileManager:
             if len(res) > 1:
                 raise CommonException.UnclassifiableError(
                     reason="Given info leads to more than one job",
-                    dbg_info={
-                        "data": job_id,
-                        'matches': res
-                    })
+                    dbg_info={"data": job_id, "matches": res},
+                )
             else:
                 return res[0]
         else:
@@ -567,7 +561,7 @@ class ResultFileManager:
         with open(os.path.join(self._outdir, "maps.json"), "w") as fh:
             json.dump(self._mapdata, fh)
 
-        with open(os.path.join(self._outdir, "views.json"), 'w') as fh:
+        with open(os.path.join(self._outdir, "views.json"), "w") as fh:
             json.dump(self._viewdata, fh)
 
     @property
@@ -637,7 +631,7 @@ class ResultFileManager:
         :return: a view
         :rtype: dict
         """
-        return self._viewdata['status']
+        return self._viewdata["status"]
 
     @property
     def tags_view(self):
@@ -647,7 +641,7 @@ class ResultFileManager:
         :return: a view
         :rtype: dict
         """
-        return self._viewdata['tags']
+        return self._viewdata["tags"]
 
     @property
     def tree_view(self):
@@ -657,7 +651,7 @@ class ResultFileManager:
         :return: a view
         :rtype: dict
         """
-        return self._viewdata['tree']
+        return self._viewdata["tree"]
 
     def subtree_view(self, subtree):
         """
@@ -668,9 +662,9 @@ class ResultFileManager:
         :return: the dict mapping tests to the request
         :rtype: dict
         """
-        if subtree not in self._viewdata['tree']:
+        if subtree not in self._viewdata["tree"]:
             return None
-        return self._viewdata['tree'][subtree]
+        return self._viewdata["tree"][subtree]
 
     def finalize(self):
         """
@@ -714,7 +708,8 @@ class BuildDirectoryManager:
         if not os.path.isdir(build_dir):
             raise CommonException.NotFoundError(
                 reason="Invalid build directory, should exist *before* init.",
-                dbg_info={"build prefix": build_dir})
+                dbg_info={"build prefix": build_dir},
+            )
 
         self._path = build_dir
         self._extras = list()
@@ -724,7 +719,7 @@ class BuildDirectoryManager:
         self._scratch = os.path.join(build_dir, pcvs.NAME_BUILD_SCRATCH)
         old_archive_dir = os.path.join(build_dir, pcvs.NAME_BUILD_ARCHIVE_DIR)
 
-        open(os.path.join(self._path, pcvs.NAME_BUILDFILE), 'w').close()
+        open(os.path.join(self._path, pcvs.NAME_BUILDFILE), "w").close()
 
         if not os.path.isdir(old_archive_dir):
             os.makedirs(old_archive_dir)
@@ -744,8 +739,7 @@ class BuildDirectoryManager:
         if not os.path.exists(resdir):
             os.makedirs(resdir)
 
-        self._results = ResultFileManager(prefix=resdir,
-                                          per_file_max_sz=per_file_max_sz)
+        self._results = ResultFileManager(prefix=resdir, per_file_max_sz=per_file_max_sz)
 
     @property
     def results(self):
@@ -802,8 +796,8 @@ class BuildDirectoryManager:
         :return: the session ID
         :rtype: int
         """
-        if 'sid' in self._config['validation']:
-            return self._config['validation']['sid']
+        if "sid" in self._config["validation"]:
+            return self._config["validation"]["sid"]
         else:
             return None
 
@@ -814,9 +808,8 @@ class BuildDirectoryManager:
         :return: the loaded config
         :rtype: class:`MetaConfig`
         """
-        with open(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN),
-                  'r') as fh:
-            self._config = MetaConfig(YAML(typ='safe').load(fh))
+        with open(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN), "r") as fh:
+            self._config = MetaConfig(YAML(typ="safe").load(fh))
 
         return self._config
 
@@ -833,9 +826,8 @@ class BuildDirectoryManager:
         if not isinstance(config, MetaConfig):
             config = MetaConfig(config)
         self._config = config
-        with open(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN),
-                  'w') as fh:
-            h = YAML(typ='safe')
+        with open(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN), "w") as fh:
+            h = YAML(typ="safe")
             h.default_flow_style = None
             h.dump(config.dump_for_export(), fh)
 
@@ -871,11 +863,7 @@ class BuildDirectoryManager:
     def get_cache_entry(self, idx=0):
         return os.path.join(self._path, pcvs.NAME_BUILD_CONTEXTDIR, str(idx))
 
-    def save_extras(self,
-                    rel_filename,
-                    data="",
-                    directory=False,
-                    export=False) -> None:
+    def save_extras(self, rel_filename, data="", directory=False, export=False) -> None:
         """
         Register a specific build-relative path, to be saved into the directory.
 
@@ -897,21 +885,20 @@ class BuildDirectoryManager:
         if os.path.isabs(rel_filename):
             raise CommonException.UnclassifiableError(
                 reason="Extras should be saved as relative paths",
-                dbg_info={"filename": rel_filename})
+                dbg_info={"filename": rel_filename},
+            )
 
         if directory:
             try:
                 os.makedirs(os.path.join(self._path, rel_filename))
             except FileExistsError:
-                io.console.warn(
-                    "subprefix {} existed before registering".format(
-                        rel_filename))
+                io.console.warn("subprefix {} existed before registering".format(rel_filename))
         else:
             d = os.path.dirname(rel_filename)
             if not os.path.isdir(d):
                 os.makedirs(d)
 
-            with open(os.path.join(self._path, rel_filename), 'w') as fh:
+            with open(os.path.join(self._path, rel_filename), "w") as fh:
                 fh.write(data)
 
         if export:
@@ -926,7 +913,7 @@ class BuildDirectoryManager:
         argument, one may specify a specific prefix to be removed. Paths should
         relative to root build directory.
         """
-        assert (utils.check_is_buildir(self._path))
+        assert utils.check_is_buildir(self._path)
 
         def proper_clean(p):
             if os.path.isfile(p) or os.path.islink(p):
@@ -949,13 +936,11 @@ class BuildDirectoryManager:
         Prepare the build directory for a new execution by moving any previous
         archive to the backup directory named after NAME_BUILD_ARCHIVE_DIR.
         """
-        assert (utils.check_is_buildir(self._path))
+        assert utils.check_is_buildir(self._path)
         for f in os.listdir(self._path):
             current = os.path.join(self._path, f)
             if utils.check_is_archive(current):
-                shutil.move(
-                    current,
-                    os.path.join(self._path, pcvs.NAME_BUILD_ARCHIVE_DIR, f))
+                shutil.move(current, os.path.join(self._path, pcvs.NAME_BUILD_ARCHIVE_DIR, f))
 
     def create_archive(self, timestamp=None) -> str:
         """
@@ -974,21 +959,21 @@ class BuildDirectoryManager:
 
         if not timestamp:
             timestamp = datetime.datetime.now()
-        str_timestamp = timestamp.strftime('%Y%m%d%H%M%S')
-        archive_file = os.path.join(self._path,
-                                    "pcvsrun_{}.tar.gz".format(str_timestamp))
-        archive = tarfile.open(archive_file, mode='w:gz')
+        str_timestamp = timestamp.strftime("%Y%m%d%H%M%S")
+        archive_file = os.path.join(self._path, "pcvsrun_{}.tar.gz".format(str_timestamp))
+        archive = tarfile.open(archive_file, mode="w:gz")
 
         def __relative_add(path, recursive=False):
-            archive.add(path,
-                        arcname=os.path.join(
-                            "pcvsrun_{}".format(str_timestamp),
-                            os.path.relpath(path, self._path)),
-                        recursive=recursive)
+            archive.add(
+                path,
+                arcname=os.path.join(
+                    "pcvsrun_{}".format(str_timestamp), os.path.relpath(path, self._path)
+                ),
+                recursive=recursive,
+            )
 
         # copy results
-        __relative_add(os.path.join(self._path, pcvs.NAME_BUILD_RESDIR),
-                       recursive=True)
+        __relative_add(os.path.join(self._path, pcvs.NAME_BUILD_RESDIR), recursive=True)
         # copy the config
         __relative_add(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN))
         __relative_add(os.path.join(self._path, pcvs.NAME_DEBUG_FILE))
@@ -1002,7 +987,8 @@ class BuildDirectoryManager:
         if len(not_found_files) > 0:
             raise CommonException.NotFoundError(
                 reason="Extra files to be stored to archive do not exist",
-                dbg_info={"Failed paths": not_found_files})
+                dbg_info={"Failed paths": not_found_files},
+            )
 
         archive.close()
         return archive_file

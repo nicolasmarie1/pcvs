@@ -25,25 +25,27 @@ def upload_buildir_results(buildir) -> None:
     """
 
     # first, need to determine the session ID -> conf.yml
-    with open(os.path.join(buildir, "conf.yml"), 'r', encoding='utf-8') as fh:
+    with open(os.path.join(buildir, "conf.yml"), "r", encoding="utf-8") as fh:
         conf_yml = YAML().load(fh)
 
-    sid = conf_yml['validation']['sid']
+    sid = conf_yml["validation"]["sid"]
     dataman = data_manager
 
     man = BuildDirectoryManager(buildir)
     dataman.insert_session(
-        sid, {
-            'buildpath': buildir,
-            'state': Session.State.COMPLETED,
-            'dirs': conf_yml['validation']['dirs']
-        })
+        sid,
+        {
+            "buildpath": buildir,
+            "state": Session.State.COMPLETED,
+            "dirs": conf_yml["validation"]["dirs"],
+        },
+    )
     for test in man.results.browse_tests():
         # FIXME: this function does not exist any more
         # man.save(test)
         dataman.insert_test(sid, test)
 
-    dataman.close_session(sid, {'state': Session.State.COMPLETED})
+    dataman.close_session(sid, {"state": Session.State.COMPLETED})
 
 
 class Report:
@@ -76,8 +78,8 @@ class Report:
             hdl = BuildDirectoryManager.load_from_archive(path)
         else:
             raise CommonException.NotPCVSRelated(
-                reason="Given path is not PCVS build related",
-                dbg_info={"path": path})
+                reason="Given path is not PCVS build related", dbg_info={"path": path}
+            )
         return hdl
 
     def add_session(self, path) -> BuildDirectoryManager:
@@ -104,7 +106,7 @@ class Report:
         self._alive_session_infos = list_alive_sessions()
 
         for sk, sv in self._alive_session_infos.items():
-            hdl = self.__create_build_handler(sv['path'])
+            hdl = self.__create_build_handler(sv["path"])
             if hdl.sid in self._sessions:
                 # SID may be recycled
                 # just attribute another number (negative, to make it noticeable)
@@ -116,7 +118,7 @@ class Report:
                 # mark the old one as 'unavailable'
                 pass
 
-            self.add_session(sv['path'])
+            self.add_session(sv["path"])
 
     @property
     def session_ids(self) -> List[int]:
@@ -128,8 +130,7 @@ class Report:
         """
         return list(self._sessions.keys())
 
-    def dict_convert_list_to_cnt(
-            self, arrays: Dict[str, List[int]]) -> Dict[str, int]:
+    def dict_convert_list_to_cnt(self, arrays: Dict[str, List[int]]) -> Dict[str, int]:
         """
         Convert dict of arrays to a dict of array lengths.
 
@@ -148,16 +149,18 @@ class Report:
         :rtype: Iterator[Dict[str, Any]]
         """
         for sid, sdata in self._sessions.items():
-            counts = self.dict_convert_list_to_cnt(
-                self.single_session_status(sid))
-            state = self._alive_session_infos[sid][
-                'state'] if sid in self._alive_session_infos else Session.State.COMPLETED
+            counts = self.dict_convert_list_to_cnt(self.single_session_status(sid))
+            state = (
+                self._alive_session_infos[sid]["state"]
+                if sid in self._alive_session_infos
+                else Session.State.COMPLETED
+            )
             yield {
-                'sid': sid,
-                'state': str(state),
-                'count': counts,
-                'path': sdata.prefix,
-                'info': sdata.config['validation'].get('message', 'No message')
+                "sid": sid,
+                "state": str(state),
+                "count": counts,
+                "path": sdata.prefix,
+                "info": sdata.config["validation"].get("message", "No message"),
             }
 
     def single_session_config(self, sid) -> dict:
@@ -171,7 +174,7 @@ class Report:
         """
         assert sid in self._sessions
         d = self._sessions[sid].get_config()
-        d['runtime']['plugin'] = ''
+        d["runtime"]["plugin"] = ""
         return d
 
     def single_session_status(self, sid, status_filter=None) -> Union[Dict, List]:
@@ -233,7 +236,7 @@ class Report:
         labels_info = self._sessions[sid].results.tree_view
         return {
             label: labels_info[label]
-            for label in self._sessions[sid].config['validation']['dirs'].keys()
+            for label in self._sessions[sid].config["validation"]["dirs"].keys()
         }
 
     def single_session_build_path(self, sid) -> str:
@@ -262,11 +265,7 @@ class Report:
         assert sid in self._sessions
         return self._sessions[sid].results.map_id(jid)
 
-    def single_session_get_view(self,
-                                sid,
-                                name,
-                                subset=None,
-                                summary=False) -> Dict[str, Dict]:
+    def single_session_get_view(self, sid, name, subset=None, summary=False) -> Dict[str, Dict]:
         """
         Get a specific view from a given session.
 
@@ -338,6 +337,4 @@ def start_server(report: Report):
     :type report: Report
     """
     app = create_app(report)
-    app.run(host='0.0.0.0',
-            port=int(os.getenv("PCVS_REPORT_PORT", str(5000))),
-            debug=True)
+    app.run(host="0.0.0.0", port=int(os.getenv("PCVS_REPORT_PORT", str(5000))), debug=True)

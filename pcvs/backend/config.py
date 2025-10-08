@@ -13,7 +13,7 @@ from pcvs.helpers import system
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ConfigException
 
-CONFIG_BLOCKS = ['compiler', 'runtime', 'machine', 'criterion', 'group']
+CONFIG_BLOCKS = ["compiler", "runtime", "machine", "criterion", "group"]
 CONFIG_EXISTING = {}
 
 
@@ -23,7 +23,7 @@ def init() -> None:
     This function is called when PCVS starts to load 3-scope configuration
     trees.
     """
-    if hasattr(init, 'done'):
+    if hasattr(init, "done"):
         return
 
     global CONFIG_EXISTING
@@ -36,10 +36,10 @@ def init() -> None:
         priority_paths.reverse()
         for token in priority_paths:  # reverse order (overriding)
             CONFIG_EXISTING[block][token] = []
-            for config_file in glob.glob(
-                    os.path.join(utils.STORAGES[token], block, "*.yml")):
+            for config_file in glob.glob(os.path.join(utils.STORAGES[token], block, "*.yml")):
                 CONFIG_EXISTING[block][token].append(
-                    (os.path.basename(config_file)[:-4], config_file))
+                    (os.path.basename(config_file)[:-4], config_file)
+                )
     init.done = True
 
 
@@ -53,8 +53,8 @@ def list_blocks(kind, scope=None) -> Union[List[str], Dict[str, List[str]]]:
     :return: list blocks with specified kind, restricted by scope (if any)
     :rtype: dict of config blocks
     """
-    assert (kind in CONFIG_BLOCKS)
-    assert (scope in utils.STORAGES.keys() or scope is None)
+    assert kind in CONFIG_BLOCKS
+    assert scope in utils.STORAGES.keys() or scope is None
     if scope is None:
         return CONFIG_EXISTING[kind]
     else:
@@ -152,10 +152,8 @@ class ConfigurationBlock:
         From the stored kind, scope, name, attempt to detect configuration
         block on the file system (i.e. detected during module init())
         """
-        assert (self._kind in CONFIG_BLOCKS)
-        scopes = utils.storage_order() if self._scope is None else [
-            self._scope
-        ]
+        assert self._kind in CONFIG_BLOCKS
+        scopes = utils.storage_order() if self._scope is None else [self._scope]
 
         for sc in scopes:
             for pair in CONFIG_EXISTING[self._kind][sc]:
@@ -167,9 +165,8 @@ class ConfigurationBlock:
 
         # default file position when not found
         if self._scope is None:
-            self._scope = 'local'
-        self._file = os.path.join(utils.STORAGES[self._scope], self._kind,
-                                  self._name + ".yml")
+            self._scope = "local"
+        self._file = os.path.join(utils.STORAGES[self._scope], self._kind, self._name + ".yml")
         if not os.path.isfile(self._file):
             self._exists = False
 
@@ -260,8 +257,7 @@ class ConfigurationBlock:
 
         :raises: ValidationException.SchemeError, ValidationException.FormatError
         """
-        system.ValidationScheme(self._kind).validate(self._details,
-                                                     filepath=self.full_name)
+        system.ValidationScheme(self._kind).validate(self._details, filepath=self.full_name)
 
     def load_from_disk(self) -> None:
         """load the configuration file to populate the current object.
@@ -273,7 +269,8 @@ class ConfigurationBlock:
 
         if not self._exists:
             raise ConfigException.BadTokenError(
-                "{} not defined as '{}' kind".format(self._name, self._kind))
+                "{} not defined as '{}' kind".format(self._name, self._kind)
+            )
 
         self.retrieve_file()
 
@@ -281,7 +278,7 @@ class ConfigurationBlock:
             raise ConfigException.NotFoundError()
 
         with open(self._file) as f:
-            self._details = YAML(typ='safe').load(f)
+            self._details = YAML(typ="safe").load(f)
 
     def load_template(self, name=None) -> None:
         """
@@ -294,14 +291,13 @@ class ConfigurationBlock:
         self._exists = True
         if not name:
             name = self._kind + ".default"
-        filepath = os.path.join(PATH_INSTDIR,
-                                'templates/config/{}.yml'.format(name))
+        filepath = os.path.join(PATH_INSTDIR, "templates/config/{}.yml".format(name))
 
         if not os.path.isfile(filepath):
             raise ConfigException.NotFoundError("{}".format(name))
 
-        with open(filepath, 'r') as fh:
-            self.fill(YAML(typ='safe').load(fh))
+        with open(filepath, "r") as fh:
+            self.fill(YAML(typ="safe").load(fh))
 
     def flush_to_disk(self) -> None:
         """write the configuration block to disk"""
@@ -314,14 +310,14 @@ class ConfigurationBlock:
             if not os.path.isdir(prefix_file):
                 os.makedirs(prefix_file, exist_ok=True)
 
-        with open(self._file, 'w') as f:
-            yml = YAML(typ='safe')
+        with open(self._file, "w") as f:
+            yml = YAML(typ="safe")
             yml.default_flow_style = False
             yml.dump(self._details, f)
 
         self._exists = True
 
-    def clone(self, clone: 'ConfigurationBlock') -> None:
+    def clone(self, clone: "ConfigurationBlock") -> None:
         """Copy the current object to create an identical one.
 
         Mainly used to mirror two objects from different scopes.
@@ -345,8 +341,7 @@ class ConfigurationBlock:
         assert self.is_found()
         assert os.path.isfile(self._file)
 
-        io.console.info("remove {} from '{} ({})'".format(
-            self._name, self._kind, self._scope))
+        io.console.info("remove {} from '{} ({})'".format(self._name, self._kind, self._scope))
         os.remove(self._file)
 
     def display(self) -> None:
@@ -363,17 +358,17 @@ class ConfigurationBlock:
 
         :raises Exception: Something occured on the edited version.
         """
-        assert (self._file is not None)
+        assert self._file is not None
 
         if not os.path.exists(self._file):
             return
 
-        with open(self._file, 'r') as fh:
+        with open(self._file, "r") as fh:
             stream = fh.read()
 
         edited_stream = click.edit(stream, extension=".yml", require_save=True)
         if edited_stream is not None:
-            edited_yaml = YAML(typ='safe').load(edited_stream)
+            edited_yaml = YAML(typ="safe").load(edited_stream)
             system.ValidationScheme(self._kind).validate(edited_yaml, self._file)
             self.fill(edited_yaml)
             self.flush_to_disk()
@@ -398,11 +393,11 @@ class ConfigurationBlock:
             return
 
         stream_yaml = dict()
-        with open(self._file, 'r') as fh:
-            stream_yaml = YAML(typ='safe').load(fh)
+        with open(self._file, "r") as fh:
+            stream_yaml = YAML(typ="safe").load(fh)
 
-        if 'plugin' in stream_yaml.keys():
-            plugin_code = stream_yaml['plugin']
+        if "plugin" in stream_yaml.keys():
+            plugin_code = stream_yaml["plugin"]
         else:
             plugin_code = """import math
 from pcvs.plugins import Plugin
@@ -415,10 +410,8 @@ class MyPlugin(Plugin):
     return True
 """
 
-        edited_code = click.edit(plugin_code,
-                                 extension=".py",
-                                 require_save=True)
+        edited_code = click.edit(plugin_code, extension=".py", require_save=True)
         if edited_code is not None:
-            stream_yaml['plugin'] = edited_code
-            with open(self._file, 'w', encoding='utf-8') as fh:
-                YAML(typ='safe').dump(stream_yaml, fh)
+            stream_yaml["plugin"] = edited_code
+            with open(self._file, "w", encoding="utf-8") as fh:
+                YAML(typ="safe").dump(stream_yaml, fh)

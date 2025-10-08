@@ -14,6 +14,7 @@ from pcvs.helpers.exceptions import ValidationException
 
 try:
     import rich_click as click
+
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
     import click
@@ -39,7 +40,7 @@ def compl_list_token(ctx, args, incomplete):  # pylint: disable=unused-argument
 
 
 def compl_list_templates(ctx, args, incomplete):  # pylint: disable=unused-argument
-    """ the profile template completion.
+    """the profile template completion.
 
     :param ctx: Click context
     :type ctx: :class:`Click.Context`
@@ -48,12 +49,13 @@ def compl_list_templates(ctx, args, incomplete):  # pylint: disable=unused-argum
     :param incomplete: the user input
     :type incomplete: str
     """
-    return [
-        name for name, path in pvProfile.list_templates() if incomplete in name
-    ]
+    return [name for name, path in pvProfile.list_templates() if incomplete in name]
 
 
-@click.group(name="profile", short_help="Manage Profiles")
+@click.group(
+    name="profile",
+    short_help="Manage Profiles",
+)
 @click.pass_context
 def profile(ctx):  # pylint: disable=unused-argument
     """
@@ -70,18 +72,25 @@ def profile(ctx):  # pylint: disable=unused-argument
     """
 
 
-@profile.command(name="list", short_help="List available profiles")
-@click.argument("token",
-                nargs=1,
-                required=False,
-                type=click.STRING,
-                shell_complete=compl_list_token)
-@click.option("-a",
-              "--all",
-              "all_profiles",
-              is_flag=True,
-              default=False,
-              help="Include any extra resources for profile (templates, etc.)")
+@profile.command(
+    name="list",
+    short_help="List available profiles",
+)
+@click.argument(
+    "token",
+    nargs=1,
+    required=False,
+    type=click.STRING,
+    shell_complete=compl_list_token,
+)
+@click.option(
+    "-a",
+    "--all",
+    "all_profiles",
+    is_flag=True,
+    default=False,
+    help="Include any extra resources for profile (templates, etc.)",
+)
 @click.pass_context
 def profile_list(ctx, token, all_profiles):  # pylint: disable=unused-argument
     """
@@ -92,13 +101,10 @@ def profile_list(ctx, token, all_profiles):  # pylint: disable=unused-argument
     (scope, label) = (None, None)
     table = Table("Full name", "Location", title="Profiles", expand=True)
     if token:
-        (scope, _, label) = utils.extract_infos_from_token(token,
-                                                           single="left",
-                                                           maxsplit=2)
+        (scope, _, label) = utils.extract_infos_from_token(token, single="left", maxsplit=2)
 
     if label:
-        io.console.warn(
-            "no LABEL required for this command (s'{}' given)".format(label))
+        io.console.warn("no LABEL required for this command (s'{}' given)".format(label))
 
     profiles = list()
     if scope:
@@ -117,25 +123,27 @@ def profile_list(ctx, token, all_profiles):  # pylint: disable=unused-argument
         table.add_row(*prof)
 
     if all_profiles:
-        io.console.print_section(
-            "Available templates to create from (--base option):")
-        io.console.print_item(", ".join(
-            [x[0] for x in pvProfile.list_templates()]))
+        io.console.print_section("Available templates to create from (--base option):")
+        io.console.print_item(", ".join([x[0] for x in pvProfile.list_templates()]))
 
     # in case verbosity is enabled, add scope paths
     io.console.info("Scopes are ordered as follows:")
     for i, scope in enumerate(utils.storage_order()):
-        io.console.info("{}. {}: {}".format(i + 1, scope.upper(),
-                                            utils.STORAGES[scope]))
+        io.console.info("{}. {}: {}".format(i + 1, scope.upper(), utils.STORAGES[scope]))
 
     io.console.print(table)
 
 
-@profile.command(name="show", short_help="Prints single profile details")
-@click.argument("token",
-                nargs=1,
-                type=click.STRING,
-                shell_complete=compl_list_token)
+@profile.command(
+    name="show",
+    short_help="Prints single profile details",
+)
+@click.argument(
+    "token",
+    nargs=1,
+    type=click.STRING,
+    shell_complete=compl_list_token,
+)
 @click.pass_context
 def profile_show(ctx, token):  # pylint: disable=unused-argument
     """Prints a detailed view of the NAME profile."""
@@ -174,49 +182,60 @@ def profile_interactive_select():
             io.console.print_item("{}: {}".format(i + 1, cell))
         while idx < 0 or len(choices) <= idx:
             idx = click.prompt("Your selection", default, type=int) - 1
-        (scope, _, label) = utils.extract_infos_from_token(choices[idx],
-                                                           pair="span")
+        (scope, _, label) = utils.extract_infos_from_token(choices[idx], pair="span")
         composition[kind] = pvConfig.ConfigurationBlock(kind, label, scope)
 
     return composition
 
 
-@profile.command(name="create",
-                 short_help="Build/copy a profile from basic conf blocks")
-@click.option("-i",
-              "--interactive",
-              "interactive",
-              show_envvar=True,
-              default=False,
-              is_flag=True,
-              help="Build the profile by interactively selecting conf. blocks")
-@click.option("-b",
-              "--block",
-              "blocks",
-              multiple=True,
-              default=None,
-              show_envvar=True,
-              shell_complete=cli_config.compl_list_token,
-              help="non-interactive option to build a profile")
-@click.option("-c",
-              "--clone",
-              "clone",
-              show_envvar=True,
-              default=None,
-              type=click.STRING,
-              shell_complete=compl_list_token,
-              help="Another profile to herit from.")
-@click.option("-t",
-              "--base",
-              "base",
-              type=str,
-              default=None,
-              shell_complete=compl_list_templates,
-              help="Select a template profile to herit from")
-@click.argument("token",
-                nargs=1,
-                type=click.STRING,
-                shell_complete=compl_list_token)
+@profile.command(
+    name="create",
+    short_help="Build/copy a profile from basic conf blocks",
+)
+@click.option(
+    "-i",
+    "--interactive",
+    "interactive",
+    show_envvar=True,
+    default=False,
+    is_flag=True,
+    help="Build the profile by interactively selecting conf. blocks",
+)
+@click.option(
+    "-b",
+    "--block",
+    "blocks",
+    multiple=True,
+    default=None,
+    show_envvar=True,
+    shell_complete=cli_config.compl_list_token,
+    help="non-interactive option to build a profile",
+)
+@click.option(
+    "-c",
+    "--clone",
+    "clone",
+    show_envvar=True,
+    default=None,
+    type=click.STRING,
+    shell_complete=compl_list_token,
+    help="Another profile to herit from.",
+)
+@click.option(
+    "-t",
+    "--base",
+    "base",
+    type=str,
+    default=None,
+    shell_complete=compl_list_templates,
+    help="Select a template profile to herit from",
+)
+@click.argument(
+    "token",
+    nargs=1,
+    type=click.STRING,
+    shell_complete=compl_list_token,
+)
 @click.pass_context
 def profile_create(ctx, token, interactive, blocks, clone, base):  # pylint: disable=unused-argument
     """
@@ -241,21 +260,18 @@ def profile_create(ctx, token, interactive, blocks, clone, base):  # pylint: dis
     (e.g. 'mpi-srun-stampede-large' is allowed)
     """
     if clone and base:
-        raise click.BadOptionUsage(
-            "--base/--clone", "Cannot use --base & --clone simultaneously.")
+        raise click.BadOptionUsage("--base/--clone", "Cannot use --base & --clone simultaneously.")
 
     (p_scope, _, p_label) = utils.extract_infos_from_token(token, maxsplit=2)
 
     pf = pvProfile.Profile(p_label, p_scope)
     if pf.is_found():
-        raise click.BadArgumentUsage(
-            "Profile named '{}' already exist!".format(pf.full_name))
+        raise click.BadArgumentUsage("Profile named '{}' already exist!".format(pf.full_name))
 
     pf_blocks = {}
 
     if clone is not None:
-        (c_scope, _, c_label) = utils.extract_infos_from_token(clone,
-                                                               maxsplit=2)
+        (c_scope, _, c_label) = utils.extract_infos_from_token(clone, maxsplit=2)
         base = pvProfile.Profile(c_label, c_scope)
         base.load_from_disk()
         pf.clone(base)
@@ -268,22 +284,21 @@ def profile_create(ctx, token, interactive, blocks, clone, base):  # pylint: dis
     else:
         if len(blocks) > 0:
             for blocklist in blocks:
-                for block in blocklist.split(','):
-                    (b_sc, b_kind,
-                     b_label) = utils.extract_infos_from_token(block)
+                for block in blocklist.split(","):
+                    (b_sc, b_kind, b_label) = utils.extract_infos_from_token(block)
                     cur = pvConfig.ConfigurationBlock(b_kind, b_label, b_sc)
                     if not cur.is_found():
                         raise click.BadOptionUsage(
-                            "--block",
-                            "'{}' config block does not exist".format(block))
+                            "--block", "'{}' config block does not exist".format(block)
+                        )
                     elif b_kind in pf_blocks.keys():
                         raise click.BadOptionUsage(
-                            "--block",
-                            "'{}' config block set twice".format(b_kind))
+                            "--block", "'{}' config block set twice".format(b_kind)
+                        )
                     pf_blocks[b_kind] = cur
             pf.fill(pf_blocks)
         else:
-            base = pvProfile.Profile('default', None)
+            base = pvProfile.Profile("default", None)
             base.load_template()
             pf.clone(base)
 
@@ -291,25 +306,29 @@ def profile_create(ctx, token, interactive, blocks, clone, base):  # pylint: dis
     pf.flush_to_disk()
     # pf.display()
 
-    io.console.print_section("final profile (registered as {})".format(
-        pf.scope))
+    io.console.print_section("final profile (registered as {})".format(pf.scope))
     for k, v in pf_blocks.items():
-        io.console.print_item("{: >9s}: {}".format(
-            k.upper(), ".".join([v.scope, v.short_name])))
+        io.console.print_item("{: >9s}: {}".format(k.upper(), ".".join([v.scope, v.short_name])))
 
 
-@profile.command(name="destroy", short_help="Delete a profile from disk")
+@profile.command(
+    name="destroy",
+    short_help="Delete a profile from disk",
+)
 @click.confirmation_option(
     "-f",
     "--force",
     "force",
     expose_value=False,
     prompt="Are you sure you want to delete this profile ?",
-    help="Do not ask for confirmation")
-@click.argument("token",
-                nargs=1,
-                type=click.STRING,
-                shell_complete=compl_list_token)
+    help="Do not ask for confirmation",
+)
+@click.argument(
+    "token",
+    nargs=1,
+    type=click.STRING,
+    shell_complete=compl_list_token,
+)
 @click.pass_context
 def profile_destroy(ctx, token):  # pylint: disable=unused-argument
     """Delete an existing profile named TOKEN.
@@ -329,21 +348,28 @@ def profile_destroy(ctx, token):  # pylint: disable=unused-argument
         pf.delete()
     else:
         raise click.BadArgumentUsage(
-            "Profile '{}' not found! Please check the 'list' command".format(
-                label), )
+            "Profile '{}' not found! Please check the 'list' command".format(label),
+        )
 
 
-@profile.command(name="edit", short_help="Edit an existing profile")
-@click.argument("token",
-                nargs=1,
-                type=click.STRING,
-                shell_complete=compl_list_token)
-@click.option("-p",
-              "--edit-plugin",
-              "edit_plugin",
-              is_flag=True,
-              default=False,
-              help="Only edit the plugin code ('runtime')")
+@profile.command(
+    name="edit",
+    short_help="Edit an existing profile",
+)
+@click.argument(
+    "token",
+    nargs=1,
+    type=click.STRING,
+    shell_complete=compl_list_token,
+)
+@click.option(
+    "-p",
+    "--edit-plugin",
+    "edit_plugin",
+    is_flag=True,
+    default=False,
+    help="Only edit the plugin code ('runtime')",
+)
 @click.pass_context
 @io.capture_exception(ValidationException.FormatError)
 def profile_edit(ctx, token, edit_plugin):  # pylint: disable=unused-argument
@@ -361,8 +387,8 @@ def profile_edit(ctx, token, edit_plugin):  # pylint: disable=unused-argument
         (scope, _, label) = utils.extract_infos_from_token(token, maxsplit=2)
         pf = pvProfile.Profile(label, scope)
     if pf.is_found():
-        if pf.scope == 'global' and label == 'local':
-            raise click.BadArgumentUsage('Wrongly formatted profile token')
+        if pf.scope == "global" and label == "local":
+            raise click.BadArgumentUsage("Wrongly formatted profile token")
 
         if edit_plugin:
             pf.edit_plugin()
@@ -370,23 +396,35 @@ def profile_edit(ctx, token, edit_plugin):  # pylint: disable=unused-argument
             pf.edit()
     else:
         raise click.BadArgumentUsage(
-            f"Profile '{label}' not found!\n"
-            "Please check the 'list' command."
+            f"Profile '{label}' not found!\n" "Please check the 'list' command."
         )
 
 
-@profile.command(name="import", short_help="Import a file as a profile")
-@click.argument("token",
-                nargs=1,
-                type=click.STRING,
-                shell_complete=compl_list_token)
-@click.option("-s",
-              "--source",
-              "src_file",
-              type=click.File('r'),
-              default=sys.stdin,
-              help="File to populate the profile from")
-@click.option("-f", "--force", "force", is_flag=True, default=False)
+@profile.command(
+    name="import",
+    short_help="Import a file as a profile",
+)
+@click.argument(
+    "token",
+    nargs=1,
+    type=click.STRING,
+    shell_complete=compl_list_token,
+)
+@click.option(
+    "-s",
+    "--source",
+    "src_file",
+    type=click.File("r"),
+    default=sys.stdin,
+    help="File to populate the profile from",
+)
+@click.option(
+    "-f",
+    "--force",
+    "force",
+    is_flag=True,
+    default=False,
+)
 @click.pass_context
 def profile_import(ctx, token, src_file, force):  # pylint: disable=unused-argument
     """Create a profile from a file. If the profile name is already used, it
@@ -395,23 +433,30 @@ def profile_import(ctx, token, src_file, force):  # pylint: disable=unused-argum
     (scope, _, label) = utils.extract_infos_from_token(token, maxsplit=2)
     pf = pvProfile.Profile(label, scope)
     if not pf.is_found() or force:
-        pf.fill(YAML(typ='safe').load(src_file.read()))
+        pf.fill(YAML(typ="safe").load(src_file.read()))
         pf.flush_to_disk()
     else:
         raise ProfileException.AlreadyExistError("{}".format(pf.full_name))
 
 
-@profile.command(name="export", short_help="Export a profile to a file")
-@click.argument("token",
-                nargs=1,
-                type=click.STRING,
-                shell_complete=compl_list_token)
-@click.option("-o",
-              "--output",
-              "dest_file",
-              type=click.File('w'),
-              default=sys.stdout,
-              help="YAML-formatted output file path")
+@profile.command(
+    name="export",
+    short_help="Export a profile to a file",
+)
+@click.argument(
+    "token",
+    nargs=1,
+    type=click.STRING,
+    shell_complete=compl_list_token,
+)
+@click.option(
+    "-o",
+    "--output",
+    "dest_file",
+    type=click.File("w"),
+    default=sys.stdout,
+    help="YAML-formatted output file path",
+)
 @click.pass_context
 def profile_export(ctx, token, dest_file):  # pylint: disable=unused-argument
     """Export a profile to a YAML. If '--output' is omitted, the standard output
@@ -421,54 +466,63 @@ def profile_export(ctx, token, dest_file):  # pylint: disable=unused-argument
     pf = pvProfile.Profile(label, scope)
     if pf.is_found():
         pf.load_from_disk()
-        YAML(typ='safe').dump(pf.dump(), dest_file)
+        YAML(typ="safe").dump(pf.dump(), dest_file)
 
 
-@profile.command(name="split",
-                 short_help="Recreate conf. blocks based on a profile")
-@click.argument("token",
-                nargs=1,
-                type=click.STRING,
-                shell_complete=compl_list_token)
-@click.option("-n",
-              "--name",
-              "name",
-              default="default",
-              help="name of the basic block to create (should not exist!)")
-@click.option("-b",
-              "--block",
-              "block_opt",
-              nargs=1,
-              type=click.STRING,
-              help="Re-build only a profile subset",
-              default="all")
+@profile.command(
+    name="split",
+    short_help="Recreate conf. blocks based on a profile",
+)
+@click.argument(
+    "token",
+    nargs=1,
+    type=click.STRING,
+    shell_complete=compl_list_token,
+)
+@click.option(
+    "-n",
+    "--name",
+    "name",
+    default="default",
+    help="name of the basic block to create (should not exist!)",
+)
+@click.option(
+    "-b",
+    "--block",
+    "block_opt",
+    nargs=1,
+    type=click.STRING,
+    help="Re-build only a profile subset",
+    default="all",
+)
 @click.option(
     "-s",
     "--scope",
     "scope",
     type=click.Choice(utils.storage_order()),
     default=None,
-    help="Default scope to store the split (default: same as profile)")
+    help="Default scope to store the split (default: same as profile)",
+)
 @click.pass_context
-def profile_decompose_profile(ctx, token, name, block_opt, scope):  # pylint: disable=unused-argument
+def profile_decompose_profile(
+    ctx, token, name, block_opt, scope
+):  # pylint: disable=unused-argument
     """Build basic configuration blocks from a given profile. Every block name will
     be prefixed with the '-n' option (set to 'default')
     """
     (scope, _, label) = utils.extract_infos_from_token(token, maxsplit=2)
 
-    blocks = [e.strip() for e in block_opt.split(',')]
+    blocks = [e.strip() for e in block_opt.split(",")]
     for b in blocks:
-        if b == 'all':
+        if b == "all":
             blocks = pvConfig.CONFIG_BLOCKS
             break
         if b not in pvConfig.CONFIG_BLOCKS:
-            raise click.BadOptionUsage(
-                "--block", "{} is not a valid component.".format(b))
+            raise click.BadOptionUsage("--block", "{} is not a valid component.".format(b))
 
     pf = pvProfile.Profile(label, scope)
     if not pf.is_found():
-        raise click.BadArgumentUsage(
-            "Cannot decompose an non-existent profile: '{}'".format(token))
+        raise click.BadArgumentUsage("Cannot decompose an non-existent profile: '{}'".format(token))
     pf.load_from_disk()
 
     io.console.print_section('"Create the subsequent configuration blocks:')

@@ -29,10 +29,8 @@ def init():
     priority_paths.reverse()
     for token in priority_paths:  # reverse order (overriding)
         PROFILE_EXISTING[token] = []
-        for pfile in glob.glob(
-                os.path.join(utils.STORAGES[token], 'profile', "*.yml")):
-            PROFILE_EXISTING[token].append(
-                (os.path.basename(pfile)[:-4], pfile))
+        for pfile in glob.glob(os.path.join(utils.STORAGES[token], "profile", "*.yml")):
+            PROFILE_EXISTING[token].append((os.path.basename(pfile)[:-4], pfile))
 
 
 def list_profiles(scope=None):
@@ -45,7 +43,7 @@ def list_profiles(scope=None):
     :rtype: dict
     """
     global PROFILE_EXISTING
-    assert (scope in utils.STORAGES.keys() or scope is None)
+    assert scope in utils.STORAGES.keys() or scope is None
     if scope is None:
         return PROFILE_EXISTING
     else:
@@ -64,7 +62,7 @@ def list_templates():
 
 
 class Profile:
-    """ A profile represents the most complete object the user can provide.
+    """A profile represents the most complete object the user can provide.
 
     It is built upon 5 components, called configuration blocks (or basic
     blocks), one of each kind (compiler, runtime, machine, criterion & group)
@@ -101,8 +99,8 @@ class Profile:
         self._details = {}
 
         if profilepath:
-            self._name = os.path.basename(profilepath.split('\\.')[0])
-            self._scope = 'local'
+            self._name = os.path.basename(profilepath.split("\\.")[0])
+            self._scope = "local"
             self._exists = True
             self._file = profilepath
         else:
@@ -139,14 +137,13 @@ class Profile:
         # case where the scope were not provided
         # AND no pre-existing profile were found. assume scope as 'local'
         if self._scope is None:
-            self._scope = 'local'
+            self._scope = "local"
 
         # this code is executed ONLY when a new profile is created
         # otherwise the for loop above would have trigger a profile
         # in that case, _file is computed through path concatenation
         # but the _exists is set to False
-        self._file = os.path.join(utils.STORAGES[self._scope], 'profile',
-                                  self._name + ".yml")
+        self._file = os.path.join(utils.STORAGES[self._scope], "profile", self._name + ".yml")
         self._exists = False
 
     def get_unique_id(self):
@@ -228,8 +225,8 @@ class Profile:
             raise ProfileException.NotFoundError(self._file)
 
         io.console.debug(f"Load {self._name} ({self._scope})")
-        with open(self._file, 'r', encoding='utf-8') as f:
-            self._details = YAML(typ='safe').load(f)
+        with open(self._file, "r", encoding="utf-8") as f:
+            self._details = YAML(typ="safe").load(f)
 
     def load_template(self, name="default"):
         """Populate the profile from templates of 5 basic config. blocks.
@@ -242,15 +239,14 @@ class Profile:
         """
         self._exists = True
         self._file = None
-        filepath = os.path.join(PATH_INSTDIR, "templates", "profile",
-                                name) + ".yml"
+        filepath = os.path.join(PATH_INSTDIR, "templates", "profile", name) + ".yml"
         if not os.path.isfile(filepath):
             raise ProfileException.NotFoundError(
-                f"{name} is not a valid base name.\n"
-                "Please use pcvs profile list --all")
+                f"{name} is not a valid base name.\nPlease use pcvs profile list --all"
+            )
 
-        with open(filepath, 'r', encoding='utf-8') as fh:
-            self.fill(YAML(typ='safe').load(fh))
+        with open(filepath, "r", encoding="utf-8") as fh:
+            self.fill(YAML(typ="safe").load(fh))
 
     def check(self, allow_legacy: Optional[bool] = True):
         """Ensure profile meets scheme requirements, as a concatenation of 5
@@ -270,31 +266,30 @@ class Profile:
                     err_dbg.append(k)
             if err_dbg:
                 raise ValidationException.FormatError(
-                    "Unknown kind in Profile", invalid_kinds=err_dbg)
+                    "Unknown kind in Profile", invalid_kinds=err_dbg
+                )
 
             for kind in config.CONFIG_BLOCKS:
                 if kind in self._details:
-                    system.ValidationScheme(kind).validate(self._details[kind],
-                                                           filepath=self._name)
+                    system.ValidationScheme(kind).validate(self._details[kind], filepath=self._name)
         except ValidationException.FormatError as parsing_error:
             if not allow_legacy:
                 raise parsing_error
 
             tmpfile = tempfile.mkstemp()[1]
             try:
-                yaml_converter.convert(self._file, 'profile', None, None,
-                                       tmpfile, False, True, False)
+                yaml_converter.convert(
+                    self._file, "profile", None, None, tmpfile, False, True, False
+                )
             except Exception as convert_error:
-                io.console.error("An error occure when trying "
-                                 f"to update profile: {self._file}")
+                io.console.error(f"An error occure when trying to update profile: {self._file}")
                 raise convert_error from parsing_error
 
-            with open(tmpfile, 'r', encoding='utf-8') as f:
-                self._details = YAML(typ='safe').load(f)
+            with open(tmpfile, "r", encoding="utf-8") as f:
+                self._details = YAML(typ="safe").load(f)
             self.check(allow_legacy=False)
             io.console.warning(f"Legacy format for profile '{self._name}'")
-            io.console.warning(
-                "Please consider updating it with `pcvs_convert -k profile`")
+            io.console.warning("Please consider updating it with `pcvs_convert -k profile`")
 
     def flush_to_disk(self):
         """Write down profile to disk.
@@ -310,8 +305,8 @@ class Profile:
         if not os.path.isdir(prefix_file):
             os.makedirs(prefix_file, exist_ok=True)
 
-        with open(self._file, 'w', encoding='utf-8') as f:
-            YAML(typ='safe').dump(self._details, f)
+        with open(self._file, "w", encoding="utf-8") as f:
+            YAML(typ="safe").dump(self._details, f)
 
     def clone(self, clone):
         """Duplicate a valid profile into the current one.
@@ -334,8 +329,7 @@ class Profile:
         os.remove(self._file)
 
     def display(self):
-        """Display profile data into stdout/file.
-        """
+        """Display profile data into stdout/file."""
         io.console.print_header("Profile View")
         io.console.print_section("Scope: {}".format(self._scope.capitalize()))
         io.console.print_section("Profile details:")
@@ -360,12 +354,12 @@ class Profile:
         if not os.path.exists(self._file):
             return
 
-        with open(self._file, 'r', encoding='utf-8') as fh:
+        with open(self._file, "r", encoding="utf-8") as fh:
             stream = fh.read()
 
         edited_stream = click.edit(stream, extension=".yml", require_save=True)
         if edited_stream is not None:
-            edited_yaml = YAML(typ='safe').load(edited_stream)
+            edited_yaml = YAML(typ="safe").load(edited_stream)
             self.fill(edited_yaml)
             self.flush_to_disk()
             try:
@@ -390,14 +384,15 @@ class Profile:
 
         self.load_from_disk()
 
-        if 'plugin' in self._details['runtime'].keys():
-            plugin_code = self._details['runtime']['plugin']
+        if "plugin" in self._details["runtime"].keys():
+            plugin_code = self._details["runtime"]["plugin"]
 
             # Temporary, for compatibility with older buold base64 encoded profile. (this is hell) -- start
             if type(plugin_code) is not str:
-                plugin_code = plugin_code.decode('utf-8')
-            while plugin_code.count('\n') <= 1:
+                plugin_code = plugin_code.decode("utf-8")
+            while plugin_code.count("\n") <= 1:
                 import base64
+
                 plugin_code = base64.b64decode(plugin_code).decode("utf-8")
             # end
         else:
@@ -414,11 +409,9 @@ class MyPlugin(Plugin):
     return True
 """
         try:
-            edited_code = click.edit(plugin_code,
-                                     extension=".py",
-                                     require_save=True)
+            edited_code = click.edit(plugin_code, extension=".py", require_save=True)
             if edited_code is not None:
-                self._details['runtime']['plugin'] = edited_code
+                self._details["runtime"]["plugin"] = edited_code
                 self.flush_to_disk()
         except Exception as e:
             raise e
@@ -442,7 +435,7 @@ class MyPlugin(Plugin):
         :rtype: list
         """
         objs = list()
-        if 'all' in blocklist:
+        if "all" in blocklist:
             blocklist = config.CONFIG_BLOCKS
         if scope is None:
             scope = self._scope
@@ -463,7 +456,7 @@ class MyPlugin(Plugin):
         :return: the 'compiler' dict segment
         :rtype: dict
         """
-        return self._details['compiler']
+        return self._details["compiler"]
 
     @property
     def runtime(self):
@@ -472,7 +465,7 @@ class MyPlugin(Plugin):
         :return: the 'runtime' dict segment
         :rtype: dict
         """
-        return self._details['runtime']
+        return self._details["runtime"]
 
     @property
     def criterion(self):
@@ -481,7 +474,7 @@ class MyPlugin(Plugin):
         :return: the 'criterion' dict segment
         :rtype: dict
         """
-        return self._details['criterion']
+        return self._details["criterion"]
 
     @property
     def group(self):
@@ -490,7 +483,7 @@ class MyPlugin(Plugin):
         :return: the 'group' dict segment
         :rtype: dict
         """
-        return self._details['group']
+        return self._details["group"]
 
     @property
     def machine(self):
@@ -499,7 +492,7 @@ class MyPlugin(Plugin):
         :return: the 'machine' dict segment
         :rtype: dict
         """
-        return self._details['machine']
+        return self._details["machine"]
 
     @property
     def details(self) -> dict:

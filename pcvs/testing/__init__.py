@@ -23,11 +23,11 @@ def generate_local_variables(label, subprefix):
     if subprefix is None:
         subprefix = ""
 
-    base_srcdir = os.path.normpath(
-            GlobalConfig.root['validation']['dirs'].get(label, ''))
+    base_srcdir = os.path.normpath(GlobalConfig.root["validation"]["dirs"].get(label, ""))
     cur_srcdir = os.path.normpath(os.path.join(base_srcdir, subprefix))
-    base_buildir = os.path.normpath(os.path.join(
-            GlobalConfig.root['validation']['output'], "test_suite", label))
+    base_buildir = os.path.normpath(
+        os.path.join(GlobalConfig.root["validation"]["output"], "test_suite", label)
+    )
     cur_buildir = os.path.normpath(os.path.join(base_buildir, subprefix))
 
     return base_srcdir, cur_srcdir, base_buildir, cur_buildir

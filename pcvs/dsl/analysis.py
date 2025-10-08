@@ -18,7 +18,7 @@ class SimpleAnalysis(BaseAnalysis):
         for run in serie.history(limit):
             ci_meta = run.get_info()
             run_meta = run.get_metadata()
-            stats.append({'date': ci_meta['date'], **run_meta})
+            stats.append({"date": ci_meta["date"], **run_meta})
 
         return stats
 
@@ -27,12 +27,14 @@ class SimpleAnalysis(BaseAnalysis):
             serie = self._bank.get_serie(serie)
         stats = {}
         for run in serie.history(limit):
-            date = run.get_info()['date']
+            date = run.get_info()["date"]
             run_stat = {}
             for job in run.jobs:
-                run_stat[job.name] = {'basename': job.basename,
-                                      'status': job.state,
-                                      'time': job.time}
+                run_stat[job.name] = {
+                    "basename": job.basename,
+                    "status": job.state,
+                    "time": job.time,
+                }
             stats[date] = run_stat
         return stats
 

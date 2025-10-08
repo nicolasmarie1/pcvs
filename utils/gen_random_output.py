@@ -30,8 +30,8 @@ for t in track(range(1, test_count)):
     tags += [tagset2[random.randrange(0, len(tagset2))]]
 
     # compil' election ?
-    if (random.randint(0, 100) >= 90):
-        tags.append('compilation')
+    if random.randint(0, 100) >= 90:
+        tags.append("compilation")
 
     status = random.randint(0, 100)
     if status < warn_threshold:
@@ -51,13 +51,9 @@ for t in track(range(1, test_count)):
         te_name="test_{}".format(t),
         dim=random.randint(0, 10),
         command="sh list_of_tests.sh '{}'".format("{}/{}/test_{}".format(label, "sub", t)),
-        tags=tags
+        tags=tags,
     )
-    cur.save_final_result(
-        rc=random.randint(0, 1),
-        time=time,
-        out=output
-    )
+    cur.save_final_result(rc=random.randint(0, 1), time=time, out=output)
     manager.results.save(cur)
 
 manager.finalize()

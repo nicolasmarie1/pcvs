@@ -43,18 +43,18 @@ class ActiveSessionList(Widget):
         yield self.items
         yield Horizontal(
             Button(label="Done", variant="primary", id="session-pick-done"),
-            Button(label="Cancel", variant="error", id="session-pick-cancel"))
+            Button(label="Cancel", variant="error", id="session-pick-cancel"),
+        )
 
     def init_list(self):
         item_names = self.app.model.session_prefixes
         active = self.app.model.active.prefix
-        assert (active in item_names)
+        assert active in item_names
 
         for name in item_names:
             self.item_list.append(Option(name))
 
-        self.app.query_one(ActiveSessionList).items = OptionList(
-            *self.item_list)
+        self.app.query_one(ActiveSessionList).items = OptionList(*self.item_list)
 
     @on(OptionList.OptionSelected)
     def select_line(self, event):
@@ -67,7 +67,7 @@ class ActiveSessionList(Widget):
 
 
 class FileBrowser(Widget):
-    BINDINGS = [('q', 'pop_screen', 'Back')]
+    BINDINGS = [("q", "pop_screen", "Back")]
     last_select = None
     log = reactive(Static(id="error-log"))
 
@@ -75,8 +75,7 @@ class FileBrowser(Widget):
 
         def filter_paths(self, paths: Iterable[Path]) -> Iterable[Path]:
             return [
-                path for path in paths
-                if check_is_build_or_archive(path) or os.path.isdir(path)
+                path for path in paths if check_is_build_or_archive(path) or os.path.isdir(path)
             ]
 
     def compose(self):
@@ -96,9 +95,7 @@ class FileBrowser(Widget):
 class SessionPickScreen(ModalScreen):
 
     def compose(self):
-        yield Grid(ActiveSessionList(),
-                   FileBrowser(),
-                   id="session-list-screen")
+        yield Grid(ActiveSessionList(), FileBrowser(), id="session-list-screen")
 
     class SwitchAnotherSession(Message):
         pass
@@ -117,16 +114,14 @@ class SessionPickScreen(ModalScreen):
     @on(Button.Pressed, "#add-session")
     def add_from_file_browser(self, event):  # pylint: disable=unused-argument
         if self.query_one(Input).value:
-            path = os.path.abspath(
-                os.path.expanduser(self.query_one(Input).value))
+            path = os.path.abspath(os.path.expanduser(self.query_one(Input).value))
         else:
             path = FileBrowser.last_select
         if path is None:
             return
         path = str(path)
         if not check_is_build_or_archive(path):
-            self.query_one(FileBrowser).log.update(
-                "{} is not a valid PCVS prefix".format(path))
+            self.query_one(FileBrowser).log.update("{} is not a valid PCVS prefix".format(path))
             return
         else:
             self.query_one(FileBrowser).log.update("")
@@ -145,25 +140,22 @@ class JobListViewer(Widget):
         self.table.focus()
         self.table.zebra_stripes = True
         self.table.cursor_type = "row"
-        self.name_colkey, _, _ = self.table.add_columns(
-            "Name", "Status", "Time (s)")
+        self.name_colkey, _, _ = self.table.add_columns("Name", "Status", "Time (s)")
         self.update_table()
 
         yield Grid(self.table)
 
     def update_table(self):
         self.table.clear()
-        for _, jobs in self.app.model.single_session_status(
-                self.app.model.active_id).items():
+        for _, jobs in self.app.model.single_session_status(self.app.model.active_id).items():
             for jobid in jobs:
-                obj = self.app.model.single_session_map_id(
-                    self.app.model.active_id, jobid)
+                obj = self.app.model.single_session_map_id(self.app.model.active_id, jobid)
 
                 color = self.app.model.pick_color_on_status(obj.state)
 
                 self.table.add_row(
-                    obj.name, "[{c}]{i}[/{c}]".format(c=color, i=obj.state),
-                    obj.time)
+                    obj.name, "[{c}]{i}[/{c}]".format(c=color, i=obj.state), obj.time
+                )
                 self.jobgroup[obj.name] = obj
         self.table.sort(self.name_colkey)
 
@@ -197,8 +189,7 @@ class MainScreen(Screen):
     @on(DataTable.RowSelected)
     def selected_row(self, event: DataTable.RowSelected):
         name_colkey = self.query_one(JobListViewer).name_colkey
-        jobname = self.query_one(DataTable).get_cell(event.row_key,
-                                                     name_colkey)
+        jobname = self.query_one(DataTable).get_cell(event.row_key, name_colkey)
 
         obj = self.query_one(JobListViewer).jobgroup[jobname]
         data = "** No Output **" if not obj.output else obj.output
@@ -246,14 +237,16 @@ class SessionInfoScreen(ModalScreen):
 
         infolog.write(pprint.pformat(config))
 
-        yield Container(Horizontal(
-            Static('File Path:'),
-            Static(self.app.model.active.prefix),
-        ),
-                        Static('Configuration:'),
-                        infolog,
-                        Button("Done"),
-                        id="session-infos")
+        yield Container(
+            Horizontal(
+                Static("File Path:"),
+                Static(self.app.model.active.prefix),
+            ),
+            Static("Configuration:"),
+            infolog,
+            Button("Done"),
+            id="session-infos",
+        )
 
     @on(Button.Pressed)
     def quit_infos(self, event):  # pylint: disable=unused-argument
@@ -264,18 +257,21 @@ class ReportApplication(App):
     """
     Main Application handler
     """
+
     TITLE = "PCVS Job Result Viewer"
     SCREENS = {
         "main": MainScreen,
         "exit": ExitConfirmScreen,
         "wait": PleaseWaitScreen,
         "session_list": SessionPickScreen,
-        "session_infos": SessionInfoScreen
+        "session_infos": SessionInfoScreen,
     }
-    BINDINGS = {('q', 'push_screen("exit")', 'Exit'),
-                ('o', 'push_screen("session_list")', 'Open'),
-                ('t', 'toggle_dark', 'Dark mode'),
-                ("c", "push_screen('session_infos')", 'Infos')}
+    BINDINGS = {
+        ("q", 'push_screen("exit")', "Exit"),
+        ("o", 'push_screen("session_list")', "Open"),
+        ("t", "toggle_dark", "Dark mode"),
+        ("c", "push_screen('session_infos')", "Infos"),
+    }
     CSS_PATH = "main.css"
 
     @on(SessionPickScreen.SwitchAnotherSession)
@@ -291,7 +287,7 @@ class ReportApplication(App):
         """
         First screen loaded
         """
-        self.push_screen('main')
+        self.push_screen("main")
 
     def __init__(self, model):
         """

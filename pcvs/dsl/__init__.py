@@ -48,8 +48,7 @@ class Job(Test):
 
 
 class Run:
-    """Depict a given run -> Git commit
-    """
+    """Depict a given run -> Git commit"""
 
     def __init__(self, repo=None, cid=None, from_serie=None):
         """Create a new run.
@@ -81,15 +80,14 @@ class Run:
     @property
     def previous(self):
         runs = self._repo.get_parents(self._cid)
-        if len(runs) <= 0 or runs[0].get_info()['message'] == "INIT":
+        if len(runs) <= 0 or runs[0].get_info()["message"] == "INIT":
             return None
         return Run(repo=self._repo, cid=runs[0])
 
     @property
     def oneline(self):
-        """TODO:
-        """
-        assert (isinstance(self._cid, git.Commit))
+        """TODO:"""
+        assert isinstance(self._cid, git.Commit)
         d = self._cid.get_info()
         return "{}".format(d)
 
@@ -122,8 +120,7 @@ class Run:
             data = data.to_json()
 
         if isinstance(data, dict):
-            data = json.dumps(
-                data, default=lambda x: "Invalid type: {}".format(type(x)))
+            data = json.dumps(data, default=lambda x: "Invalid type: {}".format(type(x)))
 
         self._stage[prefix] = data
 
@@ -145,26 +142,24 @@ class Run:
         return self._cid.get_info()
 
     def get_metadata(self):
-        raw_msg = self._cid.get_info()['message']
-        meta = raw_msg.split('\n')[2]
+        raw_msg = self._cid.get_info()["message"]
+        meta = raw_msg.split("\n")[2]
         return json.loads(meta)
 
 
 class Serie:
-    """TODO:
-    """
+    """TODO:"""
 
     class Request(IntEnum):
-        """TODO:
-        """
+        """TODO:"""
+
         REGRESSIONS = 0
         RUNS = 1
 
-    #Depicts an history of runs for a given project/profile.
+    # Depicts an history of runs for a given project/profile.
 
     def __init__(self, branch):
-        """TODO:
-        """
+        """TODO:"""
         self._hdl = branch
         self._repo = branch.repo
 
@@ -178,8 +173,7 @@ class Serie:
 
     @property
     def last(self):
-        """Return the last run for this serie.
-        """
+        """Return the last run for this serie."""
         return Run(self._repo, self._repo.revparse(self._hdl))
 
     def __len__(self):
@@ -204,28 +198,23 @@ class Serie:
         return res
 
     def find(self, op: Request, since=None, until=None, tree=None):
-        """TODO:
-        """
+        """TODO:"""
         res = None
 
         if op == self.Request.REGRESSIONS:
             job = Test()
             res = []
-            for raw_job in self._repo.diff_tree(tree=tree,
-                                                src=self._hdl,
-                                                dst=None,
-                                                since=since,
-                                                until=until):
+            for raw_job in self._repo.diff_tree(
+                tree=tree, src=self._hdl, dst=None, since=since, until=until
+            ):
                 job.from_json(raw_job, None)
                 if job.state != Test.State.SUCCESS:
                     res.append(job)
 
         elif op == self.Request.RUNS:
             res = []
-            for elt in self._repo.list_commits(rev=self._hdl,
-                                               since=since,
-                                               until=until):
-                if elt.get_info()['message'] != "INIT":
+            for elt in self._repo.list_commits(rev=self._hdl, since=since, until=until):
+                if elt.get_info()["message"] != "INIT":
                     res.append(Run(repo=self._repo, cid=elt))
         return res
 
@@ -240,15 +229,15 @@ class Serie:
 
         commit_msg = """{}
 
-{}""".format(msg, raw_metadata)
+{}""".format(
+            msg, raw_metadata
+        )
 
         for k, v in run.changes.items():
             root_tree = self._repo.insert_tree(k, v, root_tree)
-        self._repo.commit(tree=root_tree,
-                          msg=commit_msg,
-                          parent=self._hdl,
-                          timestamp=timestamp,
-                          orphan=False)
+        self._repo.commit(
+            tree=root_tree, msg=commit_msg, parent=self._hdl, timestamp=timestamp, orphan=False
+        )
         # self._repo.gc()
 
 
@@ -265,21 +254,18 @@ class Bank:
         if head:
             self._repo.set_head(head)
         else:
-            first_branch = [
-                b for b in self._repo.branches() if b.name != "master"
-            ]
+            first_branch = [b for b in self._repo.branches() if b.name != "master"]
             if len(first_branch) <= 0:
-                io.console.warn("This repository seems empty: {}".format(
-                    self._path))
+                io.console.warn("This repository seems empty: {}".format(self._path))
             else:
                 self._repo.set_head(first_branch[0].name)
 
-        if not self._repo.get_branch_from_str('master'):
+        if not self._repo.get_branch_from_str("master"):
             t = self._repo.insert_tree(
-                'README',
-                "This file is intended to be used as a branch bootstrap.")
+                "README", "This file is intended to be used as a branch bootstrap."
+            )
             c = self._repo.commit(t, "INIT", orphan=True)
-            self._repo.set_branch(git.Branch(self._repo, 'master'), c)
+            self._repo.set_branch(git.Branch(self._repo, "master"), c)
 
     @property
     def path(self):
@@ -302,8 +288,7 @@ class Bank:
         return Serie(hdl)
 
     def get_serie(self, serie_name=None):
-        """TODO
-        """
+        """TODO"""
         if not serie_name:
             serie_name = self._repo.get_head().name
 
@@ -315,18 +300,16 @@ class Bank:
         return Serie(branch)
 
     def list_series(self, project=None):
-        """TODO:
-        """
+        """TODO:"""
         res = []
         for elt in self._repo.branches():
-            array = elt.name.split('/')
+            array = elt.name.split("/")
             if project is None or array[0].lower() == project.lower():
                 res.append(Serie(elt))
         return res
 
     def list_all(self) -> Dict[str, List]:
-        """TODO:
-        """
+        """TODO:"""
         res = {}
         for project in self.list_projects():
             if project != "master":
@@ -345,5 +328,5 @@ class Bank:
         projects = []
         for elt in self._repo.branches():
             if elt.name != "master":
-                projects.append(elt.name.split('/')[0])
+                projects.append(elt.name.split("/")[0])
         return list(set(projects))

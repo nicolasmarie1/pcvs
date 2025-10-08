@@ -1,4 +1,3 @@
-
 from pcvs.backend.report import Report
 from pcvs.testing.test import Test
 
@@ -7,7 +6,7 @@ class ReportModel(Report):
 
     def __init__(self, build_paths):
 
-        assert (isinstance(build_paths, list))
+        assert isinstance(build_paths, list)
         super().__init__()
         self.active_hdl = None
         for path in build_paths:
@@ -25,7 +24,7 @@ class ReportModel(Report):
 
     @property
     def session_prefixes(self):
-        return [x['path'] for x in self.session_infos()]
+        return [x["path"] for x in self.session_infos()]
 
     def set_active(self, hdl):
         if isinstance(hdl, str):

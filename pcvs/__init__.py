@@ -18,7 +18,7 @@ NAME_DEBUG_FILE = "pcvs-debug.log"
 NAME_LOG_FILE = "pcvs-out.log"
 
 PATH_INSTDIR = os.path.dirname(__file__)
-PATH_HOMEDIR = click.get_app_dir('pcvs', force_posix=True)
+PATH_HOMEDIR = click.get_app_dir("pcvs", force_posix=True)
 PATH_SESSION = os.path.join(PATH_HOMEDIR, "sessions")
 PATH_BANK = os.path.join(PATH_HOMEDIR, "bank.yml")
 PATH_VALCFG = os.path.join(PATH_HOMEDIR, "validation.yml")

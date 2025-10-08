@@ -33,13 +33,13 @@ def init_constant_tokens():
     """
     global constant_tokens
     constant_tokens = {
-        '@HOME@': str(pathlib.Path.home()),
-        '@USER@': getpass.getuser(),
+        "@HOME@": str(pathlib.Path.home()),
+        "@USER@": getpass.getuser(),
     }
-    for comp, comp_node in GlobalConfig.root.get('compiler', {}).get('compilers', {}).items():
-        constant_tokens[f'@COMPILER_{comp.upper()}@'] = comp_node.get('program', "")
+    for comp, comp_node in GlobalConfig.root.get("compiler", {}).get("compilers", {}).items():
+        constant_tokens[f"@COMPILER_{comp.upper()}@"] = comp_node.get("program", "")
 
-    constant_tokens['@RUNTIME_PROGRAM@'] = GlobalConfig.root.get('runtime', {}).get('program', "")
+    constant_tokens["@RUNTIME_PROGRAM@"] = GlobalConfig.root.get("runtime", {}).get("program", "")
 
 
 def replace_special_token(content, src, build, prefix):
@@ -55,18 +55,18 @@ def replace_special_token(content, src, build, prefix):
 
     tokens = {
         **constant_tokens,
-        '@BUILDPATH@': os.path.join(build, prefix),
-        '@SRCPATH@': os.path.join(src, prefix),
-        '@ROOTPATH@': src,
-        '@BROOTPATH@': build,
-        '@SPACKPATH@': "TBD",
+        "@BUILDPATH@": os.path.join(build, prefix),
+        "@SRCPATH@": os.path.join(src, prefix),
+        "@ROOTPATH@": src,
+        "@BROOTPATH@": build,
+        "@SPACKPATH@": "TBD",
     }
 
     r = re.compile("(?P<name>@[a-zA-Z0-9-_]+@)")
-    for line in content.split('\n'):
+    for line in content.split("\n"):
         for match in r.finditer(line):
 
-            name = match.group('name')
+            name = match.group("name")
             if name not in tokens:
                 errors.append(name)
             else:
@@ -80,25 +80,25 @@ def replace_special_token(content, src, build, prefix):
 
 class TestFile:
     """A TestFile manipulates source files to be processed as benchmarks
-(pcvs.yml & pcvs.setup).
+    (pcvs.yml & pcvs.setup).
 
-    It handles global informations about source imports & building one execution
-    script (``list_of_tests.sh``) per input file.
+        It handles global informations about source imports & building one execution
+        script (``list_of_tests.sh``) per input file.
 
-    :param _in: YAML input file
-    :type _in: str
-    :param _path_out: prefix where to store output artifacts
-    :type _path_out: str
-    :param _raw: stream to populate the TestFile rather than opening input file
-    :type _raw: dict
-    :param _label: label the test file comes from
-    :type _label: str
-    :param _prefix: subtree the test file has been extracted
-    :type _prefix: str
-    :param _tests: list of tests handled by this file
-    :type _tests: list
-    :param _debug: debug instructions (concatenation of TE debug infos)
-    :type _debug: dict
+        :param _in: YAML input file
+        :type _in: str
+        :param _path_out: prefix where to store output artifacts
+        :type _path_out: str
+        :param _raw: stream to populate the TestFile rather than opening input file
+        :type _raw: dict
+        :param _label: label the test file comes from
+        :type _label: str
+        :param _prefix: subtree the test file has been extracted
+        :type _prefix: str
+        :param _tests: list of tests handled by this file
+        :type _tests: list
+        :param _debug: debug instructions (concatenation of TE debug infos)
+        :type _debug: dict
     """
 
     cc_pm_string = ""
@@ -127,10 +127,10 @@ class TestFile:
         self._tests = []
         self._debug = {}
         if TestFile.val_scheme is None:
-            TestFile.val_scheme = system.ValidationScheme('te')
+            TestFile.val_scheme = system.ValidationScheme("te")
 
     def load_from_file(self, f):
-        with open(f, 'r') as fh:
+        with open(f, "r") as fh:
             stream = fh.read()
             self.load_from_str(stream)
 
@@ -142,21 +142,19 @@ class TestFile:
         :param data: the YAML-formatted input stream.
         :type data: YAMl-formatted str
         """
-        source, _, build, _ = testing.generate_local_variables(
-            self._label, self._prefix)
+        source, _, build, _ = testing.generate_local_variables(self._label, self._prefix)
 
         stream = replace_special_token(data, source, build, self._prefix)
         try:
-            self._raw = YAML(typ='safe').load(stream)
+            self._raw = YAML(typ="safe").load(stream)
         except YAMLError as ye:
             raise ValidationException.FormatError(origin="<stream>") from ye
 
     def save_yaml(self):
-        _, _, _, curbuild = testing.generate_local_variables(
-            self._label, self._prefix)
+        _, _, _, curbuild = testing.generate_local_variables(self._label, self._prefix)
 
         with open(os.path.join(curbuild, "pcvs.setup.yml"), "w") as fh:
-            YAML(typ='safe').dump(self._raw, fh)
+            YAML(typ="safe").dump(self._raw, fh)
 
     @io.capture_exception(Exception, doexit=False)
     def validate(self, allow_conversion=True) -> bool:
@@ -181,27 +179,23 @@ class TestFile:
                 raise e
 
             tmpfile = tempfile.mkstemp()[1]
-            with open(tmpfile, 'w', encoding='utf-8') as fh:
-                YAML(typ='safe').dump(self._raw, fh)
+            with open(tmpfile, "w", encoding="utf-8") as fh:
+                YAML(typ="safe").dump(self._raw, fh)
 
             try:
-                template = os.path.join(PATH_INSTDIR,
-                                        "templates/config/group-compat.yml")
-                yaml_converter.convert(tmpfile, "te", template, None,
-                                       None, False, True, True)
+                template = os.path.join(PATH_INSTDIR, "templates/config/group-compat.yml")
+                yaml_converter.convert(tmpfile, "te", template, None, None, False, True, True)
             except Exception as er:
-                io.console.error(
-                    f"An error occure when trying to update file {self._in}.")
+                io.console.error(f"An error occure when trying to update file {self._in}.")
                 raise er from e
 
-            with open(tmpfile, 'r', encoding='utf-8') as fh:
-                converted_data = YAML(typ='safe').load(fh)
+            with open(tmpfile, "r", encoding="utf-8") as fh:
+                converted_data = YAML(typ="safe").load(fh)
 
             self._raw = converted_data
             self.validate(allow_conversion=False)
             io.console.warning("\t--> Legacy syntax for: {}".format(self._in))
-            io.console.warning(
-                "Please consider updating it with `pcvs_convert -k te`")
+            io.console.warning("Please consider updating it with `pcvs_convert -k te`")
             return False
 
     @property
@@ -228,21 +222,19 @@ class TestFile:
         self.validate()
 
         # main loop, parse each node to register tests
-        for k, content, in self._raw.items():
-            GlobalConfig.root.get_internal("pColl").invoke_plugins(
-                Plugin.Step.TDESC_BEFORE)
+        for k, content in self._raw.items():
+            GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.TDESC_BEFORE)
             if content is None:
                 # skip empty nodes
                 continue
             td = tedesc.TEDescriptor(k, content, self._label, self._prefix)
             for test in td.construct_tests():
                 self._tests.append(test)
-            io.console.crit_debug("Test descriptor: {}: {}".format(
-                                td.name,
-                                pprint.pformat(td.get_debug())))
+            io.console.crit_debug(
+                "Test descriptor: {}: {}".format(td.name, pprint.pformat(td.get_debug()))
+            )
 
-            GlobalConfig.root.get_internal("pColl").invoke_plugins(
-                Plugin.Step.TDESC_AFTER)
+            GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.TDESC_AFTER)
 
             # register debug informations relative to the loaded TEs
             self._debug[k] = td.get_debug()
@@ -250,18 +242,17 @@ class TestFile:
     def flush_sh_file(self):
         """Store the given input file into their destination."""
         fn_sh = os.path.join(self._path_out, "list_of_tests.sh")
-        cobj = GlobalConfig.root.get_internal('cc_pm')
+        cobj = GlobalConfig.root.get_internal("cc_pm")
         if TestFile.cc_pm_string == "" and cobj:
-            TestFile.cc_pm_string = "\n".join(
-                [e.get(load=True, install=False) for e in cobj])
+            TestFile.cc_pm_string = "\n".join([e.get(load=True, install=False) for e in cobj])
 
-        robj = GlobalConfig.root.get_internal('rt_pm')
+        robj = GlobalConfig.root.get_internal("rt_pm")
         if TestFile.rt_pm_string == "" and robj:
-            TestFile.rt_pm_string = "\n".join(
-                [e.get(load=True, install=False) for e in robj])
+            TestFile.rt_pm_string = "\n".join([e.get(load=True, install=False) for e in robj])
 
-        with open(fn_sh, 'w') as fh_sh:
-            fh_sh.write("""#!/bin/sh
+        with open(fn_sh, "w") as fh_sh:
+            fh_sh.write(
+                """#!/bin/sh
 if test -n "{simulated}"; then
     PCVS_SHOW=1
     PCVS_SHOW_ENV=1
@@ -281,17 +272,23 @@ EOF
 fi
 
 for arg in "$@"; do case $arg in
-""".format(simulated="sim"
-                if 'simulated' in GlobalConfig.root['validation'] and
-                GlobalConfig.root['validation']['simulated'] is True else "",
-                pm_string="\n".join([TestFile.cc_pm_string,
-                                    TestFile.rt_pm_string])))
+""".format(
+                    simulated=(
+                        "sim"
+                        if "simulated" in GlobalConfig.root["validation"]
+                        and GlobalConfig.root["validation"]["simulated"] is True
+                        else ""
+                    ),
+                    pm_string="\n".join([TestFile.cc_pm_string, TestFile.rt_pm_string]),
+                )
+            )
 
             for test in self._tests:
                 fh_sh.write(test.generate_script(fn_sh))
-                GlobalConfig.root.get_internal('orchestrator').add_new_job(test)
+                GlobalConfig.root.get_internal("orchestrator").add_new_job(test)
 
-            fh_sh.write("""
+            fh_sh.write(
+                """
         --list) printf "{list_of_tests}\\n"; exit 0;;
         *) printf "Invalid test-name \'$arg\'\\n"; exit 1;;
         esac
@@ -323,26 +320,28 @@ ${{pcvs_cmd}}
 EOF
         fi
     fi
-    exit $?\n""".format(list_of_tests="\n".join([t.name
-                                                 for t in self._tests])))
+    exit $?\n""".format(
+                    list_of_tests="\n".join([t.name for t in self._tests])
+                )
+            )
 
         self.generate_debug_info()
 
     def generate_debug_info(self):
         """Dump debug info to the appropriate file for the input object."""
         if len(self._debug) and io.console.verb_debug:
-            with open(os.path.join(self._path_out, "dbg-pcvs.yml"), 'w') as fh:
+            with open(os.path.join(self._path_out, "dbg-pcvs.yml"), "w") as fh:
                 # compute max number of combinations from system iterators
-                sys_cnt = functools.reduce(operator.mul, [
-                    len(v['values'])
-                    for v in GlobalConfig.root['criterion'].values()
-                ])
-                self._debug.setdefault('.system-values', {})
-                self._debug['.system-values'].setdefault('stats', {})
+                sys_cnt = functools.reduce(
+                    operator.mul,
+                    [len(v["values"]) for v in GlobalConfig.root["criterion"].values()],
+                )
+                self._debug.setdefault(".system-values", {})
+                self._debug[".system-values"].setdefault("stats", {})
 
-                for c_k, c_v in GlobalConfig.root['criterion'].items():
-                    self._debug[".system-values"][c_k] = c_v['values']
-                self._debug[".system-values"]['stats']['theoric'] = sys_cnt
-                yml = YAML(typ='safe')
+                for c_k, c_v in GlobalConfig.root["criterion"].items():
+                    self._debug[".system-values"][c_k] = c_v["values"]
+                self._debug[".system-values"]["stats"]["theoric"] = sys_cnt
+                yml = YAML(typ="safe")
                 yml.default_flow_style = None
                 yml.dump(self._debug, fh)

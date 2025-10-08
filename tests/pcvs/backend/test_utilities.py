@@ -21,12 +21,15 @@ def wrong_testname(request):
     return request.param
 
 
-@patch('os.walk', return_value=[
-            ('/', ('a', 'b'), ('README.md', 'LIST_OF_TESTS')),
-            ('/a', ['c'], ["wrong_list_of_tests.sh"]),
-            ('/a/c', [], ["list_of_tests.sh", "a.c"]),
-            ('/b', [], ['list_of_tests.sh', "file.txt"]),
-        ])
+@patch(
+    "os.walk",
+    return_value=[
+        ("/", ("a", "b"), ("README.md", "LIST_OF_TESTS")),
+        ("/a", ["c"], ["wrong_list_of_tests.sh"]),
+        ("/a/c", [], ["list_of_tests.sh", "a.c"]),
+        ("/b", [], ["list_of_tests.sh", "file.txt"]),
+    ],
+)
 def test_locate_scriptpaths(prefix):  # pylint: disable=redefined-outer-name
     result = tested.locate_scriptpaths(prefix)
     print(result)

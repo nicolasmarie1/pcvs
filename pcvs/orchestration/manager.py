@@ -25,6 +25,7 @@ class Manager:
     :ivar _count: dict gathering various counters (total, executed...)
     :type _count: dict
     """
+
     jobs = {}
     dep_rules = {}
 
@@ -38,10 +39,9 @@ class Manager:
         :param publisher: requested publisher by the orchestrator
         :type publisher: :class:`ResultFileManager`
         """
-        self._comman = GlobalConfig.root.get_internal('comman')
-        self._plugin = GlobalConfig.root.get_internal('pColl')
-        self._concurrent_level = GlobalConfig.root['machine'].get(
-            'concurrent_run', 1)
+        self._comman = GlobalConfig.root.get_internal("comman")
+        self._plugin = GlobalConfig.root.get_internal("pColl")
+        self._concurrent_level = GlobalConfig.root["machine"].get("concurrent_run", 1)
 
         self._max_nodes = max_nodes
         self._dims = {n: [] for n in range(1, self._max_nodes + 1)}
@@ -91,7 +91,7 @@ class Manager:
         # if test is not know yet, add + increment
         if job.jid not in self.jobs:
             self.jobs[job.jid] = job
-            self._count['total'] += 1
+            self._count["total"] += 1
             self.save_dependency_rule(job.basename, job)
 
     def save_dependency_rule(self, pattern, jobs):
@@ -134,7 +134,7 @@ class Manager:
         if not outfile:
             print("\n".join(s))
         else:
-            with open(outfile, 'w') as fh:
+            with open(outfile, "w") as fh:
                 fh.write("\n".join(s))
 
     def resolve_single_job_deps(self, job, chain):
@@ -179,7 +179,7 @@ class Manager:
         :return: a number of jobs
         :rtype: int
         """
-        return self._count['total'] - self._count['executed']
+        return self._count["total"] - self._count["executed"]
 
     def publish_job(self, job, publish_args=None):
         if publish_args:
@@ -187,7 +187,7 @@ class Manager:
 
         if self._comman:
             self._comman.send(job)
-        self._count['executed'] += 1
+        self._count["executed"] += 1
         if job.state not in self._count:
             self._count[job.state] = 0
         self._count[job.state] += 1
@@ -200,9 +200,7 @@ class Manager:
             removed_jobs = []
             for job in self._dims[k]:
                 if job.pick_count() > Test.SCHED_MAX_ATTEMPTS:
-                    self.publish_failed_to_run_job(job,
-                                                   Test.MAXATTEMPTS_STR,
-                                                   Test.State.ERR_OTHER)
+                    self.publish_failed_to_run_job(job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
                     removed_jobs.append(job)
             for elt in removed_jobs:
                 self._dims[k].remove(elt)
@@ -223,7 +221,8 @@ class Manager:
             the_set = self._plugin.invoke_plugins(
                 Plugin.Step.SCHED_SET_EVAL,
                 jobman=self,
-                max_job_limit=int(self._count['total'] / self._concurrent_level))
+                max_job_limit=int(self._count["total"] / self._concurrent_level),
+            )
         else:
             the_set = self.__default_create_subset(ressources_tracker)
 
@@ -242,12 +241,10 @@ class Manager:
     def __default_create_subset(self, ressources_tracker: RessourceTracker):
         scheduled_set = None
 
-        user_sched_job = self._plugin.has_enabled_step(
-            Plugin.Step.SCHED_JOB_EVAL)
+        user_sched_job = self._plugin.has_enabled_step(Plugin.Step.SCHED_JOB_EVAL)
 
         while (job := self.__get_next_job()) is not None:
-            if (job.been_executed() or
-                    job.state == Test.State.IN_PROGRESS):
+            if job.been_executed() or job.state == Test.State.IN_PROGRESS:
                 continue
 
             # if the job has pending dependancy,
@@ -269,8 +266,7 @@ class Manager:
             if job.has_failed_dep():
                 # Cannot be scheduled for dep purposes
                 # push it to publisher
-                self.publish_failed_to_run_job(
-                    job, Test.NOSTART_STR, Test.State.ERR_DEP)
+                self.publish_failed_to_run_job(job, Test.NOSTART_STR, Test.State.ERR_DEP)
                 # Attempt to find another job to schedule
                 continue
 
@@ -280,9 +276,8 @@ class Manager:
             # => SCHEDULE
             if user_sched_job:
                 pick_job = self._plugin.invoke_plugins(
-                    Plugin.Step.SCHED_JOB_EVAL,
-                    job=job,
-                    set=scheduled_set)
+                    Plugin.Step.SCHED_JOB_EVAL, job=job, set=scheduled_set
+                )
             else:
                 io.console.sched_debug(f"Alloc pool (ALLOC TRY): {job.needed_ressources}")
                 res = ressources_tracker.alloc(job.needed_ressources)
@@ -302,9 +297,7 @@ class Manager:
                 break
 
             if job.is_never_picked():
-                self.publish_failed_to_run_job(
-                    job, Test.MAXATTEMPTS_STR,
-                    Test.State.ERR_OTHER)
+                self.publish_failed_to_run_job(job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
             else:
                 self.__add_job(job)
                 break
@@ -332,7 +325,6 @@ class Manager:
             else:
 
                 if job.not_picked():
-                    self.publish_failed_to_run_job(job, Test.MAXATTEMPTS_STR,
-                                                   Test.State.ERR_OTHER)
+                    self.publish_failed_to_run_job(job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
                 else:
                     self.add_job(job)

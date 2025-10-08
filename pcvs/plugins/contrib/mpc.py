@@ -1,4 +1,5 @@
 """Default plugins for the MPC framework."""
+
 from pcvs import io
 from pcvs.plugins import Plugin
 
@@ -12,17 +13,17 @@ class MpcDefaultPlugin(Plugin):
         """Validate that the criterions are a valide combination."""
         # this dict maps keys (it name) with values (it value)
         # returns True if the combination should be used
-        config = kwargs['config']
-        nb_nodes = config['machine'].get('nodes', 1)
-        nb_cores = config['machine'].get('cores_per_node', 1)
+        config = kwargs["config"]
+        nb_nodes = config["machine"].get("nodes", 1)
+        nb_cores = config["machine"].get("cores_per_node", 1)
 
-        comb = kwargs['combination']
-        n_node = comb.get('n_node', 1)      # N
-        n_proc = comb.get('n_proc', None)   # p
-        n_mpi = comb.get('n_mpi', None)     # n
-        n_core = comb.get('n_core', None)   # c
-        n_omp = comb.get('n_omp', None)     # omp
-        net = comb.get('net', None)
+        comb = kwargs["combination"]
+        n_node = comb.get("n_node", 1)  # N
+        n_proc = comb.get("n_proc", None)  # p
+        n_mpi = comb.get("n_mpi", None)  # n
+        n_core = comb.get("n_core", None)  # c
+        n_omp = comb.get("n_omp", None)  # omp
+        net = comb.get("net", None)
         # sched = comb.get('sched', None)
 
         # if neither n_mpi and n_proc are specify -> n_node
@@ -36,34 +37,46 @@ class MpcDefaultPlugin(Plugin):
             if n_proc is None:
                 n_proc = n_mpi
 
-        comb = (f"Combination: nodes:{n_node}, processes:{n_proc}, "
-                f"mpi:{n_mpi}, cpu:{n_core}, omp:{n_omp}: ")
+        comb = (
+            f"Combination: nodes:{n_node}, processes:{n_proc}, "
+            f"mpi:{n_mpi}, cpu:{n_core}, omp:{n_omp}: "
+        )
         if n_node > nb_nodes:
-            io.console.crit_debug(f"{comb}Ask for more nodes that present in the "
-                                  f"current partition\t{n_node} > {nb_nodes}")
+            io.console.crit_debug(
+                f"{comb}Ask for more nodes that present in the "
+                f"current partition\t{n_node} > {nb_nodes}"
+            )
             return False
         if n_node > n_proc:
-            io.console.crit_debug(f"{comb}Ask for more nodes that processes"
-                                  f"\t{n_node} > {n_proc}")
+            io.console.crit_debug(
+                f"{comb}Ask for more nodes that processes" f"\t{n_node} > {n_proc}"
+            )
             return False
         if n_proc > n_mpi:
-            io.console.crit_debug(f"{comb}Ask for more processes than mpi tasks"
-                                  f"\t{n_proc} > {n_mpi}")
+            io.console.crit_debug(
+                f"{comb}Ask for more processes than mpi tasks" f"\t{n_proc} > {n_mpi}"
+            )
             return False
         nb_cores_total = nb_cores * n_node
         if n_proc > nb_cores_total:
-            io.console.crit_debug(f"{comb}Ask for more processes than available "
-                                  f"cpus per nodes\t{n_proc} > {nb_cores_total}")
+            io.console.crit_debug(
+                f"{comb}Ask for more processes than available "
+                f"cpus per nodes\t{n_proc} > {nb_cores_total}"
+            )
             return False
         nb_core_per_proc = (nb_cores * n_node) // n_proc
         if n_core is not None and n_core > 1 and n_core > nb_core_per_proc:
-            io.console.crit_debug(f"{comb}Ask for more cpus per processes than "
-                                  f"available cpus on allocated nodes"
-                                  f"\t{n_core} > {nb_core_per_proc}")
+            io.console.crit_debug(
+                f"{comb}Ask for more cpus per processes than "
+                f"available cpus on allocated nodes"
+                f"\t{n_core} > {nb_core_per_proc}"
+            )
             return False
         if net is not None and n_node > 1 and net == "shmem":
-            io.console.crit_debug(f"{comb}Ask for multi nodes jobs while using "
-                                  f"shared memory\t{n_node} > 1 and net == {net}")
+            io.console.crit_debug(
+                f"{comb}Ask for multi nodes jobs while using "
+                f"shared memory\t{n_node} > 1 and net == {net}"
+            )
             return False
 
         io.console.crit_debug(f"{comb}OK")
@@ -71,6 +84,5 @@ class MpcDefaultPlugin(Plugin):
 
     def get_ressources(self, *args, **kwargs) -> list[int]:  # pylint: disable=unused-argument
         """Get the ressources allocation for the jobs."""
-        comb = kwargs['combination']
-        return [comb.get('n_node', 1),
-                (comb.get('n_proc', 1) * comb.get('n_core', 1))]
+        comb = kwargs["combination"]
+        return [comb.get("n_node", 1), (comb.get("n_proc", 1) * comb.get("n_core", 1))]

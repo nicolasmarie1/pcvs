@@ -23,8 +23,9 @@ from pcvs.dsl.analysis import SimpleAnalysis
 from pcvs.testing.test import Test
 
 
-def get_status_series(analysis: SimpleAnalysis, serie: Serie, path: str, show: bool,
-                      extension: str, limit: int):
+def get_status_series(
+    analysis: SimpleAnalysis, serie: Serie, path: str, show: bool, extension: str, limit: int
+):
     """
     get_status_series: create a test state graph.
 
@@ -40,14 +41,14 @@ def get_status_series(analysis: SimpleAnalysis, serie: Serie, path: str, show: b
     xlabels = []
     total, fails, htos, stos, succs, other = [], [], [], [], [], []
 
-    for e in sorted(status_data, key=lambda item: item['date']):
-        nb = sum(e['cnt'].values())
-        fail = e['cnt'].get(str(Test.State.FAILURE), 0)
-        hto = e['cnt'].get(str(Test.State.HARD_TIMEOUT), 0)
-        sto = e['cnt'].get(str(Test.State.SOFT_TIMEOUT), 0)
-        succ = e['cnt'].get(str(Test.State.SUCCESS), 0)
+    for e in sorted(status_data, key=lambda item: item["date"]):
+        nb = sum(e["cnt"].values())
+        fail = e["cnt"].get(str(Test.State.FAILURE), 0)
+        hto = e["cnt"].get(str(Test.State.HARD_TIMEOUT), 0)
+        sto = e["cnt"].get(str(Test.State.SOFT_TIMEOUT), 0)
+        succ = e["cnt"].get(str(Test.State.SUCCESS), 0)
 
-        xlabels.append(e['date'])
+        xlabels.append(e["date"])
         total.append(nb)
         fails.append(fail)
         htos.append(hto)
@@ -56,11 +57,22 @@ def get_status_series(analysis: SimpleAnalysis, serie: Serie, path: str, show: b
         other.append(nb - (fail + hto + sto + succ))
 
     fig, ax = plt.subplots()
-    ax.stackplot(range(len(status_data)), fails, htos, stos, succs, other,
-                 labels=[Test.State.FAILURE.name, Test.State.HARD_TIMEOUT.name,
-                         Test.State.SOFT_TIMEOUT.name, Test.State.SUCCESS.name,
-                         Test.State.ERR_OTHER.name],
-                 colors=['red', 'orange', 'blue', 'green', "purple"])
+    ax.stackplot(
+        range(len(status_data)),
+        fails,
+        htos,
+        stos,
+        succs,
+        other,
+        labels=[
+            Test.State.FAILURE.name,
+            Test.State.HARD_TIMEOUT.name,
+            Test.State.SOFT_TIMEOUT.name,
+            Test.State.SUCCESS.name,
+            Test.State.ERR_OTHER.name,
+        ],
+        colors=["red", "orange", "blue", "green", "purple"],
+    )
     ax.xaxis.set_ticks(range(len(status_data)))
     ax.xaxis.set_ticklabels(sorted(xlabels))
     ax.set_title("Sucess Count")
@@ -78,12 +90,18 @@ def get_status_series(analysis: SimpleAnalysis, serie: Serie, path: str, show: b
     plt.close()
 
 
-def _get_time_serie(jobs_base_name: str, jobs: dict[str, dict[str, list[int]]],
-                    dates: list[int], path: str, show: bool, extension: bool):
+def _get_time_serie(
+    jobs_base_name: str,
+    jobs: dict[str, dict[str, list[int]]],
+    dates: list[int],
+    path: str,
+    show: bool,
+    extension: bool,
+):
     io.console.debug(f"Times for: {jobs_base_name}")
     fig, ax = plt.subplots()
     for job_name, job_data in jobs.items():
-        job_spec: str = job_name[len(jobs_base_name) + 1:]
+        job_spec: str = job_name[len(jobs_base_name) + 1 :]
         if not job_spec:
             job_spec = "default"  # no criterions
         ax.plot(job_data["indexs"], job_data["times"], label=job_spec, marker="+")
@@ -105,8 +123,9 @@ def _get_time_serie(jobs_base_name: str, jobs: dict[str, dict[str, list[int]]],
     plt.close()
 
 
-def get_time_series(analysis: SimpleAnalysis, serie: Serie, path: str, show: bool,
-                    extension: str, limit: int):
+def get_time_series(
+    analysis: SimpleAnalysis, serie: Serie, path: str, show: bool, extension: str, limit: int
+):
     """
     get_time_series: create a test state graph.
 
@@ -118,7 +137,9 @@ def get_time_series(analysis: SimpleAnalysis, serie: Serie, path: str, show: boo
     :param limit: nb max of run in the serie to query (use sys.maxsize for not
         limit).
     """
-    all_time_data: dict[int, dict[str, dict[str, str | int]]] = analysis.generate_serie_infos(serie.name, limit)
+    all_time_data: dict[int, dict[str, dict[str, str | int]]] = analysis.generate_serie_infos(
+        serie.name, limit
+    )
     group_jobs: dict[str, dict[str, dict[str, list[int]]]] = {}
     group_dates: dict[str, list[int]] = {}
 
@@ -138,11 +159,12 @@ def get_time_series(analysis: SimpleAnalysis, serie: Serie, path: str, show: boo
             if run_date not in group_dates[base_name]:
                 group_dates[base_name].append(run_date)
             if job_name not in group_jobs[base_name]:
-                group_jobs[base_name][job_name] = {"indexs": [],
-                                                   "times": []}
+                group_jobs[base_name][job_name] = {"indexs": [], "times": []}
             group_jobs[base_name][job_name]["indexs"].append(i)
-            if (job_data["status"] == Test.State.SUCCESS or
-                    job_data["status"] == Test.State.SOFT_TIMEOUT):
+            if (
+                job_data["status"] == Test.State.SUCCESS
+                or job_data["status"] == Test.State.SOFT_TIMEOUT
+            ):
                 group_jobs[base_name][job_name]["times"].append(job_data["time"])
             else:
                 group_jobs[base_name][job_name]["times"].append(None)

@@ -21,39 +21,37 @@ def create_app(iface):
     global data_manager
     data_manager = iface
 
-    app = Flask(__name__,
-                template_folder=os.path.join(PATH_INSTDIR,
-                                             "webview/templates"))
+    app = Flask(__name__, template_folder=os.path.join(PATH_INSTDIR, "webview/templates"))
 
     # app.config.from_object(...)
-    @app.route('/about')
+    @app.route("/about")
     def about():
         """Provide the about-us page.
 
         :return: webpage content
         :rtype: str
         """
-        return render_template('tbw.html')
+        return render_template("tbw.html")
 
-    @app.route('/doc')
+    @app.route("/doc")
     def doc():
         """Provide the doc page.
 
         :return: webpage content
         :rtype: str
         """
-        return render_template('tbw.html')
+        return render_template("tbw.html")
 
-    @app.route('/welcome')
-    @app.route('/main')
-    @app.route('/')
+    @app.route("/welcome")
+    @app.route("/main")
+    @app.route("/")
     def root():
         """Provide the main page.
 
         :return: webpage content
         :rtype: str
         """
-        if 'json' in request.args.get("render", []):
+        if "json" in request.args.get("render", []):
             return jsonify(list(data_manager.session_infos()))
         return render_template("main.html")
 
@@ -73,29 +71,32 @@ def create_app(iface):
         tags = data_manager.single_session_tags(sid)
         jobs_cnt = data_manager.single_session_job_cnt(sid)
 
-        if 'json' in request.args.get('render', []):
-            return jsonify({
-                "tag": len(tags),
-                "label": len(labels),
-                "test": jobs_cnt,
-                "config": data_manager.single_session_config(sid)
-            })
+        if "json" in request.args.get("render", []):
+            return jsonify(
+                {
+                    "tag": len(tags),
+                    "label": len(labels),
+                    "test": jobs_cnt,
+                    "config": data_manager.single_session_config(sid),
+                }
+            )
         return render_template(
-            'session_main.html',
+            "session_main.html",
             sid=sid,
             rootdir=data_manager.single_session_build_path(sid),
             nb_tests=jobs_cnt,
             nb_labels=len(labels),
-            nb_tags=len(tags))
+            nb_tags=len(tags),
+        )
 
-    @app.route('/compare')
+    @app.route("/compare")
     def compare():
         """Provide the archive comparaison interface.
 
         :return: webpage content
         :rtype: str
         """
-        return render_template('tbw.html')
+        return render_template("tbw.html")
 
     @app.route("/run/<sid>/<selection>/list")
     def get_list(sid: str, selection):
@@ -113,16 +114,14 @@ def create_app(iface):
         :return: web content
         :rtype: str
         """
-        if 'json' in request.args.get('render', []):
+        if "json" in request.args.get("render", []):
             out = []
-            infos = data_manager.single_session_get_view(sid,
-                                                         selection,
-                                                         summary=True)
+            infos = data_manager.single_session_get_view(sid, selection, summary=True)
             for k, v in infos.items():
                 out.append({"name": k, "count": v})
             return jsonify(out)
 
-        return render_template('list_view.html', sid=sid, selection=selection)
+        return render_template("list_view.html", sid=sid, selection=selection)
 
     @app.route("/run/<sid>/<selection>/detail")
     def get_details(sid: str, selection):
@@ -141,16 +140,16 @@ def create_app(iface):
         :rtype: str
         """
         out = []
-        request_item = request.args.get('name', None)
+        request_item = request.args.get("name", None)
 
-        if 'json' in request.args.get('render', []):
+        if "json" in request.args.get("render", []):
             # special case
             if selection == "status":
-                job_list = data_manager.single_session_status(
-                    sid, status_filter=request_item)
+                job_list = data_manager.single_session_status(sid, status_filter=request_item)
             else:
                 struct = data_manager.single_session_get_view(
-                    sid, selection, subset=request_item, summary=False)
+                    sid, selection, subset=request_item, summary=False
+                )
                 # jobs are returned split into 3 lists, depending on their status
                 # -> browse all three lists
                 if struct is None:
@@ -165,10 +164,9 @@ def create_app(iface):
 
             return jsonify(out)
 
-        return render_template("detailed_view.html",
-                               sid=sid,
-                               selection=selection,
-                               sel_item=request_item)
+        return render_template(
+            "detailed_view.html", sid=sid, selection=selection, sel_item=request_item
+        )
 
     @app.route("/submit/session_init", methods=["POST"])
     def submit_new_session():
@@ -220,6 +218,6 @@ def create_app(iface):
         :return: web content
         :rtype: str
         """
-        return render_template('404.html')
+        return render_template("404.html")
 
     return app

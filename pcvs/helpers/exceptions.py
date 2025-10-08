@@ -1,10 +1,12 @@
 class GenericException(Exception):
     """Generic error (custom errors will inherit of this)."""
 
-    def __init__(self,
-                 reason="Unkown error",
-                 help_msg="Please check pcvs --help for more information.",
-                 dbg_info={}):
+    def __init__(
+        self,
+        reason="Unkown error",
+        help_msg="Please check pcvs --help for more information.",
+        dbg_info={},
+    ):
         """Constructor for generic errors.
         :param *args: unused
         :param **kwargs: messages for the error.
@@ -59,17 +61,14 @@ class GenericException(Exception):
     @property
     def dbg_str(self):
         """Stringify the debug infos. These infos are stored as a dict
-initially.
+        initially.
 
-        :return: a itemized string.
-        :rtype: str"""
+                :return: a itemized string.
+                :rtype: str"""
         if not self._dbg_info:
             return " - None"
         w = max([len(k) for k in self._dbg_info.keys()])
-        return "\n".join([
-            " - {:<{w}}: {}".format(k, v, w=w)
-            for k, v in self._dbg_info.items()
-        ])
+        return "\n".join([" - {:<{w}}: {}".format(k, v, w=w) for k, v in self._dbg_info.items()])
 
 
 class CommonException(BaseException):
@@ -85,11 +84,14 @@ class CommonException(BaseException):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
-                help_msg="\n".join([
-                    "Note configuration, profiles & pcvs.* files can be ",
-                    "verified through `pcvs check [-C|-P|-D <path>]`"
-                ]),
-                dbg_info=kwargs)
+                help_msg="\n".join(
+                    [
+                        "Note configuration, profiles & pcvs.* files can be ",
+                        "verified through `pcvs check [-C|-P|-D <path>]`",
+                    ]
+                ),
+                dbg_info=kwargs,
+            )
 
     class UnclassifiableError(GenericException):
         """Unable to classify this common error."""
@@ -142,25 +144,22 @@ class ValidationException(CommonException):
 
         def __init__(self, reason="Invalid format", **kwargs):
             """Updated constructor"""
-            super().__init__(reason=reason,
-                             help_msg="\n".join([
-                                 "Input files may be checked with `pcvs check`"
-                             ]),
-                             dbg_info=kwargs)
+            super().__init__(
+                reason=reason,
+                help_msg="\n".join(["Input files may be checked with `pcvs check`"]),
+                dbg_info=kwargs,
+            )
 
     class WrongTokenError(GenericException):
         """A unknown token is found in valided content"""
 
-        def __init__(self,
-                     reason="Invalid token(s) used as Placeholders",
-                     **kwargs):
+        def __init__(self, reason="Invalid token(s) used as Placeholders", **kwargs):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
-                help_msg="\n".join([
-                    "A list of valid tokens is available in the documentation"
-                ]),
-                dbg_info=kwargs)
+                help_msg="\n".join(["A list of valid tokens is available in the documentation"]),
+                dbg_info=kwargs,
+            )
 
     class SchemeError(GenericException):
         """The content is not a valid format (scheme)."""
@@ -169,11 +168,14 @@ class ValidationException(CommonException):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
-                help_msg="\n".join([
-                    "Provided schemes should be static. If code haven't be",
-                    "changed, please report this error."
-                ]),
-                dbg_info=kwargs)
+                help_msg="\n".join(
+                    [
+                        "Provided schemes should be static. If code haven't be",
+                        "changed, please report this error.",
+                    ]
+                ),
+                dbg_info=kwargs,
+            )
 
 
 class RunException(CommonException):
@@ -182,31 +184,29 @@ class RunException(CommonException):
     class InProgressError(GenericException):
         """A run is currently occuring in the given dir."""
 
-        def __init__(
-                self,
-                reason="Build directory currently used by another instance",
-                **kwargs):
+        def __init__(self, reason="Build directory currently used by another instance", **kwargs):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
-                help_msg="\n".join([
-                    "Please Wait for previous executions to complete.",
-                    "You may also use --override or --output to change default build directory"
-                ]),
-                dbg_info=kwargs)
+                help_msg="\n".join(
+                    [
+                        "Please Wait for previous executions to complete.",
+                        "You may also use --override or --output to change default build directory",
+                    ]
+                ),
+                dbg_info=kwargs,
+            )
 
     class NonZeroSetupScript(GenericException):
         """a setup script (=pcvs.setup) completed but returned non-zero exit code."""
 
-        def __init__(self,
-                     reason="A setup script failed to complete",
-                     **kwargs):
+        def __init__(self, reason="A setup script failed to complete", **kwargs):
             """Updated constructor"""
-            super().__init__(reason=reason,
-                             help_msg="\n".join([
-                                 "Try to run manually the setup script below."
-                             ]),
-                             dbg_info=kwargs)
+            super().__init__(
+                reason=reason,
+                help_msg="\n".join(["Try to run manually the setup script below."]),
+                dbg_info=kwargs,
+            )
 
     class ProgramError(GenericException):
         """The given program cannot be found."""
@@ -215,12 +215,15 @@ class RunException(CommonException):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
-                help_msg="\n".join([
-                    "A program/binary defined in loaded profile cannot",
-                    "be found in $PATH or spack/module. Please report",
-                    "if this is a false warning."
-                ]),
-                dbg_info=kwargs)
+                help_msg="\n".join(
+                    [
+                        "A program/binary defined in loaded profile cannot",
+                        "be found in $PATH or spack/module. Please report",
+                        "if this is a false warning.",
+                    ]
+                ),
+                dbg_info=kwargs,
+            )
 
 
 class TestException(CommonException):
@@ -229,17 +232,17 @@ class TestException(CommonException):
     class TestExpressionError(GenericException):
         """Test description is wrongly formatted."""
 
-        def __init__(self, input_files,
-                     reason="Issue(s) while parsing a Test Descriptor",
-                     **kwargs):
+        def __init__(
+            self, input_files, reason="Issue(s) while parsing a Test Descriptor", **kwargs
+        ):
             """Updated constructor"""
-            super().__init__(reason=reason,
-                             help_msg="\n".join([
-                                 "Please check input files with `pcvs check`",
-                                 "Invalide files are:"
-                                 "{}"
-                             ]).format("\n".join(input_files)),
-                             dbg_info=kwargs)
+            super().__init__(
+                reason=reason,
+                help_msg="\n".join(
+                    ["Please check input files with `pcvs check`", "Invalide files are:", "{}"]
+                ).format("\n".join(input_files)),
+                dbg_info=kwargs,
+            )
 
 
 class OrchestratorException(CommonException):
@@ -294,12 +297,16 @@ class PluginException(CommonException):
 
         def __init__(self, reason="Issue(s) while loading plugin", **kwargs):
             """Updated constructor"""
-            super().__init__(reason=reason,
-                             help_msg="\n".join([
-                                 "Please ensure plugins can be imported like:",
-                                 "python3 ./path/to/plugin/file.py"
-                             ]),
-                             dbg_info=kwargs)
+            super().__init__(
+                reason=reason,
+                help_msg="\n".join(
+                    [
+                        "Please ensure plugins can be imported like:",
+                        "python3 ./path/to/plugin/file.py",
+                    ]
+                ),
+                dbg_info=kwargs,
+            )
 
 
 class GitException(CommonException):

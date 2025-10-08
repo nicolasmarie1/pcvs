@@ -20,6 +20,7 @@ class Set:
     :ivar _completed: True if all jobs have been executed
     :type _completed: bool
     """
+
     global_increment = 0
     comman: communications.GenericServer = None
 
@@ -44,6 +45,7 @@ class Set:
                  method will be required to ensure Runners have properly been
                  executed.
         """
+
         LOCAL = enum.auto()
         ALLOC = enum.auto()
         REMOTE = enum.auto()
@@ -60,8 +62,8 @@ class Set:
         self._map = dict()
 
         if not self.comman:
-            if GlobalConfig.root.get_internal('comman') is not None:
-                self.comman = GlobalConfig.root.get_internal('comman')
+            if GlobalConfig.root.get_internal("comman") is not None:
+                self.comman = GlobalConfig.root.get_internal("comman")
 
     @property
     def execmode(self) -> ExecMode:

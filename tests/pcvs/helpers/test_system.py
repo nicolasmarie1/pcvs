@@ -10,32 +10,35 @@ from pcvs.helpers import system
 
 def test_bootstrap_compiler():
     obj = system.MetaConfig()
-    obj.bootstrap_compiler({
-        "compilers": {
-            "cc": {
-                "program": "/path/to/cc",
-                "variants": {
-                    "openmp": {
-                        "args": "-fopenmp"
-                    }
+    obj.bootstrap_compiler(
+        {
+            "compilers": {
+                "cc": {
+                    "program": "/path/to/cc",
+                    "variants": {
+                        "openmp": {
+                            "args": "-fopenmp",
+                        },
+                    },
                 }
-            }
+            },
+            "package_manager": {
+                "spack": ["mypackage@myversion"],
+                "module": ["mod1", "mod2"],
+            },
         },
-        "package_manager": {
-            "spack": ["mypackage@myversion"],
-            "module": ["mod1", "mod2"]
-        }}, filepath=str(__file__)
+        filepath=str(__file__),
     )
-    assert isinstance(obj['compiler'], system.Config)
-    assert obj['compiler']['compilers']['cc']['program'] == "/path/to/cc"
-    assert obj['compiler']['compilers']['cc']['variants']['openmp']['args'] == "-fopenmp"
+    assert isinstance(obj["compiler"], system.Config)
+    assert obj["compiler"]["compilers"]["cc"]["program"] == "/path/to/cc"
+    assert obj["compiler"]["compilers"]["cc"]["variants"]["openmp"]["args"] == "-fopenmp"
 
-    assert isinstance(obj['compiler']['package_manager']['spack'], list)
-    assert len(obj['compiler']['package_manager']['spack']) == 1
-    assert isinstance(obj['compiler']['package_manager']['module'], list)
-    assert len(obj['compiler']['package_manager']['module']) == 2
+    assert isinstance(obj["compiler"]["package_manager"]["spack"], list)
+    assert len(obj["compiler"]["package_manager"]["spack"]) == 1
+    assert isinstance(obj["compiler"]["package_manager"]["module"], list)
+    assert len(obj["compiler"]["package_manager"]["module"]) == 2
 
-    package_array = obj.get_internal('cc_pm')
+    package_array = obj.get_internal("cc_pm")
     res = {}
     assert isinstance(package_array, list)
     assert len(package_array) == 3
@@ -51,28 +54,31 @@ def test_bootstrap_compiler():
 
 def test_bootstrap_runtime():
     obj = system.MetaConfig()
-    obj.bootstrap_runtime({
-        "program": "/path/to/rt",
-        "criterions": {
-            "n_mpi": {
-                "numeric": True
-            }
+    obj.bootstrap_runtime(
+        {
+            "program": "/path/to/rt",
+            "criterions": {
+                "n_mpi": {
+                    "numeric": True,
+                },
+            },
+            "package_manager": {
+                "spack": ["mypackage@myversion"],
+                "module": ["mod1", "mod2"],
+            },
         },
-        "package_manager": {
-            "spack": ["mypackage@myversion"],
-            "module": ["mod1", "mod2"]
-        }}, filepath=str(__file__)
+        filepath=str(__file__),
     )
-    assert isinstance(obj['runtime'], system.Config)
-    assert obj['runtime']['program'] == "/path/to/rt"
-    assert obj['runtime']['criterions']['n_mpi']['numeric']
+    assert isinstance(obj["runtime"], system.Config)
+    assert obj["runtime"]["program"] == "/path/to/rt"
+    assert obj["runtime"]["criterions"]["n_mpi"]["numeric"]
 
-    assert isinstance(obj['runtime']['package_manager']['spack'], list)
-    assert len(obj['runtime']['package_manager']['spack']) == 1
-    assert isinstance(obj['runtime']['package_manager']['module'], list)
-    assert len(obj['runtime']['package_manager']['module']) == 2
+    assert isinstance(obj["runtime"]["package_manager"]["spack"], list)
+    assert len(obj["runtime"]["package_manager"]["spack"]) == 1
+    assert isinstance(obj["runtime"]["package_manager"]["module"], list)
+    assert len(obj["runtime"]["package_manager"]["module"]) == 2
 
-    package_array = obj.get_internal('rt_pm')
+    package_array = obj.get_internal("rt_pm")
     res = {}
     assert isinstance(package_array, list)
     assert len(package_array) == 3
@@ -88,7 +94,9 @@ def test_bootstrap_runtime():
 
 @pytest.fixture
 def kw_keys():
-    return [f.replace('-scheme.yml', '') for f in os.listdir(os.path.join(PATH_INSTDIR, 'schemes/'))]
+    return [
+        f.replace("-scheme.yml", "") for f in os.listdir(os.path.join(PATH_INSTDIR, "schemes/"))
+    ]
 
 
 @pytest.fixture
@@ -113,12 +121,9 @@ def test_validate(kw_keys):  # pylint: disable=unused-argument,redefined-outer-n
             "cxx": {"program": "example"},
             "fc": {"program": "example"},
             "f77": {"program": "example"},
-            "f90": {"program": "example"}
+            "f90": {"program": "example"},
         },
-        "package_manager": {
-            "spack": ["example"],
-            "module": ["example"]
-        }
+        "package_manager": {"spack": ["example"], "module": ["example"]},
     }
     runtime = {
         "program": "example",
@@ -133,34 +138,21 @@ def test_validate(kw_keys):  # pylint: disable=unused-argument,redefined-outer-n
                     "ib": "example",
                     "tcp": "example",
                     "shmem": "example",
-                    "ptl": "example"
-                }
+                    "ptl": "example",
+                },
             }
         },
-        "package_manager": {
-            "spack": ["example"],
-            "module": ["example"]
-        }
+        "package_manager": {"spack": ["example"], "module": ["example"]},
     }
     criterion = {
-        "example": {
-            "values": [1, 2],
-            "subtitle": "example"
-        }
+        "example": {"values": [1, 2], "subtitle": "example"},
     }
     criterion_wrong = {
         "wrong-key": {
-            "example": {
-                "values": [1, 2],
-                "subtitle": "example"
-            }
-        }
+            "example": {"values": [1, 2], "subtitle": "example"},
+        },
     }
-    keywords = [
-        (compiler, "compiler"),
-        (runtime, "runtime"),
-        (criterion, "criterion")
-    ]
+    keywords = [(compiler, "compiler"), (runtime, "runtime"), (criterion, "criterion")]
     # for kw in ["compiler", "criterion", "group"]:
     #     with open(os.path.join(PATH_INSTDIR, "templates/{}-format.yml".format(kw))) as blk:
     #         to_validate = yaml.load(blk)

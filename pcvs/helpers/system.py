@@ -40,8 +40,8 @@ class ValidationScheme:
         """
         if not cls.avail_list:
             cls.avail_list = []
-            for f in os.listdir(os.path.join(PATH_INSTDIR, 'schemes/')):
-                cls.avail_list.append(f.replace('-scheme.yml', ''))
+            for f in os.listdir(os.path.join(PATH_INSTDIR, "schemes/")):
+                cls.avail_list.append(f.replace("-scheme.yml", ""))
 
         return cls.avail_list
 
@@ -55,15 +55,14 @@ class ValidationScheme:
         the YAML scheme file.
         """
         self.schema_name = name  # the name of the schema
-        self.schema = None       # the content of the schema
+        self.schema = None  # the content of the schema
 
         try:
-            path = os.path.join(PATH_INSTDIR, f'schemes/{name}-scheme.yml')
-            with open(path, 'r', encoding='utf-8') as fh:
-                self.schema = YAML(typ='safe').load(fh)
+            path = os.path.join(PATH_INSTDIR, f"schemes/{name}-scheme.yml")
+            with open(path, "r", encoding="utf-8") as fh:
+                self.schema = YAML(typ="safe").load(fh)
         except (IOError, YAMLError) as er:
-            raise ValidationException.SchemeError(
-                f"Unable to load scheme {name}") from er
+            raise ValidationException.SchemeError(f"Unable to load scheme {name}") from er
 
     def validate(self, content: dict, filepath: str):
         """
@@ -88,14 +87,15 @@ class ValidationScheme:
         except jsonschema.exceptions.ValidationError as e:
             raise ValidationException.FormatError(
                 reason=f"\nFailed to validate input file: '{filepath}'\n"
-                       f"Validation against schema '{self.schema_name}'\n"
-                       f"Context is: \n {content}\n"
-                       f"Schema is: \n {self.schema}\n"
-                       f"Validation error message is:\n {e.message}\n"
+                f"Validation against schema '{self.schema_name}'\n"
+                f"Context is: \n {content}\n"
+                f"Schema is: \n {self.schema}\n"
+                f"Validation error message is:\n {e.message}\n"
             ) from e
         except jsonschema.exceptions.SchemaError as e:
             raise ValidationException.SchemeError(
-                    name=self.schema_name, content=self.schema, error=e) from e
+                name=self.schema_name, content=self.schema, error=e
+            ) from e
 
 
 class Config(dict):
@@ -181,12 +181,13 @@ class Config(dict):
         :raises IOError: file does not exist OR badly formatted
         """
         try:
-            with open(filename, 'r') as fh:
-                d = YAML(typ='safe').load(fh)
+            with open(filename, "r") as fh:
+                d = YAML(typ="safe").load(fh)
                 self.from_dict(d)
         except (IOError, YAMLError) as error:
             raise CommonException.IOError(
-                "{} invalid or badly formatted".format(filename)) from error
+                "{} invalid or badly formatted".format(filename)
+            ) from error
 
 
 class MetaConfig(Config):
@@ -200,6 +201,7 @@ class MetaConfig(Config):
 
     The internal_config is used to initialize the internal config during unit test
     """
+
     validation_default_file = pcvs.PATH_VALCFG
 
     def __init__(self, d: dict = {}, internal_config: dict = {}):
@@ -234,11 +236,11 @@ class MetaConfig(Config):
     def bootstrap_from_profile(self, pf, filepath: str):
         """Bootstrap profile from dict"""
 
-        self.bootstrap_compiler(pf['compiler'], filepath)
-        self.bootstrap_runtime(pf['runtime'], filepath)
-        self.bootstrap_machine(pf.get('machine', {}), filepath)
-        self.bootstrap_criterion(pf['criterion'], filepath)
-        self.bootstrap_group(pf['group'], filepath)
+        self.bootstrap_compiler(pf["compiler"], filepath)
+        self.bootstrap_runtime(pf["runtime"], filepath)
+        self.bootstrap_machine(pf.get("machine", {}), filepath)
+        self.bootstrap_criterion(pf["criterion"], filepath)
+        self.bootstrap_group(pf["group"], filepath)
 
     def bootstrap_compiler(self, node, filepath: str):
         """
@@ -251,26 +253,26 @@ class MetaConfig(Config):
         :return: added node
         :rtype: dict
         """
-        subtree = self.bootstrap_generic('compiler', node, filepath)
-        if 'package_manager' in subtree:
-            self.set_internal('cc_pm', pm.identify(subtree['package_manager']))
+        subtree = self.bootstrap_generic("compiler", node, filepath)
+        if "package_manager" in subtree:
+            self.set_internal("cc_pm", pm.identify(subtree["package_manager"]))
         return subtree
 
     def bootstrap_runtime(self, node, filepath: str):
-        """"Specific initialize for runtime config block
+        """ "Specific initialize for runtime config block
         :param node: runtime block to initialize
         :type node: dict
         :param filepath: the path of the file node comme from
         :type filepath: str
         :return: added node
         :rtype: dict"""
-        subtree = self.bootstrap_generic('runtime', node, filepath)
-        if 'package_manager' in subtree:
-            self.set_internal('rt_pm', pm.identify(subtree['package_manager']))
+        subtree = self.bootstrap_generic("runtime", node, filepath)
+        if "package_manager" in subtree:
+            self.set_internal("rt_pm", pm.identify(subtree["package_manager"]))
         return subtree
 
     def bootstrap_group(self, node, filepath: str):
-        """"Specific initialize for group config block.
+        """ "Specific initialize for group config block.
         There is currently nothing to here but calling bootstrap_generic()
         :param node: runtime block to initialize
         :type node: dict
@@ -279,7 +281,7 @@ class MetaConfig(Config):
         :return: added node
         :rtype: dict
         """
-        return self.bootstrap_generic('group', node, filepath)
+        return self.bootstrap_generic("group", node, filepath)
 
     def bootstrap_validation_from_file(self, filepath: str):
         """
@@ -298,19 +300,18 @@ class MetaConfig(Config):
 
         if os.path.isfile(filepath):
             try:
-                with open(filepath, 'r', encoding='utf-8') as fh:
-                    node = YAML(typ='safe').load(fh)
+                with open(filepath, "r", encoding="utf-8") as fh:
+                    node = YAML(typ="safe").load(fh)
             except (IOError, YAMLError) as e:
-                raise CommonException.IOError(
-                    f"Error(s) found while loading {filepath}") from e
+                raise CommonException.IOError(f"Error(s) found while loading {filepath}") from e
 
         # some post-actions
         for field in ["output", "reused_build"]:
             if field in node:
                 node[field] = os.path.abspath(node[field])
 
-        if 'dirs' in node:
-            node['dirs'] = {k: os.path.abspath(v) for k, v in node['dirs'].items()}
+        if "dirs" in node:
+            node["dirs"] = {k: os.path.abspath(v) for k, v in node["dirs"].items()}
 
         return self.bootstrap_validation(node, filepath)
 
@@ -325,45 +326,42 @@ class MetaConfig(Config):
         :return: initialized node
         :rtype: dict
         """
-        subtree = self.bootstrap_generic('validation', node, filepath)
+        subtree = self.bootstrap_generic("validation", node, filepath)
 
         # Initialize default values when not set by user or default files
-        subtree.set_nosquash('verbose', str(Verbosity.COMPACT))
-        subtree.set_nosquash('print_level', 'none')
-        subtree.set_nosquash('color', True)
-        subtree.set_nosquash('default_profile', 'default')
-        subtree.set_nosquash('output', os.path.join(os.getcwd(), NAME_BUILDIR))
-        subtree.set_nosquash('background', False)
-        subtree.set_nosquash('override', False)
-        subtree.set_nosquash('dirs', None)
+        subtree.set_nosquash("verbose", str(Verbosity.COMPACT))
+        subtree.set_nosquash("print_level", "none")
+        subtree.set_nosquash("color", True)
+        subtree.set_nosquash("default_profile", "default")
+        subtree.set_nosquash("output", os.path.join(os.getcwd(), NAME_BUILDIR))
+        subtree.set_nosquash("background", False)
+        subtree.set_nosquash("override", False)
+        subtree.set_nosquash("dirs", None)
         subtree.set_nosquash("spack_recipe", None)
-        subtree.set_nosquash('simulated', False)
-        subtree.set_nosquash('anonymize', False)
-        subtree.set_nosquash('onlygen', False)
-        subtree.set_nosquash('timeout', None)
-        subtree.set_nosquash('target_bank', None)
-        subtree.set_nosquash('reused_build', None)
-        subtree.set_nosquash('webreport', None)
+        subtree.set_nosquash("simulated", False)
+        subtree.set_nosquash("anonymize", False)
+        subtree.set_nosquash("onlygen", False)
+        subtree.set_nosquash("timeout", None)
+        subtree.set_nosquash("target_bank", None)
+        subtree.set_nosquash("reused_build", None)
+        subtree.set_nosquash("webreport", None)
         subtree.set_nosquash("only_success", False)
         subtree.set_nosquash("enable_report", False)
-        subtree.set_nosquash('hard_timeout', 3600)
-        subtree.set_nosquash('soft_timeout', None)
-        subtree.set_nosquash('per_result_file_sz', 10 * 1024 * 1024)
-        subtree.set_nosquash('buildcache',
-                             os.path.join(subtree['output'], 'cache'))
-        subtree.set_nosquash('result', {"format": ['json']})
+        subtree.set_nosquash("hard_timeout", 3600)
+        subtree.set_nosquash("soft_timeout", None)
+        subtree.set_nosquash("per_result_file_sz", 10 * 1024 * 1024)
+        subtree.set_nosquash("buildcache", os.path.join(subtree["output"], "cache"))
+        subtree.set_nosquash("result", {"format": ["json"]})
         subtree.set_nosquash(
-            'author', {
-                "name": git.get_current_username(),
-                "email": git.get_current_usermail()
-            })
+            "author", {"name": git.get_current_username(), "email": git.get_current_usermail()}
+        )
 
-        if 'format' not in subtree['result']:
-            subtree['result']['format'] = ['json']
-        if 'log' not in subtree['result']:
-            subtree['result']['log'] = 1
-        if 'logsz' not in subtree['result']:
-            subtree['result']['logsz'] = 1024
+        if "format" not in subtree["result"]:
+            subtree["result"]["format"] = ["json"]
+        if "log" not in subtree["result"]:
+            subtree["result"]["log"] = 1
+        if "logsz" not in subtree["result"]:
+            subtree["result"]["logsz"] = 1024
 
         return subtree
 
@@ -378,37 +376,34 @@ class MetaConfig(Config):
         :return: initialized node
         :rtype: dict
         """
-        subtree = self.bootstrap_generic('machine', node, filepath)
-        subtree.set_nosquash('name', 'default')
-        subtree.set_nosquash('nodes', 1)
-        subtree.set_nosquash('cores_per_node', 1)
-        subtree.set_nosquash('concurrent_run', 1)
+        subtree = self.bootstrap_generic("machine", node, filepath)
+        subtree.set_nosquash("name", "default")
+        subtree.set_nosquash("nodes", 1)
+        subtree.set_nosquash("cores_per_node", 1)
+        subtree.set_nosquash("concurrent_run", 1)
 
-        if 'default_partition' not in subtree or 'partitions' not in subtree:
+        if "default_partition" not in subtree or "partitions" not in subtree:
             return
 
         # override default values by selected partition
         for elt in subtree.partitions:
-            if elt.get('name',
-                       subtree.default_partition) == subtree.default_partition:
+            if elt.get("name", subtree.default_partition) == subtree.default_partition:
                 subtree.update(elt)
                 break
 
         # redirect to direct programs if no wrapper is defined
-        for kind in ['allocate', 'run', 'batch']:
-            if not subtree.job_manager[kind].wrapper and subtree.job_manager[
-                    kind].program:
-                subtree.job_manager[kind].wrapper = subtree.job_manager[
-                    kind].program
+        for kind in ["allocate", "run", "batch"]:
+            if not subtree.job_manager[kind].wrapper and subtree.job_manager[kind].program:
+                subtree.job_manager[kind].wrapper = subtree.job_manager[kind].program
         return subtree
 
     def bootstrap_criterion(self, node, filepath: str):
-        """"Specific initialize for criterion config block
+        """ "Specific initialize for criterion config block
         :param node: criterion block to initialize
         :type node: dict
         :return: initialized node
         :rtype: dict"""
-        return self.bootstrap_generic('criterion', node, filepath)
+        return self.bootstrap_generic("criterion", node, filepath)
 
     def set_internal(self, k, v):
         """manipulate the internal MetaConfig() node to store not-exportable data

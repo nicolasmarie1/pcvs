@@ -14,8 +14,9 @@ yml = YAML()
 
 
 def session_file_hash(session_infos):
-    return hashlib.sha1("{}:{}".format(
-        session_infos["path"], session_infos["started"]).encode()).hexdigest()
+    return hashlib.sha1(
+        "{}:{}".format(session_infos["path"], session_infos["started"]).encode()
+    ).hexdigest()
 
 
 def store_session_to_file(c) -> int:
@@ -100,7 +101,7 @@ def list_alive_sessions():
     all_sessions = {}
 
     for f in os.listdir(PATH_SESSION):
-        assert (os.path.splitext(f) not in all_sessions)
+        assert os.path.splitext(f) not in all_sessions
         try:
             with open(os.path.join(PATH_SESSION, f), "r") as fh:
                 data = yml.load(fh)
@@ -143,15 +144,9 @@ def main_detached_session(sid, user_func, *args, **kwargs):
         # beware: this function should only raises exception to stop.
         # a sys.exit() will bypass the rest here.
         ret = user_func(*args, **kwargs)
-        update_session_from_file(sid, {
-            'state': Session.State.COMPLETED,
-            'ended': datetime.now()
-        })
+        update_session_from_file(sid, {"state": Session.State.COMPLETED, "ended": datetime.now()})
     except Exception as e:
-        update_session_from_file(sid, {
-            'state': Session.State.ERROR,
-            'ended': datetime.now()
-        })
+        update_session_from_file(sid, {"state": Session.State.ERROR, "ended": datetime.now()})
         raise e
 
     return ret
@@ -175,6 +170,7 @@ class Session:
     @yaml_object(yml)
     class State(IntEnum):
         """Enum of possible Session states."""
+
         WAITING = 0
         IN_PROGRESS = 1
         COMPLETED = 2
@@ -192,8 +188,7 @@ class Session:
             :return: the YAML representation
             :rtype: Any
             """
-            return representer.represent_scalar(
-                '!State', '{}||{}'.format(data.name, data.value))
+            return representer.represent_scalar("!State", "{}||{}".format(data.name, data.value))
 
         @classmethod
         def from_yaml(cls, constructor, node):
@@ -208,9 +203,9 @@ class Session:
             :rtype: :class:`Session.State`
             """
             s = constructor.construct_scalar(node)
-            name, value = s.split('||')
+            name, value = s.split("||")
             obj = Session.State(int(value))
-            assert (obj.name == name)
+            assert obj.name == name
 
             return obj
 
@@ -229,7 +224,7 @@ class Session:
         :return: session status
         :rtype: int
         """
-        return self._session_infos['state']
+        return self._session_infos["state"]
 
     @property
     def id(self):
@@ -266,7 +261,7 @@ class Session:
         :return: the requested session infos if exist
         :rtype: Any
         """
-        assert (kw in self._session_infos)
+        assert kw in self._session_infos
         return self._session_infos[kw]
 
     def __init__(self, date=None, path="."):
@@ -288,7 +283,7 @@ class Session:
             "progress": 0,
             "state": Session.State.WAITING,
             "started": date,
-            "ended": None
+            "ended": None,
         }
 
     def load_from(self, sid, data):
@@ -324,23 +319,23 @@ class Session:
         :rtype: int
         """
         io.detach_console()
-        self._session_infos['io'] = io.console.outfile
+        self._session_infos["io"] = io.console.outfile
 
         if self._func is not None:
             # some sessions can have their starting time set directly when
             # initializing the object.
             # for instance for runs, elapsed time not session time but wall time"""
-            if self.property('started') is None:
-                self._session_infos['started'] = datetime.now()
+            if self.property("started") is None:
+                self._session_infos["started"] = datetime.now()
 
             # flag it as running & make the info public
-            self._session_infos['state'] = self.State.IN_PROGRESS
+            self._session_infos["state"] = self.State.IN_PROGRESS
             self._sid = store_session_to_file(self._session_infos)
 
             # run the new process
-            child = Process(target=main_detached_session,
-                            args=(self._sid, self._func, *args),
-                            kwargs=kwargs)
+            child = Process(
+                target=main_detached_session, args=(self._sid, self._func, *args), kwargs=kwargs
+            )
 
             child.start()
 
@@ -362,10 +357,10 @@ class Session:
         """
         if self._func is not None:
             # same as above, shifted starting time or not
-            if self.property('started') is None:
-                self._session_infos['started'] = datetime.now()
+            if self.property("started") is None:
+                self._session_infos["started"] = datetime.now()
 
-            self._session_infos['state'] = self.State.IN_PROGRESS
+            self._session_infos["state"] = self.State.IN_PROGRESS
             self._sid = store_session_to_file(self._session_infos)
 
             # run the code

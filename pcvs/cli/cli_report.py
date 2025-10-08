@@ -8,22 +8,34 @@ from pcvs.ui.textual import textual_avail
 
 try:
     import rich_click as click
+
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
     import click
 
 
-@click.command('report', short_help="Manage PCVS result reporting interface")
-@click.option("-s", "--static-pages", "static", flag_value=".", default=None)
-@click.argument("path_list",
-                nargs=-1,
-                required=False,
-                type=click.Path(exists=True))
+@click.command(
+    "report",
+    short_help="Manage PCVS result reporting interface",
+)
+@click.option(
+    "-s",
+    "--static-pages",
+    "static",
+    flag_value=".",
+    default=None,
+)
+@click.argument(
+    "path_list",
+    nargs=-1,
+    required=False,
+    type=click.Path(exists=True),
+)
 @click.pass_context
 def report(ctx, path_list, static):
     """Start a webserver to browse result during or after execution.
 
-     Listens by default to http://localhost:5000/"""
+    Listens by default to http://localhost:5000/"""
     if not path_list:
         path_list = [os.getcwd()]
     inputs = list()
@@ -34,18 +46,17 @@ def report(ctx, path_list, static):
         # provide a valid archive-formatted file
         if utils.check_is_build_or_archive(prefix):
             inputs.append(os.path.abspath(prefix))
-        elif utils.check_is_build_or_archive(os.path.join(
-                prefix, NAME_BUILDIR)):
+        elif utils.check_is_build_or_archive(os.path.join(prefix, NAME_BUILDIR)):
             inputs.append(os.path.abspath(os.path.join(prefix, NAME_BUILDIR)))
         else:
-            raise click.BadArgumentUsage(
-                '{} is not a build directory.'.format(prefix))
+            raise click.BadArgumentUsage("{} is not a build directory.".format(prefix))
 
-    if ctx.obj['tui']:
+    if ctx.obj["tui"]:
         if not textual_avail:
             raise click.BadOptionUsage("--tui", "Textual is not available.")
 
         from pcvs.ui.textual import report as gui
+
         return gui.start_app(inputs)
 
     if static:

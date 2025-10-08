@@ -4,7 +4,7 @@ from pcvs.dsl import Run
 from pcvs.dsl import Serie
 
 # open a bank
-bank = Bank('./demo.git')
+bank = Bank("./demo.git")
 
 # retrieve project/configs within the bank
 # a given serie is identified by:

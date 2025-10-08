@@ -35,7 +35,7 @@ exit 42
 
 def help_create_setup_file(path, s):
     os.makedirs(os.path.dirname(path))
-    with open(path, 'w') as fh:
+    with open(path, "w") as fh:
         fh.write(s)
     os.chmod(path, stat.S_IRUSR | stat.S_IXUSR)
 
@@ -43,28 +43,28 @@ def help_create_setup_file(path, s):
 @pytest.fixture
 def mock_config():
     with CliRunner().isolated_filesystem():
-        with patch.object(pcvs.helpers.system.GlobalConfig, 'root', MetaConfig(
-            {
-                'compiler': {
-                    'compilers': {}
+        with patch.object(
+            pcvs.helpers.system.GlobalConfig,
+            "root",
+            MetaConfig(
+                {
+                    "compiler": {"compilers": {}},
+                    "criterion": {},
+                    "validation": {
+                        "output": os.getcwd(),
+                        "dirs": {"L1": os.getcwd()},
+                        "datetime": datetime.now(),
+                        "buildcache": os.path.join(os.getcwd(), "buildcache"),
+                    },
                 },
-                'criterion': {},
-                'validation': {
-                    'output': os.getcwd(),
-                    'dirs': {'L1': os.getcwd()},
-                    'datetime': datetime.now(),
-                    'buildcache': os.path.join(os.getcwd(), "buildcache")
-                }
-            },
-            {
-                'pColl': Collection()
-            }
-        )):
+                {"pColl": Collection()},
+            ),
+        ):
             yield {}
 
 
 def test_process_setup_scripts(mock_config):  # pylint: disable=unused-argument,redefined-outer-name
-    d = os.path.join(GlobalConfig.root['validation']['dirs']['L1'], "subtree")
+    d = os.path.join(GlobalConfig.root["validation"]["dirs"]["L1"], "subtree")
     f = os.path.join(d, "pcvs.setup")
     help_create_setup_file(f, good_content)
     pcvs.io.init()
@@ -72,8 +72,10 @@ def test_process_setup_scripts(mock_config):  # pylint: disable=unused-argument,
         tested.unsafe_process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
 
 
-def test_process_bad_setup_script(mock_config):  # pylint: disable=unused-argument,redefined-outer-name
-    d = os.path.join(GlobalConfig.root['validation']['dirs']['L1'], "subtree")
+def test_process_bad_setup_script(
+    mock_config,
+):  # pylint: disable=unused-argument,redefined-outer-name
+    d = os.path.join(GlobalConfig.root["validation"]["dirs"]["L1"], "subtree")
     f = os.path.join(d, "pcvs.setup")
     help_create_setup_file(f, bad_script)
     pcvs.io.init()
@@ -83,8 +85,10 @@ def test_process_bad_setup_script(mock_config):  # pylint: disable=unused-argume
         pass
 
 
-def test_process_wrong_setup_script(mock_config):  # pylint: disable=unused-argument,redefined-outer-name
-    d = os.path.join(GlobalConfig.root['validation']['dirs']['L1'], "subtree")
+def test_process_wrong_setup_script(
+    mock_config,
+):  # pylint: disable=unused-argument,redefined-outer-name
+    d = os.path.join(GlobalConfig.root["validation"]["dirs"]["L1"], "subtree")
     f = os.path.join(d, "pcvs.setup")
     help_create_setup_file(f, bad_output)
     pcvs.io.init()
