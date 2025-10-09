@@ -110,6 +110,17 @@ class TheConsole(Console):
     :type Console: Console
     """
 
+    # Should match ALL_STATES in pcvs.testing.test.Test
+    # Can't import that here as it would create circular dependency
+    ALL_STATES = [
+        "SUCCESS",
+        "FAILURE",
+        "ERR_DEP",
+        "HARD_TIMEOUT",
+        "SOFT_TIMEOUT",
+        "ERR_OTHER",
+    ]
+
     def __init__(self, **kwargs) -> None:
         """
         Build a new Console.
@@ -289,86 +300,54 @@ class TheConsole(Console):
     def print_box(self, txt, *args, **kwargs):
         self.print(Panel.fit(txt, *args, **kwargs))
 
+    def update_job_table(self):
+        table = Table(expand=True, box=box.SIMPLE)
+        table.add_column("Name", justify="left", ratio=10)
+        for state in TheConsole.ALL_STATES:
+            table.add_column(state, justify="center")
+        for label, lvalue in self.summary_table.items():
+            for subtree, svalue in lvalue.items():
+                if sum(svalue.values()) == svalue.get("SUCCESS", 0):
+                    colour = "green"
+                elif svalue.get("FAILURE", 0) > 0:
+                    colour = "red"
+                else:
+                    colour = "yellow"
+                columns_list = [f"[{colour} bold]{x}" for x in svalue.values()]
+                table.add_row(f"[{colour} bold]{label}{subtree}", *columns_list)
+
+        self._display_table = Table.grid(expand=True)
+        self._display_table.add_row(table)
+        self._display_table.add_row(Panel(self._progress))
+
+    def print_job_table(self, state, test_label, test_subtree):
+        self.summary_table.setdefault(test_label, {})
+        self.summary_table[test_label].setdefault(
+            test_subtree,
+            {label: 0 for label in TheConsole.ALL_STATES},
+        )
+        self.summary_table[test_label][test_subtree][str(state)] += 1
+
+        self.update_job_table()
+
     def print_job(
         self,
+        status_str,
         state,
-        time,
         tlabel,
         tsubtree,
-        tname,
-        timeout=0,
-        colorname="red",
-        icon=None,
         content=None,
     ):
-        if icon is not None:
-            icon = self.utf(icon)
-
         if self._verbose >= Verbosity.DETAILED:
-            self.print(
-                "[{} bold]   {} {:8.2f}s{}{:7}{}{}{}".format(
-                    colorname,
-                    icon,
-                    time,
-                    self.utf("sep_v"),
-                    state,
-                    f" ({timeout:5.2f}s)" if timeout > 0 else "",
-                    self.utf("sep_v"),
-                    tname,
-                )
-            )
+            self.print(status_str)
             if content:
                 # print raw input
                 # parsing on uncontrolled output may lead to errors
                 self.out(content)
         else:
-            self.summary_table.setdefault(tlabel, {})
-            self.summary_table[tlabel].setdefault(
-                tsubtree,
-                {
-                    label: 0
-                    for label in [
-                        "SUCCESS",
-                        "FAILURE",
-                        "ERR_DEP",
-                        "HARD_TIMEOUT",
-                        "SOFT_TIMEOUT",
-                        "ERR_OTHER",
-                    ]
-                },
-            )
-
-            self.summary_table[tlabel][tsubtree][state] += 1
-
-            def regenerate_table():
-                table = Table(expand=True, box=box.SIMPLE)
-                table.add_column("Name", justify="left", ratio=10)
-                table.add_column("SUCCESS", justify="center")
-                table.add_column("FAILURE", justify="center")
-                table.add_column("ERR_DEP", justify="center")
-                table.add_column("HARD_TIMEOUT", justify="center")
-                table.add_column("SOFT_TIMEOUT", justify="center")
-                table.add_column("ERR_OTHER", justify="center")
-                for label, lvalue in self.summary_table.items():
-                    for subtree, svalue in lvalue.items():
-                        if sum(svalue.values()) == svalue.get("SUCCESS", 0):
-                            colour = "green"
-                        elif svalue.get("FAILURE", 0) > 0:
-                            colour = "red"
-                        else:
-                            colour = "yellow"
-                        columns_list = ["[{} bold]{}".format(colour, x) for x in svalue.values()]
-                        table.add_row("[{} bold]{}{}".format(colour, label, subtree), *columns_list)
-                return table
-
-            self._reset_display_table(regenerate_table())
+            self.print_job_table(state, tlabel, tsubtree)
         self._progress.advance(self._singletask)
         self.live.update(self._display_table)
-
-    def _reset_display_table(self, table):
-        self._display_table = Table.grid(expand=True)
-        self._display_table.add_row(table)
-        self._display_table.add_row(Panel(self._progress))
 
     def table_container(self, total) -> Live:
         self._progress = Progress(
@@ -381,7 +360,7 @@ class TheConsole(Console):
         )
         self._singletask = self._progress.add_task("Progress", total=int(total))
 
-        self._reset_display_table(Table())
+        self.update_job_table()
         self.live = Live(self._display_table, console=self)
         return self.live
 

@@ -91,6 +91,15 @@ class Test:
         State.HARD_TIMEOUT,
     ]
 
+    ALL_STATES = [
+        State.SUCCESS,
+        State.FAILURE,
+        State.ERR_DEP,
+        State.HARD_TIMEOUT,
+        State.SOFT_TIMEOUT,
+        State.ERR_OTHER,
+    ]
+
     def __init__(self, **kwargs):
         """constructor method.
 
@@ -539,21 +548,26 @@ class Test:
             return True
         return False
 
-    def display(self):
-        """Print the Test into stdout (through the manager)."""
-        colorname = "yellow"
-        icon = ""
+    def get_state_fancy(self):
+        """Get the label, color & icon representing the status of the test."""
         label = str(self._state)
-        raw_output = None
+        color = "yellow"
+        icon = ""
+
         if self._state == Test.State.SUCCESS:
-            colorname = "green"
+            color = "green"
             icon = "succ"
         elif self._state in [Test.State.FAILURE, Test.State.HARD_TIMEOUT]:
-            colorname = "red"
+            color = "red"
             icon = "fail"
         elif self._state in [Test.State.ERR_DEP, Test.State.ERR_OTHER, Test.State.SOFT_TIMEOUT]:
-            colorname = "yellow"
+            color = "yellow"
             icon = "fail"
+        return (label, color, io.console.utf(icon))
+
+    def get_testinfo_fancy(self):
+        label, color, icon = self.get_state_fancy()
+
         if self._state == Test.State.HARD_TIMEOUT:
             timeout = self.hard_timeout
         elif self._state == Test.State.SOFT_TIMEOUT:
@@ -561,20 +575,24 @@ class Test:
         else:
             timeout = 0
         assert isinstance(timeout, int)
+        timeout_str = f" ({timeout:5.2f}s)" if timeout > 0 else ""
 
+        sep = io.console.utf("sep_v")
+        return f"[{color} bold]   {icon} {self._exectime:8.2f}s{sep}{label:7}{timeout_str}{sep}{self.name}"
+
+    def display(self):
+        """Print the Test into stdout (through the manager)."""
+
+        raw_output = None
         if self.should_print():
             raw_output = self.output
 
         io.console.print_job(
-            label,
-            self._exectime,
+            self.get_testinfo_fancy(),
+            self._state,
             self.label,
             "/{}".format(self.subtree) if self.subtree else "",
-            self.name,
-            timeout,
-            colorname=colorname,
-            icon=icon,
-            content=raw_output,
+            raw_output,
         )
 
     def been_executed(self):
