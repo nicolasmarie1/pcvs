@@ -1,4 +1,57 @@
 ---
+.validation: &validation
+  type: object
+  properties:
+    expect_exit:
+      type: integer
+    time:
+      type: object
+      properties:
+        mean:
+          type: number
+          minimum: 0
+        tolerance:
+          type: number
+          minimum: 0
+        coef:
+          type: number
+          minimum: 0
+        soft_timeout:
+          typr: number
+          minimum: 0
+        hard_timeout:
+          type: number
+          minimum: 0
+      additionalProperties: false
+    match:
+      type: object
+      patternProperties:
+        "^.*$":
+          type: object
+          properties:
+            expr:
+              type: string
+            expect:
+              type: boolean
+          additionalProperties: false
+      additionalProperties: false
+    analysis:
+      type: object
+      properties:
+        method: {type: string}
+        args:
+          type: object
+          patternProperties:
+            "^.*$":
+              OneOf: [{type: string}, {type: int}, {type: float}]
+    script:
+      type: object
+      properties:
+        path:
+          type: string
+      additionalProperties: false
+  additionalProperties: false
+
 type: object
 patternProperties:
   "^[^\\.].*$":
@@ -116,6 +169,8 @@ patternProperties:
                 - {type: array, items: {type: string}}
                 - {type: string}
             additionalProperties: false
+          validate:
+            *validation
         additionalProperties: false
       run:
         type: object
@@ -192,54 +247,7 @@ patternProperties:
             additionalProperties: false
         additionalProperties: false
       validate:
-        type: object
-        properties:
-          expect_exit:
-            type: integer
-          time:
-            type: object
-            properties:
-              mean:
-                type: number
-                minimum: 0
-              tolerance:
-                type: number
-                minimum: 0
-              soft_timeout:
-                typr: number
-                minimum: 0
-              hard_timeout:
-                type: number
-                minimum: 0
-            additionalProperties: false
-          match:
-            type: object
-            patternProperties:
-              "^.*$":
-                type: object
-                properties:
-                  expr:
-                    type: string
-                  expect:
-                    type: boolean
-                additionalProperties: false
-            additionalProperties: false
-          analysis:
-            type: object
-            properties:
-              method: {type: string}
-              args:
-                type: object
-                patternProperties:
-                  "^.*$":
-                    OneOf: [{type: string}, {type: int}, {type: float}]
-          script:
-            type: object
-            properties:
-              path:
-                type: string
-            additionalProperties: false
-        additionalProperties: false
+        *validation
       artifact:
         type: object
         patternProperties:

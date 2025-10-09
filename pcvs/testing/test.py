@@ -145,19 +145,24 @@ class Test:
             "artifacts": kwargs.get("artifacts", {}),
         }
 
-        self._validation = {
-            "matchers": kwargs.get("matchers"),
-            "analysis": kwargs.get("analysis"),
-            "script": kwargs.get("valscript"),
-            "expect_rc": kwargs.get("rc", 0),
-            "time": kwargs.get("time_mean", -1),
-            "delta": kwargs.get("time_delta", 0),
-            "coef": kwargs.get("time_coef", 1.5),
-        }
+        # validation parsing start:
+        validation = kwargs.get("validation", {})
+        self._expect_rc = validation.get("expect_exit", 0)
+        self._time_validation = None
+        if "time" in validation:
+            self._time_validation = {
+                "mean": validation["time"].get("mean", -1),
+                "tolerance": validation["time"].get("tolerance", 0),
+                "coef": validation["time"].get("coef", 1.5),
+            }
+        self._soft_timeout = validation.get("time", {}).get("soft_timeout", None)
+        self._hard_timeout = validation.get("time", {}).get("hard_timeout", None)
+        self._matchers = validation.get("match", None)
+        self._analysis = validation.get("analysis", None)
+        self._script = validation.get("script", {}).get("path", None)
+        # validation pasring end
 
         self._has_hard_timeout = False
-        self._hard_timeout = kwargs.get("hard_timeout", None)
-        self._soft_timeout = kwargs.get("soft_timeout", None)
 
         self._mod_deps = kwargs.get("mod_deps", [])
         self._depnames = kwargs.get("job_deps", [])
@@ -377,8 +382,10 @@ class Test:
         # 3. set by default (GlobalConfig.root.validation.job_timeout)
         if self._soft_timeout:
             return self._soft_timeout
-        if self._validation["time"] > 0:
-            return (self._validation["time"] + self._validation["delta"]) * self._validation["coef"]
+        if self._time_validation and self._time_validation["mean"] > 0:
+            return (
+                self._time_validation["mean"] + self._time_validation["tolerance"]
+            ) * self._time_validation["coef"]
         return GlobalConfig.root["validation"]["soft_timeout"]
 
     @property
@@ -427,9 +434,7 @@ class Test:
         :type state: :class:`Test.State`, optional
         """
         if state is None:
-            state = (
-                Test.State.SUCCESS if self._validation["expect_rc"] == rc else Test.State.FAILURE
-            )
+            state = Test.State.SUCCESS if self._expect_rc == rc else Test.State.FAILURE
 
         self.save_raw_run(rc=rc, out=out, time=time)
         self.save_status(state)
@@ -474,14 +479,14 @@ class Test:
         state = Test.State.SUCCESS
 
         # validation by return code
-        if self._validation["expect_rc"] != self._rc:
+        if self._expect_rc != self._rc:
             state = Test.State.FAILURE
 
         raw_output = self.output
 
         # validation through a matching regex
-        if state == Test.State.SUCCESS and self._validation["matchers"] is not None:
-            for _, v in self._validation["matchers"].items():
+        if state == Test.State.SUCCESS and self._matchers is not None:
+            for _, v in self._matchers.items():
                 expected = v.get("expect", True) is True
                 found = re.search(v["expr"], raw_output)
                 io.console.debug(
@@ -492,19 +497,18 @@ class Test:
                     break
 
         # validation throw a plugin
-        if state == Test.State.SUCCESS and self._validation["analysis"] is not None:
-            analysis = self._validation["analysis"]
+        if state == Test.State.SUCCESS and self._analysis is not None:
             res = GlobalConfig.root.get_internal("pColl").invoke_plugins(
-                Plugin.Step.TEST_RESULT_EVAL, analysis=analysis, job=self
+                Plugin.Step.TEST_RESULT_EVAL, analysis=self._analysis, job=self
             )
             if res is not None:
                 state, self._soft_timeout = res
 
         # validation throw a custom script
-        if state == Test.State.SUCCESS and self._validation["script"] is not None:
-            p = Program(self._validation["script"])
+        if state == Test.State.SUCCESS and self._script is not None:
+            p = Program(self._script)
             p.run()
-            if self._validation["expect_rc"] != p.rc:
+            if self._expect_rc != p.rc:
                 state = Test.State.FAILURE
 
         # if the test succeed, check for soft timeout

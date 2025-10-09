@@ -200,6 +200,7 @@ class TEDescriptor:
         self._build = node.get("build", {})
         self._run = node.get("run", {})
         self._validation = node.get("validate", {})
+        self._build_validation = self._build.get("validate", {})
         self._artifacts = node.get("artifact", {})
         self._metrics = node.get("metrics", {})
         self._attributes = node.get("attributes", {})
@@ -534,14 +535,10 @@ class TEDescriptor:
             tags=tags,
             job_deps=job_deps,
             mod_deps=mod_deps,
-            time_mean=self._validation.get("time", {}).get("mean", -1),
-            time_delta=self._validation.get("time", {}).get("tolerance", 0),
-            time_coef=self._validation.get("time", {}).get("coef", 1.5),
-            rc=0,
             artifacts=self._artifacts,
-            analysis=self._validation.get("analysis", {}),
             resources=[1, jobs],  # 1 node / jobs cores.
             wd=chdir,
+            validation=self._build_validation,
         )
 
     def __construct_runtime_tests(self, series):
@@ -601,19 +598,11 @@ class TEDescriptor:
                 tags=self._tags,
                 metrics=self._metrics,
                 environment=env,
-                time_mean=self._validation.get("time", {}).get("mean", -1),
-                time_delta=self._validation.get("time", {}).get("tolerance", 0),
-                time_coef=self._validation.get("time", {}).get("coef", 1.5),
-                hard_timeout=self._validation.get("time", {}).get("hard_timeout", None),
-                soft_timeout=self._validation.get("time", {}).get("soft_timeout", None),
-                rc=self._validation.get("expect_exit", 0),
-                valscript=self._validation.get("script", {}).get("path", None),
-                analysis=self._validation.get("analysis", {}),
                 comb=comb,
                 resources=comb.resources if comb.resources is not None else [1, 1],
                 wd=chdir,
+                validation=self._validation,
                 artifacts=self._artifacts,
-                matchers=self._validation.get("match", None),
             )
 
     @io.capture_exception(Exception, doexit=True)
