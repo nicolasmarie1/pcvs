@@ -12,7 +12,7 @@ from typing import Iterable
 from typing import Optional
 
 import click
-import rich.box as box
+from rich import box
 from rich.console import Console
 from rich.live import Live
 from rich.logging import RichHandler
@@ -136,7 +136,6 @@ class TheConsole(Console):
         :param kwargs: any argument to be forwarded to Rich Console as dict
         :type kwargs: dict
         """
-        self._display_table = None
         self._progress = None
         self._singletask = None
         self.live = None
@@ -300,7 +299,21 @@ class TheConsole(Console):
     def print_box(self, txt, *args, **kwargs):
         self.print(Panel.fit(txt, *args, **kwargs))
 
-    def update_job_table(self):
+    def _get_display_table(self, include_jobs: bool = False):
+        """Get the table to display for live update.
+
+        May include the job table.
+        """
+        table = Table.grid(expand=True)
+        if include_jobs:
+            table.add_row(self._get_job_table())
+        else:
+            table.add_row()
+        table.add_row(self._progress)
+        return table
+
+    def _get_job_table(self) -> Table:
+        """Transform job data table into a job view table."""
         table = Table(expand=True, box=box.SIMPLE)
         table.add_column("Name", justify="left", ratio=10)
         for state in TheConsole.ALL_STATES:
@@ -315,20 +328,16 @@ class TheConsole(Console):
                     colour = "yellow"
                 columns_list = [f"[{colour} bold]{x}" for x in svalue.values()]
                 table.add_row(f"[{colour} bold]{label}{subtree}", *columns_list)
+        return table
 
-        self._display_table = Table.grid(expand=True)
-        self._display_table.add_row(table)
-        self._display_table.add_row(Panel(self._progress))
-
-    def print_job_table(self, state, test_label, test_subtree):
+    def _insert_job_table(self, state, test_label, test_subtree):
+        """Insert a job in the job table progress display when running on low verbosity level or at end of run."""
         self.summary_table.setdefault(test_label, {})
         self.summary_table[test_label].setdefault(
             test_subtree,
             {label: 0 for label in TheConsole.ALL_STATES},
         )
         self.summary_table[test_label][test_subtree][str(state)] += 1
-
-        self.update_job_table()
 
     def print_job(
         self,
@@ -338,16 +347,21 @@ class TheConsole(Console):
         tsubtree,
         content=None,
     ):
-        if self._verbose >= Verbosity.DETAILED:
+        # Update Job data table.
+        self._insert_job_table(state, tlabel, tsubtree)
+        # Update progress bar.
+        self._progress.advance(self._singletask)
+        if self.verb_detailed:
+            # test status
             self.print(status_str)
             if content:
-                # print raw input
-                # parsing on uncontrolled output may lead to errors
+                # raw outnput
                 self.out(content)
-        else:
-            self.print_job_table(state, tlabel, tsubtree)
-        self._progress.advance(self._singletask)
-        self.live.update(self._display_table)
+        # update the table/progressbar display to the use
+        self.live.update(self._get_display_table(not self.verb_detailed))
+
+    def print_job_summary(self):
+        self.print(self._get_job_table())
 
     def table_container(self, total) -> Live:
         self._progress = Progress(
@@ -359,9 +373,7 @@ class TheConsole(Console):
             expand=True,
         )
         self._singletask = self._progress.add_task("Progress", total=int(total))
-
-        self.update_job_table()
-        self.live = Live(self._display_table, console=self)
+        self.live = Live(self._get_display_table(False), console=self)
         return self.live
 
     def create_table(self, title, cols) -> Table:

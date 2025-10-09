@@ -22,8 +22,11 @@ from pcvs.plugins import Plugin
 
 try:
     import rich_click as click
+    from rich import box
 
     click.rich_click.SHOW_ARGUMENTS = True
+    click.rich_click.STYLE_COMMANDS_PANEL_BOX = box.SIMPLE
+    click.rich_click.STYLE_OPTIONS_PANEL_BOX = box.SIMPLE
 except ImportError:
     import click
 

@@ -181,6 +181,10 @@ def process_main_workflow(the_session=None):
     run_rc = global_config.get_internal("orchestrator").run(the_session)
     rc += run_rc if isinstance(run_rc, int) else 1
 
+    if io.console.verb_detailed:
+        io.console.print_header("Execution Summary")
+        io.console.print_job_summary()
+
     io.console.print_header("Finalization")
     # post-actions to build the archive, post-process the webview...
     terminate()
