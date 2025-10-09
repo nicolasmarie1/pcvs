@@ -131,7 +131,7 @@ def print_version(ctx, param, value):  # pylint: disable=unused-argument
     is_flag=True,
     default=False,
     show_envvar=True,
-    help="USe TUI-based interface instead of console (if applicable)",
+    help="Use a TUI-based interface.",
 )
 @click.pass_context
 @io.capture_exception(PluginException.NotFoundError)
