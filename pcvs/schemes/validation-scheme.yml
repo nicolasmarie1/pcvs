@@ -17,7 +17,11 @@ properties:
   override: {type: boolean}
   pf_hash: {type: string}
   pf_name: {type: string}
-  print_level: {type: string}
+  print_policy: {type: string}
+  print_filter:
+    properties:
+      allow: {type: string}
+      deny: {type: string}
   reused_build: {type: boolean}
   sid: {type: integer}
   simulated: {type: boolean}

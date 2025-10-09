@@ -110,6 +110,20 @@ def handle_build_lockfile(exc=None):
         raise exc
 
 
+def parse_tags(print_filter: str) -> dict[list[str]]:
+    """Parse input to generate tags set."""
+    allow_tags = []
+    deny_tags = []
+    for f in print_filter.split(","):
+        if len(f) == 0:
+            continue
+        if f[0] == "!":
+            deny_tags.append(f[1:])
+        else:
+            allow_tags.append(f)
+    return {"allow": allow_tags, "deny": deny_tags}
+
+
 @click.command(
     name="run",
     short_help="Run a validation",
@@ -257,12 +271,25 @@ def handle_build_lockfile(exc=None):
 @click.option(
     "-P",
     "--print",
-    "print_level",
+    "print_policy",
     type=click.Choice(["none", "errors", "all"]),
     default=None,
-    help="Enable test output to be printed depending on its status",
+    help="Policy for printing tests output depending on its status",
 )
-@click.argument("dirs", nargs=-1, type=str, callback=iterate_dirs)
+@click.option(
+    "-T",
+    "--filter",
+    "print_filter",
+    type=str,
+    default="",
+    help="Filter test output based on tags",
+)
+@click.argument(
+    "dirs",
+    nargs=-1,
+    type=str,
+    callback=iterate_dirs,
+)
 @click.pass_context
 @io.capture_exception(Exception)
 @io.capture_exception(Exception, handle_build_lockfile)
@@ -278,7 +305,8 @@ def run(
     settings_file,
     generate_only,
     spack_recipe,
-    print_level,
+    print_policy,
+    print_filter,
     simulated,
     bank,
     msg,
@@ -316,7 +344,8 @@ def run(
 
     # save 'run' parameters into global configuration
     val_cfg.set_ifdef("datetime", datetime.now())
-    val_cfg.set_ifdef("print_level", print_level)
+    val_cfg.set_ifdef("print_policy", print_policy)
+    val_cfg.set_ifdef("print_filter", parse_tags(print_filter))
     val_cfg.set_ifdef("color", ctx.obj["color"])
     val_cfg.set_ifdef("output", output)
     val_cfg.set_ifdef("background", detach)

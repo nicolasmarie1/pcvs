@@ -84,6 +84,13 @@ class Test:
             """
             return "({}, {})".format(self.name, self.value)
 
+    BAD_STATES = [
+        State.ERR_DEP,
+        State.ERR_OTHER,
+        State.FAILURE,
+        State.HARD_TIMEOUT,
+    ]
+
     def __init__(self, **kwargs):
         """constructor method.
 
@@ -325,14 +332,8 @@ class Test:
         :return: True if at least one dep is shown a Failure state.
         :rtype: bool
         """
-        bad_states = [
-            Test.State.ERR_DEP,
-            Test.State.ERR_OTHER,
-            Test.State.FAILURE,
-            Test.State.HARD_TIMEOUT,
-        ]
         for d in self._deps:
-            if d.state in bad_states:
+            if d.state in Test.BAD_STATES:
                 return True
         return False
 
@@ -515,6 +516,29 @@ class Test:
         """
         self._state = state if isinstance(state, Test.State) else Test.State.FAILURE
 
+    def should_print(self) -> bool:
+        if not self._output:
+            return False
+        valcfg = GlobalConfig.root["validation"]
+
+        # tags filtering override print policy
+        if len(valcfg["print_filter"]["allow"]) > 0:
+            for t in self.tags:
+                if t in valcfg["print_filter"]["allow"]:
+                    return True
+        for t in self.tags:
+            if t in valcfg["print_filter"]["deny"]:
+                return False
+
+        # print policy
+        if valcfg["print_policy"] == "all":
+            return True
+        if valcfg["print_policy"] == "none":
+            return False
+        if valcfg["print_policy"] == "errors" and self.state in Test.BAD_STATES:
+            return True
+        return False
+
     def display(self):
         """Print the Test into stdout (through the manager)."""
         colorname = "yellow"
@@ -538,11 +562,7 @@ class Test:
             timeout = 0
         assert isinstance(timeout, int)
 
-        if self._output and (
-            GlobalConfig.root["validation"]["print_level"] == "all"
-            or (self.state == Test.State.FAILURE)
-            and GlobalConfig.root["validation"]["print_level"] == "errors"
-        ):
+        if self.should_print():
             raw_output = self.output
 
         io.console.print_job(
