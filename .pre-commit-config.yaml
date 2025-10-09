@@ -46,18 +46,17 @@ repos:
         require_serial: true
         minimum_pre_commit_version: '3.2.0'
 
-
       # TODO: Activate black once formatting has been done
-      # - id: 'black'
-      #   name: 'black'
-      #   description: 'Black: The uncompromising Python code formatter'
-      #   stages: ['pre-commit', 'pre-merge-commit', 'pre-push', 'manual']
-      #   entry: 'black'
-      #   args: ['-l', '100']
-      #   language: 'python'
-      #   types_or: ['python', 'pyi']
-      #   require_serial: true
-      #   minimum_pre_commit_version: '2.9.2'
+      - id: 'black'
+        name: 'black'
+        description: 'Black: The uncompromising Python code formatter'
+        stages: ['pre-commit', 'pre-merge-commit', 'pre-push', 'manual']
+        entry: 'black'
+        args: ['-l', '100']
+        language: 'python'
+        types_or: ['python', 'pyi']
+        require_serial: true
+        minimum_pre_commit_version: '2.9.2'
 
       - id: 'pylint'
         name: 'pylint'
