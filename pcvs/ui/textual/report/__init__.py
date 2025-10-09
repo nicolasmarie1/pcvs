@@ -151,11 +151,9 @@ class JobListViewer(Widget):
             for jobid in jobs:
                 obj = self.app.model.single_session_map_id(self.app.model.active_id, jobid)
 
-                color = self.app.model.pick_color_on_status(obj.state)
+                label, color, icon = obj.get_state_fancy()
 
-                self.table.add_row(
-                    obj.name, "[{c}]{i}[/{c}]".format(c=color, i=obj.state), obj.time
-                )
+                self.table.add_row(obj.name, f"[{color}]{icon} {label}[/{color}]", obj.time)
                 self.jobgroup[obj.name] = obj
         self.table.sort(self.name_colkey)
 
@@ -311,4 +309,5 @@ def start_app(p=None) -> int:  # pylint: disable=unused-argument
     :return: A return code from Textual Application
     :rtype: int
     """
-    # app = ReportApplication(ReportModel(p)).run()
+    app = ReportApplication(ReportModel(p))
+    app.run()

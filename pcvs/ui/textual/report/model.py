@@ -1,5 +1,4 @@
 from pcvs.backend.report import Report
-from pcvs.testing.test import Test
 
 
 class ReportModel(Report):
@@ -33,11 +32,3 @@ class ReportModel(Report):
                     hdl = v
                     break
         self.active_hdl = hdl
-
-    def pick_color_on_status(self, state: Test.State):
-        if state == Test.State.FAILURE:
-            return "red bold"
-        elif state == Test.State.SUCCESS:
-            return "green"
-        else:
-            return "yellow italic"
