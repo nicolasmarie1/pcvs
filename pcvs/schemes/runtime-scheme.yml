@@ -3,6 +3,11 @@ type: object
 properties:
   program:
     type: string
+  compiling:
+    type: object
+    properties:
+      wrapper:
+        type: string
   args:
     type: string
   plugin:

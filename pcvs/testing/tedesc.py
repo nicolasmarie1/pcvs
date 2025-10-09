@@ -520,6 +520,8 @@ class TEDescriptor:
         tags = ["compilation"] + self._tags
 
         command, env, jobs = self.__build_exec_process()
+        wrapper = GlobalConfig.root["runtime"].get("compiling", {}).get("wrapper", "")
+        command = f"{wrapper} {command}"
         assert jobs is not None
 
         # count number of built tests
