@@ -798,8 +798,7 @@ class BuildDirectoryManager:
         """
         if "sid" in self._config["validation"]:
             return self._config["validation"]["sid"]
-        else:
-            return None
+        return None
 
     def load_config(self):
         """

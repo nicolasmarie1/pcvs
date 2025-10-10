@@ -54,7 +54,7 @@ class ActiveSessionList(Widget):
         for name in item_names:
             self.item_list.append(Option(name))
 
-        self.app.query_one(ActiveSessionList).items = OptionList(*self.item_list)
+        ActiveSessionList.items = OptionList(*self.item_list)
 
     @on(OptionList.OptionSelected)
     def select_line(self, event):
@@ -199,6 +199,7 @@ class MainScreen(Screen):
 
 
 class ExitConfirmScreen(ModalScreen):
+    """Screen asking for confirmation before exit."""
 
     def compose(self):
         yield Grid(
@@ -253,7 +254,7 @@ class SessionInfoScreen(ModalScreen):
 
 class ReportApplication(App):
     """
-    Main Application handler
+    Main Application handler.
     """
 
     TITLE = "PCVS Job Result Viewer"

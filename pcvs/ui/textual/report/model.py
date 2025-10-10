@@ -12,6 +12,7 @@ class ReportModel(Report):
             hdl = self.add_session(path)
             if not self.active_hdl:
                 self.active_hdl = hdl
+        assert self.active_hdl is not None
 
     @property
     def active(self):
@@ -26,6 +27,8 @@ class ReportModel(Report):
         return [x["path"] for x in self.session_infos()]
 
     def set_active(self, hdl):
+        if hdl is None:
+            return
         if isinstance(hdl, str):
             for v in self._sessions.values():
                 if hdl == v.prefix:
