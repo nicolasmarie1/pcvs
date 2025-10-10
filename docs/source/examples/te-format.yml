@@ -46,6 +46,10 @@
       # Really complex build scenario PCVS may not be able to handle
       program: "myscript.sh"
       envs: ["VAR1=value", "VAR2=value"]
+    validate:
+      # same as validate node bellow but to validate the build process
+      # instead of the run.
+      [...]
     # dependency scheme. This can be:
     # a fully expanded test name
     # a TE node (like ".this_is_a_job" for the current node).

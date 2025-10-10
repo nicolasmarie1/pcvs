@@ -159,23 +159,33 @@ The machine node describes the constraints of the physical machine.
 
 runtime node
 ^^^^^^^^^^^^
+``program`` specify a wrapper for runtime tests, such as ``mpirun`` for example.
+The ``compiling.wrapper`` secify a wrapper for test compilation.
+It can be use to run the compilation on an other node using ``srun`` for example.
 
-The runtime node specifies entries that must be passed to the launch command. It
-contains subnodes such as ``args``, ```iterators``, etc. The ``iterator`` node
-contains arguments passed to the launching command. For example, if prterun
-takes the "-np" argument, which corresponds to the number of MPI threads, let's
-say ``n_mpi``, we will get the following runtime profile:
+The ``criterions`` node contains arguments passed to the launching command.
+For example, if ``prterun`` takes the "-np" argument, which corresponds
+to the number of MPI threads, let's say ``n_mpi``,
+we will get the following runtime profile:
 
+``plugins`` specify a python plugin that will be loaded and use to filter
+available criterions. ``defaultplugin`` specify the name of one of the default
+plugin to use.
 
-args: arguments for the launch command
+``args`` specify static arguments to ``program``.
 
 .. code-block:: yaml
 
-    iterators:
+    program:
+    compiling:
+      wrapper:
+    args:
+    plugin:
+    defaultplugin:
+    criterions:
         n_mpi:
             numeric: true
             option: "-np"
             type: argument
             aliases:
                 [dictionary of aliases for the option]
-    plugins:

@@ -92,6 +92,7 @@ frameworks).
    :maxdepth: 1
    :caption: Development
 
+   dev/contribution
    api/pcvs
 ..
    dev/overview
