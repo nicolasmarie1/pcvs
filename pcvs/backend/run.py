@@ -154,6 +154,9 @@ def process_main_workflow(the_session=None):
         end = time.time()
         io.console.print_section("===> Processing done in {:<.3f} sec(s)".format(end - start))
 
+    io.console.print_section("Resolving Test Dependencies")
+    GlobalConfig.root.get_internal("orchestrator").compute_deps()
+
     io.console.print_header("Summary")
     display_summary(the_session)
 

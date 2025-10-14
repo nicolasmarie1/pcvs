@@ -64,6 +64,16 @@ class Orchestrator:
         """
         self._manager.add_job(job)
 
+    def compute_deps(self):
+        """Compute tests dependencies and filter tests based on tags."""
+        self._manager.resolve_deps()
+        if io.console.verb_debug:
+            self._manager.print_dep_graph(outfile="./graph.dat")
+        # filter test that should be run based on tags
+        # this need to be done after the deps are computed to avoid
+        # removing test dependency that are not tagged
+        self._manager.filter_tags()
+
     # TODO implement restart so the session does not have
     # to restart from scratch each time
     @io.capture_exception(KeyboardInterrupt, global_stop)
@@ -81,10 +91,6 @@ class Orchestrator:
         io.console.info("ORCH: initialize runners")
         for _ in range(0, self._maxconcurrent):
             self.start_new_runner()
-
-        self._manager.resolve_deps()
-        if io.console.verb_debug:
-            self._manager.print_dep_graph(outfile="./graph.dat")
 
         last_progress = 0
         pending_list = []

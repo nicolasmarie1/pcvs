@@ -167,6 +167,7 @@ class Test:
         self._mod_deps = kwargs.get("mod_deps", [])
         self._depnames = kwargs.get("job_deps", [])
         self._deps = []
+        self._dependee = []
         self._invocation_cmd = self._execmd
         self._sched_cnt = 0
         self._output_info = {"file": None, "offset": -1, "length": 0}
@@ -327,6 +328,38 @@ class Test:
 
         if obj not in self._deps:
             self._deps.append(obj)
+
+    def add_dependee(self, test):
+        self._dependee.append(test)
+
+    def remove_dependee(self, test):
+        self._dependee.remove(test)
+
+    def transpose_deps(self):
+        for test in self._deps:
+            test.add_dependee(self)
+
+    def remove_test_from_deps(self):
+        for test in self._deps:
+            test.remove_dependee(self)
+
+    def filter_run(self) -> bool:
+        if len(self._dependee) > 0:
+            return False
+
+        filter_test: bool = True
+        valcfg = GlobalConfig.root["validation"]
+        if len(valcfg["run_filter"]["allow"]) > 0:
+            for t in self.tags:
+                if t in valcfg["run_filter"]["allow"]:
+                    filter_test = False
+            return filter_test
+
+        filter_test = False
+        for t in self.tags:
+            if t in valcfg["run_filter"]["deny"]:
+                filter_test = True
+        return filter_test
 
     def has_completed_deps(self):
         """Check if the test can be scheduled.

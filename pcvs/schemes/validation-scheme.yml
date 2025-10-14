@@ -22,6 +22,10 @@ properties:
     properties:
       allow: {type: string}
       deny: {type: string}
+  run_filter:
+    properties:
+      allow: {type: string}
+      deny: {type: string}
   reused_build: {type: boolean}
   sid: {type: integer}
   simulated: {type: boolean}

@@ -173,6 +173,24 @@ class Manager:
                 self.resolve_single_job_deps(job_dep, list(chain))
                 job.resolve_a_dep(depname, job_dep)
 
+    def _transpose_dep_graph(self):
+        for joblist in self._dims.values():
+            for job in joblist:
+                job.transpose_deps()
+
+    def filter_tags(self):
+        self._transpose_dep_graph()
+        change: bool = True
+        while change:
+            change = False
+            for joblist in self._dims.values():
+                for job in joblist:
+                    if job.filter_run():
+                        job.remove_test_from_deps()
+                        joblist.remove(job)
+                        self._count["total"] -= 1
+                        change = True
+
     def get_leftjob_count(self):
         """Return the number of jobs remaining to be executed.
 

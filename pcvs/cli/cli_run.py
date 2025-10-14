@@ -110,11 +110,11 @@ def handle_build_lockfile(exc=None):
         raise exc
 
 
-def parse_tags(print_filter: str) -> dict[list[str]]:
+def parse_tags(filters: str) -> dict[list[str]]:
     """Parse input to generate tags set."""
     allow_tags = []
     deny_tags = []
-    for f in print_filter.split(","):
+    for f in filters.split(","):
         if len(f) == 0:
             continue
         if f[0] == "!":
@@ -278,11 +278,19 @@ def parse_tags(print_filter: str) -> dict[list[str]]:
 )
 @click.option(
     "-T",
-    "--filter",
+    "--print-filter",
     "print_filter",
     type=str,
     default="",
     help="Filter test output based on tags",
+)
+@click.option(
+    "-R",
+    "--run-filter",
+    "run_filter",
+    type=str,
+    default="",
+    help="Filter which tests are run based on tags",
 )
 @click.argument(
     "dirs",
@@ -307,6 +315,7 @@ def run(
     spack_recipe,
     print_policy,
     print_filter,
+    run_filter,
     simulated,
     bank,
     msg,
@@ -346,6 +355,7 @@ def run(
     val_cfg.set_ifdef("datetime", datetime.now())
     val_cfg.set_ifdef("print_policy", print_policy)
     val_cfg.set_ifdef("print_filter", parse_tags(print_filter))
+    val_cfg.set_ifdef("run_filter", parse_tags(run_filter))
     val_cfg.set_ifdef("color", ctx.obj["color"])
     val_cfg.set_ifdef("output", output)
     val_cfg.set_ifdef("background", detach)
