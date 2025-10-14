@@ -51,36 +51,50 @@ class RunnerAdapter(threading.Thread):
         :raises Exception: Something occurred while running a test"""
         io.console.nodebug("{}: [LOCAL] Set start".format(self.ident))
         for job in jobs.content:
+            p = subprocess.Popen(
+                "{}".format(job.invocation_command),
+                shell=True,
+                stderr=subprocess.STDOUT,
+                stdout=subprocess.PIPE,
+                start_new_session=True,
+            )
+            start = time.time()
+
+            run_time = time.time() - start
+            rc = None
+            stdout = None
             hard_timeout = False
-            try:
-                p = subprocess.Popen(
-                    "{}".format(job.invocation_command),
-                    shell=True,
-                    stderr=subprocess.STDOUT,
-                    stdout=subprocess.PIPE,
-                    start_new_session=True,
-                )
-                start = time.time()
-                stdout, _ = p.communicate(timeout=job.hard_timeout)
-                final = time.time() - start
 
-                # Note: The return code here is coming from the script,
-                # not the test itself. It is transitively transmitted once the
-                # test complete, except if test used matchers to validate.
-                # in that case, a non-zero exit code indicates at least one
-                # matcher failed.
-                # The the engine, no other checks than return code evaluation
-                # is necessary to assess test status.
-                rc = p.returncode
+            while True:
+                # Check for process end for 1s
+                try:
+                    stdout, _ = p.communicate(timeout=1)
+                except subprocess.TimeoutExpired:
+                    pass
+                else:
+                    # Process ended -> break
+                    run_time = time.time() - start
+                    # Note: The return code here is coming from the script,
+                    # not the test itself.
+                    rc = p.returncode
+                    break
 
-            except subprocess.TimeoutExpired:
-                os.killpg(os.getpgid(p.pid), signal.SIGTERM)
-                stdout, _ = p.communicate()
-                final = job.hard_timeout
-                rc = None
-                hard_timeout = True
+                # Timeout -> terminate -> break
+                run_time = time.time() - start
+                if run_time > job.hard_timeout:
+                    os.killpg(os.getpgid(p.pid), signal.SIGTERM)
+                    stdout, _ = p.communicate()
+                    run_time = job.hard_timeout
+                    hard_timeout = True
+                    break
+
+                # Abording runs -> kill -> exit
+                if not RunnerAdapter.sched_in_progress:
+                    os.killpg(os.getpgid(p.pid), signal.SIGKILL)
+                    return
+
             job.save_status(job.State.EXECUTED)
-            job.save_raw_run(time=final, rc=rc, out=stdout, hard_timeout=hard_timeout)
+            job.save_raw_run(time=run_time, rc=rc, out=stdout, hard_timeout=hard_timeout)
         jobs.complete = True
 
     def remote_exec(self, jobs: Set) -> None:
