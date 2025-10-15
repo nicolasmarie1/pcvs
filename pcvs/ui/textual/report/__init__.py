@@ -5,6 +5,7 @@ from typing import Iterable
 
 from textual import on
 from textual.app import App
+from textual.binding import Binding
 from textual.containers import Container
 from textual.containers import Grid
 from textual.containers import Horizontal
@@ -25,6 +26,7 @@ from textual.widgets import RichLog
 from textual.widgets import Static
 from textual.widgets.option_list import Option
 
+from pcvs import NAME_BUILDIR
 from pcvs.helpers.utils import check_is_build_or_archive
 from pcvs.ui.textual.report.model import ReportModel
 
@@ -135,6 +137,10 @@ class JobListViewer(Widget):
     name_colkey = None
     jobgroup = {}
     table = reactive(DataTable())
+    BINDINGS = [
+        Binding("k", "cursor_up", "Cursor up", show=False),
+        Binding("j", "cursor_down", "Cursor down", show=False),
+    ]
 
     def compose(self):
         self.table.focus()
@@ -156,6 +162,14 @@ class JobListViewer(Widget):
                 self.table.add_row(obj.name, f"[{color}]{icon} {label}[/{color}]", obj.time)
                 self.jobgroup[obj.name] = obj
         self.table.sort(self.name_colkey)
+
+    def action_cursor_up(self):
+        """Scroll up jobs list."""
+        self.table.action_cursor_up()
+
+    def action_cursor_down(self):
+        """Scroll down jobs list."""
+        self.table.action_cursor_down()
 
 
 class SingleJobViewer(Widget):
@@ -288,7 +302,7 @@ class ReportApplication(App):
         """
         self.push_screen("main")
 
-    def __init__(self, model):
+    def __init__(self, model=None):
         """
         Init the application with a model.
 
@@ -297,6 +311,9 @@ class ReportApplication(App):
         :param model: the model used to access resources
         :type model: ReportModel
         """
+        if model is None:
+            path = os.path.abspath(os.path.join(os.getcwd(), NAME_BUILDIR))
+            model = ReportModel([path])
         self.model: ReportModel = model
         super().__init__()
 

@@ -66,6 +66,7 @@ dev = [
   "sphinx<7.0.0",
   "sphinx-autodoc-typehints",
   "sphinx-rtd-theme",
+  "textual-dev",
   #"furo",
 ]
 
