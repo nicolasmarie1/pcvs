@@ -638,7 +638,7 @@ class Test:
         :return: False if job is waiting for scheduling or in progress.
         :rtype: bool
         """
-        return self._state not in [Test.State.WAITING, Test.State.IN_PROGRESS]
+        return self._state not in [Test.State.WAITING, Test.State.IN_PROGRESS, Test.State.EXECUTED]
 
     def pick(self):
         """Flag the job as picked up for scheduling."""

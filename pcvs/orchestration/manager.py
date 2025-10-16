@@ -262,14 +262,16 @@ class Manager:
 
         user_sched_job = self._plugin.has_enabled_step(Plugin.Step.SCHED_JOB_EVAL)
 
+        to_resched_jobs = []
+
         while (job := self.__get_next_job()) is not None:
-            if job.been_executed() or job.state == Test.State.IN_PROGRESS:
+            if job.state != Test.State.WAITING:
                 continue
 
             # if the job has pending dependency,
             # schedule the pending dependency instead of the job itself.
             if not job.has_completed_deps():
-                self.__add_job(job)
+                to_resched_jobs.append(job)
                 # pick up a dep
                 dep_job = job.first_incomplete_dep()
                 while dep_job and not dep_job.has_completed_deps():
@@ -277,7 +279,7 @@ class Manager:
                 if dep_job:
                     job = dep_job
                 else:
-                    # possible due to race condition, ignore
+                    # if the dep is already being executed
                     continue
 
             # from here, it can be the original job or one of its
@@ -318,8 +320,12 @@ class Manager:
             if job.is_never_picked():
                 self.publish_failed_to_run_job(job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
             else:
-                self.__add_job(job)
+                to_resched_jobs.append(job)
                 break
+
+        # readd jobs that can't run but should be rescheduled
+        for j in to_resched_jobs:
+            self.__add_job(j)
 
         return scheduled_set
 
@@ -335,15 +341,10 @@ class Manager:
         :type set: :class:`Set`
         """
         for job in subset.content:
-            if job.been_executed():
-                job.extract_metrics()
-                job.save_artifacts()
-                job.evaluate()
-                self.publish_job(job, publish_args=None)
-                job.display()
-            else:
+            assert job.state == Test.State.EXECUTED
 
-                if job.not_picked():
-                    self.publish_failed_to_run_job(job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
-                else:
-                    self.add_job(job)
+            job.extract_metrics()
+            job.save_artifacts()
+            job.evaluate()
+            self.publish_job(job, publish_args=None)
+            job.display()
