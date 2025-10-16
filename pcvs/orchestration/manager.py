@@ -186,6 +186,7 @@ class Manager:
             for joblist in self._dims.values():
                 for job in joblist:
                     if job.filter_run():
+                        io.console.debug(f"Filtering test: {job.name}")
                         job.remove_test_from_deps()
                         joblist.remove(job)
                         self._count["total"] -= 1

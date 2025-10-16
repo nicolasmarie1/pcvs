@@ -73,6 +73,8 @@ class Orchestrator:
         # this need to be done after the deps are computed to avoid
         # removing test dependency that are not tagged
         self._manager.filter_tags()
+        if io.console.verb_debug:
+            self._manager.print_dep_graph(outfile="./graph-filter.dat")
 
     # TODO implement restart so the session does not have
     # to restart from scratch each time
@@ -93,13 +95,14 @@ class Orchestrator:
             self.start_new_runner()
 
         last_progress = 0
-        pending_list = []
         io.console.info("ORCH: start job scheduling")
         # While some jobs are available to run
         with io.console.table_container(self._manager.get_count()):
-            while self._manager.get_leftjob_count() > 0 or len(pending_list) > 0:
+            while self._manager.get_leftjob_count() > 0:
                 # dummy init value
                 new_set: Set = not None
+
+                # Add new tests to the queue
                 while new_set is not None:
                     # create a new set, if not possible, returns None
                     new_set = self._manager.create_subset(self._resources_tracker)
@@ -110,10 +113,10 @@ class Orchestrator:
                         )
                         self._ready_q.put(new_set)
 
-                # Now, look for a completion
+                # Look for tests completions
                 try:
                     # while queue is not empty
-                    jobs = self._complete_q.get(block=True)
+                    jobs = self._complete_q.get(block=True, timeout=1)
                     while True:
                         io.console.sched_debug(
                             "ORCH: recv Set from queue (#{}, sz:{})".format(jobs.id, jobs.size)
