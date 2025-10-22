@@ -30,11 +30,10 @@ class Test:
     :cvar str NOSTART_STR: constant, setting default output when job cannot be run.
     """
 
-    SCHED_MAX_ATTEMPTS = 50
     res_scheme = ValidationScheme("test-result")
 
     NOSTART_STR = b"This test cannot be started."
-    MAXATTEMPTS_STR = b"This test has failed to be scheduled too many times. Discarded."
+    DISCARDED_STR = b"This test has failed to be scheduled. Discarded."
 
     class State(IntEnum):
         """Provide Status management, specifically for tests/jobs.
@@ -169,7 +168,6 @@ class Test:
         self._deps = []
         self._dependee = []
         self._invocation_cmd = self._execmd
-        self._sched_cnt = 0
         self._output_info = {"file": None, "offset": -1, "length": 0}
         # alloc tracking number, used by job manager to track job allocation
         self.alloc_tracking = 0
@@ -643,13 +641,6 @@ class Test:
     def pick(self):
         """Flag the job as picked up for scheduling."""
         self._state = Test.State.IN_PROGRESS
-
-    def is_never_picked(self):
-        self._sched_cnt += 1
-        return self._sched_cnt >= self.SCHED_MAX_ATTEMPTS
-
-    def pick_count(self):
-        return self._sched_cnt
 
     @property
     def state(self):

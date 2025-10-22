@@ -212,18 +212,11 @@ class Manager:
         self._count[job.state] += 1
         self._publisher.save(job)
 
-    def prune_non_runnable_jobs(self):
+    def prune_all_jobs_as_non_runnable(self):
         for k in sorted(self._dims.keys(), reverse=True):
-            if len(self._dims[k]) <= 0:
-                continue
-            removed_jobs = []
             for job in self._dims[k]:
-                if job.pick_count() > Test.SCHED_MAX_ATTEMPTS:
-                    self.publish_failed_to_run_job(job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
-                    removed_jobs.append(job)
-            for elt in removed_jobs:
-                self._dims[k].remove(elt)
-            return len(removed_jobs) > 0
+                self.publish_failed_to_run_job(job, Test.DISCARDED_STR, Test.State.ERR_OTHER)
+            self._dims[k].clear()
 
     def create_subset(self, resources_tracker: ResourceTracker):
         """Extract one or more jobs, ready to be run.
@@ -317,11 +310,8 @@ class Manager:
                 # jobs in the same set cannot be scheduled at the same time.
                 break
 
-            if job.is_never_picked():
-                self.publish_failed_to_run_job(job, Test.MAXATTEMPTS_STR, Test.State.ERR_OTHER)
-            else:
-                to_resched_jobs.append(job)
-                break
+            to_resched_jobs.append(job)
+            break
 
         # readd jobs that can't run but should be rescheduled
         for j in to_resched_jobs:

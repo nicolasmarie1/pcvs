@@ -94,29 +94,39 @@ class Orchestrator:
         for _ in range(0, self._maxconcurrent):
             self.start_new_runner()
 
+        # track number of currently scheduled jobs.
+        currently_scheduled_count = 0
+
         last_progress = 0
         io.console.info("ORCH: start job scheduling")
         # While some jobs are available to run
         with io.console.table_container(self._manager.get_count()):
             while self._manager.get_leftjob_count() > 0:
                 # dummy init value
-                new_set: Set = not None
-
+                new_set: Set = Set()
                 # Add new tests to the queue
                 while new_set is not None:
                     # create a new set, if not possible, returns None
-                    new_set = self._manager.create_subset(self._resources_tracker)
+                    new_set: Set = self._manager.create_subset(self._resources_tracker)
                     if new_set is not None:
+                        currently_scheduled_count += new_set.size
                         # schedule the set asynchronously
                         io.console.sched_debug(
                             "ORCH: send Set to queue (#{}, sz:{})".format(new_set.id, new_set.size)
                         )
                         self._ready_q.put(new_set)
-
+                if currently_scheduled_count == 0:
+                    nb_jobs = self._manager.get_leftjob_count()
+                    if nb_jobs > 0:
+                        self._manager.prune_all_jobs_as_non_runnable()
+                        io.console.error(
+                            f"Job scheduler stuck, fail to schedule {nb_jobs} jobs !!!"
+                        )
                 # Look for tests completions
                 try:
                     # while queue is not empty
-                    jobs = self._complete_q.get(block=True, timeout=1)
+                    jobs: Set = self._complete_q.get(block=True, timeout=1)
+                    currently_scheduled_count -= jobs.size
                     while True:
                         io.console.sched_debug(
                             "ORCH: recv Set from queue (#{}, sz:{})".format(jobs.id, jobs.size)
@@ -132,9 +142,6 @@ class Orchestrator:
                         jobs = self._complete_q.get(block=False)
                 except queue.Empty:
                     pass
-
-                # prune jobs that are impossible to runs
-                self._manager.prune_non_runnable_jobs()
 
                 # compute progress status
                 current_progress = self._manager.get_count("executed") / self._manager.get_count(
