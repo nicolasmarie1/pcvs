@@ -167,6 +167,8 @@ class Orchestrator:
                             the_session.id, {"progress": current_progress * 100}
                         )
 
+        # need a new line to flush after the table container if outputting to a file
+        io.console.print("")
         self._publisher.flush()
         assert self._manager.get_count("executed") == self._manager.get_count("total")
 
