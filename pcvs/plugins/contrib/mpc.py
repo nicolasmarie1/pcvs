@@ -33,7 +33,7 @@ class MpcDefaultPlugin(Plugin):
             # if n_mpi is not specify -> n_proc
             if n_mpi is None:
                 n_mpi = n_proc
-            # if n_proc us not specify -> n_mpi
+            # if n_proc is not specify -> n_mpi
             if n_proc is None:
                 n_proc = n_mpi
 
@@ -85,4 +85,7 @@ class MpcDefaultPlugin(Plugin):
     def get_resources(self, *args, **kwargs) -> list[int]:  # pylint: disable=unused-argument
         """Get the resources allocation for the jobs."""
         comb = kwargs["combination"]
-        return [comb.get("n_node", 1), (comb.get("n_proc", 1) * comb.get("n_core", 1))]
+        return [
+            comb.get("n_node", 1),
+            (comb.get("n_proc", comb.get("n_mpi", 1)) * comb.get("n_core", 1)),
+        ]
