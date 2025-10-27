@@ -40,7 +40,7 @@ dynamic = ["version"]
 
 [project.urls]
 Homepage = "https://pcvs.io"
-Documentation = "https://pcvs.readthedocs.io/"
+Documentation = "https://cea-hpc.github.io/pcvs/"
 Repository = "https://github.com/cea-hpc/pcvs"
 Issues = "https://github.com/cea-hpc/pcvs/issues"
 Changelog = "https://github.com/cea-hpc/pcvs/blob/master/CHANGES"
@@ -63,7 +63,7 @@ dev = [
   "isort",
   "black",
   "mypy",
-  "sphinx<7.0.0",
+  "sphinx",
   "sphinx-autodoc-typehints",
   "sphinx-rtd-theme",
   "textual-dev",

@@ -66,10 +66,7 @@ An other way to install PCVS is through **PyPI** repositories.
 
     $ pip3 install pcvs
     # OR
-    $ pip3 install pcvs<=0.5.0
-
-.. warning::
-   You will not get the latest version of PCVS on pypi.
+    $ pip3 install pcvs<=0.8.0
 
 Dealing with offline networks
 =============================

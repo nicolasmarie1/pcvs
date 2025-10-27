@@ -1,0 +1,64 @@
+name: "Release"
+
+on: [push]
+
+jobs:
+  build:
+    name: "Build PCVS"
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+    - name: "Set up Python"
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.x"
+    - name: "Install build"
+      run: python3 -m pip install build --user
+    - name: "Build pcvs"
+      run: python3 -m build
+    - name: "Store PCVS artifact"
+      uses: actions/upload-artifact@v4
+      with:
+        name: pcvs
+        path: dist/
+
+  release:
+    name: "Release to Github"
+    if: startsWith(github.ref, 'refs/tags/release/')
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+    - name: "Download PCVS artifact"
+      uses: actions/download-artifact@v4
+      with:
+        name: pcvs
+        path: dist/
+    - name: "Release to Github"
+      uses: softprops/action-gh-release@v2
+      with:
+        draft: true
+        files: dist/*
+
+  publish:
+    name: "Publish to PyPI"
+    if: startsWith(github.ref, 'refs/tags/release/')
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+      url: https://pypi.org/p/pcvs
+    permissions:
+      id-token: write
+    steps:
+    - name: "Download PCVS artifact"
+      uses: actions/download-artifact@v4
+      with:
+        name: pcvs
+        path: dist/
+    - name: "Publish to PyPI"
+      uses: pypa/gh-action-pypi-publish@release/v1
