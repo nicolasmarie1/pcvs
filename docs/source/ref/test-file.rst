@@ -13,8 +13,9 @@ the process. These nodes are split into subnodes to describe the course of
 the run.
 
 The validation configuration is specified using setup files. These files can be
-in the yml format, or be an executable files generating a yml configuration in
-stdout. The information of this configuration are crossed with the profile information
+in the yml format (``pcvs.yml``), or be an executable files (``pcvs.setup``)
+generating a yml configuration in stdout.
+The information of this configuration are crossed with the profile information
 to run the tests.
 
 When PCVS is launched in a directory, it browses every subdirectory to find any
@@ -173,3 +174,52 @@ results of tests.
     artifact:
         obj1: "path/to/obj1"
         obj2: "path/to/obj2"
+
+
+Setup file
+==========
+
+When using a ``pcvs.setup`` file, the file will be executed, and stdout should be
+a valid yaml file that respect ``pcvs.yml`` file structure as describe above.
+
+When running the script, some environment variables are availables to ease configuration.
+The complete list of environment variables can be obtained by running ``pcvs -vvv run ...``.
+
+The list is composed of:
+  - Compilers environment variables starting with: ``PCVS_CMP``.
+  - Criterions environment variables starting with: ``PCVS_CRIT``.
+  - Other environment variables set in profile at ``compiler.compilers.<x>.envs``.
+
+Example of availables environment variables: (will depends on your profile file)
+
+.. code-block:: text
+
+
+  PCVS_CMP_CC='gcc'
+  PCVS_CMP_CC_ARGS=''
+  PCVS_CMP_CC_VAR_OPENMP='gcc'
+  PCVS_CMP_CC_VAR_OPENMP_ARGS='-fopenmp'
+  PCVS_CMP_CUDA='nvcc'
+  PCVS_CMP_CUDA_ARGS=''
+  PCVS_CMP_CXX='g++'
+  PCVS_CMP_CXX_ARGS=''
+  PCVS_CMP_CXX_VAR_OPENMP='g++'
+  PCVS_CMP_CXX_VAR_OPENMP_ARGS='-fopenmp'
+  PCVS_CMP_FC='gfortran'
+  PCVS_CMP_FC_ARGS=''
+  PCVS_CMP_FC_VAR_OPENMP='gfortran'
+  PCVS_CMP_FC_VAR_OPENMP_ARGS='-fopenmp'
+  PCVS_CMP_HIP='hipcc'
+  PCVS_CMP_HIP_ARGS=''
+
+  PCVS_CRIT_N_CORE='1'
+  PCVS_CRIT_N_MPI='1 2 4'
+  PCVS_CRIT_N_NODE='1 2'
+  PCVS_CRIT_N_OMP='1 4'
+  PCVS_CRIT_N_PROC='1 4 8'
+
+  PCVS_CC='gcc'
+  PCVS_CXX='g++'
+  PCVS_FC='gfortran'
+  PCVS_HIPCC='hipcc'
+  PCVS_NVCC='nvcc'

@@ -3,7 +3,7 @@
 #####################
 
 To contribute to pcvs, start by installing pcvs from the sources in a virtual
-env using the dev dependency as follow:
+environment using the dev dependency as follows:
 
 .. code-block:: bash
 
@@ -13,7 +13,7 @@ env using the dev dependency as follow:
    cd pcvs
    pip install '.[dev]'
 
-Then ensure precommit are setup & run themes:
+Then ensure precommits are setups & run them:
 
 .. code-block:: bash
 
