@@ -115,7 +115,7 @@ class Collection:
                     return
         io.console.warn("Unable to find a plugin named '{}'".format(name))
 
-    def invoke_plugins(self, step, method="run", *args, **kwargs):
+    def invoke_plugins(self, step: Plugin.Step, method: str = "run", *args, **kwargs):
         """Load the appropriate plugin, given a step
 
         :param step: the step to target
@@ -128,11 +128,35 @@ class Collection:
             raise PluginException.BadStepError(step)
 
         if self._enabled[step]:
-            assert method and hasattr(self._enabled[step], method)
+            assert method
+            if not hasattr(self._enabled[step], method):
+                raise PluginException(
+                    f"Can't find method '{method}' in plugin '{self._enabled[step]}'."
+                )
             func = getattr(self._enabled[step], method)
             return func(*args, **kwargs)
 
         return None
+
+    def has_enabled_step(self, step: Plugin.Step, method: str = "run"):
+        """Check if a given pass is enabled.
+
+        :param step: the pass
+        :type step: :class:`Step`
+        :return: True if defined, False otherwise
+        :rtype: bool
+        """
+        if step not in self._enabled:
+            return False
+        if self._enabled[step] is None:
+            return False
+        if not hasattr(self._enabled[step], method):
+            return False
+        return True
+
+    def try_invoke_plugins(self, step: Plugin.Step, method: str = "run", *args, **kwargs):
+        if self.has_enabled_step(step, method):
+            self.invoke_plugins(step, method, *args, **kwargs)
 
     def nb_plugins_for(self, step):
         """Count the number of possible plugins for a given step.
@@ -146,18 +170,6 @@ class Collection:
             return -1
 
         return len(self._plugins[step])
-
-    def has_enabled_step(self, step):
-        """Check if a given pass is enabled.
-
-        :param step: the pass
-        :type step: :class:`Step`
-        :return: True if defined, False otherwise
-        :rtype: bool
-        """
-        if step not in self._enabled:
-            return False
-        return self._enabled[step] is not None
 
     def show_plugins(self):
         """Display plugin context to stdout."""

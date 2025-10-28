@@ -582,6 +582,6 @@ def valid_combination(dic):
 
 def get_resources(dic) -> list[int] | None:
     """Get the resources needed for a job."""
-    return get_plugin().invoke_plugins(
+    return get_plugin().try_invoke_plugins(
         Plugin.Step.TEST_EVAL, method="get_resources", combination=dic
     )
