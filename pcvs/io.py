@@ -54,7 +54,6 @@ class SpecialChar:
         """
         Initialize a new char handler depending on utf support
 
-
         :param utf_support: support for utf encoding, defaults to True
         :type utf_support: bool, optional
         """
@@ -100,14 +99,11 @@ class Verbosity(enum.IntEnum):
         return self.name
 
 
-class TheConsole(Console):
+class PCVSConsole:
     """
     Main interface to print information to users.
 
     Any output from the application should be handled by this Console.
-
-    :param Console: Rich base class
-    :type Console: Console
     """
 
     # Should match ALL_STATES in pcvs.testing.test.Test
@@ -123,12 +119,9 @@ class TheConsole(Console):
 
     def __init__(self, **kwargs) -> None:
         """
-        Build a new Console.
-
-        Many options to configure the console:
+        Build a new Console:
         - color: boolean (color support)
         - verbose: boolean (verbose msg mode in log files)
-        - stderr: boolean (print to stdout by default)
         Any other argument is considered a base class options.
 
         :param args: any argument to be forwarded to Rich console, as list
@@ -140,11 +133,10 @@ class TheConsole(Console):
         self._singletask = None
         self.live = None
 
-        self._color = "auto" if kwargs.get("color", True) else None
+        self._color = kwargs.get("color", True)
         self._verbose = Verbosity(min(Verbosity.NB_LEVELS - 1, kwargs.get("verbose", 0)))
         self._debugfile = open(os.path.join(".", pcvs.NAME_DEBUG_FILE), "w", encoding="utf-8")
-        self.summary_table: Dict[str, Dict[str, Dict[str, int]]] = {}
-        err = kwargs.get("stderr", False)
+        self.job_summary_data_table: Dict[str, Dict[str, Dict[str, int]]] = {}
         log_level = "DEBUG" if self._verbose else "INFO"
         # https://rich.readthedocs.io/en/stable/appendix/colors.html#appendix-colors
         theme = Theme(
@@ -155,13 +147,14 @@ class TheConsole(Console):
                 "danger": Style(color="red", bold=True),
             }
         )
-
-        super().__init__(color_system=self._color, theme=theme, stderr=err)
+        color_system = "auto" if self._color else None
+        self._stdout = Console(color_system=color_system, theme=theme)
+        self._stderr = Console(color_system=color_system, theme=theme, stderr=True)
         self._debugconsole = Console(
-            file=self._debugfile,
+            color_system=color_system,
             theme=theme,
-            color_system=self._color,
-            markup=self._color is not None,
+            file=self._debugfile,
+            markup=self._color,
         )
 
         logging.basicConfig(
@@ -179,16 +172,18 @@ class TheConsole(Console):
             ],
         )
         self._loghdl = logging.getLogger("pcvs")
-        self._chars = SpecialChar(utf_support=self.encoding.startswith("utf"))
+        self._chars = SpecialChar(utf_support=self._stdout.encoding.startswith("utf"))
 
         # Activate when needed
         self._sched_debug = False
         self._crit_debug = False
 
+    # log file management
+
     @property
     def logfile(self):
         """
-        Get the path to the logging file
+        Get the path to the logging file.
 
         :return: the logging file
         :rtype: str
@@ -198,79 +193,19 @@ class TheConsole(Console):
     @property
     def outfile(self):
         """
-        Get the path where the Console output is logged (disabled by default)
+        Get the path where the Console output is logged (disabled by default).
 
         :return: the file path
         :rtype: str
         """
-        return os.path.abspath(self.file.name)
+        return os.path.abspath(self._stdout.file.name)
 
-    @property
-    def verbose(self):
-        """
-        Get verbose status.
-
-        :return: the status
-        :rtype: integer
-        """
-        return self._verbose
-
-    def verb_level(self, level):
-        """
-        Test if a given level is logged by the current console
-
-        :param level: the targeted level
-        :type level: Verbosity
-        :return: True if this level is logged, false otherwise
-        :rtype: boolean
-        """
-        return self._verbose >= level
-
-    @property
-    def verb_compact(self):
-        """
-        Return true if at least COMPACT debug level is enabled.
-
-        :return: a boolean to check debug level
-        :rtype: boolean
-        """
-        return self.verb_level(Verbosity.COMPACT)
-
-    @property
-    def verb_detailed(self):
-        """
-        Return true if at least DETAILED debug level is enabled.
-
-        :return: a boolean to check debug level
-        :rtype: boolean
-        """
-        return self.verb_level(Verbosity.DETAILED)
-
-    @property
-    def verb_info(self):
-        """
-        Return true if at least INFO debug level is enabled.
-
-        :return: a boolean to check debug level
-        :rtype: boolean
-        """
-        return self.verb_level(Verbosity.INFO)
-
-    @property
-    def verb_debug(self):
-        """
-        Return true if at least DEBUG debug level is enabled.
-
-        :return: a boolean to check debug level
-        :rtype: boolean
-        """
-        return self.verb_level(Verbosity.DEBUG)
-
-    @verbose.setter
-    def verbose(self, v):
-        self._verbose = v
+    def setoutfile(self, file):
+        self._stdout.file = file
+        self._stderr.file = file
 
     def __del__(self):
+        """Make sure files are closed when stopping PCVS."""
         if self._debugfile:
             self._debugfile.close()
             self._debugfile = None
@@ -282,43 +217,160 @@ class TheConsole(Console):
         else:
             self.warning("No '{}' file found for this Console".format(pcvs.NAME_DEBUG_FILE))
 
+    # Verbosity
+
+    @property
+    def verbose(self):
+        """Return the Verbosity level."""
+        return self._verbose
+
+    def verb_level(self, level):
+        """Return True if Verbosity level is <level> or above."""
+        return self._verbose >= level
+
+    @property
+    def verb_compact(self):
+        """Return True if Verbosity level is COMPACT or above."""
+        return self.verb_level(Verbosity.COMPACT)
+
+    @property
+    def verb_detailed(self):
+        """Return True if Verbosity level is DETAILED or above."""
+        return self.verb_level(Verbosity.DETAILED)
+
+    @property
+    def verb_info(self):
+        """Return True if Verbosity level is INFO or above."""
+        return self.verb_level(Verbosity.INFO)
+
+    @property
+    def verb_debug(self):
+        """Return True if Verbosity level is DEBUG or above."""
+        return self.verb_level(Verbosity.DEBUG)
+
+    @verbose.setter
+    def verbose(self, v):
+        """Set Verbosity level."""
+        self._verbose = v
+
+    # Standard printers
+
+    def nodebug(self, fmt, *args, **kwargs):
+        """Do nothing, place holder to remove debug statement without deleting lines."""
+
+    def debug(self, fmt, *args, **kwargs):
+        """Print & log debug."""
+        self._loghdl.debug(fmt, *args, **kwargs)
+        if self._verbose >= Verbosity.DEBUG:
+            user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
+            self._stdout.print(f"[debug]\\[debug]: {user_fmt}[/debug]", soft_wrap=True)
+
+    def info(self, fmt, *args, **kwargs):
+        """Print & log info."""
+        self._loghdl.info(fmt, *args, **kwargs)
+        if self._verbose >= Verbosity.INFO:
+            user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
+            self._stdout.print(f"[info]\\[info]: {user_fmt}[/info]", soft_wrap=True)
+
+    def warning(self, fmt, *args, **kwargs):
+        """Print & log warning."""
+        self._loghdl.warning(fmt, *args, **kwargs)
+        user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
+        self._stderr.print(f"[warning]\\[warning]: {user_fmt}[/warning]", soft_wrap=True)
+
+    def warn(self, fmt, *args, **kwargs):
+        """Short for warning."""
+        self.warning(fmt, *args, **kwargs)
+
+    def error(self, fmt, *args, **kwargs):
+        """Print a log error messages."""
+        user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
+        self._stderr.print(f"[danger]\\[error]: {user_fmt}[/danger]", soft_wrap=True)
+        self._loghdl.error(fmt, *args, **kwargs)
+
+    def critical(self, fmt, *args, **kwargs):
+        """Print a log critical error then exit."""
+        user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
+        self._stderr.print(f"[danger]\\[CRITICAL]: {user_fmt}[/danger]", soft_wrap=True)
+        self._loghdl.critical(fmt, *args, **kwargs)
+        sys.exit(42)
+
+    def exception(self, e: BaseException):
+        """Print exceptions."""
+        if self._verbose >= Verbosity.DEBUG:
+            self._stderr.print_exception(word_wrap=True, show_locals=True)
+        else:
+            self._stderr.print_exception(extra_lines=0)
+        self._loghdl.exception(e)
+
+    def crit_debug(self, fmt):
+        """Print & log debug for pcvs criterions."""
+        if self._crit_debug:
+            self.debug(f"[CRIT]{fmt}")
+
+    def sched_debug(self, fmt):
+        """Print & log debug for pcvs scheduler."""
+        if self._sched_debug:
+            self.debug(f"[SCHED]{fmt}")
+
+    @property
+    def logger(self):
+        """Get Logger."""
+        return self._loghdl
+
+    # Other printers
+
+    def print(self, fmt=""):
+        """Print a line to stdout."""
+        self._stdout.print(fmt)
+        self._loghdl.info("[PRINT] %s", fmt)
+
     def print_section(self, txt):
-        self.print("[yellow bold]{} {}[/]".format(self.utf("sec"), txt), soft_wrap=True)
+        """Print Section."""
+        self._stdout.print("[yellow bold]{} {}[/]".format(self.utf("sec"), txt), soft_wrap=True)
         self._loghdl.info("[DISPLAY] ======= %s ======", txt)
 
     def print_header(self, txt):
-        self.rule("[green bold]{}[/]".format(txt.upper()))
+        """Print Header."""
+        self._stdout.rule("[green bold]{}[/]".format(txt.upper()))
         self._loghdl.info("[DISPLAY] ------- %s ------", txt)
 
     def print_item(self, txt, depth=1):
-        self.print(
+        """Print Item."""
+        self._stdout.print(
             "[red bold]{}{}[/] {}".format(" " * (depth * 2), self.utf("item"), txt), soft_wrap=True
         )
         self._loghdl.info("[DISPLAY] * %s", txt)
 
     def print_box(self, txt, *args, **kwargs):
-        self.print(Panel.fit(txt, *args, **kwargs))
+        """Print a Box."""
+        panel_box = Panel.fit(txt, *args, **kwargs)
+        self._stdout.print(panel_box)
+        self._loghdl.info("[DISPLAY] BOX %s", panel_box)
+
+    # Others
 
     def _get_display_table(self, include_jobs: bool = False):
         """Get the table to display for live update.
 
-        May include the job table.
+        Include the progress bar, may include the job view table.
         """
         table = Table.grid(expand=True)
         if include_jobs:
             table.add_row(self._get_job_table())
         else:
+            # Add spacing
             table.add_row()
         table.add_row(self._progress)
         return table
 
     def _get_job_table(self) -> Table:
-        """Transform job data table into a job view table."""
+        """Transform the job data table into a job view table."""
         table = Table(expand=True, box=box.SIMPLE)
         table.add_column("Name", justify="left", ratio=10)
-        for state in TheConsole.ALL_STATES:
+        for state in PCVSConsole.ALL_STATES:
             table.add_column(state, justify="center")
-        for label, lvalue in self.summary_table.items():
+        for label, lvalue in self.job_summary_data_table.items():
             for subtree, svalue in lvalue.items():
                 if sum(svalue.values()) == svalue.get("SUCCESS", 0):
                     colour = "green"
@@ -331,39 +383,44 @@ class TheConsole(Console):
         return table
 
     def _insert_job_table(self, state, test_label, test_subtree):
-        """Insert a job in the job table progress display when running on low verbosity level or at end of run."""
-        self.summary_table.setdefault(test_label, {})
-        self.summary_table[test_label].setdefault(
-            test_subtree,
-            {label: 0 for label in TheConsole.ALL_STATES},
-        )
-        self.summary_table[test_label][test_subtree][str(state)] += 1
+        """Insert a job in the job data table.
 
-    def print_job(
-        self,
-        status_str,
-        state,
-        tlabel,
-        tsubtree,
-        content=None,
-    ):
-        # Update Job data table.
+        This job table is display is the one displayed when running
+        on low verbosity level or at the end of the run.
+        """
+        self.job_summary_data_table.setdefault(test_label, {})
+        self.job_summary_data_table[test_label].setdefault(
+            test_subtree,
+            {label: 0 for label in PCVSConsole.ALL_STATES},
+        )
+        self.job_summary_data_table[test_label][test_subtree][str(state)] += 1
+
+    def print_job(self, status_str, state, tlabel, tsubtree, content=None):
+        """Print a Job.
+
+        If Verbosity level is equal or above Verbosity.DETAILED, print each tests.
+        Otherwise, print a summary block.
+        Optionally print raw test result content.
+        """
+        # Update Job data table state.
         self._insert_job_table(state, tlabel, tsubtree)
-        # Update progress bar.
+        # Update progress bar state.
         self._progress.advance(self._singletask)
         if self.verb_detailed:
-            # test status
-            self.print(status_str)
+            # Print the test status line.
+            self._stdout.print(status_str)
             if content:
-                # raw outnput
-                self.out(content)
-        # update the table/progressbar display to the use
+                # Print raw test output.
+                self._stdout.out(content)
+        # Update the table/progressbar display.
         self.live.update(self._get_display_table(not self.verb_detailed))
 
     def print_job_summary(self):
-        self.print(self._get_job_table())
+        """Print the job view table once."""
+        self._stdout.print(self._get_job_table())
 
     def table_container(self, total) -> Live:
+        """The main pcvs run progress bar that may include job summary."""
         self._progress = Progress(
             TimeElapsedColumn(),
             "Progress",
@@ -373,14 +430,15 @@ class TheConsole(Console):
             expand=True,
         )
         self._singletask = self._progress.add_task("Progress", total=int(total))
-        self.live = Live(self._get_display_table(False), console=self)
+        self.live = Live(self._get_display_table(False), console=self._stdout)
         return self.live
 
     def create_table(self, title, cols) -> Table:
+        """Create and return a rich table."""
         return Table(*cols, title=title)
 
     def progress_iter(self, it: Iterable, **kwargs) -> Iterable:
-        """prints a progress bar using click
+        """Print a progress bar using click.
 
         :param it: iterable on which the progress bar has to iterate
         :type it: Iterable
@@ -389,11 +447,10 @@ class TheConsole(Console):
         :return: a click progress bar (iterable)
         :rtype: Iterable
         """
-        global console
         return track(
             it,
             transient=True,
-            console=console,
+            console=self._stdout,
             complete_style="cyan",
             pulse_style="green",
             refresh_per_second=4,
@@ -468,142 +525,29 @@ class TheConsole(Console):
         ]
         banner = logo
 
-        if self.size.width < 40:
+        if self._stdout.size.width < 40:
             banner = logo_minimal
-        elif self.size.width < 95:
+        elif self._stdout.size.width < 95:
             banner = logo_short
 
-        self.print("\n".join(banner))
+        self._stdout.print("\n".join(banner))
         pcvs_version = version("pcvs")
-        self.print(f"Parallel Computing Validation System (pcvs) -- version {pcvs_version}")
-
-    def nodebug(self, fmt, *args, **kwargs):
-        """Do nothing.
-
-        :param fmt: fmt
-        :param *args: args
-        :param **kwargs: kwargs
-        """
-
-    def debug(self, fmt, *args, **kwargs):
-        """Print & log debug.
-
-        :param fmt: fmt
-        :param *args: args
-        :param **kwargs: kwargs
-        """
-        self._loghdl.debug(fmt, *args, **kwargs)
-        if self._verbose >= Verbosity.DEBUG:
-            user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
-            self.print(f"[debug]\\[debug]: {user_fmt}[/debug]", soft_wrap=True)
-
-    def info(
-        self,
-        fmt,
-        *args,
-        **kwargs,
-    ):
-        """Print & log info.
-
-        :param fmt: fmt
-        :param *args: args
-        :param **kwargs: kwargs
-        """
-        self._loghdl.info(fmt, *args, **kwargs)
-        if self._verbose >= Verbosity.INFO:
-            user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
-            self.print(f"[info]\\[info]: {user_fmt}[/info]", soft_wrap=True)
-
-    def warning(self, fmt, *args, **kwargs):
-        """Print & log warning.
-
-        :param fmt: fmt
-        :param *args: args
-        :param **kwargs: kwargs
-        """
-        self._loghdl.warning(fmt, *args, **kwargs)
-        user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
-        self.print(f"[warning]\\[warning]: {user_fmt}[/warning]", soft_wrap=True)
-
-    def warn(self, fmt, *args, **kwargs):
-        """Short for warning.
-
-        :param fmt: fmt
-        :param *args: args
-        :param **kwargs: kwargs
-        """
-        self.warning(fmt, *args, **kwargs)
-
-    def error(self, fmt, *args, **kwargs):
-        """Print a log error.
-
-        :param fmt: fmt
-        :param *args: args
-        :param **kwargs: kwargs
-        """
-        self._loghdl.error(fmt, *args, **kwargs)
-        user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
-        self.print(f"[danger]\\[error]: {user_fmt}[/danger]", soft_wrap=True)
-
-    def critical(self, fmt, *args, **kwargs):
-        """Print a log critical error then exit.
-
-        :param fmt: fmt
-        :param *args: args
-        :param **kwargs: kwargs
-        """
-        self._loghdl.critical(fmt, *args, **kwargs)
-        user_fmt = fmt.format(*args, **kwargs) if args or kwargs else fmt
-        self.print(f"[danger]\\[CRITICAL]: {user_fmt}[/danger]", soft_wrap=True)
-        sys.exit(42)
-
-    def exception(self, e: BaseException):
-        """Print errors.
-
-        :param e: the error to display
-        """
-        if self._verbose >= Verbosity.DEBUG:
-            self.print_exception(word_wrap=True, show_locals=True)
-        else:
-            self.print_exception(extra_lines=0)
-        self._loghdl.exception(e)
-
-    def crit_debug(self, fmt):
-        """Print & log debug  for pxcvs scheduler.
-
-        :param fmt: fmt
-        :param *args: args
-        :param **kwargs: kwargs
-        """
-        if self._crit_debug:
-            self.debug(f"[CRIT]{fmt}")
-
-    def sched_debug(self, fmt):
-        """Print & log debug  for pxcvs scheduler.
-
-        :param fmt: fmt
-        :param *args: args
-        :param **kwargs: kwargs
-        """
-        if self._sched_debug:
-            self.debug(f"[SCHED]{fmt}")
-
-    @property
-    def logger(self):
-        return self._loghdl
+        self._stdout.print(f"Parallel Computing Validation System (pcvs) -- version {pcvs_version}")
 
 
 console = None
 
 
 def init(color=True, verbose=0, *args, **kwargs):
+    """Init the PCVS Console."""
     global console
-    console = TheConsole(color=color, verbose=verbose, *args, **kwargs)
+    console = PCVSConsole(color=color, verbose=verbose, *args, **kwargs)
 
 
 def detach_console():
+    """Detach the PCVS Console."""
     logfile = os.path.join(os.path.dirname(console.logfile), pcvs.NAME_LOG_FILE)
-    console.file = open(logfile, "w", encoding="utf-8")
+    console.setoutfile(open(logfile, "w", encoding="utf-8"))
 
 
 def capture_exception(
@@ -645,8 +589,8 @@ def capture_exception(
                 if user_func is None:
                     assert console
                     console.exception(e)
-                    console.print(f"[red bold]Exception: {e}[/]")
-                    console.print(
+                    console.error(f"[red bold]Exception: {e}[/]")
+                    console.error(
                         f"[red bold]See '{pcvs.NAME_DEBUG_FILE}'"
                         f" or rerun with -vv for more details[/]"
                     )

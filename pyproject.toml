@@ -67,6 +67,7 @@ dev = [
   "sphinx-autodoc-typehints",
   "sphinx-rtd-theme",
   "textual-dev",
+  "python-lsp-server",
   #"furo",
 ]
 
