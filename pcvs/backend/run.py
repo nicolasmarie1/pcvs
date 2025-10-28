@@ -519,7 +519,7 @@ def unsafe_process_dyn_setup_scripts(setup_files):
             obj.flush_sh_file()
             io.console.info(f"Adding {obj.nb_tests} tests from {f}.")
         except Exception as e:
-            io.console.error(f"{f} (failed to parse): {e}")
+            io.console.error(f"In file: {f}\nFailed to parse the following invalid yaml:\n{out}")
             raise e
 
         GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.TFILE_AFTER)
