@@ -159,7 +159,7 @@ class Test:
         self._matchers = validation.get("match", None)
         self._analysis = validation.get("analysis", None)
         self._script = validation.get("script", {}).get("path", None)
-        # validation pasring end
+        # validation parsing end
 
         self._has_hard_timeout = False
 

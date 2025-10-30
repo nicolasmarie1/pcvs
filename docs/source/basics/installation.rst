@@ -108,7 +108,7 @@ Note in that case no intermediate source package will be used,
 only distributed versions (compiled one). To 'accept' it, you must specify
 ``--only-binary=:all:`` to force downloading distribution packages (but will
 fail if not provided) or ``--no-deps`` to exclude any dependencies to be
-downloade (and should be taken care manually):
+download (and should be taken care manually):
 
 .. code-block:: bash
 

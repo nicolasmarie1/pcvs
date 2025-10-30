@@ -160,7 +160,7 @@ The machine node describes the constraints of the physical machine.
 runtime node
 ^^^^^^^^^^^^
 ``program`` specify a wrapper for runtime tests, such as ``mpirun`` for example.
-The ``compiling.wrapper`` secify a wrapper for test compilation.
+The ``compiling.wrapper`` specify a wrapper for test compilation.
 It can be use to run the compilation on an other node using ``srun`` for example.
 
 The ``criterions`` node contains arguments passed to the launching command.

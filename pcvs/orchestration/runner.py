@@ -88,7 +88,7 @@ class RunnerAdapter(threading.Thread):
                     hard_timeout = True
                     break
 
-                # Abording runs -> kill -> exit
+                # Aborting runs -> kill -> exit
                 if not RunnerAdapter.sched_in_progress:
                     os.killpg(os.getpgid(p.pid), signal.SIGKILL)
                     return

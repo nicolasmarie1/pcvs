@@ -49,7 +49,7 @@ frameworks).
    PCVS does not act as a test framework on its own. It does not have all the
    features from a test reporting interface either. Its purposes are to provide a
    new approach when building test-bases to dissociate testers from tested, to
-   increase flexbility, reusability, ease maintenance and speed up test
+   increase flexibility, reusability, ease maintenance and speed up test
    scheduling to minimize time to result. It is compatible with multiple build
    systems and test frameworks and can be integrated in a non-destructive way
    inside already-existing projects.

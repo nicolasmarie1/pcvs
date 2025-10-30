@@ -126,7 +126,7 @@ and matching output.
             mean: expected time to compute the test (seconds / float) tolerance:
             standard deviation for expected time (seconds / float)
             hard_timeout: maximum time after which process has to be killed (seconds / float)
-            soft_timeout: maximum time after which the test is considered failed (but can still finish, so you can run test correcness locally without testing optimisation (even on your slow computer))
+            soft_timeout: maximum time after which the test is considered failed (but can still finish, so you can run test correctness locally without testing optimisation (even on your slow computer))
         match:
             label:
                 expr:
