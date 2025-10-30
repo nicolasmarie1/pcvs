@@ -5,6 +5,57 @@ track what changed from each release.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 
+## [0.8.0] -- 2025-11-3
+
+### Added
+
+- CLI: Add `--run-filter` to filter jobs to run based on tags
+- CLI: Add `--print-filter` to filter jobs to print output based on tags
+- CLI: Add `graph` command to output graph formatted metrics about a bank (success rate, tests duration...)
+- CLI: Add `--profile-path` to specify the profile to use as a path
+- DOC: Build and deploy documentation
+- Jobs: Support compilers wrapper
+- Jobs: Add a one hour global timeout
+- Jobs: Add `lang` key to specify explicitly the language of the test
+- Jobs: Add separated `validation` node to build section of the test descriptors -> Build tests can validated in the same way as run tests
+- Jobs: Add `local` option to test descriptors criterions -> When turned to `false`, the Criterion is applied to the wrapper instead of to the program
+- Report: Add TUI to visualize results in terminal (with `--tui` option)
+
+### Changed
+
+- Profile: Change compilers definition to help with adding new compilers (**Breaking change**)
+- CLI: Add summary table at the end of runs even with verbosity opt in
+- DOC: Disable documentation generation by default
+- Errors: Changed most warnings
+- Jobs: Improve plugin integration in the orchestrator
+- Jobs: Remove mandatory base64 plugin encoding (plugins can be written in pure python)
+- Jobs: Split timeout in hard_timeout (old behavior: job is killed) and soft_timeout (test is marked timeout but continue until completion)
+- Profile: Add defaultplugin key to specify a default plugin instead of copy pasting
+- Session: Avoid lock contention by using a one file per session structure
+
+### Removed
+
+- Jobs: Remove timeout from compilation tests
+- Jobs: Remove expect_exit validation propagated to compilation tests
+
+### Fixed
+
+- Bank: Fix internal issues
+- Installation: Fix race condition when creating PCVS home directory
+- Jobs: Fix environment export
+- Jobs: Fix analysis validation based on previous runs in the bank
+- Jobs: Fix analysis validation when bank is disabled
+- Jobs: Fix environment propagation for Make, AutoTools and CMake build systems
+- Profile: Fix default plugin overriding user plugin
+- Profile: Add information on wrong configuration
+- Orchestrator: Fix scheduler pruning by removing the maximum attempts discard
+- Orchestrator: Fix tests being queue before their dependencies
+- Orchestrator: Fix deadlock on last job being an ERR_DEP
+- Orchestrator: Fix deadlock on last job with wrong resources allocation
+- Orchestrator: Fix PCVS aborting its children processes on SIGTERM (ctrl+c)
+- Report: (Webview) Add 404 error
+- Scan: Fix file finding
+
 ## [0.7.0] -- 2023-06-9
 
 ### Added
@@ -23,8 +74,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/)
 
 ### Changed
 
-- **YAML**: New syntax for describing tests and configurations (breaking old yaml files)
-- **ARCHIVE**: New format (breaking old archives)
+- **YAML**: New syntax for describing tests and configurations (**breaking change**)
+- **ARCHIVE**: New format (**breaking change**)
 - Check: Disable auto-conversion
 - CLI: Change default values for options
 - CLI: Avoid real run with `--show` for `exec` command
