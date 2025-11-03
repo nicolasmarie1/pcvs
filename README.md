@@ -20,7 +20,7 @@ A more detailed guide to install PCVS can be found in the appropriate
 documentation, here is a quick overview to set up and test the framework.
 
 ```bash
-    # considering python3.7+
+    # considering python3.10+
     $ pip3 install .
     # for dev/testing purposes, use:
     $ pip3 install '.[dev]'

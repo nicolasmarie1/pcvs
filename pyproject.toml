@@ -14,11 +14,11 @@ dependencies = [
   "sh",
   "rich",
   "rich-click",
-  "pygit2<=1.14.1; python_version >= '3.7'",
-  "textual>=0.29.0; python_version >= '3.7'",
+  "pygit2<=1.14.1",
+  "textual>=0.29.0",
   "matplotlib",
 ]
-requires-python = ">=3.5"
+requires-python = ">=3.10"
 authors = [
   {name = "Julien Adam", email = "adamj@paratools.com"},
   {name = "Paul Canat", email = "pcanat@paratools.com"},

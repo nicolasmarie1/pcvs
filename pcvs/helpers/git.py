@@ -21,7 +21,7 @@ except ModuleNotFoundError:
 def elect_handler(prefix=None):
     """Select the proper repository handler based on python support
 
-    Python 3.7+-based PCVS installations come with pygit2, thanks to provided
+    Python 3.10+-based PCVS installations come with pygit2, thanks to provided
     wheels. Older versions are relying on regular Git commands (as wheels are
     not provided for Python3.6 and older & building pygit2 requires specific
     libgit2 version to be installed, hardening the installation process)
