@@ -13,31 +13,32 @@ available in ``PATH``. This program is the only entry point to PCVS:
 
  PCVS main program.
 
- ╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────╮
- │ --verbose      -v             INTEGER RANGE  Enable PCVS debug verbosity (cumulative)                  │
- │                                              [env var: PCVS_VERBOSE]                                   │
- │ --color        -c/--no-color                 Use colors to beautify the output [env var: PCVS_COLOR]   │
- │ --glyph        -g/--no-glyph                 enable/disable Unicode glyphs [env var: PCVS_ENCODING]    │
- │ --exec-path    -C             DIRECTORY      [env var: PCVS_EXEC_PATH]                                 │
- │ --version      -V                            Display current version                                   │
- │ --width        -w             INTEGER        Terminal width (autodetection if omitted                  │
- │ --plugin-path  -P             PATH           Default Plugin path prefix [env var: PCVS_PLUGIN_PATH]    │
- │ --plugin       -m             TEXT                                                                     │
- │ --help         -h,-help                      Show this message and exit.                               │
- ╰────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- ╭─ Commands ─────────────────────────────────────────────────────────────────────────────────────────────╮
- │ bank           Persistent data repository management                                                   │
- │ check          Ensure future input will be conformant to standards                                     │
- │ clean          Remove artifacts generated from PCVS                                                    │
- │ config         Manage Configuration blocks                                                             │
- │ exec           Running aspecific test                                                                  │
- │ profile        Manage Profiles                                                                         │
- │ report         Manage PCVS result reporting interface                                                  │
- │ run            Run a validation                                                                        │
- │ scan           Analyze directories to build up test conf. files                                        │
- │ session        Manage multiple validations                                                             │
- ╰────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+   Options
+  --verbose      -v             INTEGER RANGE  Enable PCVS verbosity (cumulative) [env var: PCVS_VERBOSE]
+  --debug        -d                            Enable Debug mode (implies `-vvv`) [env var: PCVS_DEBUG]
+  --color        -c/--no-color                 Use colors to beautify the output [env var: PCVS_COLOR]
+  --glyph        -g/--no-glyph                 enable/disable Unicode glyphs [env var: PCVS_ENCODING]
+  --exec-path    -C             DIRECTORY      [env var: PCVS_EXEC_PATH]
+  --version      -V                            Display current version
+  --plugin-path  -P             PATH           Default Plugin path prefix [env var: PCVS_PLUGIN_PATH]
+  --plugin       -m             TEXT
+  --tui          -t                            Use a TUI-based interface. [env var: PCVS_TUI]
+  --help         -help,-h                      Show this message and exit.
 
+   Commands
+  bank                      Persistent data repository management
+  check                     Ensure future input will be compliant with standards
+  clean                     Remove artifacts generated from PCVS
+  config                    Manage Configuration blocks
+  convert                   YAML to YAML converter
+  exec                      Running aspecific test
+  graph                     Export graph from tests results.
+  profile                   Manage Profiles
+  remote-run                Internal command to re-run a PCVS instance. Should not be used directly
+  report                    Manage PCVS result reporting interface
+  run                       Run a validation
+  scan                      Analyze directories to build up test conf. files
+  session                   Manage multiple validations
 
 Create a profile
 ################

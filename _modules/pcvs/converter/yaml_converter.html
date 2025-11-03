@@ -1,159 +1,46 @@
-<!doctype html>
-<html class="no-js">
-  <head><meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
-
-    <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2021.11.16"/>
-        <title>pcvs.converter.yaml_converter - PCVS 0.8.0.dev0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=916d6ed8f59335acffa15474ff504849343d4c76" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=0af69da206d614734f649b27d4cdc2dd6c31f41d" />
-    
-    
 
 
-<style>
-  body {
-    --color-code-background: #eeffcc;
-  --color-code-foreground: black;
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.converter.yaml_converter &mdash; PCVS 0.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
   
-  }
-  body[data-theme="dark"] {
-    --color-code-background: #202020;
-  --color-code-foreground: #d0d0d0;
-  
-  }
-  @media (prefers-color-scheme: dark) {
-    body:not([data-theme="light"]) {
-      --color-code-background: #202020;
-  --color-code-foreground: #d0d0d0;
-  
-    }
-  }
-</style></head>
-  <body>
-    <script>
-      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
-    </script>
-    
-<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
-  <symbol id="svg-toc" viewBox="0 0 24 24">
-    <title>Contents</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <path stroke="none" d="M0 0h24v24H0z" />
-      <line x1="4" y1="6" x2="20" y2="6" />
-      <line x1="10" y1="12" x2="20" y2="12" />
-      <line x1="6" y1="18" x2="20" y2="18" />
-    </svg>
-  </symbol>
-  <symbol id="svg-menu" viewBox="0 0 24 24">
-    <title>Menu</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
-      <line x1="3" y1="12" x2="21" y2="12"></line>
-      <line x1="3" y1="6" x2="21" y2="6"></line>
-      <line x1="3" y1="18" x2="21" y2="18"></line>
-    </svg>
-  </symbol>
-  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
-    <title>Expand</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
-      <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-  </symbol>
-  <symbol id="svg-sun" viewBox="0 0 24 24">
-    <title>Light mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
-      <circle cx="12" cy="12" r="5"></circle>
-      <line x1="12" y1="1" x2="12" y2="3"></line>
-      <line x1="12" y1="21" x2="12" y2="23"></line>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-      <line x1="1" y1="12" x2="3" y2="12"></line>
-      <line x1="21" y1="12" x2="23" y2="12"></line>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-    </svg>
-  </symbol>
-  <symbol id="svg-moon" viewBox="0 0 24 24">
-    <title>Dark mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
-      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
-    </svg>
-  </symbol>
-  <symbol id="svg-sun-half" viewBox="0 0 24 24">
-    <title>Auto light/dark mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
-      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M13 12h5" />
-      <path d="M13 15h4" />
-      <path d="M13 18h1" />
-      <path d="M13 9h4" />
-      <path d="M13 6h1" />
-    </svg>
-  </symbol>
-</svg>
+    <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=6a14807c"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
 
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
-<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
-<label class="overlay sidebar-overlay" for="__navigation">
-  <div class="visually-hidden">Hide navigation sidebar</div>
-</label>
-<label class="overlay toc-overlay" for="__toc">
-  <div class="visually-hidden">Hide table of contents sidebar</div>
-</label>
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
 
-
-
-<div class="page">
-  <header class="mobile-header">
-    <div class="header-left">
-      <label class="nav-overlay-icon" for="__navigation">
-        <div class="visually-hidden">Toggle site navigation sidebar</div>
-        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
-      </label>
-    </div>
-    <div class="header-center">
-      <a href="../../../index.html"><div class="brand">PCVS 0.8.0.dev0 documentation</div></a>
-    </div>
-    <div class="header-right">
-      <div class="theme-toggle-container theme-toggle-header">
-        <button class="theme-toggle">
-          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
-          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
-          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
-        </button>
-      </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
-        <div class="visually-hidden">Toggle table of contents sidebar</div>
-        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
-      </label>
-    </div>
-  </header>
-  <aside class="sidebar-drawer">
-    <div class="sidebar-container">
-      
-      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
-  
-  
-  <span class="sidebar-brand-text">PCVS 0.8.0.dev0 documentation</span>
-  
-</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
-  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
-  <input type="hidden" name="check_keywords" value="yes">
-  <input type="hidden" name="area" value="default">
-</form>
-<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../basics/features.html">Feature Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../basics/getting-started.html">Getting Started</a></li>
@@ -173,81 +60,35 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/pcvs.html">Package Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/pcvs.backend.html">pcvs.backend package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.backend.bank.html">pcvs.backend.bank module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.backend.config.html">pcvs.backend.config module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.backend.profile.html">pcvs.backend.profile module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.backend.report.html">pcvs.backend.report module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.backend.run.html">pcvs.backend.run module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.backend.session.html">pcvs.backend.session module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.backend.utilities.html">pcvs.backend.utilities module</a></li>
-</ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/pcvs.cli.html">pcvs.cli package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.cli.cli_bank.html">pcvs.cli.cli_bank module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.cli.cli_config.html">pcvs.cli.cli_config module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.cli.cli_profile.html">pcvs.cli.cli_profile module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.cli.cli_report.html">pcvs.cli.cli_report module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.cli.cli_run.html">pcvs.cli.cli_run module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.cli.cli_session.html">pcvs.cli.cli_session module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.cli.cli_utilities.html">pcvs.cli.cli_utilities module</a></li>
-</ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/pcvs.testing.html">pcvs.testing package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.testing.tedesc.html">pcvs.testing.tedesc module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.testing.test.html">pcvs.testing.test module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.testing.testfile.html">pcvs.testing.testfile module</a></li>
-</ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/pcvs.converter.html">pcvs.converter package</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.converter.yaml_converter.html">pcvs.converter.yaml_converter module</a></li>
-</ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/pcvs.helpers.html">pcvs.helpers package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.helpers.criterion.html">pcvs.helpers.criterion module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.helpers.exceptions.html">pcvs.helpers.exceptions module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.helpers.git.html">pcvs.helpers.git module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.helpers.pm.html">pcvs.helpers.pm module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.helpers.system.html">pcvs.helpers.system module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.helpers.utils.html">pcvs.helpers.utils module</a></li>
-</ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/pcvs.orchestration.html">pcvs.orchestration package</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/pcvs.orchestration.publishers.html">pcvs.orchestration.publishers module</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/pcvs.webview.html">pcvs.webview package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/pcvs.main.html">pcvs.main module</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pcvs.html">Package Documentation</a></li>
 </ul>
 
-</div>
-</div>
-      </div>
-      
-    </div>
-  </aside>
-  <div class="main">
-    <div class="content">
-      <div class="article-container">
-        <div class="content-icon-container">
-          <div class="theme-toggle-container theme-toggle-content">
-            <button class="theme-toggle">
-              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
-              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
-              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
-            </button>
-          </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
-            <div class="visually-hidden">Toggle table of contents sidebar</div>
-            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
-          </label>
         </div>
-        <article role="main">
-          <h1>Source code for pcvs.converter.yaml_converter</h1><div class="highlight"><pre>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pcvs.converter.yaml_converter</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.converter.yaml_converter</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pprint</span>
@@ -265,15 +106,15 @@
 
 
 <div class="viewcode-block" id="separate_key_and_value"><a class="viewcode-back" href="../../../api/pcvs.converter.yaml_converter.html#pcvs.converter.yaml_converter.separate_key_and_value">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">separate_key_and_value</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">""" helper to split the key and value from a string"""</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;helper to split the key and value from a string&quot;&quot;&quot;</span>
     <span class="n">array</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">k</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">v</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
 
-        <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'true'</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
             <span class="n">v</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">elif</span> <span class="n">v</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'false'</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">v</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;false&quot;</span><span class="p">:</span>
             <span class="n">v</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">return</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
@@ -282,10 +123,10 @@
 
 
 <div class="viewcode-block" id="set_with"><a class="viewcode-back" href="../../../api/pcvs.converter.yaml_converter.html#pcvs.converter.yaml_converter.set_with">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">set_with</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">klist</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Add a value to a n-depth dict where the depth is declared as</span>
-<span class="sd">    a list of intermediate keys. the 'append' flag indicates if the given</span>
-<span class="sd">    'value' should be appended or replace the original content</span>
-<span class="sd">    """</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a value to a n-depth dict where the depth is declared as</span>
+<span class="sd">    a list of intermediate keys. the &#39;append&#39; flag indicates if the given</span>
+<span class="sd">    &#39;value&#39; should be appended or replace the original content</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Just in case intermediate keys do not exist</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">klist</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">{})</span>
@@ -297,7 +138,7 @@
             <span class="n">data</span><span class="p">[</span><span class="n">klist</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
         <span class="c1"># if it exists and is not a list ==&gt; complain!</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">klist</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"fail"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;fail&quot;</span><span class="p">)</span>
         <span class="c1"># append the value</span>
         <span class="n">data</span><span class="p">[</span><span class="n">klist</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -305,37 +146,39 @@
         <span class="n">data</span><span class="p">[</span><span class="n">klist</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">val</span></div>
 
 
-<div class="viewcode-block" id="flatten"><a class="viewcode-back" href="../../../api/pcvs.converter.yaml_converter.html#pcvs.converter.yaml_converter.flatten">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">flatten</span><span class="p">(</span><span class="n">dd</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">''</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">""" make the n-depth dict 'dd' a "flat" version, where the successive keys</span>
+<div class="viewcode-block" id="flatten"><a class="viewcode-back" href="../../../api/pcvs.converter.yaml_converter.html#pcvs.converter.yaml_converter.flatten">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">flatten</span><span class="p">(</span><span class="n">dd</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;make the n-depth dict &#39;dd&#39; a &quot;flat&quot; version, where the successive keys</span>
 <span class="sd">    are chained in a tuple. for instance:</span>
-<span class="sd">    {'a': {'b': {'c': value}}} --&gt; {('a', 'b', 'c'): value}</span>
-<span class="sd">    """</span>
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="n">prefix</span> <span class="o">+</span> <span class="s2">"||"</span> <span class="o">+</span> <span class="n">k</span> <span class="k">if</span> <span class="n">prefix</span> <span class="k">else</span> <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
-        <span class="k">for</span> <span class="n">kk</span><span class="p">,</span> <span class="n">vv</span> <span class="ow">in</span> <span class="n">dd</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">vv</span><span class="p">,</span> <span class="n">kk</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-    <span class="p">}</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dd</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span>
-        <span class="n">prefix</span><span class="p">:</span> <span class="n">dd</span>
-    <span class="p">}</span></div>
+<span class="sd">    {&#39;a&#39;: {&#39;b&#39;: {&#39;c&#39;: value}}} --&gt; {(&#39;a&#39;, &#39;b&#39;, &#39;c&#39;): value}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="p">{</span>
+            <span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;||&quot;</span> <span class="o">+</span> <span class="n">k</span> <span class="k">if</span> <span class="n">prefix</span> <span class="k">else</span> <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
+            <span class="k">for</span> <span class="n">kk</span><span class="p">,</span> <span class="n">vv</span> <span class="ow">in</span> <span class="n">dd</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">vv</span><span class="p">,</span> <span class="n">kk</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dd</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+        <span class="k">else</span> <span class="p">{</span><span class="n">prefix</span><span class="p">:</span> <span class="n">dd</span><span class="p">}</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="compute_new_key"><a class="viewcode-back" href="../../../api/pcvs.converter.yaml_converter.html#pcvs.converter.yaml_converter.compute_new_key">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">compute_new_key</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""replace in 'k' any pattern found in 'm'.</span>
-<span class="sd">    'k' is a string with placeholders, while 'm' is a match result with groups</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;replace in &#39;k&#39; any pattern found in &#39;m&#39;.</span>
+<span class="sd">    &#39;k&#39; is a string with placeholders, while &#39;m&#39; is a match result with groups</span>
 <span class="sd">    named after placeholders.</span>
-<span class="sd">    This function will also expand the placeholder if 'call:' token is used to</span>
+<span class="sd">    This function will also expand the placeholder if &#39;call:&#39; token is used to</span>
 <span class="sd">    execute python code on the fly (complex transformation)</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># basic replace the whole string with any placeholder</span>
     <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-        <span class="n">k</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="s2">"||"</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"&lt;"</span> <span class="o">+</span> <span class="n">elt</span> <span class="o">+</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">elt</span><span class="p">))</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;||&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&lt;&quot;</span> <span class="o">+</span> <span class="n">elt</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">elt</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">k</span></div>
 
 
 <div class="viewcode-block" id="check_if_key_matches"><a class="viewcode-back" href="../../../api/pcvs.converter.yaml_converter.html#pcvs.converter.yaml_converter.check_if_key_matches">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">check_if_key_matches</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">ref_array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""list all matches for the current key in the new YAML description."""</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;list all matches for the current key in the new YAML description.&quot;&quot;&quot;</span>
     <span class="c1"># for each key to be replaced.</span>
     <span class="c1"># WARNING: no order!</span>
     <span class="k">for</span> <span class="n">old_k</span><span class="p">,</span> <span class="n">new_k</span> <span class="ow">in</span> <span class="n">ref_array</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -361,13 +204,13 @@
 
 
 <div class="viewcode-block" id="process"><a class="viewcode-back" href="../../../api/pcvs.converter.yaml_converter.html#pcvs.converter.yaml_converter.process">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ref_array</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">warn_if_missing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Process YAML dict 'data' and return a transformed dict"""</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Process YAML dict &#39;data&#39; and return a transformed dict&quot;&quot;&quot;</span>
     <span class="n">output</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
 
-    <span class="c1"># desc_dict['second'] is set to contain all keys</span>
-    <span class="c1"># by opposition to desc_dict['first'] containing modifiers</span>
+    <span class="c1"># desc_dict[&#39;second&#39;] is set to contain all keys</span>
+    <span class="c1"># by opposition to desc_dict[&#39;first&#39;] containing modifiers</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ref_array</span><span class="p">:</span>
-        <span class="n">ref_array</span> <span class="o">=</span> <span class="n">desc_dict</span><span class="p">[</span><span class="s1">'second'</span><span class="p">]</span>
+        <span class="n">ref_array</span> <span class="o">=</span> <span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;second&quot;</span><span class="p">]</span>
 
     <span class="c1"># browse original data</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -380,7 +223,7 @@
         <span class="c1"># an array is returned as a single node can produe multiple new nodes</span>
         <span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">dest_k</span><span class="p">)</span> <span class="o">=</span> <span class="n">check_if_key_matches</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">ref_array</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">valid</span><span class="p">:</span>
-            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Processing </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
             <span class="c1"># An empty array means the key does not exist in the new tree.</span>
             <span class="c1"># =&gt; discard</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dest_k</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
@@ -388,58 +231,57 @@
 
             <span class="c1"># Process each of the new keys</span>
             <span class="k">for</span> <span class="n">elt_dest_k</span> <span class="ow">in</span> <span class="n">dest_k</span><span class="p">:</span>
-                <span class="p">(</span><span class="n">final_k</span><span class="p">,</span> <span class="n">final_v</span><span class="p">,</span> <span class="n">token</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">elt_dest_k</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
-                <span class="c1"># src key won't be kept</span>
+                <span class="p">(</span><span class="n">final_k</span><span class="p">,</span> <span class="n">final_v</span><span class="p">,</span> <span class="n">token</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">elt_dest_k</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="c1"># src key won&#39;t be kept</span>
                 <span class="k">if</span> <span class="n">final_k</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">continue</span>
                 <span class="c1"># if a split is required</span>
-                <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'|+|'</span><span class="p">,</span> <span class="s1">'|=|'</span><span class="p">]:</span>
-                    <span class="p">(</span><span class="n">final_k</span><span class="p">,</span>
-                     <span class="n">final_v</span><span class="p">)</span> <span class="o">=</span> <span class="n">separate_key_and_value</span><span class="p">(</span><span class="n">elt_dest_k</span><span class="p">,</span> <span class="n">token</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;|+|&quot;</span><span class="p">,</span> <span class="s2">&quot;|=|&quot;</span><span class="p">]:</span>
+                    <span class="p">(</span><span class="n">final_k</span><span class="p">,</span> <span class="n">final_v</span><span class="p">)</span> <span class="o">=</span> <span class="n">separate_key_and_value</span><span class="p">(</span><span class="n">elt_dest_k</span><span class="p">,</span> <span class="n">token</span><span class="p">)</span>
                     <span class="c1"># the split() succeeded ? stop</span>
                     <span class="k">if</span> <span class="n">final_v</span><span class="p">:</span>
                         <span class="k">break</span>
 
-                <span class="c1"># special case to handle the "+" operator to append a value</span>
-                <span class="n">should_append</span> <span class="o">=</span> <span class="n">token</span> <span class="o">==</span> <span class="s1">'+'</span>
+                <span class="c1"># special case to handle the &quot;+&quot; operator to append a value</span>
+                <span class="n">should_append</span> <span class="o">=</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;+&quot;</span>
                 <span class="c1"># if none of the split() succeeded, just keep the old value</span>
                 <span class="n">final_v</span> <span class="o">=</span> <span class="n">v</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">final_v</span> <span class="k">else</span> <span class="n">final_v</span>
                 <span class="c1"># set the new key with the new value</span>
-                <span class="n">set_with</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">final_k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'||'</span><span class="p">),</span> <span class="n">final_v</span><span class="p">,</span> <span class="n">should_append</span><span class="p">)</span>
+                <span class="n">set_with</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">final_k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;||&quot;</span><span class="p">),</span> <span class="n">final_v</span><span class="p">,</span> <span class="n">should_append</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># warn when an old_key hasn't be declared in spec.</span>
-            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"DISCARDING </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+            <span class="c1"># warn when an old_key hasn&#39;t be declared in spec.</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;DISCARDING </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">warn_if_missing</span><span class="p">:</span>
-                <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"Key </span><span class="si">{}</span><span class="s2"> undeclared in spec."</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
-                <span class="n">set_with</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="p">[</span><span class="s1">'pcvs_missing'</span><span class="p">]</span> <span class="o">+</span> <span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"||"</span><span class="p">),</span> <span class="n">v</span><span class="p">)</span>
+                <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Key </span><span class="si">{}</span><span class="s2"> undeclared in spec.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+                <span class="n">set_with</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;pcvs_missing&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;||&quot;</span><span class="p">),</span> <span class="n">v</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">set_with</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"||"</span><span class="p">),</span> <span class="n">v</span><span class="p">)</span>
+                <span class="n">set_with</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;||&quot;</span><span class="p">),</span> <span class="n">v</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">output</span></div>
 
 
 <div class="viewcode-block" id="process_modifiers"><a class="viewcode-back" href="../../../api/pcvs.converter.yaml_converter.html#pcvs.converter.yaml_converter.process_modifiers">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">process_modifiers</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""applies rules in-place for the data dict.</span>
-<span class="sd">    Rules are present in the desc_dict['first'] sub-dict."""</span>
-    <span class="k">if</span> <span class="s2">"first"</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;applies rules in-place for the data dict.</span>
+<span class="sd">    Rules are present in the desc_dict[&#39;first&#39;] sub-dict.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;first&quot;</span> <span class="ow">in</span> <span class="n">desc_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="c1"># do not warn for missing keys in that case (incomplete)</span>
-        <span class="k">return</span> <span class="n">process</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">desc_dict</span><span class="p">[</span><span class="s2">"first"</span><span class="p">],</span> <span class="n">warn_if_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">process</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;first&quot;</span><span class="p">],</span> <span class="n">warn_if_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
 
 <div class="viewcode-block" id="replace_placeholder"><a class="viewcode-back" href="../../../api/pcvs.converter.yaml_converter.html#pcvs.converter.yaml_converter.replace_placeholder">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">replace_placeholder</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">refs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The given TMP should be a dict, where keys contain placeholders, wrapped</span>
-<span class="sd">    with "&lt;&gt;". Each placeholder will be replaced (i.e. key will be changed) by</span>
-<span class="sd">    the associated value in refs."""</span>
+<span class="sd">    with &quot;&lt;&gt;&quot;. Each placeholder will be replaced (i.e. key will be changed) by</span>
+<span class="sd">    the associated value in refs.&quot;&quot;&quot;</span>
 
     <span class="n">final</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="n">tmp</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">old</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'__'</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">old</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">):</span>
             <span class="k">continue</span>
 
         <span class="n">replacement</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">old</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'.'</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">old</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
             <span class="n">insert</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">for</span> <span class="n">valid_k</span> <span class="ow">in</span> <span class="n">refs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">valid_k</span> <span class="ow">in</span> <span class="n">elt</span><span class="p">:</span>
@@ -448,143 +290,138 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">insert</span><span class="p">:</span>
                 <span class="n">replacement</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">elt</span><span class="p">))</span>
         <span class="c1"># this backslash are needed, do not ask WHY.</span>
-        <span class="n">final</span><span class="p">[</span><span class="sa">r</span><span class="s2">"\|\|"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">replacement</span><span class="p">)]</span> <span class="o">=</span> <span class="n">new</span>
+        <span class="n">final</span><span class="p">[</span><span class="sa">r</span><span class="s2">&quot;\|\|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">replacement</span><span class="p">)]</span> <span class="o">=</span> <span class="n">new</span>
     <span class="k">return</span> <span class="n">final</span></div>
 
 
-<div class="viewcode-block" id="convert"><a class="viewcode-back" href="../../../api/pcvs.converter.yaml_converter.html#pcvs.converter.yaml_converter.convert">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">convert</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">scheme</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span>
-            <span class="n">stdout</span><span class="p">,</span> <span class="n">skip_unknown</span><span class="p">,</span> <span class="n">in_place</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""</span>
+<div class="viewcode-block" id="convert"><a class="viewcode-back" href="../../../api/pcvs.converter.yaml_converter.html#pcvs.converter.yaml_converter.convert">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">convert</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">scheme</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,</span> <span class="n">skip_unknown</span><span class="p">,</span> <span class="n">in_place</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Process the conversion from one YAML format to another.</span>
 <span class="sd">    Conversion specifications are described by the SCHEME file.</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">kind</span> <span class="o">=</span> <span class="n">kind</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_header</span><span class="p">(</span><span class="s2">"YAML Conversion"</span><span class="p">)</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_header</span><span class="p">(</span><span class="s2">&quot;YAML Conversion&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">in_place</span> <span class="ow">and</span> <span class="p">(</span><span class="n">stdout</span> <span class="ow">or</span> <span class="n">out</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">BadOptionUsage</span><span class="p">(</span>
-            <span class="s2">"--stdout/--in-place"</span><span class="p">,</span>
-            <span class="s2">"Cannot use --in-place option with any other output options (--output/--stdout)"</span>
+            <span class="s2">&quot;--stdout/--in-place&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Cannot use --in-place option with any other output options (--output/--stdout)&quot;</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">in_place</span><span class="p">:</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">input_file</span>
 
-    <span class="k">if</span> <span class="n">template</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"te"</span><span class="p">:</span>
-        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
-            <span class="s2">"If the TE file contains YAML aliases, the conversion may"</span><span class="p">,</span>
-            <span class="s2">"fail. Use the '--template' option to provide the YAML file"</span><span class="p">,</span>
-            <span class="s2">"containing these aliases"</span>
-        <span class="p">]))</span>
-    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"profile"</span><span class="p">:</span>
-        <span class="n">kind</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="k">if</span> <span class="n">template</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;te&quot;</span><span class="p">:</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;If the TE file contains YAML aliases, the conversion may&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;fail. Use the &#39;--template&#39; option to provide the YAML file&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;containing these aliases&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;profile&quot;</span><span class="p">:</span>
+        <span class="n">kind</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="c1"># load the input file</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span> <span class="k">if</span> <span class="n">input_file</span> <span class="o">==</span> <span class="s1">'-'</span> <span class="k">else</span> <span class="nb">open</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span> <span class="k">if</span> <span class="n">input_file</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span> <span class="k">else</span> <span class="nb">open</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">"Load data file: </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">&quot;Load data file: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
         <span class="n">stream</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">template</span><span class="p">:</span>
-            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">"Load template file: </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">template</span><span class="p">))</span>
-            <span class="n">stream</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">+</span> <span class="n">stream</span>
-        <span class="n">data_to_convert</span> <span class="o">=</span> <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s1">'safe'</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">&quot;Load template file: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">template</span><span class="p">))</span>
+            <span class="n">stream</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">+</span> <span class="n">stream</span>
+        <span class="n">data_to_convert</span> <span class="o">=</span> <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s2">&quot;safe&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">YAML</span><span class="o">.</span><span class="n">composer</span><span class="o">.</span><span class="n">ComposerError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CommonException</span><span class="o">.</span><span class="n">IOError</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">template</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
     <span class="c1"># load the scheme</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">scheme</span><span class="p">:</span>
-        <span class="n">scheme</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pcvs</span><span class="o">.</span><span class="n">PATH_INSTDIR</span><span class="p">,</span>
-                                   <span class="s2">"converter/convert.json"</span><span class="p">))</span>
-    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">"Load scheme file: </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">scheme</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">scheme</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pcvs</span><span class="o">.</span><span class="n">PATH_INSTDIR</span><span class="p">,</span> <span class="s2">&quot;converter/convert.json&quot;</span><span class="p">))</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">&quot;Load scheme file: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">scheme</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
     <span class="n">tmp</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">scheme</span><span class="p">)</span>
 
     <span class="c1"># if modifiers are declared, replace token with regexes</span>
-    <span class="k">if</span> <span class="s1">'__modifiers'</span> <span class="ow">in</span> <span class="n">tmp</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-        <span class="n">desc_dict</span><span class="p">[</span><span class="s1">'first'</span><span class="p">]</span> <span class="o">=</span> <span class="n">replace_placeholder</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="s1">'__modifiers'</span><span class="p">],</span>
-                                                 <span class="n">tmp</span><span class="p">[</span><span class="s1">'__tokens'</span><span class="p">])</span>
-    <span class="n">desc_dict</span><span class="p">[</span><span class="s1">'second'</span><span class="p">]</span> <span class="o">=</span> <span class="n">replace_placeholder</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">tmp</span><span class="p">[</span><span class="s1">'__tokens'</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s2">&quot;__modifiers&quot;</span> <span class="ow">in</span> <span class="n">tmp</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;first&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">replace_placeholder</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="s2">&quot;__modifiers&quot;</span><span class="p">],</span> <span class="n">tmp</span><span class="p">[</span><span class="s2">&quot;__tokens&quot;</span><span class="p">])</span>
+    <span class="n">desc_dict</span><span class="p">[</span><span class="s2">&quot;second&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">replace_placeholder</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">tmp</span><span class="p">[</span><span class="s2">&quot;__tokens&quot;</span><span class="p">])</span>
 
-    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">([</span>
-        <span class="s2">"Conversion list {old_key -&gt; new_key):"</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">tmp</span><span class="si">}</span><span class="s2">"</span>
-    <span class="p">])</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">([</span><span class="s2">&quot;Conversion list {old_key -&gt; new_key):&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tmp</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">])</span>
 
-    <span class="c1"># first, "flattening" the original array: {(1, 2, 3): "val"}</span>
+    <span class="c1"># first, &quot;flattening&quot; the original array: {(1, 2, 3): &quot;val&quot;}</span>
     <span class="n">data_to_convert</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">data_to_convert</span><span class="p">,</span> <span class="n">kind</span><span class="p">)</span>
 
     <span class="c1"># then, process modifiers, altering original data before processing</span>
-    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">"Process alterations to the original data"</span><span class="p">)</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">&quot;Process alterations to the original data&quot;</span><span class="p">)</span>
     <span class="n">data_to_convert</span> <span class="o">=</span> <span class="n">process_modifiers</span><span class="p">(</span><span class="n">data_to_convert</span><span class="p">)</span>
     <span class="c1"># as modifiers may have created nested dictionaries:</span>
-    <span class="c1"># =&gt; "flattening" again, but with no prefix (persistent from first)</span>
-    <span class="n">data_to_convert</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">data_to_convert</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="c1"># =&gt; &quot;flattening&quot; again, but with no prefix (persistent from first)</span>
+    <span class="n">data_to_convert</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">data_to_convert</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 
     <span class="c1"># Finally, convert the original data to the final yaml dict</span>
-    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">"Process the data"</span><span class="p">)</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">&quot;Process the data&quot;</span><span class="p">)</span>
     <span class="n">final_data</span> <span class="o">=</span> <span class="n">process</span><span class="p">(</span><span class="n">data_to_convert</span><span class="p">,</span> <span class="n">warn_if_missing</span><span class="o">=</span><span class="ow">not</span> <span class="n">skip_unknown</span><span class="p">)</span>
 
     <span class="c1"># remove appended kind (if any)</span>
     <span class="n">final_data</span> <span class="o">=</span> <span class="n">final_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">final_data</span><span class="p">)</span>
     <span class="c1"># remove template key from the output to avoid polluting the caller</span>
-    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">"Pruning templates from the final data"</span><span class="p">)</span>
-    <span class="n">invalid_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">final_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'pcvst_'</span><span class="p">)]</span>
-    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-        <span class="p">[</span><span class="s2">"Prune the following:"</span><span class="p">,</span> <span class="s2">"</span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">invalid_nodes</span><span class="p">))])</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">&quot;Pruning templates from the final data&quot;</span><span class="p">)</span>
+    <span class="n">invalid_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">final_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;pcvst_&quot;</span><span class="p">)]</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">([</span><span class="s2">&quot;Prune the following:&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">invalid_nodes</span><span class="p">))])</span>
 
-    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">invalid_nodes</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"pcvs_missing"</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">invalid_nodes</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;pcvs_missing&quot;</span><span class="p">]:</span>
         <span class="n">final_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">([</span><span class="s2">"Final layout:"</span><span class="p">,</span> <span class="s2">"</span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">final_data</span><span class="p">))])</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">([</span><span class="s2">&quot;Final layout:&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">final_data</span><span class="p">))])</span>
 
     <span class="k">if</span> <span class="n">stdout</span><span class="p">:</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">prefix</span><span class="p">,</span> <span class="n">base</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"./file.yml"</span> <span class="k">if</span> <span class="n">input_file</span> <span class="o">==</span>
-                                         <span class="s2">"-"</span> <span class="k">else</span> <span class="n">input_file</span><span class="p">)</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="s2">"convert-"</span> <span class="o">+</span> <span class="n">base</span><span class="p">)</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span>
+            <span class="n">prefix</span><span class="p">,</span> <span class="n">base</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;./file.yml&quot;</span> <span class="k">if</span> <span class="n">input_file</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span> <span class="k">else</span> <span class="n">input_file</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="s2">&quot;convert-&quot;</span> <span class="o">+</span> <span class="n">base</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
 
-    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_section</span><span class="p">(</span><span class="s2">"Converted data written into </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
-    <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s1">'safe'</span><span class="p">)</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">final_data</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_section</span><span class="p">(</span><span class="s2">&quot;Converted data written into </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+    <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s2">&quot;safe&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">final_data</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 
     <span class="n">f</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">stdout</span><span class="p">:</span>
         <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
-<span class="c1"># FIXEME:</span>
+<span class="c1"># FIXME:</span>
 <span class="c1"># MISSING:</span>
 <span class="c1"># - compiler.package_manager</span>
 <span class="c1"># - runtime.package_manager</span>
 <span class="c1"># - te.package_manager</span>
-<span class="c1"># """</span>
+<span class="c1"># &quot;&quot;&quot;</span>
 </pre></div>
-        </article>
-      </div>
-      <footer>
-        
-        <div class="related-pages">
-          
-          
-        </div>
 
-        <div class="related-information">
-              Copyright &#169; 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives |
-          Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
-          <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
-        </div>
-        
-      </footer>
-    </div>
-    <aside class="toc-drawer no-toc">
-      
-      
-      
-    </aside>
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
   </div>
-</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/scripts/furo.js"></script>
-    </body>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
 </html>

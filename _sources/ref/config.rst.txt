@@ -24,10 +24,10 @@ information.
 Scope
 -----
 
-PCVS allows 3 scopes : 
+PCVS allows 3 scopes :
 
 * **global** for everyone on the machine having access to the PCVS installation
-* **user** accessible from everywhere for the corresponding user 
+* **user** accessible from everywhere for the corresponding user
 * **local** accessible only from a directory
 
 Blocks description
@@ -38,9 +38,9 @@ compilers node
 
 The compiler node describes how to use a compiler, it include the following nodes:
 * ``program``: the name of the program to execute
-* ``envs``: the env to export at build time for that compiler, usefull if you are using a Makefile
+* ``envs``: the env to export at build time for that compiler, useful if you are using a Makefile
 * ``extension``: the source code extension match by the compilers.
-* ``variants``: differents version of the same compiler configuration entry.
+* ``variants``: different version of the same compiler configuration entry.
 
 
 compilers node example
@@ -88,7 +88,7 @@ The variant must have a **name**, and **arguments** as such:
 .. code-block:: yaml
 
     example_variant:
-        args: additionnal arguments for the example variant
+        args: additional arguments for the example variant
     openmp:
         args: -fopenmp
     strict:
@@ -145,10 +145,10 @@ The following example allow you to disable the ``n_omp`` criterion of the group 
                 n_omp:
                     **values**: null
 
-machine node 
+machine node
 ^^^^^^^^^^^^
 
-The machine node describes the constraints of the physical machine. 
+The machine node describes the constraints of the physical machine.
 
 .. code-block:: yaml
 
@@ -157,27 +157,35 @@ The machine node describes the constraints of the physical machine.
         cores_per_node: number of accessible cores per node
         concurrent_run: maximum number of processes that can coexist
 
-runtime node 
+runtime node
 ^^^^^^^^^^^^
+``program`` specify a wrapper for runtime tests, such as ``mpirun`` for example.
+The ``compiling.wrapper`` specify a wrapper for test compilation.
+It can be use to run the compilation on an other node using ``srun`` for example.
 
-The runtime node specifies entries that must be passed to the launch command. It
-contains subnodes such as ``args``, ```iterators``, etc. The ``iterator`` node
-contains arguments passed to the launching command. For example, if prterun
-takes the "-np" argument, which corresponds to the number of MPI threads, let's
-say ``n_mpi``, we will get the following runtime profile:
+The ``criterions`` node contains arguments passed to the launching command.
+For example, if ``prterun`` takes the "-np" argument, which corresponds
+to the number of MPI threads, let's say ``n_mpi``,
+we will get the following runtime profile:
 
+``plugins`` specify a python plugin that will be loaded and use to filter
+available criterions. ``defaultplugin`` specify the name of one of the default
+plugin to use.
 
-args: arguments for the launch command
+``args`` specify static arguments to ``program``.
 
 .. code-block:: yaml
 
-    iterators:
+    program:
+    compiling:
+      wrapper:
+    args:
+    plugin:
+    defaultplugin:
+    criterions:
         n_mpi:
             numeric: true
             option: "-np"
             type: argument
             aliases:
                 [dictionary of aliases for the option]
-    plugins:
-
-

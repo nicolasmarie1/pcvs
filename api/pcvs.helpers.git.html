@@ -1,159 +1,49 @@
-<!doctype html>
-<html class="no-js">
-  <head><meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pcvs.helpers.pm module" href="pcvs.helpers.pm.html" /><link rel="prev" title="pcvs.helpers.exceptions module" href="pcvs.helpers.exceptions.html" />
-
-    <link rel="shortcut icon" href="../_static/pcvs_favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2021.11.16"/>
-        <title>pcvs.helpers.git module - PCVS 0.8.0.dev0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=916d6ed8f59335acffa15474ff504849343d4c76" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=0af69da206d614734f649b27d4cdc2dd6c31f41d" />
-    
-    
 
 
-<style>
-  body {
-    --color-code-background: #eeffcc;
-  --color-code-foreground: black;
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.helpers.git module &mdash; PCVS 0.8.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
   
-  }
-  body[data-theme="dark"] {
-    --color-code-background: #202020;
-  --color-code-foreground: #d0d0d0;
-  
-  }
-  @media (prefers-color-scheme: dark) {
-    body:not([data-theme="light"]) {
-      --color-code-background: #202020;
-  --color-code-foreground: #d0d0d0;
-  
-    }
-  }
-</style></head>
-  <body>
-    <script>
-      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
-    </script>
-    
-<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
-  <symbol id="svg-toc" viewBox="0 0 24 24">
-    <title>Contents</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <path stroke="none" d="M0 0h24v24H0z" />
-      <line x1="4" y1="6" x2="20" y2="6" />
-      <line x1="10" y1="12" x2="20" y2="12" />
-      <line x1="6" y1="18" x2="20" y2="18" />
-    </svg>
-  </symbol>
-  <symbol id="svg-menu" viewBox="0 0 24 24">
-    <title>Menu</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
-      <line x1="3" y1="12" x2="21" y2="12"></line>
-      <line x1="3" y1="6" x2="21" y2="6"></line>
-      <line x1="3" y1="18" x2="21" y2="18"></line>
-    </svg>
-  </symbol>
-  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
-    <title>Expand</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
-      <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-  </symbol>
-  <symbol id="svg-sun" viewBox="0 0 24 24">
-    <title>Light mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
-      <circle cx="12" cy="12" r="5"></circle>
-      <line x1="12" y1="1" x2="12" y2="3"></line>
-      <line x1="12" y1="21" x2="12" y2="23"></line>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-      <line x1="1" y1="12" x2="3" y2="12"></line>
-      <line x1="21" y1="12" x2="23" y2="12"></line>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-    </svg>
-  </symbol>
-  <symbol id="svg-moon" viewBox="0 0 24 24">
-    <title>Dark mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
-      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
-    </svg>
-  </symbol>
-  <symbol id="svg-sun-half" viewBox="0 0 24 24">
-    <title>Auto light/dark mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
-      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M13 12h5" />
-      <path d="M13 15h4" />
-      <path d="M13 18h1" />
-      <path d="M13 9h4" />
-      <path d="M13 6h1" />
-    </svg>
-  </symbol>
-</svg>
+    <link rel="shortcut icon" href="../_static/pcvs_favicon.ico"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=6a14807c"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pcvs.helpers.pm module" href="pcvs.helpers.pm.html" />
+    <link rel="prev" title="pcvs.helpers.exceptions module" href="pcvs.helpers.exceptions.html" /> 
+</head>
 
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
-<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
-<label class="overlay sidebar-overlay" for="__navigation">
-  <div class="visually-hidden">Hide navigation sidebar</div>
-</label>
-<label class="overlay toc-overlay" for="__toc">
-  <div class="visually-hidden">Hide table of contents sidebar</div>
-</label>
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
 
-
-
-<div class="page">
-  <header class="mobile-header">
-    <div class="header-left">
-      <label class="nav-overlay-icon" for="__navigation">
-        <div class="visually-hidden">Toggle site navigation sidebar</div>
-        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
-      </label>
-    </div>
-    <div class="header-center">
-      <a href="../index.html"><div class="brand">PCVS 0.8.0.dev0 documentation</div></a>
-    </div>
-    <div class="header-right">
-      <div class="theme-toggle-container theme-toggle-header">
-        <button class="theme-toggle">
-          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
-          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
-          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
-        </button>
-      </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
-        <div class="visually-hidden">Toggle table of contents sidebar</div>
-        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
-      </label>
-    </div>
-  </header>
-  <aside class="sidebar-drawer">
-    <div class="sidebar-container">
-      
-      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
-  
-  
-  <span class="sidebar-brand-text">PCVS 0.8.0.dev0 documentation</span>
-  
-</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
-  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
-  <input type="hidden" name="check_keywords" value="yes">
-  <input type="hidden" name="area" value="default">
-</form>
-<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../basics/features.html">Feature Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../basics/getting-started.html">Getting Started</a></li>
@@ -173,133 +63,114 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul class="current">
-<li class="toctree-l1 current has-children"><a class="reference internal" href="pcvs.html">Package Documentation</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2 has-children"><a class="reference internal" href="pcvs.backend.html">pcvs.backend package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.backend.bank.html">pcvs.backend.bank module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.backend.config.html">pcvs.backend.config module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.backend.profile.html">pcvs.backend.profile module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.backend.report.html">pcvs.backend.report module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.backend.run.html">pcvs.backend.run module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.backend.session.html">pcvs.backend.session module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.backend.utilities.html">pcvs.backend.utilities module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pcvs.html">Package Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pcvs.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="pcvs.backend.html">pcvs.backend package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pcvs.cli.html">pcvs.cli package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pcvs.testing.html">pcvs.testing package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pcvs.converter.html">pcvs.converter package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="pcvs.helpers.html">pcvs.helpers package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="pcvs.helpers.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pcvs.helpers.html#module-pcvs.helpers">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="pcvs.cli.html">pcvs.cli package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.cli.cli_bank.html">pcvs.cli.cli_bank module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.cli.cli_config.html">pcvs.cli.cli_config module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.cli.cli_profile.html">pcvs.cli.cli_profile module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.cli.cli_report.html">pcvs.cli.cli_report module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.cli.cli_run.html">pcvs.cli.cli_run module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.cli.cli_session.html">pcvs.cli.cli_session module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.cli.cli_utilities.html">pcvs.cli.cli_utilities module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pcvs.orchestration.html">pcvs.orchestration package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pcvs.webview.html">pcvs.webview package</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="pcvs.testing.html">pcvs.testing package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.testing.tedesc.html">pcvs.testing.tedesc module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.testing.test.html">pcvs.testing.test module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.testing.testfile.html">pcvs.testing.testfile module</a></li>
-</ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="pcvs.converter.html">pcvs.converter package</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.converter.yaml_converter.html">pcvs.converter.yaml_converter module</a></li>
-</ul>
-</li>
-<li class="toctree-l2 current has-children"><a class="reference internal" href="pcvs.helpers.html">pcvs.helpers package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html">pcvs.helpers.criterion module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.exceptions.html">pcvs.helpers.exceptions module</a></li>
-<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">pcvs.helpers.git module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.pm.html">pcvs.helpers.pm module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.system.html">pcvs.helpers.system module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.utils.html">pcvs.helpers.utils module</a></li>
-</ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="pcvs.orchestration.html">pcvs.orchestration package</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.orchestration.publishers.html">pcvs.orchestration.publishers module</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.webview.html">pcvs.webview package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.main.html">pcvs.main module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pcvs.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pcvs.html#module-pcvs">Module contents</a></li>
 </ul>
 </li>
 </ul>
 
-</div>
-</div>
-      </div>
-      
-    </div>
-  </aside>
-  <div class="main">
-    <div class="content">
-      <div class="article-container">
-        <div class="content-icon-container">
-          <div class="theme-toggle-container theme-toggle-content">
-            <button class="theme-toggle">
-              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
-              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
-              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
-            </button>
-          </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
-            <div class="visually-hidden">Toggle table of contents sidebar</div>
-            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
-          </label>
         </div>
-        <article role="main">
-          <div class="section" id="module-pcvs.helpers.git">
-<span id="pcvs-helpers-git-module"></span><h1>pcvs.helpers.git module<a class="headerlink" href="#module-pcvs.helpers.git" title="Permalink to this headline">¶</a></h1>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="pcvs.html">Package Documentation</a></li>
+          <li class="breadcrumb-item"><a href="pcvs.helpers.html">pcvs.helpers package</a></li>
+      <li class="breadcrumb-item active">pcvs.helpers.git module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/pcvs.helpers.git.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-pcvs.helpers.git">
+<span id="pcvs-helpers-git-module"></span><h1>pcvs.helpers.git module<a class="headerlink" href="#module-pcvs.helpers.git" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pcvs.helpers.git.Blob">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">Blob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#Blob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.Blob" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pcvs.helpers.git.Tree" title="pcvs.helpers.git.Tree"><code class="xref py py-class docutils literal notranslate"><span class="pre">pcvs.helpers.git.Tree</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">Blob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#Blob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.Blob" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pcvs.helpers.git.Tree" title="pcvs.helpers.git.Tree"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tree</span></code></a></p>
 <p>Maps a Git ‘blob’ object, dedicated to hold data (“leaves” in Git trees)</p>
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="pcvs.helpers.git.Branch">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">Branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'master'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#Branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.Branch" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><code class="xref py py-class docutils literal notranslate"><span class="pre">pcvs.helpers.git.Reference</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">Branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'master'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#Branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.Branch" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reference</span></code></a></p>
 <p>Maps to a regular Git branch.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="pcvs.helpers.git.Branch.name">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pcvs.helpers.git.Branch.name" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pcvs.helpers.git.Branch.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="pcvs.helpers.git.Commit">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">Commit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#Commit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.Commit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><code class="xref py py-class docutils literal notranslate"><span class="pre">pcvs.helpers.git.Reference</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">Commit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#Commit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.Commit" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reference</span></code></a></p>
 <p>Maps to a regular Git commit</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.Commit.get_info">
-<span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#Commit.get_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.Commit.get_info" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#Commit.get_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.Commit.get_info" title="Permalink to this definition"></a></dt>
 <dd><p>Return commit metadata stored as a dict.</p>
 <p>It may contains extra infos compared to what a commit usually contains</p>
 </dd></dl>
+
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">GitByAPI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pcvs.helpers.git.GitByGeneric" title="pcvs.helpers.git.GitByGeneric"><code class="xref py py-class docutils literal notranslate"><span class="pre">pcvs.helpers.git.GitByGeneric</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">GitByAPI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pcvs.helpers.git.GitByGeneric" title="pcvs.helpers.git.GitByGeneric"><code class="xref py py-class docutils literal notranslate"><span class="pre">GitByGeneric</span></code></a></p>
 <p>Manage repository through a third-party Python module.</p>
 <p>Currently, this work is based on pygit2.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.branches">
-<span class="sig-name descname"><span class="pre">branches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.branches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.branches" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the list of available local branche names from this repo.</p>
+<span class="sig-name descname"><span class="pre">branches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.branches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.branches" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the list of available local branch names from this repo.</p>
 <p>This is an abstract function as its behavior depends on derived classes.</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.close">
-<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.close" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.close" title="Permalink to this definition"></a></dt>
 <dd><p>Unlock the repository.</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.commit">
-<span class="sig-name descname"><span class="pre">commit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'No</span> <span class="pre">data'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orphan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.commit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.commit" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">commit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'No</span> <span class="pre">data'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orphan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.commit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.commit" title="Permalink to this definition"></a></dt>
 <dd><p>Create a commit from changes.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>tree</strong> (<em>any</em>) – the changes tree to store as a commit</p></li>
 <li><p><strong>msg</strong> (<em>str</em>) – the commit msg</p></li>
@@ -307,163 +178,178 @@
 <li><p><strong>orphan</strong> (<em>boolean</em>) – flag to create a dangling commit (=no-parent)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Timestamp</dt>
+<dt class="field-even">Timestamp<span class="colon">:</span></dt>
 <dd class="field-even"><p>a commit date (current if not provided)</p>
 </dd>
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.diff_tree">
-<span class="sig-name descname"><span class="pre">diff_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.diff_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.diff_tree" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">diff_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.diff_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.diff_tree" title="Permalink to this definition"></a></dt>
 <dd><p>Compare &amp; return the list of patches</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.gc">
-<span class="sig-name descname"><span class="pre">gc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.gc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.gc" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">gc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.gc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.gc" title="Permalink to this definition"></a></dt>
 <dd><p>Run the garbage collector</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.get_branch_from_str">
-<span class="sig-name descname"><span class="pre">get_branch_from_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.get_branch_from_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.get_branch_from_str" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_branch_from_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.get_branch_from_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.get_branch_from_str" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.get_parents">
-<span class="sig-name descname"><span class="pre">get_parents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.get_parents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.get_parents" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_parents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.get_parents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.get_parents" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve parents for a given ref.</p>
 <p>This method is not a part of a Reference object as the approach changes
 depending on the Git method used (lazy resolution).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>ref</strong> (<a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><em>Reference</em></a>) – the revision</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.get_tree">
-<span class="sig-name descname"><span class="pre">get_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.get_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.get_tree" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.get_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.get_tree" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve data associated with a given prefix. A tree can used
 to set which ref should be used.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Param[in] tree</dt>
+<dt class="field-odd">Param[in] tree<span class="colon">:</span></dt>
 <dd class="field-odd"><p>the ref from where get the data</p>
 </dd>
-<dt class="field-even">Param[in] prefix</dt>
+<dt class="field-even">Param[in] prefix<span class="colon">:</span></dt>
 <dd class="field-even"><p>the unique prefix associated with data</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.insert_tree">
-<span class="sig-name descname"><span class="pre">insert_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.insert_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.insert_tree" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">insert_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.insert_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.insert_tree" title="Permalink to this definition"></a></dt>
 <dd><p>Create a new tree mapping a prefix filled with ‘data’.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Param[in] prefix</dt>
+<dt class="field-odd">Param[in] prefix<span class="colon">:</span></dt>
 <dd class="field-odd"><p>the prefix under Git tree.</p>
 </dd>
-<dt class="field-even">Param[in] data</dt>
+<dt class="field-even">Param[in] data<span class="colon">:</span></dt>
 <dd class="field-even"><p>the data to store.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.is_open">
-<span class="sig-name descname"><span class="pre">is_open</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.is_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.is_open" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_open</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.is_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.is_open" title="Permalink to this definition"></a></dt>
 <dd><p>Is the directory currently open ?</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.iterate_over">
-<span class="sig-name descname"><span class="pre">iterate_over</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.iterate_over"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.iterate_over" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">iterate_over</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.iterate_over"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.iterate_over" title="Permalink to this definition"></a></dt>
 <dd><p>starting from the ref, iterate references backwards (from newest to
 oldest).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>ref</strong> (<a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><em>Reference</em></a>) – the starting point</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.list_commits">
-<span class="sig-name descname"><span class="pre">list_commits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">since</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">until</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.list_commits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.list_commits" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">list_commits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">since</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">until</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.list_commits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.list_commits" title="Permalink to this definition"></a></dt>
 <dd><p>List past commits finishing with ‘rev’.</p>
 <p>The list can be shrunk with a start &amp; end</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rev</strong> – the revision to extract commit from</p></li>
+<li><p><strong>rev</strong> (<em>any</em>) – the revision to extract commit from</p></li>
 <li><p><strong>since</strong> (<em>date</em>) – the oldest commit should be newer than this date</p></li>
 <li><p><strong>until</strong> (<em>date</em>) – the newest commit should be older than this date</p></li>
 </ul>
 </dd>
-<dt class="field-even">Typ rev</dt>
-<dd class="field-even"><p>any</p>
-</dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.list_files">
-<span class="sig-name descname"><span class="pre">list_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.list_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.list_files" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">list_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.list_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.list_files" title="Permalink to this definition"></a></dt>
 <dd><p>For a given revision, list files (not only changed ones).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>rev</strong> (<a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><em>Reference</em></a>) – the revision</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.new_branch">
-<span class="sig-name descname"><span class="pre">new_branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.new_branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.new_branch" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">new_branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.new_branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.new_branch" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.open">
-<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bare</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.open" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bare</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.open" title="Permalink to this definition"></a></dt>
 <dd><p>Open the repo, with appropriate method.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>bare</strong> (<em>boolean</em>) – true by default, manage or bare repo.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.revparse">
-<span class="sig-name descname"><span class="pre">revparse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.revparse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.revparse" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">revparse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.revparse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.revparse" title="Permalink to this definition"></a></dt>
 <dd><p>Convert a revision (tag, branch, commit) to a regular reference.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>rev</strong> (<a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><em>Reference</em></a>) – Reference</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByAPI.set_branch">
-<span class="sig-name descname"><span class="pre">set_branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">branch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.set_branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.set_branch" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">set_branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">branch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByAPI.set_branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByAPI.set_branch" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">GitByCLI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pcvs.helpers.git.GitByGeneric" title="pcvs.helpers.git.GitByGeneric"><code class="xref py py-class docutils literal notranslate"><span class="pre">pcvs.helpers.git.GitByGeneric</span></code></a></p>
-<p>Git endpoint ot manipulate a repository through basic CLI.</p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">GitByCLI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pcvs.helpers.git.GitByGeneric" title="pcvs.helpers.git.GitByGeneric"><code class="xref py py-class docutils literal notranslate"><span class="pre">GitByGeneric</span></code></a></p>
+<p>Git endpoint to manipulate a repository through basic CLI.</p>
 <p>Currently relying on the <cite>sh</cite> module.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.branches">
-<span class="sig-name descname"><span class="pre">branches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.branches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.branches" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the list of available local branche names from this repo.</p>
+<span class="sig-name descname"><span class="pre">branches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.branches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.branches" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the list of available local branch names from this repo.</p>
 <p>This is an abstract function as its behavior depends on derived classes.</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.close">
-<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.close" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.close" title="Permalink to this definition"></a></dt>
 <dd><p>Unlock the repository.</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.commit">
-<span class="sig-name descname"><span class="pre">commit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'VOID'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orphan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.commit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.commit" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">commit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'VOID'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orphan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.commit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.commit" title="Permalink to this definition"></a></dt>
 <dd><p>Create a commit from changes.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>tree</strong> (<em>any</em>) – the changes tree to store as a commit</p></li>
 <li><p><strong>msg</strong> (<em>str</em>) – the commit msg</p></li>
@@ -471,166 +357,181 @@ oldest).</p>
 <li><p><strong>orphan</strong> (<em>boolean</em>) – flag to create a dangling commit (=no-parent)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Timestamp</dt>
+<dt class="field-even">Timestamp<span class="colon">:</span></dt>
 <dd class="field-even"><p>a commit date (current if not provided)</p>
 </dd>
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.diff_tree">
-<span class="sig-name descname"><span class="pre">diff_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.diff_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.diff_tree" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">diff_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.diff_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.diff_tree" title="Permalink to this definition"></a></dt>
 <dd><p>Compare &amp; return the list of patches</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.gc">
-<span class="sig-name descname"><span class="pre">gc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.gc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.gc" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">gc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.gc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.gc" title="Permalink to this definition"></a></dt>
 <dd><p>Run the garbage collector</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.get_branch_from_str">
-<span class="sig-name descname"><span class="pre">get_branch_from_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.get_branch_from_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.get_branch_from_str" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_branch_from_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.get_branch_from_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.get_branch_from_str" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.get_parents">
-<span class="sig-name descname"><span class="pre">get_parents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.get_parents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.get_parents" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_parents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.get_parents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.get_parents" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve parents for a given ref.</p>
 <p>This method is not a part of a Reference object as the approach changes
 depending on the Git method used (lazy resolution).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>ref</strong> (<a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><em>Reference</em></a>) – the revision</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.get_tree">
-<span class="sig-name descname"><span class="pre">get_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.get_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.get_tree" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.get_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.get_tree" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve data associated with a given prefix. A tree can used
 to set which ref should be used.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Param[in] tree</dt>
+<dt class="field-odd">Param[in] tree<span class="colon">:</span></dt>
 <dd class="field-odd"><p>the ref from where get the data</p>
 </dd>
-<dt class="field-even">Param[in] prefix</dt>
+<dt class="field-even">Param[in] prefix<span class="colon">:</span></dt>
 <dd class="field-even"><p>the unique prefix associated with data</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.insert_tree">
-<span class="sig-name descname"><span class="pre">insert_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.insert_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.insert_tree" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">insert_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.insert_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.insert_tree" title="Permalink to this definition"></a></dt>
 <dd><p>Create a new tree mapping a prefix filled with ‘data’.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Param[in] prefix</dt>
+<dt class="field-odd">Param[in] prefix<span class="colon">:</span></dt>
 <dd class="field-odd"><p>the prefix under Git tree.</p>
 </dd>
-<dt class="field-even">Param[in] data</dt>
+<dt class="field-even">Param[in] data<span class="colon">:</span></dt>
 <dd class="field-even"><p>the data to store.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.is_open">
-<span class="sig-name descname"><span class="pre">is_open</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.is_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.is_open" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_open</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.is_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.is_open" title="Permalink to this definition"></a></dt>
 <dd><p>Is the directory currently open ?</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.iterate_over">
-<span class="sig-name descname"><span class="pre">iterate_over</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.iterate_over"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.iterate_over" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">iterate_over</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.iterate_over"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.iterate_over" title="Permalink to this definition"></a></dt>
 <dd><p>starting from the ref, iterate references backwards (from newest to
 oldest).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>ref</strong> (<a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><em>Reference</em></a>) – the starting point</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.list_commits">
-<span class="sig-name descname"><span class="pre">list_commits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">since</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">until</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.list_commits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.list_commits" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">list_commits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">since</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">until</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.list_commits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.list_commits" title="Permalink to this definition"></a></dt>
 <dd><p>List past commits finishing with ‘rev’.</p>
 <p>The list can be shrunk with a start &amp; end</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rev</strong> – the revision to extract commit from</p></li>
+<li><p><strong>rev</strong> (<em>any</em>) – the revision to extract commit from</p></li>
 <li><p><strong>since</strong> (<em>date</em>) – the oldest commit should be newer than this date</p></li>
 <li><p><strong>until</strong> (<em>date</em>) – the newest commit should be older than this date</p></li>
 </ul>
 </dd>
-<dt class="field-even">Typ rev</dt>
-<dd class="field-even"><p>any</p>
-</dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.list_files">
-<span class="sig-name descname"><span class="pre">list_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.list_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.list_files" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">list_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.list_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.list_files" title="Permalink to this definition"></a></dt>
 <dd><p>For a given revision, list files (not only changed ones).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>rev</strong> (<a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><em>Reference</em></a>) – the revision</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.new_branch">
-<span class="sig-name descname"><span class="pre">new_branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.new_branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.new_branch" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">new_branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.new_branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.new_branch" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.open">
-<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bare</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.open" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bare</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.open" title="Permalink to this definition"></a></dt>
 <dd><p>Open the repo, with appropriate method.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>bare</strong> (<em>boolean</em>) – true by default, manage or bare repo.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.revparse">
-<span class="sig-name descname"><span class="pre">revparse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.revparse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.revparse" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">revparse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.revparse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.revparse" title="Permalink to this definition"></a></dt>
 <dd><p>Convert a revision (tag, branch, commit) to a regular reference.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>rev</strong> (<a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><em>Reference</em></a>) – Reference</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByCLI.set_branch">
-<span class="sig-name descname"><span class="pre">set_branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">branch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.set_branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.set_branch" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">set_branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">branch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByCLI.set_branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByCLI.set_branch" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">GitByGeneric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'unknown/00000000'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">GitByGeneric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'unknown/00000000'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
 <p>Create a Git endpoint able to discuss efficiently with repositories.</p>
-<p>This base classe serves abstract methods to be implemented to create a new
+<p>This base class serves abstract methods to be implemented to create a new
 derived class. Currently are provided:
 - GitByAPI: relies on python module pygit2 (requires libgit2)
 - GitByCLI: based on regular Git program invocations (require git program)</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.branches">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">branches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.branches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.branches" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the list of available local branche names from this repo.</p>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">branches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.branches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.branches" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the list of available local branch names from this repo.</p>
 <p>This is an abstract function as its behavior depends on derived classes.</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.close">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.close" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.close" title="Permalink to this definition"></a></dt>
 <dd><p>Unlock the repository.</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.commit">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">commit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'No</span> <span class="pre">data'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orphan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.commit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.commit" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">commit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'No</span> <span class="pre">data'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orphan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.commit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.commit" title="Permalink to this definition"></a></dt>
 <dd><p>Create a commit from changes.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>tree</strong> (<em>any</em>) – the changes tree to store as a commit</p></li>
 <li><p><strong>msg</strong> (<em>str</em>) – the commit msg</p></li>
@@ -638,151 +539,162 @@ derived class. Currently are provided:
 <li><p><strong>orphan</strong> (<em>boolean</em>) – flag to create a dangling commit (=no-parent)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Timestamp</dt>
+<dt class="field-even">Timestamp<span class="colon">:</span></dt>
 <dd class="field-even"><p>a commit date (current if not provided)</p>
 </dd>
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.diff_tree">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">diff_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_rev</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_rev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.diff_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.diff_tree" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">diff_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_rev</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_rev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.diff_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.diff_tree" title="Permalink to this definition"></a></dt>
 <dd><p>Compare &amp; return the list of patches</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.gc">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">gc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.gc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.gc" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">gc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.gc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.gc" title="Permalink to this definition"></a></dt>
 <dd><p>Run the garbage collector</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.get_head">
-<span class="sig-name descname"><span class="pre">get_head</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.get_head"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.get_head" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_head</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.get_head"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.get_head" title="Permalink to this definition"></a></dt>
 <dd><p>Get the current repo’s HEAD (used when no default)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>a ref to the HEAD as a branch</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="#pcvs.helpers.git.Branch" title="pcvs.helpers.git.Branch">Branch</a></p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.get_parents">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_parents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.get_parents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.get_parents" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_parents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.get_parents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.get_parents" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve parents for a given ref.</p>
 <p>This method is not a part of a Reference object as the approach changes
 depending on the Git method used (lazy resolution).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>ref</strong> (<a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><em>Reference</em></a>) – the revision</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.get_tree">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.get_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.get_tree" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.get_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.get_tree" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve data associated with a given prefix. A tree can used
 to set which ref should be used.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Param[in] tree</dt>
+<dt class="field-odd">Param[in] tree<span class="colon">:</span></dt>
 <dd class="field-odd"><p>the ref from where get the data</p>
 </dd>
-<dt class="field-even">Param[in] prefix</dt>
+<dt class="field-even">Param[in] prefix<span class="colon">:</span></dt>
 <dd class="field-even"><p>the unique prefix associated with data</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.insert_tree">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">insert_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.insert_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.insert_tree" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">insert_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.insert_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.insert_tree" title="Permalink to this definition"></a></dt>
 <dd><p>Create a new tree mapping a prefix filled with ‘data’.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Param[in] prefix</dt>
+<dt class="field-odd">Param[in] prefix<span class="colon">:</span></dt>
 <dd class="field-odd"><p>the prefix under Git tree.</p>
 </dd>
-<dt class="field-even">Param[in] data</dt>
+<dt class="field-even">Param[in] data<span class="colon">:</span></dt>
 <dd class="field-even"><p>the data to store.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.is_open">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_open</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.is_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.is_open" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_open</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.is_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.is_open" title="Permalink to this definition"></a></dt>
 <dd><p>Is the directory currently open ?</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.iterate_over">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">iterate_over</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.iterate_over"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.iterate_over" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">iterate_over</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.iterate_over"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.iterate_over" title="Permalink to this definition"></a></dt>
 <dd><p>starting from the ref, iterate references backwards (from newest to
 oldest).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>ref</strong> (<a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><em>Reference</em></a>) – the starting point</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.list_commits">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">list_commits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">since</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">until</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.list_commits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.list_commits" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">list_commits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">since</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">until</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.list_commits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.list_commits" title="Permalink to this definition"></a></dt>
 <dd><p>List past commits finishing with ‘rev’.</p>
 <p>The list can be shrunk with a start &amp; end</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rev</strong> – the revision to extract commit from</p></li>
+<li><p><strong>rev</strong> (<em>any</em>) – the revision to extract commit from</p></li>
 <li><p><strong>since</strong> (<em>date</em>) – the oldest commit should be newer than this date</p></li>
 <li><p><strong>until</strong> (<em>date</em>) – the newest commit should be older than this date</p></li>
 </ul>
 </dd>
-<dt class="field-even">Typ rev</dt>
-<dd class="field-even"><p>any</p>
-</dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.list_files">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">list_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.list_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.list_files" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">list_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.list_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.list_files" title="Permalink to this definition"></a></dt>
 <dd><p>For a given revision, list files (not only changed ones).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>rev</strong> (<a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><em>Reference</em></a>) – the revision</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.open">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bare</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.open" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bare</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.open" title="Permalink to this definition"></a></dt>
 <dd><p>Open the repo, with appropriate method.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>bare</strong> (<em>boolean</em>) – true by default, manage or bare repo.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.revparse">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">revparse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.revparse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.revparse" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">revparse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.revparse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.revparse" title="Permalink to this definition"></a></dt>
 <dd><p>Convert a revision (tag, branch, commit) to a regular reference.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>rev</strong> (<a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><em>Reference</em></a>) – Reference</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.set_head">
-<span class="sig-name descname"><span class="pre">set_head</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_head</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.set_head"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.set_head" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">set_head</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_head</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.set_head"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.set_head" title="Permalink to this definition"></a></dt>
 <dd><p>Move the repo HEAD (used when no default ref is provided)</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.set_identity">
-<span class="sig-name descname"><span class="pre">set_identity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">authname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">authmail</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commmail</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.set_identity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.set_identity" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">set_identity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">authname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">authmail</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commmail</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.set_identity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.set_identity" title="Permalink to this definition"></a></dt>
 <dd><p>Identities to be used if a commit is created.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>authname</strong> (<em>str</em>) – author’s name</p></li>
 <li><p><strong>authmail</strong> (<em>str</em>) – author’s email</p></li>
@@ -792,173 +704,165 @@ oldest).</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.GitByGeneric.set_path">
-<span class="sig-name descname"><span class="pre">set_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.set_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.set_path" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">set_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#GitByGeneric.set_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.GitByGeneric.set_path" title="Permalink to this definition"></a></dt>
 <dd><p>Associate a new directory to this bank.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>prefix</strong> (<em>str</em>) – the prefix locating the Git repo</p>
 </dd>
 </dl>
 </dd></dl>
+
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="pcvs.helpers.git.Reference">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">Reference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#Reference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.Reference" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">Reference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#Reference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.Reference" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Maps an object which can be “pointed” (as a Git semantic). It can usually
 be used to refer a commit, a simple hash or a branch.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="pcvs.helpers.git.Reference.repo">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">repo</span></span><a class="headerlink" href="#pcvs.helpers.git.Reference.repo" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">repo</span></span><a class="headerlink" href="#pcvs.helpers.git.Reference.repo" title="Permalink to this definition"></a></dt>
 <dd><p>Getter to the repo this reference comes from.</p>
 </dd></dl>
+
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="pcvs.helpers.git.Tree">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">Tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#Tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.Tree" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><code class="xref py py-class docutils literal notranslate"><span class="pre">pcvs.helpers.git.Reference</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">Tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#Tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.Tree" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pcvs.helpers.git.Reference" title="pcvs.helpers.git.Reference"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reference</span></code></a></p>
 <p>Maps to a git-lowlevel Tree object</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.git.Tree.as_root">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">as_root</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#Tree.as_root"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.Tree.as_root" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">as_root</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#Tree.as_root"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.Tree.as_root" title="Permalink to this definition"></a></dt>
 <dd><p>Create a Tree and attach it with the git-specific handler (if any)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>repo</strong> (<em>any</em>) – the repo handle</p></li>
 <li><p><strong>hdl</strong> (<em>any</em>) – the git-specific root handle</p></li>
 <li><p><strong>children</strong> (<em>any</em>) – any prebuild children for this root node</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the created Tree object</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#pcvs.helpers.git.Tree" title="pcvs.helpers.git.Tree">Tree</a></p>
 </dd>
 </dl>
 </dd></dl>
+
 </dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="pcvs.helpers.git.elect_handler">
-<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">elect_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#elect_handler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.elect_handler" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">elect_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#elect_handler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.elect_handler" title="Permalink to this definition"></a></dt>
 <dd><p>Select the proper repository handler based on python support</p>
-<p>Python 3.7+-based PCVS installations come with pygit2, thanks to provided
+<p>Python 3.10+-based PCVS installations come with pygit2, thanks to provided
 wheels. Older versions are relying on regular Git commands (as wheels are
 not provided for Python3.6 and older &amp; building pygit2 requires specific
 libgit2 version to be installed, hardening the installation process)</p>
 </dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="pcvs.helpers.git.generate_data_hash">
-<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">generate_data_hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#generate_data_hash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.generate_data_hash" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">generate_data_hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#generate_data_hash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.generate_data_hash" title="Permalink to this definition"></a></dt>
 <dd><p>Hash data with git protocol.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>data</strong> (<em>str</em>) – data to hash</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>hashed data</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="pcvs.helpers.git.get_current_usermail">
-<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">get_current_usermail</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#get_current_usermail"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.get_current_usermail" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">get_current_usermail</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#get_current_usermail"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.get_current_usermail" title="Permalink to this definition"></a></dt>
 <dd><p>Get the git user mail.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>git user mail</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="pcvs.helpers.git.get_current_username">
-<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">get_current_username</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#get_current_username"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.get_current_username" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">get_current_username</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#get_current_username"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.get_current_username" title="Permalink to this definition"></a></dt>
 <dd><p>Get the git username.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>git username</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="pcvs.helpers.git.request_git_attr">
-<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">request_git_attr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#request_git_attr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.request_git_attr" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.git.</span></span><span class="sig-name descname"><span class="pre">request_git_attr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/git.html#request_git_attr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.git.request_git_attr" title="Permalink to this definition"></a></dt>
 <dd><p>Get a git configuration.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>k</strong> (<em>str</em>) – parameter to get</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>a git configuration</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
-</div>
 
-        </article>
-      </div>
-      <footer>
-        
-        <div class="related-pages">
-          <a class="next-page" href="pcvs.helpers.pm.html">
-              <div class="page-info">
-                <div class="context">
-                  <span>Next</span>
-                </div>
-                <div class="title">pcvs.helpers.pm module</div>
-              </div>
-              <svg><use href="#svg-arrow-right"></use></svg>
-            </a>
-          <a class="prev-page" href="pcvs.helpers.exceptions.html">
-              <svg><use href="#svg-arrow-right"></use></svg>
-              <div class="page-info">
-                <div class="context">
-                  <span>Previous</span>
-                </div>
-                
-                <div class="title">pcvs.helpers.exceptions module</div>
-                
-              </div>
-            </a>
-        </div>
+</section>
 
-        <div class="related-information">
-              Copyright &#169; 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives |
-          Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
-          <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
-            | <a class="muted-link" href="../_sources/api/pcvs.helpers.git.rst.txt"
-               rel="nofollow">
-              Show Source
-            </a>
-        </div>
-        
-      </footer>
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pcvs.helpers.exceptions.html" class="btn btn-neutral float-left" title="pcvs.helpers.exceptions module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pcvs.helpers.pm.html" class="btn btn-neutral float-right" title="pcvs.helpers.pm module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-    <aside class="toc-drawer no-toc">
-      
-      
-      
-    </aside>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/scripts/furo.js"></script>
-    </body>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
 </html>

@@ -10,14 +10,14 @@ yaml files that can be imported/exported via the command line interface.
 
 This configuration is separated in 5 nodes :
 
-* compiler 
-* criterion 
-* group 
-* machine 
+* compiler
+* criterion
+* group
+* machine
 * runtimes
 
 Each node is separated in subnodes and can be defined separately in multiple
-ways. As files, profiles are written with the yml syntax. 
+ways. As files, profiles are written with the yml syntax.
 
 .. _profile-scope:
 
@@ -55,12 +55,12 @@ back into PCVS use the command :
     pcvs profile import example_profile example_profile.yml
 
 Without arguments, the ``pcvs profile create`` command builds blocks as default,
-but a profile can be built with custom configuration blocks. 
+but a profile can be built with custom configuration blocks.
 
 Building a profile with existing configuration blocks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Buiding a profile based on configuration blocks can be done in two ways :
+Building a profile based on configuration blocks can be done in two ways :
 
 * in the CLI
 * with the interactive mode
@@ -73,7 +73,7 @@ In the CLI
     pcvs profile create example_profile -b [scope].[block-name].[block-type]
 
 This command has to include either 0 or 5 ``-b`` blocks (default or complete
-configuration). 
+configuration).
 
 With the interactive mode
 +++++++++++++++++++++++++
@@ -105,4 +105,3 @@ Profiles are used at runtime, they are specified with the ``-p`` option.
 
     pcvs run -p example_profile
     pcvs run --profile-path /path/to/not/imported/profile
-
