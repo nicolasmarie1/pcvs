@@ -1,13 +1,13 @@
 from unittest.mock import patch
 
+from pcvs.backend.metaconfig import MetaConfig
 from pcvs.helpers import pm
-from pcvs.helpers import system
 from pcvs.testing import test as tested
 
 
 @patch(
-    "pcvs.helpers.system.GlobalConfig.root",
-    system.MetaConfig(
+    "pcvs.backend.metaconfig.GlobalConfig.root",
+    MetaConfig(
         {
             "validation": {
                 "output": "test_output",

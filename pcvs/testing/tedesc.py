@@ -7,12 +7,12 @@ import tempfile
 import pcvs
 from pcvs import io
 from pcvs import testing
+from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers import pm
 from pcvs.helpers.criterion import Criterion
 from pcvs.helpers.criterion import Series
 from pcvs.helpers.exceptions import ProfileException
 from pcvs.helpers.exceptions import TestException
-from pcvs.helpers.system import GlobalConfig
 from pcvs.testing.test import Test
 
 # now return the first valid language, according to settings

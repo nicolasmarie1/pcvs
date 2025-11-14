@@ -8,10 +8,10 @@ from click.testing import CliRunner
 
 import pcvs
 from pcvs.backend import run as tested
+from pcvs.backend.metaconfig import GlobalConfig
+from pcvs.backend.metaconfig import MetaConfig
 from pcvs.helpers.exceptions import RunException
 from pcvs.helpers.exceptions import ValidationException
-from pcvs.helpers.system import GlobalConfig
-from pcvs.helpers.system import MetaConfig
 from pcvs.plugins import Collection
 from pcvs.testing.tedesc import TEDescriptor
 
@@ -44,7 +44,7 @@ def help_create_setup_file(path, s):
 def mock_config():
     with CliRunner().isolated_filesystem():
         with patch.object(
-            pcvs.helpers.system.GlobalConfig,
+            GlobalConfig,
             "root",
             MetaConfig(
                 {

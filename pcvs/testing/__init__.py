@@ -1,6 +1,6 @@
 import os
 
-from pcvs.helpers.system import GlobalConfig
+from pcvs.backend.metaconfig import GlobalConfig
 
 
 def generate_local_variables(label, subprefix):

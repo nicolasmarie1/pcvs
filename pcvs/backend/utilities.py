@@ -2,16 +2,22 @@ import os
 import subprocess
 import tempfile
 
+from click import BadArgumentUsage
 from ruamel.yaml import YAML
 from ruamel.yaml import YAMLError
 
 from pcvs import io
-from pcvs.backend import config
 from pcvs.backend import profile
 from pcvs.backend import run
-from pcvs.helpers import system
+from pcvs.backend.configfile import ConfigFile
+from pcvs.backend.metaconfig import GlobalConfig
+from pcvs.backend.metaconfig import MetaConfig
+from pcvs.backend.profile import Profile
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ValidationException
+from pcvs.helpers.storage import ConfigDesc
+from pcvs.helpers.storage import ConfigKind
+from pcvs.helpers.storage import ConfigLocator
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.testing.testfile import TestFile
 
@@ -91,60 +97,57 @@ def process_check_configs():
     errors = {}
     t = io.console.create_table("Configurations", ["Valid", "ID"])
 
-    for kind in config.CONFIG_BLOCKS:
-        for scope in utils.storage_order():
-            for blob in config.list_blocks(kind, scope):
-                token = io.console.utf("fail")
-                err_msg = ""
-                obj = config.ConfigurationBlock(kind, blob[0], scope)
-                obj.load_from_disk()
+    cds: list[ConfigDesc] = ConfigLocator().list_all_configs()
+    for cd in cds:
+        token = io.console.utf("fail")
+        try:
+            ConfigFile(cd)
+            token = io.console.utf("succ")
+        except ValidationException.FormatError as e:
+            err_msg = str(e.dbg)
+            errors.setdefault(err_msg, 0)
+            errors[err_msg] += 1
+            io.console.debug(str(e))
 
-                try:
-                    obj.check()
-                    token = io.console.utf("succ")
-                except ValidationException.FormatError as e:
-                    err_msg = str(e.dbg).encode("utf-8")
-                    errors.setdefault(err_msg, 0)
-                    errors[err_msg] += 1
-                    io.console.debug(str(e))
-
-                t.add_row(token, obj.full_name)
+        t.add_row(token, cd.full_name)
     io.console.print(t)
     return errors
 
 
-def process_check_profiles(conversion=True):
+def process_check_profiles():
     """Analyse availables profiles and check their correctness.
 
     Relatively to the base scheme.
 
-    :param conversion: allow legacy format for this check (True by default)
-    :type conversion: bool, optional
     :return: list of caught errors as a dict, where keys are error msg base64
     :rtype: dict
     """
-    t = io.console.create_table("Available Profile", ["Valid", "ID"])
+    t = io.console.create_table("Available Profiles", ["Valid", "ID"])
     errors = {}
 
-    for scope in utils.storage_order():
-        for blob in profile.list_profiles(scope):
-            token = io.console.utf("fail")
-            obj = profile.Profile(blob[0], scope)
-            obj.load_from_disk()
-            try:
-                obj.check(allow_legacy=conversion)
-                token = io.console.utf("succ")
-            except ValidationException.FormatError as e:
-                err_msg = str(e.dbg).encode("utf-8")
-                errors.setdefault(err_msg, 0)
-                errors[err_msg] += 1
-                io.console.debug(str(e))
+    cds: list[ConfigDesc] = ConfigLocator().list_configs(ConfigKind.PROFILE)
+    for cd in cds:
+        token = io.console.utf("fail")
+        try:
+            Profile(cd)
+            token = io.console.utf("succ")
+        except BadArgumentUsage as e:
+            err_msg = e.message
+            errors.setdefault(err_msg, 0)
+            errors[err_msg] += 1
+            io.console.debug(e.message)
+        except ValidationException.FormatError as e:
+            err_msg = str(e.dbg)
+            errors.setdefault(err_msg, 0)
+            errors[err_msg] += 1
+            io.console.debug(str(e))
 
-            t.add_row(token, obj.full_name)
+        t.add_row(token, cd.full_name)
     io.console.print(t)
     return errors
 
 
+# TODO: this does not work, fix this
 def process_check_setup_file(root, prefix, run_configuration):
     """Check if a given pcvs.setup could be parsed if used in a regular process.
 
@@ -218,7 +221,7 @@ def __set_token(token, nset=None) -> str:
         return "[red bold]{}[/]".format(io.console.utf("fail"))
 
 
-def process_check_directory(directory, pf_name="default", conversion=True):
+def process_check_directory(directory, pf_name="default.yml", conversion=True):
     """Analyze a directory to ensure defined test files are valid.
 
     :param conversion: allow legacy format for this check (True by default)
@@ -230,19 +233,18 @@ def process_check_directory(directory, pf_name="default", conversion=True):
     :return: a dict of caught errors
     :rtype: dict
     """
-    errors = dict()
+    errors = {}
     total_nodes = 0
-    pf = profile.Profile(pf_name)
-    if not pf.is_found():
-        pf.load_template()
-    else:
-        pf.load_from_disk()
-        pf.check(allow_legacy=conversion)
-    system.GlobalConfig.root = system.MetaConfig()
-    system.GlobalConfig.root["validation"] = {}
-    system.GlobalConfig.root.bootstrap_from_profile(pf.dump(), pf.full_name)
-    system.GlobalConfig.root["validation"]["output"] = "/tmp"
-    buildenv = run.build_env_from_configuration(pf.dump())
+    cd: ConfigDesc = ConfigLocator().parse_full_user_token(
+        pf_name, ConfigKind.PROFILE, should_exist=True
+    )
+    pf = profile.Profile(cd)
+
+    GlobalConfig.root = MetaConfig()
+    GlobalConfig.root["validation"] = {}
+    GlobalConfig.root.bootstrap_from_profile(pf)
+    GlobalConfig.root["validation"]["output"] = "/tmp"
+    buildenv = run.build_env_from_configuration(GlobalConfig.root)
     setup_files, yaml_files = run.find_files_to_process({os.path.basename(directory): directory})
 
     from rich.table import Table
@@ -284,10 +286,10 @@ def process_check_directory(directory, pf_name="default", conversion=True):
                 success = True
 
             except YAMLError as e:
-                err = str(e).encode("utf-8")
+                err = str(e)
                 success = False
             except ValidationException.FormatError as e:
-                err = str(e).encode("utf-8")
+                err = str(e)
                 success = False
 
             if converted is True:

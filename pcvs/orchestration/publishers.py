@@ -14,11 +14,11 @@ from ruamel.yaml import YAML
 
 import pcvs
 from pcvs import io
+from pcvs.backend.metaconfig import GlobalConfig
+from pcvs.backend.metaconfig import MetaConfig
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers.exceptions import PublisherException
-from pcvs.helpers.system import GlobalConfig
-from pcvs.helpers.system import MetaConfig
 from pcvs.testing.test import Test
 
 
@@ -815,20 +815,19 @@ class BuildDirectoryManager:
     def use_as_global_config(self):
         GlobalConfig.root = self._config
 
-    def save_config(self, config) -> None:
+    def save_config(self, config: MetaConfig) -> None:
         """
         Save the config & store it directly into the build directory.
 
         :param config: config
         :type config: class:`MetaConfig`
         """
-        if not isinstance(config, MetaConfig):
-            config = MetaConfig(config)
+        assert isinstance(config, MetaConfig)
         self._config = config
-        with open(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN), "w") as fh:
+        with open(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN), "w", encoding="utf-8") as fh:
             h = YAML(typ="safe")
-            h.default_flow_style = None
-            h.dump(config.dump_for_export(), fh)
+            h.default_flow_style = False
+            h.dump(config.to_dict(), fh)
 
     def get_config(self) -> dict:
         """

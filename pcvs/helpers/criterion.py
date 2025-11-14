@@ -3,8 +3,8 @@ import math
 import os
 
 from pcvs import io
+from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers.exceptions import CommonException
-from pcvs.helpers.system import GlobalConfig
 from pcvs.plugins import Plugin
 
 
@@ -367,8 +367,7 @@ class Criterion:
                     else:
                         return n
                 except ValueError as ve:
-                    raise CommonException.BadTokenError(val) from ve
-
+                    raise ve
             else:
                 return val
 

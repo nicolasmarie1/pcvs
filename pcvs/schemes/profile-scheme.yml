@@ -1,0 +1,13 @@
+---
+type: object
+properties:
+  compiler:
+    type: string
+  criterion:
+    type: string
+  group:
+    type: string
+  machine:
+    type: string
+  runtime:
+    type: string

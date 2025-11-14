@@ -1,8 +1,8 @@
 import sys
 
 from pcvs.backend.bank import Bank
+from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.cli.cli_bank import compl_list_banks
-from pcvs.helpers.system import GlobalConfig
 
 try:
     import rich_click as click

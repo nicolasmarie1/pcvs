@@ -191,7 +191,7 @@ class Bank(dsl.Bank):
             cm=git.get_current_usermail(),
         )
 
-        run.update(".pcvs-cache/conf.json", hdl.config.dump_for_export())
+        run.update(".pcvs-cache/conf.json", hdl.config.to_dict())
 
         series.commit(
             run,

@@ -1,7 +1,7 @@
 import sys
 
 from pcvs import io
-from pcvs.helpers.system import GlobalConfig
+from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.plugins import Plugin
 from pcvs.testing.test import Test
 

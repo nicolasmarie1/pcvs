@@ -102,9 +102,6 @@ class CommonException(BaseException):
     class IOError(GenericException):
         """Communication error (FS, process) while processing data."""
 
-    class BadTokenError(GenericException):
-        """Badly formatted string, unable to parse."""
-
     class WIPError(GenericException):
         """Work in Progress, not a real error."""
 

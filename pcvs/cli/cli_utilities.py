@@ -1,4 +1,3 @@
-import base64
 import copy
 import os
 import shutil
@@ -13,7 +12,8 @@ from pcvs import io
 from pcvs import NAME_BUILD_ARCHIVE_DIR
 from pcvs import NAME_BUILDFILE
 from pcvs.backend import utilities as pvUtils
-from pcvs.helpers.system import MetaConfig
+from pcvs.backend.config import Config
+from pcvs.backend.metaconfig import MetaConfig
 
 try:
     import rich_click as click
@@ -243,14 +243,15 @@ def check(
 
     if profiles:
         io.console.print_header("Profile(s)")
-        errors = {**errors, **pvUtils.process_check_profiles(conversion=conversion)}
+        errors = {**errors, **pvUtils.process_check_profiles()}
 
     if directory:
         io.console.print_header("Test directories")
         io.console.print_section("Prepare the environment")
         # first, replace build dir with a temp one
         settings = MetaConfig()
-        cfg_val = settings.bootstrap_validation({}, filepath=str(__file__))
+        settings.bootstrap_validation(Config())
+        cfg_val = settings["validation"]
         cfg_val.set_ifdef("output", "/tmp/test")
         errors = {
             **errors,
@@ -262,7 +263,7 @@ def check(
     table = Table("Count", "Type of error", title="Classification of errors", expand=True)
     if errors:
         for k, v in errors.items():
-            table.add_row(str(v), base64.b64decode(k).decode("utf-8"))
+            table.add_row(str(v), k)
         io.console.print(table)
     else:
         io.console.print(

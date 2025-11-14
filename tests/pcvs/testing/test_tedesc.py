@@ -3,10 +3,10 @@ from unittest.mock import patch
 
 import pytest
 
+from pcvs.backend.metaconfig import MetaConfig
 from pcvs.helpers import criterion
 from pcvs.helpers import exceptions
 from pcvs.helpers import pm
-from pcvs.helpers import system
 from pcvs.plugins import Collection
 from pcvs.testing import tedesc as tested
 
@@ -35,8 +35,8 @@ def test_handle_job_deps(mock_id):
 
 @patch.dict(os.environ, {"HOME": "/home/user", "USER": "superuser"})
 @patch(
-    "pcvs.helpers.system.GlobalConfig.root",
-    system.MetaConfig(
+    "pcvs.backend.metaconfig.GlobalConfig.root",
+    MetaConfig(
         {
             "validation": {
                 "output": "test_output",
@@ -92,8 +92,8 @@ def test_tedesc_regular():
 
 @patch.dict(os.environ, {"HOME": "/home/user", "USER": "superuser"})
 @patch(
-    "pcvs.helpers.system.GlobalConfig.root",
-    system.MetaConfig(
+    "pcvs.backend.metaconfig.GlobalConfig.root",
+    MetaConfig(
         {
             "validation": {
                 "output": "test_output",
@@ -155,7 +155,7 @@ def test_tedesc_compilation():
 # Sincelanguage support have been replace by compiler definition
 # this test does not make sense any more.
 # TODO: replace this test with a test of user define compilers in test file.
-# @patch("pcvs.helpers.system.GlobalConfig.root", system.MetaConfig(
+# @patch("pcvs.backend.metaconfig.GlobalConfig.root", system.MetaConfig(
 #    {
 #        "validation": {
 #            "output": "test_output",

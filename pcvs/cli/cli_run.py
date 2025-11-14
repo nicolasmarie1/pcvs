@@ -9,11 +9,14 @@ from pcvs.backend import bank as pvBank
 from pcvs.backend import profile as pvProfile
 from pcvs.backend import run as pvRun
 from pcvs.backend import session as pvSession
+from pcvs.backend.metaconfig import GlobalConfig
+from pcvs.backend.metaconfig import MetaConfig
 from pcvs.cli import cli_bank
-from pcvs.cli import cli_profile
 from pcvs.helpers import exceptions
-from pcvs.helpers import system
 from pcvs.helpers import utils
+from pcvs.helpers.storage import ConfigDesc
+from pcvs.helpers.storage import ConfigKind
+from pcvs.helpers.storage import ConfigLocator
 
 try:
     import rich_click as click
@@ -97,11 +100,11 @@ def handle_build_lockfile(exc=None):
     :type exc: Exception
     """
     if (
-        system.GlobalConfig.root
-        and "validation" in system.GlobalConfig.root
-        and "output" in system.GlobalConfig.root["validation"]
+        GlobalConfig.root
+        and "validation" in GlobalConfig.root
+        and "output" in GlobalConfig.root["validation"]
     ):
-        prefix = os.path.join(system.GlobalConfig.root["validation"]["output"], NAME_BUILDFILE)
+        prefix = os.path.join(GlobalConfig.root["validation"]["output"], NAME_BUILDFILE)
         if utils.is_locked(prefix):
             if utils.get_lock_owner(prefix)[1] == os.getpid():
                 utils.unlock_file(prefix)
@@ -133,17 +136,11 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "--profile",
     "profilename",
     default=None,
-    shell_complete=cli_profile.compl_list_token,
+    # TODO add shell completion
+    # shell_complete=cli_profile.compl_list_token,
     type=str,
     show_envvar=True,
     help="Existing and valid profile supporting this run",
-)
-@click.option(
-    "--profile-path",
-    "profilepath",
-    default=None,
-    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
-    help="Path to and Existing and valid profile for this run. (override -p if defined)",
 )
 @click.option(
     "-o",
@@ -305,7 +302,6 @@ def parse_tags(filters: str) -> dict[list[str]]:
 def run(
     ctx,
     profilename,
-    profilepath,
     output,
     detach,
     override,
@@ -339,8 +335,8 @@ def run(
     if output is not None:
         output = os.path.abspath(output)
 
-    global_config = system.MetaConfig()
-    system.GlobalConfig.root = global_config
+    global_config = MetaConfig()
+    GlobalConfig.root = global_config
     global_config.set_internal("pColl", ctx.obj["plugins"])
 
     # then init the configuration
@@ -349,7 +345,8 @@ def run(
         detect = os.path.join(os.getcwd(), NAME_RUN_CONFIG_FILE)
         settings_file = detect if os.path.isfile(detect) else None
     io.console.debug("PRE-RUN: load settings from local file: {}".format(settings_file))
-    val_cfg = global_config.bootstrap_validation_from_file(settings_file)
+    global_config.bootstrap_validation_from_file(settings_file)
+    val_cfg = global_config["validation"]
 
     # save 'run' parameters into global configuration
     val_cfg.set_ifdef("datetime", datetime.now())
@@ -424,27 +421,14 @@ def run(
                 "--duplicate", "{} is not a valid build directory!".format(val_cfg["reused_build"])
             ) from fnfe
     else:
-        pf = None
-        if profilepath:
-            io.console.info(f"PRE-RUN: Profile lookup: {profilepath}")
-            pf = pvProfile.Profile(profilepath=profilepath)
-        else:
-            # otherwise create own settings command block
-            io.console.info("PRE-RUN: Profile lookup: {val_cfg['default_profile']}")
-            (scope, _, label) = utils.extract_infos_from_token(
-                val_cfg["default_profile"], maxsplit=2
-            )
-            pf = pvProfile.Profile(label, scope)
-            if not pf.is_found():
-                raise click.BadOptionUsage(
-                    "--profile", f"Profile '{val_cfg['default_profile']}' not found"
-                )
-        pf.load_from_disk()
-        pf.check()
+        cl: ConfigLocator = ConfigLocator()
+        cd: ConfigDesc = cl.parse_full_user_token(
+            val_cfg["default_profile"], kind=ConfigKind.PROFILE, should_exist=True
+        )
+        pf = pvProfile.Profile(cd, cl)
 
         val_cfg.set_ifdef("pf_name", pf.full_name)
-        val_cfg.set_ifdef("pf_hash", pf.get_unique_id())
-        global_config.bootstrap_from_profile(pf.dump(), pf.full_name)
+        global_config.bootstrap_from_profile(pf)
 
     the_session = pvSession.Session(val_cfg["datetime"], val_cfg["output"])
     the_session.register_callback(callback=pvRun.process_main_workflow)

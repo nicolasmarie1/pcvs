@@ -1,7 +1,7 @@
 import enum
 
+from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers import communications
-from pcvs.helpers.system import GlobalConfig
 
 
 class Set:

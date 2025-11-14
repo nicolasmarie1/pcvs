@@ -7,8 +7,11 @@ import pytest
 from click.testing import CliRunner
 from ruamel.yaml import YAML
 
+from pcvs.backend.metaconfig import GlobalConfig
+from pcvs.backend.metaconfig import MetaConfig
 from pcvs.helpers import pm
-from pcvs.helpers import system
+from pcvs.orchestration import Orchestrator
+from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.plugins import Collection
 from pcvs.testing import testfile as tested
 
@@ -74,9 +77,32 @@ def isolated_yml_test():
 
 
 @patch(
-    "pcvs.helpers.system.GlobalConfig.root",
-    system.MetaConfig(
+    "pcvs.backend.metaconfig.GlobalConfig.root",
+    MetaConfig(
         {
+            "compiler": {
+                "compilers": {
+                    "cc": {
+                        "program": "/path/to/cc",
+                        "extension": ".*\\.c",
+                        "variants": {
+                            "openmp": {
+                                "args": "-fopenmp",
+                            },
+                        },
+                    }
+                },
+            },
+            "group": {},
+            "criterion": {
+                "n_mpi": {
+                    "numeric": True,
+                    "values": [1, 2, 4],
+                    "subtitle": "mpi",
+                },
+            },
+            "runtime": {},
+            "machine": {},
             "validation": {
                 "output": "test_output",
                 "dirs": {"keytestdir": "valuetestdir"},
@@ -85,16 +111,20 @@ def isolated_yml_test():
         {
             "cc_pm": [pm.SpackManager("fakespec")],
             "pColl": Collection(),
+            "build_manager": BuildDirectoryManager(),
         },
     ),
 )
 @patch.dict(os.environ, {"HOME": "/home/user", "USER": "superuser"})
-@patch("pcvs.testing.tedesc.TEDescriptor", autospec=True)
-def test_TestFile(tedesc, isolated_yml_test):  # pylint: disable=redefined-outer-name
+# @patch("pcvs.testing.tedesc.TEDescriptor", autospec=True)
+def test_TestFile(isolated_yml_test):  # pylint: disable=redefined-outer-name
     def dummydesc():
         pass
 
-    tedesc.construct_tests = dummydesc
+    # orcherstrator use global config to setup, so it need to be added at runtime
+    # after GlobalConfig have already been initialize.
+    GlobalConfig.root.set_internal("orchestrator", Orchestrator())
+    # tedesc.construct_tests = dummydesc
     testfile = tested.TestFile(
         os.path.join(isolated_yml_test, "test-dir/pcvs.yml"),
         os.path.dirname(isolated_yml_test),

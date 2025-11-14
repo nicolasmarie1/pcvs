@@ -3,18 +3,16 @@ from importlib.metadata import version
 
 from pcvs import io
 from pcvs.backend import bank
-from pcvs.backend import config
-from pcvs.backend import profile
 from pcvs.cli import cli_bank
 from pcvs.cli import cli_config
 from pcvs.cli import cli_convert
 from pcvs.cli import cli_graph
-from pcvs.cli import cli_profile
 from pcvs.cli import cli_remote_run
 from pcvs.cli import cli_report
 from pcvs.cli import cli_run
 from pcvs.cli import cli_session
 from pcvs.cli import cli_utilities
+from pcvs.helpers import storage
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import PluginException
 from pcvs.plugins import Collection
@@ -142,14 +140,14 @@ def cli(ctx, verbose, color, encoding, exec_path, plugin_path, select_plugins, t
     ctx.obj["verbose"] = verbose if not debug else 10
     ctx.obj["color"] = color
     ctx.obj["encode"] = encoding
-    ctx.obj["exec"] = exec_path
     ctx.obj["tui"] = tui
 
     # Click specific-related
     ctx.color = color
 
     io.init(color=color, verbose=verbose)
-    utils.set_local_path(ctx.obj["exec"])
+
+    storage.set_exec_path(exec_path)
 
     utils.create_home_dir()
 
@@ -169,15 +167,12 @@ def cli(ctx, verbose, color, encoding, exec_path, plugin_path, select_plugins, t
     pcoll.invoke_plugins(Plugin.Step.START_BEFORE)
 
     # detections
-    config.init()
-    profile.init()
     bank.init()
 
     pcoll.invoke_plugins(Plugin.Step.START_AFTER)
 
 
 cli.add_command(cli_config.config)
-cli.add_command(cli_profile.profile)
 cli.add_command(cli_run.run)
 cli.add_command(cli_bank.bank)
 cli.add_command(cli_session.session)

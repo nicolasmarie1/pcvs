@@ -2,8 +2,8 @@ import queue
 
 from pcvs import io
 from pcvs.backend import session
+from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers.resource_tracker import ResourceTracker
-from pcvs.helpers.system import GlobalConfig
 from pcvs.orchestration.manager import Manager
 from pcvs.orchestration.runner import RunnerAdapter
 from pcvs.orchestration.set import Set
@@ -27,8 +27,8 @@ class Orchestrator:
     :type _max_nodes: int
     :ivar _max_cores: number of cores allowed to be used
     :type _max_cores: int
-    :ivar _publisher: Result File Manager
-    :type _publisher: :class:`ResultFileManager`
+    :ivar _publisher: BuildDirectoryManager
+    :type _publisher: :class:`BuildDirectoryManager`
     :ivar _manager: job manager
     :type _manager: :class:`Manager`
     :ivar _maxconcurrent: Max number of sets started at the same time.
@@ -39,6 +39,7 @@ class Orchestrator:
     def __init__(self):
         """constructor method"""
         config_tree = GlobalConfig.root
+        # TODO: take metacong as argument and stop relying on global config
         self._runners = []
         self._max_nodes = config_tree["machine"].get("nodes", 1)
         self._max_cores = config_tree["machine"].get("cores_per_node", 1)

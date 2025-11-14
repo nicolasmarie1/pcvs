@@ -1,35 +1,42 @@
 import os
+from pathlib import Path
 
 import pytest
 
 import pcvs
 from pcvs import PATH_INSTDIR
+from pcvs.backend.config import Config
+from pcvs.backend.configfile import ConfigFile
+from pcvs.backend.metaconfig import MetaConfig
 from pcvs.helpers import pm
-from pcvs.helpers import system
+from pcvs.helpers.storage import ConfigDesc
+from pcvs.helpers.storage import ConfigKind
+from pcvs.helpers.storage import ConfigScope
 
 
 def test_bootstrap_compiler():
-    obj = system.MetaConfig()
+    obj = MetaConfig()
     obj.bootstrap_compiler(
-        {
-            "compilers": {
-                "cc": {
-                    "program": "/path/to/cc",
-                    "variants": {
-                        "openmp": {
-                            "args": "-fopenmp",
+        Config(
+            {
+                "compilers": {
+                    "cc": {
+                        "program": "/path/to/cc",
+                        "variants": {
+                            "openmp": {
+                                "args": "-fopenmp",
+                            },
                         },
-                    },
-                }
+                    }
+                },
+                "package_manager": {
+                    "spack": ["mypackage@myversion"],
+                    "module": ["mod1", "mod2"],
+                },
             },
-            "package_manager": {
-                "spack": ["mypackage@myversion"],
-                "module": ["mod1", "mod2"],
-            },
-        },
-        filepath=str(__file__),
+        )
     )
-    assert isinstance(obj["compiler"], system.Config)
+    assert isinstance(obj["compiler"], Config)
     assert obj["compiler"]["compilers"]["cc"]["program"] == "/path/to/cc"
     assert obj["compiler"]["compilers"]["cc"]["variants"]["openmp"]["args"] == "-fopenmp"
 
@@ -53,23 +60,24 @@ def test_bootstrap_compiler():
 
 
 def test_bootstrap_runtime():
-    obj = system.MetaConfig()
+    obj = MetaConfig()
     obj.bootstrap_runtime(
-        {
-            "program": "/path/to/rt",
-            "criterions": {
-                "n_mpi": {
-                    "numeric": True,
+        Config(
+            {
+                "program": "/path/to/rt",
+                "criterions": {
+                    "n_mpi": {
+                        "numeric": True,
+                    },
+                },
+                "package_manager": {
+                    "spack": ["mypackage@myversion"],
+                    "module": ["mod1", "mod2"],
                 },
             },
-            "package_manager": {
-                "spack": ["mypackage@myversion"],
-                "module": ["mod1", "mod2"],
-            },
-        },
-        filepath=str(__file__),
+        )
     )
-    assert isinstance(obj["runtime"], system.Config)
+    assert isinstance(obj["runtime"], Config)
     assert obj["runtime"]["program"] == "/path/to/rt"
     assert obj["runtime"]["criterions"]["n_mpi"]["numeric"]
 
@@ -102,11 +110,10 @@ def kw_keys():
 @pytest.fixture
 def init_config():
     d = {"": "value1", "key2": "value2"}
-    system.Config(d)
+    Config(d)
 
 
 def test_validate(kw_keys):  # pylint: disable=unused-argument,redefined-outer-name
-    vs = system.Config()
     compiler = {
         "compilers": {
             "cc": {
@@ -152,22 +159,17 @@ def test_validate(kw_keys):  # pylint: disable=unused-argument,redefined-outer-n
             "example": {"values": [1, 2], "subtitle": "example"},
         },
     }
-    keywords = [(compiler, "compiler"), (runtime, "runtime"), (criterion, "criterion")]
-    # for kw in ["compiler", "criterion", "group"]:
-    #     with open(os.path.join(PATH_INSTDIR, "templates/{}-format.yml".format(kw))) as blk:
-    #         to_validate = yaml.load(blk)
-    #         conf = system.Config(to_validate)
-    #         conf.validate(kw)
+    keywords = [
+        (compiler, ConfigKind.COMPILER),
+        (runtime, ConfigKind.RUNTIME),
+        (criterion, ConfigKind.CRITERION),
+    ]
     for kw in keywords:
-        to_validate = kw[0]
-        conf = system.Config(to_validate)
-        conf.validate(kw[1], filepath=str(__file__))
+        conf = ConfigFile(ConfigDesc("test", Path("test"), kw[1], ConfigScope.LOCAL))
+        conf.from_dict(kw[0])
     with pytest.raises(pcvs.helpers.exceptions.ValidationException.FormatError):
-        to_validate = criterion_wrong
-        conf = system.Config(to_validate)
-        conf.validate(kw[1], filepath=str(__file__))
-    with pytest.raises(AssertionError):
-        vs.validate("wrong_value", filepath=str(__file__))
+        conf = ConfigFile(ConfigDesc("test", Path("test"), ConfigKind.CRITERION, ConfigScope.LOCAL))
+        conf.from_dict(criterion_wrong)
 
 
 def test_config(init_config):  # pylint: disable=unused-argument,redefined-outer-name

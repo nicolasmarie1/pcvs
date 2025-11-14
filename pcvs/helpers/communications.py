@@ -2,8 +2,8 @@ from abc import abstractmethod
 
 import requests
 
+from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.backend.session import Session
-from pcvs.helpers.system import GlobalConfig
 from pcvs.testing.test import Test
 
 sendData = False

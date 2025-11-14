@@ -2,12 +2,11 @@
 from pcvs.ui.textual import report as tested  # pylint: disable=unused-import
 
 from ....conftest import click_call
-from ....conftest import isolated_fs
+from ....conftest import dummy_profile_fs
 
 
 def test_loaded_tui():
-    with isolated_fs():
-        res = click_call("profile", "create", "local.default")
+    with dummy_profile_fs():
         res = click_call("run")
         # TODO: find a way to test textual
         # as of now coverage can't start the tui

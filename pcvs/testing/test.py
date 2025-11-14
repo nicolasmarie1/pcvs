@@ -4,13 +4,13 @@ import json
 import os
 import re
 import shlex
+import subprocess
 from enum import IntEnum
 
 from pcvs import io
+from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers.criterion import Combination
-from pcvs.helpers.system import GlobalConfig
 from pcvs.helpers.system import ValidationScheme
-from pcvs.helpers.utils import Program
 from pcvs.plugins import Plugin
 
 
@@ -537,9 +537,14 @@ class Test:
 
         # validation throw a custom script
         if state == Test.State.SUCCESS and self._script is not None:
-            p = Program(self._script)
-            p.run()
-            if self._expect_rc != p.rc:
+            try:
+                s = subprocess.Popen(self._script, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                s.communicate()
+                rc = s.returncode
+            except Exception:
+                rc = 42
+
+            if self._expect_rc != rc:
                 state = Test.State.FAILURE
 
         # if the test succeed, check for soft timeout

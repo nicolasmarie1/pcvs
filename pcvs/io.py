@@ -137,7 +137,6 @@ class PCVSConsole:
         self._verbose = Verbosity(min(Verbosity.NB_LEVELS - 1, kwargs.get("verbose", 0)))
         self._debugfile = open(os.path.join(".", pcvs.NAME_DEBUG_FILE), "w", encoding="utf-8")
         self.job_summary_data_table: Dict[str, Dict[str, Dict[str, int]]] = {}
-        log_level = "DEBUG" if self._verbose else "INFO"
         # https://rich.readthedocs.io/en/stable/appendix/colors.html#appendix-colors
         theme = Theme(
             {
@@ -158,7 +157,7 @@ class PCVSConsole:
         )
 
         logging.basicConfig(
-            level=log_level,
+            level="DEBUG",
             format="%(message)s",
             handlers=[
                 RichHandler(

@@ -15,16 +15,16 @@ from pcvs import NAME_BUILD_CONF_SH
 from pcvs import NAME_BUILD_SCRATCH
 from pcvs import NAME_BUILDFILE
 from pcvs import NAME_BUILDIR
-from pcvs import NAME_SRCDIR
+from pcvs import NAME_CONFIGDIR
 from pcvs import testing
 from pcvs.backend import bank as pvBank
 from pcvs.backend import spack as pvSpack
+from pcvs.backend.metaconfig import GlobalConfig
+from pcvs.backend.metaconfig import MetaConfig
 from pcvs.helpers import communications
 from pcvs.helpers import criterion
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import RunException
-from pcvs.helpers.system import GlobalConfig
-from pcvs.helpers.system import MetaConfig
 from pcvs.orchestration import Orchestrator
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.plugins import Plugin
@@ -320,7 +320,7 @@ def find_files_to_process(path_dict):
         for root, dirs, list_files in os.walk(path):
             last_dir = os.path.basename(root)
             # if the current dir is a 'special' one, discard
-            if last_dir in [NAME_SRCDIR, NAME_BUILDIR, "build_scripts"]:
+            if last_dir in [NAME_CONFIGDIR, NAME_BUILDIR, "build_scripts"]:
                 io.console.debug("skip {}".format(root))
                 # set dirs to null, avoiding os.wal() to go further in that dir
                 dirs[:] = []
