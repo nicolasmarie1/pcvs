@@ -13,6 +13,19 @@ from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers.validation import ValidationScheme
 from pcvs.io import Verbosity
 
+COMPILER_EXTENSION_CONFIG = {
+    "cc": "\\.(h|H|i|I|s|S|c|c90|c99|c11)$",
+    # ".h.H.i.I.s.S.c.c90.c99.c11"
+    "cxx": "\\.(hpp|C|cc|cxx|cpp|c\\+\\+)$",
+    # ".hpp.C.cc.cxx.cpp.c++"
+    "fortran": "\\.(f|F)(77|90|95|(20)?(03|08)|c|C)?$",
+    # ".f.F.f77.f90.f95.f03.f08.f2003.f2008.fc.fC.F77.F90.F95.F03.F08.F2003.F2008.Fc.FC"
+    "cuda": "\\.(cu|CU)$",
+    # ".cu.CU"
+    "hip": "\\.(hip|HIP)$",
+    # ".hip.HIP"
+}
+
 
 class MetaConfig(Config):
     """
@@ -52,6 +65,16 @@ class MetaConfig(Config):
         :type conf: Config
         """
         self.setdefault("compiler", conf)
+
+        # check that configured compiler does exist.
+        for compiler in conf["compilers"].values():
+            # get correct extension if compiler is defined by type
+            if "type" in compiler and "extension" not in compiler:
+                ext = COMPILER_EXTENSION_CONFIG.get(compiler["type"], None)
+                if ext is None:
+                    # TODO: throw parsing errors
+                    pass
+                compiler["extension"] = ext
         if "package_manager" in conf:
             self.set_internal("cc_pm", pm.identify(conf["package_manager"]))
 

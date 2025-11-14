@@ -223,12 +223,10 @@ def __check_defined_program_validity():
         utils.check_valid_program(GlobalConfig.root["machine"]["job_manager"]["batch"]["program"])
         utils.check_valid_program(GlobalConfig.root["machine"]["job_manager"]["batch"]["wrapper"])
 
-    for compiler_name in GlobalConfig.root["compiler"]["compilers"]:
-        compiler = GlobalConfig.root["compiler"]["compilers"][compiler_name]
+    for compiler in GlobalConfig.root["compiler"]["compilers"].values():
         compiler["valid"] = utils.check_valid_program(
             compiler["program"], fail=io.console.warning, raise_on_fail=False
         )
-
     utils.check_valid_program(GlobalConfig.root["runtime"]["program"])
 
     # TODO: need to handle package_manager commands to process below
