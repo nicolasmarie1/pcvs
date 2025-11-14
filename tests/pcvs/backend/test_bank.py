@@ -10,6 +10,7 @@ import pcvs
 from pcvs.backend import bank as tested
 from pcvs.helpers import git
 from pcvs.helpers import utils
+from tests.pcvs.conftest import isolated_fs
 
 
 @pytest.fixture
@@ -22,12 +23,12 @@ def mock_repo_fs():
 
 @pytest.fixture
 def dummy_run():
-    with CliRunner().isolated_filesystem():
+    with isolated_fs():
         path = os.getcwd()
         build_path = os.path.join(path, ".pcvs-build")
 
         os.makedirs(os.path.join(build_path, "rawdata"))
-        open(os.path.join(build_path, ".pcvs-isbuilddir"), "w+", encoding="utf-8").close()
+        open(os.path.join(build_path, pcvs.NAME_BUILDFILE), "w+", encoding="utf-8").close()
 
         with open(
             os.path.join(build_path, "rawdata/pcvs_rawdat0000.json"), "w+", encoding="utf-8"
