@@ -99,6 +99,8 @@ def process_check_configs():
 
     cds: list[ConfigDesc] = ConfigLocator().list_all_configs()
     for cd in cds:
+        if cd.kind == ConfigKind.PLUGIN:
+            continue
         token = io.console.utf("fail")
         try:
             ConfigFile(cd)

@@ -4,7 +4,7 @@ from pcvs import io
 from pcvs.plugins import Plugin
 
 
-class MpcDefaultPlugin(Plugin):
+class MpcPlugin(Plugin):
     """MPC validation plugin."""
 
     step = Plugin.Step.TEST_EVAL

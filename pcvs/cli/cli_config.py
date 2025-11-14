@@ -245,7 +245,8 @@ def config_edit(ctx, token) -> None:  # pylint: disable=unused-argument
     cd: ConfigDesc = ConfigLocator().parse_full_user_token(token, should_exist=True)
     if cd.scope == ConfigScope.GLOBAL:
         raise click.BadArgumentUsage(
-            f"Can't edit configuration '{cd.full_name}' in installation scope!\n"
+            f"Can't edit configuration '{cd.full_name}'.\n"
+            "Edit of config in installation scope are disable!\n"
             "Use config 'create --base conf name' to clone default configs."
         )
     ConfigFile(cd).edit()

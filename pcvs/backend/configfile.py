@@ -49,7 +49,7 @@ class ConfigFile:
         """Initialize a configuration file representation."""
         self._descriptor: ConfigDesc = config_desc
         self._details = None
-
+        assert config_desc.kind != ConfigKind.PLUGIN
         if self.exist:
             self._load_from_disk()
             self._check()
