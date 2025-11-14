@@ -51,7 +51,7 @@ class MetaConfig(Config):
         :param conf: compiler config to initialize
         :type conf: Config
         """
-        self.set_nosquash("compiler", conf)
+        self.setdefault("compiler", conf)
         if "package_manager" in conf:
             self.set_internal("cc_pm", pm.identify(conf["package_manager"]))
 
@@ -62,7 +62,7 @@ class MetaConfig(Config):
         :param conf: criterion config to initialize
         :type conf: Config
         """
-        self.set_nosquash("criterion", conf)
+        self.setdefault("criterion", conf)
 
     def bootstrap_group(self, conf: Config) -> None:
         """
@@ -71,7 +71,7 @@ class MetaConfig(Config):
         :param node: group config to initialize
         :type node: Config
         """
-        self.set_nosquash("group", conf)
+        self.setdefault("group", conf)
 
     def bootstrap_machine(self, conf: Config) -> None:
         """
@@ -80,12 +80,12 @@ class MetaConfig(Config):
         :param conf: machine config to initialize
         :type conf: Config
         """
-        self.set_nosquash("machine", conf)
+        self.setdefault("machine", conf)
 
-        conf.set_nosquash("name", "default")
-        conf.set_nosquash("nodes", 1)
-        conf.set_nosquash("cores_per_node", 1)
-        conf.set_nosquash("concurrent_run", 1)
+        conf.setdefault("name", "default")
+        conf.setdefault("nodes", 1)
+        conf.setdefault("cores_per_node", 1)
+        conf.setdefault("concurrent_run", 1)
 
         if "default_partition" not in conf or "partitions" not in conf:
             return
@@ -107,7 +107,7 @@ class MetaConfig(Config):
         :param node: runtime config to initialize
         :type node: Config
         """
-        self.set_nosquash("runtime", conf)
+        self.setdefault("runtime", conf)
         if "package_manager" in conf:
             self.set_internal("rt_pm", pm.identify(conf["package_manager"]))
 
@@ -151,33 +151,33 @@ class MetaConfig(Config):
         :param node: validation block to initialize
         :type node: dict
         """
-        self.set_nosquash("validation", conf)
+        self.setdefault("validation", conf)
 
         # Initialize default values when not set by user or default files
-        conf.set_nosquash("verbose", str(Verbosity.COMPACT))
-        conf.set_nosquash("print_policy", "none")
-        conf.set_nosquash("color", True)
-        conf.set_nosquash("default_profile", "default")
-        conf.set_nosquash("output", os.path.join(os.getcwd(), NAME_BUILDIR))
-        conf.set_nosquash("background", False)
-        conf.set_nosquash("override", False)
-        conf.set_nosquash("dirs", None)
-        conf.set_nosquash("spack_recipe", None)
-        conf.set_nosquash("simulated", False)
-        conf.set_nosquash("anonymize", False)
-        conf.set_nosquash("onlygen", False)
-        conf.set_nosquash("timeout", None)
-        conf.set_nosquash("target_bank", None)
-        conf.set_nosquash("reused_build", None)
-        conf.set_nosquash("webreport", None)
-        conf.set_nosquash("only_success", False)
-        conf.set_nosquash("enable_report", False)
-        conf.set_nosquash("hard_timeout", 3600)
-        conf.set_nosquash("soft_timeout", None)
-        conf.set_nosquash("per_result_file_sz", 10 * 1024 * 1024)
-        conf.set_nosquash("buildcache", os.path.join(conf["output"], "cache"))
-        conf.set_nosquash("result", {"format": ["json"]})
-        conf.set_nosquash(
+        conf.setdefault("verbose", str(Verbosity.COMPACT))
+        conf.setdefault("print_policy", "none")
+        conf.setdefault("color", True)
+        conf.setdefault("default_profile", "default")
+        conf.setdefault("output", os.path.join(os.getcwd(), NAME_BUILDIR))
+        conf.setdefault("background", False)
+        conf.setdefault("override", False)
+        conf.setdefault("dirs", None)
+        conf.setdefault("spack_recipe", None)
+        conf.setdefault("simulated", False)
+        conf.setdefault("anonymize", False)
+        conf.setdefault("onlygen", False)
+        conf.setdefault("timeout", None)
+        conf.setdefault("target_bank", None)
+        conf.setdefault("reused_build", None)
+        conf.setdefault("webreport", None)
+        conf.setdefault("only_success", False)
+        conf.setdefault("enable_report", False)
+        conf.setdefault("hard_timeout", 3600)
+        conf.setdefault("soft_timeout", None)
+        conf.setdefault("per_result_file_sz", 10 * 1024 * 1024)
+        conf.setdefault("buildcache", os.path.join(conf["output"], "cache"))
+        conf.setdefault("result", {"format": ["json"]})
+        conf.setdefault(
             "author", {"name": git.get_current_username(), "email": git.get_current_usermail()}
         )
 

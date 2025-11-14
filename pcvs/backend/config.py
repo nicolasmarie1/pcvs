@@ -16,6 +16,7 @@ class Config(dict):
         """
         super().__init__(**d)
 
+    # recursive exportation to pure python dict for ruyaml representer
     @classmethod
     def __to_dict(cls, d):
         for k, v in d.items():
@@ -27,7 +28,7 @@ class Config(dict):
         """Convert the Config() to regular dict."""
         return Config.__to_dict(self)
 
-    # Additional dict access functions
+    # Additional dict functions
     def set_ifdef(self, k, v):
         """
         Shortcut function: init self[k] only if v is not None.
@@ -38,16 +39,4 @@ class Config(dict):
         :type v: str
         """
         if v is not None:
-            self[k] = v
-
-    def set_nosquash(self, k, v):
-        """
-        Shortcut function: init self[k] only if v is not already set.
-
-        :param k: name of value to add
-        :type k: str
-        :param v: value to add
-        :type v: str
-        """
-        if k not in self:
             self[k] = v
