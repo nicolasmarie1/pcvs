@@ -1,5 +1,5 @@
 recursive-include pcvs/schemes *.yml
-recursive-include pcvs/templates *.yml
+recursive-include pcvs/config *.yml *.py
 recursive-include pcvs/converter *.json
 recursive-include pcvs/webview *.html *.css *.js *.png *.svg *.ico
 recursive-include pcvs/webview *.eot *.ttf *.woff

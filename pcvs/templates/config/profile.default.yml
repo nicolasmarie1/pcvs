@@ -1,7 +1,0 @@
----
-
-compiler: local:default.yml
-criterion: default.yml
-group: local:default.yml
-machine: local:default.yml
-runtime: default.yml

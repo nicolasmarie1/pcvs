@@ -25,7 +25,9 @@ def compl_list_token(ctx, args, incomplete) -> list:  # pylint: disable=unused-a
 def compl_list_templates(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
     """Config template completion."""
     return [
-        elt.name for elt in ConfigLocator().list_all_configs(ConfigScope.INST) if incomplete in elt
+        elt.name
+        for elt in ConfigLocator().list_all_configs(ConfigScope.GLOBAL)
+        if incomplete in elt
     ]
 
 
@@ -168,7 +170,7 @@ def config_create(ctx, token, clone, interactive) -> None:  # pylint: disable=un
 
     if cd.exist:
         raise click.BadArgumentUsage(f"Configuration '{cd.full_name}' already exists!")
-    if cd.scope == ConfigScope.INST:
+    if cd.scope == ConfigScope.GLOBAL:
         raise click.BadArgumentUsage(
             f"Can't create configuration '{cd.full_name}' in installation scope !"
         )
@@ -214,7 +216,7 @@ def config_destroy(ctx, token) -> None:  # pylint: disable=unused-argument
     through the `pcvs config --help` command.
     """
     cd: ConfigDesc = ConfigLocator().parse_full_user_token(token, should_exist=True)
-    if cd.scope == ConfigScope.INST:
+    if cd.scope == ConfigScope.GLOBAL:
         raise click.BadArgumentUsage(
             f"Can't destroy configuration '{cd.full_name}' in installation scope !"
         )
@@ -241,7 +243,7 @@ def config_edit(ctx, token) -> None:  # pylint: disable=unused-argument
     through the `pcvs config --help` command.
     """
     cd: ConfigDesc = ConfigLocator().parse_full_user_token(token, should_exist=True)
-    if cd.scope == ConfigScope.INST:
+    if cd.scope == ConfigScope.GLOBAL:
         raise click.BadArgumentUsage(
             f"Can't edit configuration '{cd.full_name}' in installation scope!\n"
             "Use config 'create --base conf name' to clone default configs."
@@ -284,7 +286,7 @@ def config_import(ctx, token, in_file, force) -> None:  # pylint: disable=unused
     through the `pcvs config --help` command.
     """
     cd: ConfigDesc = ConfigLocator().parse_full_user_token(token)
-    if cd.scope == ConfigScope.INST:
+    if cd.scope == ConfigScope.GLOBAL:
         raise click.BadArgumentUsage(
             f"Can't import configurations '{cd.full_name}' in installation scope !"
         )

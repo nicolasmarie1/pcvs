@@ -26,7 +26,7 @@ def isolated_fs():
 def dummy_config_fs():
     """Create an isolated fs with default compiler shem as dummy-config.yml."""
     with open(
-        os.path.join(PATH_INSTDIR, "templates/config/compiler.default.yml"), "r", encoding="utf-8"
+        os.path.join(PATH_INSTDIR, "config/compiler/default.yml"), "r", encoding="utf-8"
     ) as template:
         yml = template.readlines()
         with isolated_fs() as fs:
@@ -51,9 +51,7 @@ def dummy_profile_fs():
     ]
     for k in kinds:
         with open(
-            os.path.join(
-                PATH_INSTDIR, f"templates/config/{str(k)}.default{ConfigKind.get_filetype(k)}"
-            ),
+            os.path.join(PATH_INSTDIR, f"config/{str(k)}/default.yml"),
             "r",
             encoding="utf-8",
         ) as conft:

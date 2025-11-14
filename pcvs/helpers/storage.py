@@ -21,7 +21,7 @@ class ConfigScope(Enum):
     """
     Storage Scope Enumeration.
 
-    :var INST: pcvs installation path
+    :var GLOBAL: pcvs installation path
     :var USER: user Home directory
     :var REPO: current .git repo
     :var LOCAL: current testing directory
@@ -29,7 +29,7 @@ class ConfigScope(Enum):
     :var ABS: user provided absolute path
     """
 
-    INST = 0
+    GLOBAL = 0
     USER = 1
     LOCAL = 2
 
@@ -45,7 +45,7 @@ class ConfigScope(Enum):
     def tostr(cls, ct) -> str:
         """Get subpath from ConfigType."""
         scope_to_str = {
-            ConfigScope.INST: "inst",
+            ConfigScope.GLOBAL: "global",
             ConfigScope.USER: "user",
             ConfigScope.LOCAL: "local",
         }
@@ -55,7 +55,7 @@ class ConfigScope(Enum):
     def fromstr(cls, scope: str):
         """Get Scope from user str."""
         str_to_scope = {
-            "inst": ConfigScope.INST,
+            "global": ConfigScope.GLOBAL,
             "user": ConfigScope.USER,
             "local": ConfigScope.LOCAL,
         }
@@ -67,7 +67,7 @@ class ConfigScope(Enum):
         return [
             ConfigScope.LOCAL,
             ConfigScope.USER,
-            ConfigScope.INST,
+            ConfigScope.GLOBAL,
         ]
 
 
@@ -216,7 +216,7 @@ class ConfigLocator:
         """Init a Config Locator."""
         rel_exec_path = os.path.abspath(self.EXEC_PATH if self.EXEC_PATH else os.getcwd())
         self._storage_scope_paths: dict[ConfigScope, Path] = {
-            ConfigScope.INST: Path(PATH_INSTDIR),
+            ConfigScope.GLOBAL: Path(PATH_INSTDIR).joinpath("config"),
             ConfigScope.USER: Path(PATH_HOMEDIR),
             ConfigScope.LOCAL: Path(self.__get_local_path(rel_exec_path)),
         }
