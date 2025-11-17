@@ -1,8 +1,7 @@
 import sys
 
-from ruamel.yaml import YAML
-
 from pcvs import io
+from pcvs.backend import configfile
 from pcvs.backend.configfile import ConfigFile
 from pcvs.helpers.storage import ConfigDesc
 from pcvs.helpers.storage import ConfigKind
@@ -122,7 +121,7 @@ def config_show(ctx, token) -> None:  # pylint: disable=unused-argument
     through the `pcvs config --help` command.
     """
     cd: ConfigDesc = ConfigLocator().parse_full_user_token(token, should_exist=True)
-    ConfigFile(cd).display()
+    configfile.get_conf(cd).display()
 
 
 @config.command(
@@ -154,9 +153,12 @@ def config_show(ctx, token) -> None:  # pylint: disable=unused-argument
 )
 @click.pass_context
 def config_create(ctx, token, clone, interactive) -> None:  # pylint: disable=unused-argument
-    """Create a new configuration block for the given KIND. The newly created
-    block will be labeled NAME. It is inherited from a default template. This
-    can be overridden by specifying a CLONE argument.
+    """
+    Create a new configuration block for the given KIND.
+
+    The newly created block will be labeled NAME.
+    It is inherited from a default template.
+    This can be overridden by specifying a CLONE argument.
 
     The CLONE may be given raw (as a regular label) or prefixed by the scope
     this label is coming from. For instance, the user may pass 'global.mylabel'
@@ -175,15 +177,20 @@ def config_create(ctx, token, clone, interactive) -> None:  # pylint: disable=un
             f"Can't create configuration '{cd.full_name}' in installation scope !"
         )
 
-    conf = ConfigFile(cd)
+    conf: ConfigFile = configfile.get_conf(cd)
 
     if clone is not None:
         cdc: ConfigDesc = ConfigLocator().parse_full_user_token(clone, should_exist=True)
         if cdc.kind != cd.kind:
             raise click.BadArgumentUsage("Can only clone from a conf blocks with the same KIND!")
-        conf.from_dict(ConfigFile(cdc).to_dict())
+        conf.from_str(configfile.get_conf(cdc).to_str())
     else:
-        conf.from_dict({})
+        # if base is not specify, copy from default config
+        conf.from_str(
+            configfile.get_conf(
+                ConfigLocator().find_config("default", cd.kind, ConfigScope.GLOBAL)
+            ).to_str()
+        )
 
     conf.flush_to_disk()
 
@@ -220,7 +227,7 @@ def config_destroy(ctx, token) -> None:  # pylint: disable=unused-argument
         raise click.BadArgumentUsage(
             f"Can't destroy configuration '{cd.full_name}' in installation scope !"
         )
-    ConfigFile(cd).delete()
+    configfile.get_conf(cd).delete()
 
 
 @config.command(
@@ -247,9 +254,9 @@ def config_edit(ctx, token) -> None:  # pylint: disable=unused-argument
         raise click.BadArgumentUsage(
             f"Can't edit configuration '{cd.full_name}'.\n"
             "Edit of config in installation scope are disable!\n"
-            "Use config 'create --base conf name' to clone default configs."
+            "Use config 'create --clone conf name' to clone default configs."
         )
-    ConfigFile(cd).edit()
+    configfile.get_conf(cd).edit()
 
 
 @config.command(
@@ -291,12 +298,12 @@ def config_import(ctx, token, in_file, force) -> None:  # pylint: disable=unused
         raise click.BadArgumentUsage(
             f"Can't import configurations '{cd.full_name}' in installation scope !"
         )
-    conf = ConfigFile(cd)
+    conf: ConfigFile = configfile.get_conf(cd)
     if conf.exist and not force:
         raise click.BadArgumentUsage(
             f"Configuration '{cd.full_name}' already exist! To override existing configuration use '-f'."
         )
-    conf.from_dict(YAML(typ="safe").load(in_file.read()))
+    conf.from_str(in_file.read())
     conf.flush_to_disk()
 
 
@@ -326,8 +333,6 @@ def config_export(ctx, token, out_file):  # pylint: disable=unused-argument
     through the `pcvs config --help` command.
     """
     cd: ConfigDesc = ConfigLocator().parse_full_user_token(token, should_exist=True)
-    conf = ConfigFile(cd)
+    conf: ConfigFile = configfile.get_conf(cd)
 
-    yml = YAML(typ="safe")
-    yml.default_flow_style = False
-    yml.dump(conf.to_dict(), out_file)
+    out_file.write(conf.to_str())

@@ -7,12 +7,11 @@ from ruamel.yaml import YAML
 from ruamel.yaml import YAMLError
 
 from pcvs import io
-from pcvs.backend import profile
 from pcvs.backend import run
 from pcvs.backend.configfile import ConfigFile
+from pcvs.backend.configfile import Profile
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.backend.metaconfig import MetaConfig
-from pcvs.backend.profile import Profile
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ValidationException
 from pcvs.helpers.storage import ConfigDesc
@@ -240,7 +239,7 @@ def process_check_directory(directory, pf_name="default.yml", conversion=True):
     cd: ConfigDesc = ConfigLocator().parse_full_user_token(
         pf_name, ConfigKind.PROFILE, should_exist=True
     )
-    pf = profile.Profile(cd)
+    pf = Profile(cd)
 
     GlobalConfig.root = MetaConfig()
     GlobalConfig.root["validation"] = {}

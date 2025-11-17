@@ -221,6 +221,14 @@ class ConfigLocator:
             ConfigScope.LOCAL: Path(self.__get_local_path(rel_exec_path)),
         }
 
+    def check_filename_ext(self, file_name: Path, kind: ConfigKind) -> Path:
+        """Check of filename."""
+        # check for missing extensions
+        extension = ConfigKind.get_filetype(kind)
+        if file_name.suffix != extension:
+            file_name = file_name.with_suffix(extension)
+        return file_name
+
     def parse_scope_and_kind_user_token(
         self,
         user_token: str,
@@ -327,13 +335,7 @@ class ConfigLocator:
 
         assert kind is not None
 
-        # check for missing extensions
-        extension = ConfigKind.get_filetype(kind)
-        if file_name.suffix != extension:
-            io.console.warn(
-                f"Adding missing suffix '{extension}' to file '{file_name}'->'{file_name.with_suffix(extension)}'"
-            )
-            file_name = file_name.with_suffix(extension)
+        file_name = self.check_filename_ext(file_name, kind)
 
         if should_exist is None:
             # May exist
@@ -389,6 +391,7 @@ class ConfigLocator:
         for sc in scopes:
             config_path: Path = self.storage_path(file_name, kind, sc)
             io.console.debug(f"Looking for '{config_path}'.")
+            config_path = self.check_filename_ext(config_path, kind)
             if config_path.is_file() and config_path.suffix == ConfigKind.get_filetype(kind):
                 io.console.debug(f"Found '{config_path}'.")
                 return ConfigDesc(config_path.stem, config_path, kind, sc)

@@ -6,7 +6,7 @@ import pytest
 import pcvs
 from pcvs import PATH_INSTDIR
 from pcvs.backend.config import Config
-from pcvs.backend.configfile import ConfigFile
+from pcvs.backend.configfile import YmlConfigFile
 from pcvs.backend.metaconfig import MetaConfig
 from pcvs.helpers import pm
 from pcvs.helpers.storage import ConfigDesc
@@ -165,10 +165,12 @@ def test_validate(kw_keys):  # pylint: disable=unused-argument,redefined-outer-n
         (criterion, ConfigKind.CRITERION),
     ]
     for kw in keywords:
-        conf = ConfigFile(ConfigDesc("test", Path("test"), kw[1], ConfigScope.LOCAL))
+        conf = YmlConfigFile(ConfigDesc("test", Path("test"), kw[1], ConfigScope.LOCAL))
         conf.from_dict(kw[0])
     with pytest.raises(pcvs.helpers.exceptions.ValidationException.FormatError):
-        conf = ConfigFile(ConfigDesc("test", Path("test"), ConfigKind.CRITERION, ConfigScope.LOCAL))
+        conf = YmlConfigFile(
+            ConfigDesc("test", Path("test"), ConfigKind.CRITERION, ConfigScope.LOCAL)
+        )
         conf.from_dict(criterion_wrong)
 
 

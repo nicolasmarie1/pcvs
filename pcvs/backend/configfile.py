@@ -8,12 +8,14 @@ from pcvs import io
 from pcvs.backend.config import Config
 from pcvs.helpers.storage import ConfigDesc
 from pcvs.helpers.storage import ConfigKind
+from pcvs.helpers.storage import ConfigLocator
 from pcvs.helpers.validation import ValidationScheme
 
 
 class ConfigFile:
+    # TODO: rewrite doc
     """
-    Handle the basic configuration block.
+    Handle configuration file.
 
     From a user persperctive, a basic block is a dict, gathering in a Python
     object information relative to the configuration of a single component.
@@ -48,30 +50,31 @@ class ConfigFile:
     def __init__(self, config_desc: ConfigDesc):
         """Initialize a configuration file representation."""
         self._descriptor: ConfigDesc = config_desc
-        self._details = None
-        assert config_desc.kind != ConfigKind.PLUGIN
+        self._raw: str = None
         if self.exist:
             self._load_from_disk()
             self._check()
 
     # Private unguarded functions
     def _check(self) -> None:
-        """Validate a config according to its scheme."""
-        ValidationScheme(self._descriptor.kind).validate(
-            self._details, filepath=self._descriptor.path
-        )
+        """Validate a config according to its scheme, look at super class."""
+
+    def _load(self, raw: str) -> None:
+        self._raw = raw
+
+    def _flush(self) -> str:
+        return self._raw
 
     def _load_from_disk(self) -> None:
         with open(self._descriptor.path, encoding="utf-8") as f:
-            self._details = YAML(typ="safe").load(f)
+            self._load(f.read())
 
     def _flush_to_disk(self) -> None:
+        raw: str = self._flush()
         # create dir if it does not exist
         self._descriptor.path.parent.mkdir(parents=True, exist_ok=True)
         with open(self._descriptor.path, "w", encoding="utf-8") as f:
-            yml = YAML(typ="safe")
-            yml.default_flow_style = False
-            yml.dump(self._details, f)
+            f.write(raw)
 
     # Public safe functions
 
@@ -84,7 +87,7 @@ class ConfigFile:
     @property
     def loaded(self) -> bool:
         """Return if the config is loaded in Object."""
-        return self._details is not None
+        return self._raw is not None
 
     # Accessors
     @property
@@ -105,13 +108,13 @@ class ConfigFile:
         self._check()
 
     def flush_to_disk(self) -> None:
-        """Write the configuration block to disk."""
+        """Write the configuration to disk."""
         assert self.loaded
         self._check()
         self._flush_to_disk()
 
     def delete(self) -> None:
-        """Delete a configuration block from disk."""
+        """Delete a configuration from disk."""
         assert self.exist
         io.console.info(
             f"Remove {self._descriptor.name} from '{self._descriptor.kind} ({self._descriptor.scope})'"
@@ -119,34 +122,19 @@ class ConfigFile:
         os.remove(self._descriptor.path)
 
     def edit(self) -> None:
-        """Open the current block for edition.
+        """Open the current configuration for edition.
 
         :raises Exception: Something occurred on the edited version.
         """
         assert self.exist
-
-        with open(self._descriptor.path, "r", encoding="utf-8") as fh:
-            stream = fh.read()
-
+        self._load_from_disk()
         edited_stream = click.edit(
-            stream, extension=ConfigKind.get_filetype(self._descriptor.kind), require_save=True
+            self._raw, extension=ConfigKind.get_filetype(self._descriptor.kind), require_save=True
         )
         if edited_stream is not None:
-            edited_yaml = YAML(typ="safe").load(edited_stream)
-            self._details = edited_yaml
+            self._load(edited_stream)
             self._check()
             self._flush_to_disk()
-
-    # IO from obj
-    def from_dict(self, d: dict) -> None:
-        """Fill the config from the raw parameter."""
-        self._details = d
-        self._check()
-
-    def to_dict(self) -> dict:
-        """Convert the Config() to regular dict."""
-        assert self.loaded
-        return self._details.copy()
 
     # Others
     def display(self) -> None:
@@ -157,21 +145,186 @@ class ConfigFile:
         io.console.print_section(f"Path: {self._descriptor.path}")
         io.console.print_section("Details:")
 
-        yml = YAML()
-        yml.default_flow_style = False
-        yml.indent = 4
-        string_stream = StringIO()
-        yml.dump(self._details, string_stream)
-        output_str = string_stream.getvalue()
-        string_stream.close()
-        io.console.print(output_str)
+        io.console.print(self._flush())
 
     def validate(self) -> None:
         """Validate a Config against it's shema."""
         assert self.loaded
         self._check()
 
+    def to_str(self):
+        """Get configuration as str."""
+        return self._flush()
+
+    def from_str(self, raw: str):
+        """Set configuration from str."""
+        self._load(raw)
+
+
+class YmlConfigFile(ConfigFile):
+
+    def __init__(self, config_desc: ConfigDesc):
+        """Initialize a configuration file representation."""
+        assert config_desc.kind != ConfigKind.PLUGIN
+        self._details = None
+        super().__init__(config_desc)
+
+    # Private unguarded functions
+
+    # Overrides of super methods
+    def _check(self) -> None:
+        """Validate a config according to its scheme."""
+        super()._check()
+        ValidationScheme(self._descriptor.kind).validate(
+            self._details, filepath=self._descriptor.path
+        )
+
+    def _load(self, raw: str) -> None:
+        super()._load(raw)
+        self._str_to_yml()
+
+    def _flush(self) -> str:
+        self._yml_to_str()
+        return super()._flush()
+
+    # str -> yml and yml -> str conversion
+    def _str_to_yml(self) -> None:
+        self._details = YAML(typ="safe").load(StringIO(self._raw))
+
+    def _yml_to_str(self) -> None:
+        yml = YAML(typ="safe")
+        yml.default_flow_style = False
+        yml.indent = 4
+        str_stream = StringIO()
+        yml.dump(self._details, str_stream)
+        self._raw = str_stream.getvalue()
+        str_stream.close()
+
+    # Public safe functions
+
+    # IO from obj
+    def from_dict(self, d: dict) -> None:
+        """Fill the config from the raw parameter."""
+        self._details = d
+        self._flush()
+        self._check()
+
+    def to_dict(self) -> dict:
+        """Convert the Config() to regular dict."""
+        assert self.loaded
+        return self._details.copy()
+
+    # Others
     @property
     def config(self) -> None:
         """Get config object associated with config file."""
         return Config(self._details)
+
+
+class Profile(YmlConfigFile):
+    """A profile represents the most complete object the user can provide.
+
+    It is built upon 5 configuration, one of each kind
+    (compiler, runtime, machine, criterion & group) and plugins
+    and gathers all required information to start a validation process. A
+    profile object is the basic representation to be manipulated by the user.
+    """
+
+    CONFIGS_KINDS = [
+        ConfigKind.COMPILER,
+        ConfigKind.CRITERION,
+        ConfigKind.GROUP,
+        ConfigKind.MACHINE,
+        ConfigKind.RUNTIME,
+    ]
+
+    def __init__(self, config_desc: ConfigDesc, cl: ConfigLocator = None):
+        """Initialize a profile."""
+        assert config_desc.kind == ConfigKind.PROFILE
+        self._config_locator = cl if cl is not None else ConfigLocator()
+        self._innerconfigs: dict[str, YmlConfigFile] = {}
+        super().__init__(config_desc)
+
+    def _load_sub_configs(self):
+        assert self.loaded
+        for kind in Profile.CONFIGS_KINDS:
+            user_token: str = super().config[str(kind)]
+            cd: ConfigDesc = self._config_locator.parse_full_user_token(
+                user_token, kind=kind, should_exist=True
+            )
+            c: YmlConfigFile = YmlConfigFile(cd)
+            self._innerconfigs[kind] = c
+
+    def _check(self):
+        super()._check()
+        for kind in Profile.CONFIGS_KINDS:
+            self._innerconfigs[kind].validate()
+
+    def _load(self, raw: str) -> None:
+        """Load a profile from disk."""
+        super()._load(raw)
+        self._load_sub_configs()
+
+    @property
+    def compiler(self) -> Config:
+        """Access the 'compiler' section.
+
+        :return: the 'compiler' dict segment
+        :rtype: dict
+        """
+        return self._innerconfigs[ConfigKind.COMPILER].config
+
+    @property
+    def criterion(self) -> Config:
+        """Access the 'criterion' section.
+
+        :return: the 'criterion' dict segment
+        :rtype: dict
+        """
+        return self._innerconfigs[ConfigKind.CRITERION].config
+
+    @property
+    def group(self) -> Config:
+        """Access the 'group' section.
+
+        :return: the 'group' dict segment
+        :rtype: dict
+        """
+        return self._innerconfigs[ConfigKind.GROUP].config
+
+    @property
+    def machine(self) -> Config:
+        """Access the 'machine' section.
+
+        :return: the 'machine' dict segment
+        :rtype: dict
+        """
+        return self._innerconfigs[ConfigKind.MACHINE].config
+
+    @property
+    def runtime(self) -> Config:
+        """Access the 'runtime' section.
+
+        :return: the 'runtime' dict segment
+        :rtype: dict
+        """
+        return self._innerconfigs[ConfigKind.RUNTIME].config
+
+
+STD_CONFIG_KINDS = [
+    ConfigKind.COMPILER,
+    ConfigKind.CRITERION,
+    ConfigKind.GROUP,
+    ConfigKind.MACHINE,
+    ConfigKind.RUNTIME,
+]
+
+
+def get_conf(cd: ConfigDesc) -> ConfigFile:
+    """Get Appropriate ConfigFile Object."""
+    assert cd is not None
+    if cd.kind == ConfigKind.PROFILE:
+        return Profile(cd)
+    if cd.kind in STD_CONFIG_KINDS:
+        return YmlConfigFile(cd)
+    return ConfigFile(cd)

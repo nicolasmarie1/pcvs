@@ -6,9 +6,9 @@ from pcvs import io
 from pcvs import NAME_BUILDFILE
 from pcvs import NAME_RUN_CONFIG_FILE
 from pcvs.backend import bank as pvBank
-from pcvs.backend import profile as pvProfile
 from pcvs.backend import run as pvRun
 from pcvs.backend import session as pvSession
+from pcvs.backend.configfile import Profile as pvProfile
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.backend.metaconfig import MetaConfig
 from pcvs.cli import cli_bank
@@ -425,7 +425,7 @@ def run(
         cd: ConfigDesc = cl.parse_full_user_token(
             val_cfg["default_profile"], kind=ConfigKind.PROFILE, should_exist=True
         )
-        pf = pvProfile.Profile(cd, cl)
+        pf = pvProfile(cd, cl)
 
         val_cfg.set_ifdef("pf_name", pf.full_name)
         global_config.bootstrap_from_profile(pf)

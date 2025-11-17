@@ -6,7 +6,7 @@ from ruamel.yaml import YAMLError
 import pcvs
 from pcvs import NAME_BUILDIR
 from pcvs.backend.config import Config
-from pcvs.backend.profile import Profile
+from pcvs.backend.configfile import Profile
 from pcvs.helpers import git
 from pcvs.helpers import pm
 from pcvs.helpers.exceptions import CommonException
