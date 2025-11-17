@@ -3,14 +3,17 @@ compiler:
     cc:
       envs: [PCVS_CC=gcc]
       program: gcc
+      args: ["-fopenmp"]
       extension: "\\.(h|H|i|I|s|S|c|c90|c99|c11)$"
     cxx:
       envs: [PCVS_CXX=g++]
       program: g++
+      args: ["-fopenmp"]
       extension: "\\.(hpp|C|cc|cxx|cpp|c\\+\\+)$"
     fc:
       envs: [PCVS_FC=gfortran]
       program: gfortran
+      args: ["-fopenmp"]
       extension: "\\.(f|F)(77|90|95|(20)?(03|08)|c)?$"
 criterion:
   n_omp:
