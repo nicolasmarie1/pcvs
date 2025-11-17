@@ -13,32 +13,32 @@ class DataRepresentation:
 
     the data representation looks like:
 
-    ```yaml
-      0:
-    fs-tree:
-        <LABEL1>:
-            __metadata: {<counts>}
-            __elems:
-                <subtree1>:
-                    __metadata: {<counts>}
-                    __elems:
-                        <te1>:
-                            _metadata: {<counts>}
-                            _elems: [Test(), Test(), Test()]
-    tags:
-        <tag1>:
-            __metadata: {<counts>}
-            __elems: [Test(), Test(), Test()]
-    iter:
-        <it_name>:
-            __metadata: {<counts>}
-            __elems:
-                 <possible_value>:
-                     __metadata: {<counts>}
-                     __elems: [Test(), Test(), Test()]
-    failures: [ Test(), Test(), Test()]
-    # ...
-    ```
+    .. code-block:: yaml
+
+        0:
+      fs-tree:
+          <LABEL1>:
+              __metadata: {<counts>}
+              __elems:
+                  <subtree1>:
+                      __metadata: {<counts>}
+                      __elems:
+                          <te1>:
+                              _metadata: {<counts>}
+                              _elems: [Test(), Test(), Test()]
+      tags:
+          <tag1>:
+              __metadata: {<counts>}
+              __elems: [Test(), Test(), Test()]
+      iter:
+          <it_name>:
+              __metadata: {<counts>}
+              __elems:
+                   <possible_value>:
+                       __metadata: {<counts>}
+                       __elems: [Test(), Test(), Test()]
+      failures: [ Test(), Test(), Test()]
+      # ...
 
     """
 

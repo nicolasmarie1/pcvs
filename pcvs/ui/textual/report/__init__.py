@@ -36,10 +36,12 @@ class ActiveSessionList(Widget):
     selected = None
 
     def __init__(self, *args, **kwargs):
+        """TODO."""
         self.item_list = []
         super().__init__(*args, **kwargs)
 
     def compose(self):
+        """TODO."""
         self.init_list()
         yield Static("Loaded Sessions:")
         yield self.items
@@ -49,6 +51,7 @@ class ActiveSessionList(Widget):
         )
 
     def init_list(self):
+        """TODO."""
         item_names = self.app.model.session_prefixes
         active = self.app.model.active.prefix
         assert active in item_names
@@ -60,15 +63,19 @@ class ActiveSessionList(Widget):
 
     @on(OptionList.OptionSelected)
     def select_line(self, event):
+        """TODO."""
         self.selected = event.option.prompt
 
     def add(self, path):
+        """TODO."""
         if path not in self.item_list:
             self.item_list.append(path)
             self.app.query_one(ActiveSessionList).items.add_option(item=path)
 
 
 class FileBrowser(Widget):
+    """TODO."""
+
     BINDINGS = [("q", "pop_screen", "Back")]
     last_select = None
     log = reactive(Static(id="error-log"))
@@ -81,6 +88,7 @@ class FileBrowser(Widget):
             ]
 
     def compose(self):
+        """TODO."""
         yield Static("File Browser:")
         yield self.CustomDirectoryTree(os.getcwd(), id="filepicker")
         yield Static("Direct path:")
@@ -97,6 +105,7 @@ class FileBrowser(Widget):
 class SessionPickScreen(ModalScreen):
 
     def compose(self):
+        """TODO."""
         yield Grid(ActiveSessionList(), FileBrowser(), id="session-list-screen")
 
     class SwitchAnotherSession(Message):
@@ -104,10 +113,12 @@ class SessionPickScreen(ModalScreen):
 
     @on(Button.Pressed, "#session-pick-cancel")
     def pop_screen(self, event):  # pylint: disable=unused-argument
+        """TODO."""
         self.app.pop_screen()
 
     @on(Button.Pressed, "#session-pick-done")
     def set_active_session(self, event):  # pylint: disable=unused-argument
+        """TODO."""
         selected_row = self.query_one(ActiveSessionList).selected
         self.app.model.set_active(selected_row)
         self.post_message(SessionPickScreen.SwitchAnotherSession())
@@ -115,6 +126,7 @@ class SessionPickScreen(ModalScreen):
 
     @on(Button.Pressed, "#add-session")
     def add_from_file_browser(self, event):  # pylint: disable=unused-argument
+        """TODO."""
         if self.query_one(Input).value:
             path = os.path.abspath(os.path.expanduser(self.query_one(Input).value))
         else:
@@ -143,6 +155,7 @@ class JobListViewer(Widget):
     ]
 
     def compose(self):
+        """TODO."""
         self.table.focus()
         self.table.zebra_stripes = True
         self.table.cursor_type = "row"
@@ -152,6 +165,7 @@ class JobListViewer(Widget):
         yield Grid(self.table)
 
     def update_table(self):
+        """TODO."""
         self.table.clear()
         for _, jobs in self.app.model.single_session_status(self.app.model.active_id).items():
             for jobid in jobs:
@@ -177,19 +191,23 @@ class SingleJobViewer(Widget):
     cmd = reactive(Static())
 
     def compose(self):
+        """TODO."""
         yield self.cmd
         yield self.log
 
     def watch_log(self, old, new):  # pylint: disable=unused-argument
+        """TODO."""
         self.log = new
 
     def watch_cmd(self, old, new):  # pylint: disable=unused-argument
+        """TODO."""
         self.cmd = new
 
 
 class MainScreen(Screen):
 
     def compose(self):
+        """TODO."""
         # with TabbedContent():
         #    with TabPane("main", id="main"):
         # with TabPane("main2", id="main2"):
@@ -200,6 +218,7 @@ class MainScreen(Screen):
 
     @on(DataTable.RowSelected)
     def selected_row(self, event: DataTable.RowSelected):
+        """TODO."""
         name_colkey = self.query_one(JobListViewer).name_colkey
         jobname = self.query_one(DataTable).get_cell(event.row_key, name_colkey)
 
@@ -216,6 +235,7 @@ class ExitConfirmScreen(ModalScreen):
     """Screen asking for confirmation before exit."""
 
     def compose(self):
+        """TODO."""
         yield Grid(
             Static("Are you sure you want to quit?", id="question"),
             Button("Quit", variant="error", id="quit"),
@@ -225,6 +245,7 @@ class ExitConfirmScreen(ModalScreen):
 
     @on(Button.Pressed)
     def press_exit_screen_button(self, event):
+        """TODO."""
         if event.button.id == "quit":
             self.app.exit()
         else:
@@ -234,6 +255,7 @@ class ExitConfirmScreen(ModalScreen):
 class PleaseWaitScreen(ModalScreen):
 
     def compose(self):
+        """TODO."""
         yield Static("Please Wait...")
         yield LoadingIndicator()
 
@@ -241,6 +263,7 @@ class PleaseWaitScreen(ModalScreen):
 class SessionInfoScreen(ModalScreen):
 
     def compose(self):
+        """TODO."""
         # display = {
         #     "datetime": Static("Date of run:"),
         #     "pf_name": Static("Profile:"),
@@ -263,6 +286,7 @@ class SessionInfoScreen(ModalScreen):
 
     @on(Button.Pressed)
     def quit_infos(self, event):  # pylint: disable=unused-argument
+        """TODO."""
         self.app.pop_screen()
 
 
@@ -290,7 +314,7 @@ class ReportApplication(App):
     @on(SessionPickScreen.SwitchAnotherSession)
     def switch_session(self, event):  # pylint: disable=unused-argument
         """
-        Coming back from picking a session, refresh the table
+        Coming back from picking a session, refresh the table.
 
         :param event: not significant here
         """
@@ -298,7 +322,7 @@ class ReportApplication(App):
 
     def on_mount(self):
         """
-        First screen loaded
+        First screen loaded.
         """
         self.push_screen("main")
 
@@ -320,7 +344,7 @@ class ReportApplication(App):
 
 def start_app(p=None) -> int:  # pylint: disable=unused-argument
     """
-    handler to start a new Textual application.
+    Handle to start a new Textual application.
 
     :param p: profile, defaults to None
     :type p: Profile, optional

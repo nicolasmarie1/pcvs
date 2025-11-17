@@ -11,9 +11,11 @@ from pcvs.helpers.exceptions import PluginException
 
 
 class Plugin:
-    """Base class to inherit from when implementing a plugin.
+    """
+    Base class to inherit from when implementing a plugin.
 
     This class should be used by any defined plugin and:
+
     * the attribute ``step`` should be set to a possible value defined by
       :class:`Plugin.Step`.
     * implement the function ``run(self, *args, **kwargs)``

@@ -6,11 +6,12 @@ mathplotlib graphs.
 Used by cli.cli_graph to draw graph from the command line.
 
 We create 2 types of graphs:
+
     - a stacked graph representing the success rate over time of a series of run
-    where all the test state are represented as a layer.
+      where all the test state are represented as a layer.
     - a graph for each basetest (test without criterions) in witch we
-    represent the test duration evolution per run for each criterions
-    combination.
+      represent the test duration evolution per run for each criterions
+      combination.
 """
 
 import os

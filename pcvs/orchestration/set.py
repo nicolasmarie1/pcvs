@@ -27,6 +27,7 @@ class Set:
     class ExecMode(enum.IntEnum):
         """
         Map the current execution mode of a set.
+
         - LOCAL: Sets are run by local runners. Runners are threads collocated in
                  the same process.
         - ALLOC: Script is provided to user-defined wrapper, intended to prepare
