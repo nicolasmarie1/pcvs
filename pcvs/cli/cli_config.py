@@ -16,43 +16,61 @@ except ImportError:
     import click
 
 
-def compl_list_token(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
-    """Config name completion function."""
-    return [elt.name for elt in ConfigLocator().list_all_configs() if incomplete in elt.name]
+def compl_list_scope_kind(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
+    """Scope + Kind completion function."""
+    all_name = [f"{str(elt.scope)}:{str(elt.kind)}" for elt in ConfigLocator().list_all_configs()]
+    all_scope_kind_pair = sorted(set(all_name))
+    return [elt for elt in all_scope_kind_pair if incomplete in elt]
 
 
-def compl_list_templates(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
-    """Config template completion."""
+def compl_list_configs(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
+    """All configs name completion function."""
     return [
-        elt.name
-        for elt in ConfigLocator().list_all_configs(ConfigScope.GLOBAL)
-        if incomplete in elt
+        elt.full_name for elt in ConfigLocator().list_all_configs() if incomplete in elt.full_name
+    ]
+
+
+def compl_list_user_configs(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
+    """User configs name completion function."""
+    return [
+        elt.full_name
+        for elt in ConfigLocator().list_all_configs()
+        if incomplete in elt.full_name and elt.scope != ConfigScope.GLOBAL
     ]
 
 
 @click.group(
     name="config",
-    short_help="Manage Configuration blocks",
+    short_help="Manage Configurations",
 )
 @click.pass_context
 def config(ctx) -> None:  # pylint: disable=unused-argument
-    """The 'config' command helps user to manage configuration basic blocks in
-    order to set up a future validation to process. A basic block is the
-    smallest piece of configuration gathering similar information. Multiple
-    KIND exist:
+    """The 'config' command helps user to manage configurations.
+    Their is multiples KIND of configurations:
 
     \b
-    - COMPILER : relative to compiler configuration (CC, CXX, FC...)
-    - RUNTIME  : relative to test execution (MPICC...)
-    - MACHINE  : describes a machine to potentially run validations (nodes...)
-    - CRITERION: defines piec of information to validate on (a.k.a. iterators')
-    - GROUP    : templates used as a convenience to filter out tests globally
-
+    - COMPILER  : relative to compiler configuration (CC, CXX, FC...)
+    - RUNTIME   : relative to test execution (MPICC...)
+    - MACHINE   : describes a machine to potentially run validations (nodes...)
+    - CRITERION : defines pieces of information to validate on (a.k.a. iterators')
+    - GROUP     : templates used as a convenience to filter out tests globally
+    \b
+    - PROFILE   : references for 1 of each of the 5 configurations above, used by `pcvs run`.
+    \b
+    - PLUGIN    : an additional python plugin to filter criterions, specify in the runtime config.
+    \b
     The scope option allows to select at which granularity the command applies:
     \b
-    - LOCAL: refers to the current working directory
-    - USER: refers to the current user HOME directory ($HOME)
-    - GLOBAL: refers to PCVS-rt installation prefix
+    - LOCAL     : refers to the current working directory
+    - USER      : refers to the current user HOME directory ($HOME)
+    - GLOBAL    : refers to PCVS-rt installation prefix
+    \b
+    Run `pcvs config list` to get a list of all configs and the path associated with each scopes.
+    \b
+    The `pcvs config ...` subcommands request a 'token' to reference a configuration.
+    Those tokens are a combination of a config SCOPE, a config KIND and the config name
+    formatted as follow 'scope:kind:name'.
+    (Look at section 'Getting Started' in the documentation to get auto completion !!)
     """
 
 
@@ -64,8 +82,8 @@ def config(ctx) -> None:  # pylint: disable=unused-argument
     "token",
     nargs=1,
     required=False,
-    type=click.STRING,
-    # TODO: add shell completion
+    type=str,
+    shell_complete=compl_list_scope_kind,
     help="Token in the form scope[:kind] or kind",
 )
 @click.pass_context
@@ -92,9 +110,6 @@ def config_list(ctx, token) -> None:  # pylint: disable=unused-argument
             else:
                 io.console.print_item(f"{str(sc): <6s}: {names}")
 
-    # io.console.print_section("Available templates to create from (--base option):")
-    # io.console.print_item(", ".join([x for x in sorted(pvConfig.list_templates())]))
-
     io.console.print("Scopes are ordered as follows:")
     for i, sc in enumerate(ConfigScope.all_scopes()):
         io.console.print(f"{i + 1}. {str(sc).upper()}: {ConfigLocator().storage_dir(sc)}")
@@ -107,9 +122,8 @@ def config_list(ctx, token) -> None:  # pylint: disable=unused-argument
 @click.argument(
     "token",
     nargs=1,
-    required=False,
-    type=click.STRING,
-    # TODO: add shell completion
+    type=str,
+    shell_complete=compl_list_configs,
     help="Token in the form [scope:[kind:]]label",
 )
 @click.pass_context
@@ -132,7 +146,6 @@ def config_show(ctx, token) -> None:  # pylint: disable=unused-argument
     "token",
     nargs=1,
     type=str,
-    shell_complete=compl_list_token,
 )
 @click.option(
     "-c",
@@ -141,6 +154,7 @@ def config_show(ctx, token) -> None:  # pylint: disable=unused-argument
     default=None,
     type=str,
     show_envvar=True,
+    shell_complete=compl_list_configs,
     help="Valid name to copy (may use scope, e.g. global.label)",
 )
 @click.option(
@@ -206,7 +220,7 @@ def config_create(ctx, token, clone, interactive) -> None:  # pylint: disable=un
     "token",
     nargs=1,
     type=str,
-    shell_complete=compl_list_token,
+    shell_complete=compl_list_user_configs,
 )
 @click.confirmation_option(
     "-f",
@@ -238,7 +252,7 @@ def config_destroy(ctx, token) -> None:  # pylint: disable=unused-argument
     "token",
     nargs=1,
     type=click.STRING,
-    shell_complete=compl_list_token,
+    shell_complete=compl_list_user_configs,
 )
 @click.pass_context
 def config_edit(ctx, token) -> None:  # pylint: disable=unused-argument
@@ -267,7 +281,7 @@ def config_edit(ctx, token) -> None:  # pylint: disable=unused-argument
     "token",
     nargs=1,
     type=click.STRING,
-    shell_complete=compl_list_token,
+    shell_complete=compl_list_user_configs,
 )
 @click.option(
     "-s",
@@ -315,7 +329,7 @@ def config_import(ctx, token, in_file, force) -> None:  # pylint: disable=unused
     "token",
     nargs=1,
     type=click.STRING,
-    shell_complete=compl_list_token,
+    shell_complete=compl_list_configs,
 )
 @click.option(
     "-o",

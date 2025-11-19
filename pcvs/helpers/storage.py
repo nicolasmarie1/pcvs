@@ -194,7 +194,7 @@ class ConfigDesc:
 class ConfigLocator:
     """Helper to find and list config."""
 
-    EXEC_PATH: str
+    EXEC_PATH: str = None
 
     @classmethod
     def __get_local_path(cls, path: str, subpath: str = NAME_CONFIGDIR) -> str:
@@ -208,7 +208,7 @@ class ConfigLocator:
                 break
             cur = parent
         # if we are in home dir, correct path is current working dir
-        if cur == PATH_HOMEDIR:
+        if os.path.join(cur, subpath) == PATH_HOMEDIR:
             cur = path
         return os.path.join(cur, subpath)
 
