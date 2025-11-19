@@ -152,55 +152,57 @@ def test_tedesc_compilation():
             print(i.command)
 
 
-# Sincelanguage support have been replace by compiler definition
-# this test does not make sense any more.
-# TODO: replace this test with a test of user define compilers in test file.
-# @patch("pcvs.backend.metaconfig.GlobalConfig.root", system.MetaConfig(
-#    {
-#        "validation": {
-#            "output": "test_output",
-#            "dirs": {
-#                "label": "/this/directory"
-#            }
-#        },
-#        "group": {
-#            "GRPSERIAL": {}
-#        },
-#        "compiler": {
-#            "compilers": {
-#                "cc": {'program': "/path/to/cc", "extension": "\\.c$"},
-#                "fc": {'program': "/path/to/fc", "extension": "\\.f$"},
-#            },
-#        },
-#        "runtime": {
-#            "criterion": {
-#                "n_mpi": {
-#                    "option": "-n ",
-#                    "numeric": True,
-#                    "values": [1, 2, 3, 4]
-#                }
-#            }
-#        }
-#    },
-#    {
-#        "cc_pm": pm.SpackManager("this_is_a_test"),
-#    }
-# ))
-# def test_te_user_defined_language():
-#    node = {
-#        "build": {
-#            "files": "unknown_file.ext",
-#            "sources": {}
-#        }
-#    }
-#    scenarios = [
-#        (["cc"], "cc"),
-#        (["cc", "cxx"], "cc"),
-#        (["fc", "f08"], "fc"),
-#        (["cxx"], "cc"),
-#    ]
-#    for elt in scenarios:
-#        node['build']['sources']['lang'] = elt[0]
-#        tedesc = tested.TEDescriptor("te_name", node, "label", "subtree")
-#        for job in tedesc.construct_tests():
-#            assert job.command.startswith("/path/to/{} ".format(elt[1]))
+@patch(
+    "pcvs.backend.metaconfig.GlobalConfig.root",
+    MetaConfig(
+        {
+            "validation": {
+                "output": "test_output",
+                "dirs": {"label": "/this/directory"},
+            },
+            "group": {"GRPSERIAL": {}},
+            "compiler": {
+                "compilers": {
+                    "cc": {
+                        "program": "/path/to/cc",
+                        "type": "cc",
+                    },
+                    "fc": {
+                        "program": "/path/to/fc",
+                        "type": "fortran",
+                    },
+                },
+            },
+            "runtime": {
+                "criterion": {
+                    "n_mpi": {
+                        "option": "-n ",
+                        "numeric": True,
+                        "values": [1, 2, 3, 4],
+                    },
+                }
+            },
+        },
+        {
+            "cc_pm": pm.SpackManager("this_is_a_test"),
+        },
+    ),
+)
+def test_te_user_defined_language():
+    node = {
+        "build": {
+            "files": "unknown_file.ext",
+            "sources": {},
+        },
+    }
+    scenarios = [
+        (["cc"], "cc"),
+        (["cc"], "cc"),
+        (["fortran"], "fc"),
+        (["cc"], "cc"),
+    ]
+    for elt in scenarios:
+        node["build"]["sources"]["lang"] = elt[0]
+        tedesc = tested.TEDescriptor("te_name", node, "label", "subtree")
+        for job in tedesc.construct_tests():
+            assert job.command.startswith("/path/to/{} ".format(elt[1]))

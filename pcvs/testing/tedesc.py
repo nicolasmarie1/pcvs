@@ -20,22 +20,34 @@ from pcvs.testing.test import Test
 # appearing in this list will be considered as the main language
 
 
-def detect_compiler(array_of_files) -> str:
+def detect_compiler(build_info: dict) -> list[str | None]:
     """
     Determine compilers to use for a target file (or list of files).
 
     :param array_of_files: list of files to identify
     :return: the chosen compilers
     """
-    detect = []
-    for f in array_of_files:
+    detect: list = []
+
+    # match compiler type with user defined language
+    if "sources" in build_info and "lang" in build_info["sources"]:
+        for compiler_type in build_info["sources"]["lang"]:
+            for comp_name, compiler in GlobalConfig.root["compiler"]["compilers"].items():
+                if "type" in compiler and compiler["type"] == compiler_type:
+                    detect.append(comp_name)
+                    break
+    if len(detect) > 0:
+        return detect
+    # detect compiler from file extension
+    for f in build_info["files"]:
         for comp_name, compiler in GlobalConfig.root["compiler"]["compilers"].items():
-            if compiler["extension"] and re.search(compiler["extension"], f):
+            if "extension" in compiler and re.search(compiler["extension"], f):
                 detect.append(comp_name)
                 break
-        else:
-            detect.append(None)
-    return detect
+    if len(detect) > 0:
+        return detect
+    # fail to detect compiler
+    return [None]
 
 
 def extract_compilers_envs():
@@ -46,7 +58,7 @@ def extract_compilers_envs():
     return envs
 
 
-def extract_compiler_config(lang, variants):
+def extract_compiler_config(compiler, variants):
     """
     Build resource to compile based on language and variants involved.
 
@@ -57,13 +69,13 @@ def extract_compiler_config(lang, variants):
     :return: the program, its args and env modifiers (in that order)
     :rtype: tuple
     """
-    if not lang or lang not in GlobalConfig.root["compiler"]["compilers"]:
+    if not compiler or compiler not in GlobalConfig.root["compiler"]["compilers"]:
         raise ProfileException.IncompleteError(
             reason="Unknown compiler, not defined into Profile",
-            dbg_info={"lang": lang, "list": GlobalConfig.root["compiler"]["compilers"].keys()},
+            dbg_info={"compiler": compiler, "list": GlobalConfig.root["compiler"]["compilers"]},
         )
 
-    config = GlobalConfig.root["compiler"]["compilers"][lang]
+    config = GlobalConfig.root["compiler"]["compilers"][compiler]
     for v in variants:
         if v in config["variants"]:
             for k, v in config["variants"][v].items():
@@ -347,7 +359,7 @@ class TEDescriptor:
         :return: the command to be used.
         :rtype: str
         """
-        compilers = detect_compiler(self._build["files"])
+        compilers = detect_compiler(self._build)
         if len(compilers) < 1 or compilers[0] is None:
             raise TestException.TestExpressionError(
                 self._build["files"], f"Unable to dect compilers for files: {self._build['files']}"
@@ -520,8 +532,9 @@ class TEDescriptor:
         tags = ["compilation"] + self._tags
 
         command, env, jobs = self.__build_exec_process()
-        wrapper = GlobalConfig.root["runtime"].get("compiling", {}).get("wrapper", "")
-        command = f"{wrapper} {command}"
+        wrapper = GlobalConfig.root["runtime"].get("compiling", {}).get("wrapper", None)
+        if wrapper:
+            command = f"{wrapper} {command}"
         assert jobs is not None
 
         # count number of built tests
