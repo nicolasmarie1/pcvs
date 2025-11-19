@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/runtime-scheme.yml
+---
+# program path to run any program (can be a name if in $PATH)
+program: mpirun
+
+# Declaration of criterion
+# Here is set any element to describe what an criterion iterator does
+# A criterion is small component a test is relying on to be validated
+# For instance, an MPI program has the following components:
+# - number of nodes to be executed on
+# - number of MPI ranks
+# - number of cores allocated for each MPI rank
+# - Type of network to enable inter process communication
+# A single test is a combination of one single value picked up from
+# these components.
+criterions:
+  # please use a short, without-space names
+  n_mpi:
+    # option known by the runtime to handle a value of this component
+    option: "-n"
+    # Is the sequence of values only number ?
+    numeric: true
+    # two cases:
+    # - argument -> $PROGRAM $OPTION$VALUE ./a.out
+    # - environment -> $OPTION=$VALUE $PROGRAM ./a.out
+    type: "argument"
+    # should the value put before or after the option name ?
+    position: "after"
+  n_omp:
+    option: "OMP_NUM_THREADS="
+    numeric: true
+    position: "after"
+    type: "environment"
+  n_node:
+    option: "-N"
+    numeric: true
+    position: "after"
+    type: "argument"
+  n_core:
+    option: "-c"
+    numeric: true
+    position: "after"
+    type: "argument"
+
+# the name of the plugin to filter valid criterion.
+plugin: "mpi-omp"

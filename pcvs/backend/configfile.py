@@ -9,6 +9,7 @@ from pcvs.backend.config import Config
 from pcvs.helpers.storage import ConfigDesc
 from pcvs.helpers.storage import ConfigKind
 from pcvs.helpers.storage import ConfigLocator
+from pcvs.helpers.storage import ConfigScope
 from pcvs.helpers.validation import ValidationScheme
 
 
@@ -249,6 +250,9 @@ class Profile(YmlConfigFile):
         assert self.loaded
         for kind in Profile.CONFIGS_KINDS:
             user_token: str = super().config[str(kind)]
+            if user_token == "":
+                user_token = f"{str(ConfigScope.GLOBAL)}:default"
+
             cd: ConfigDesc = self._config_locator.parse_full_user_token(
                 user_token, kind=kind, should_exist=True
             )

@@ -49,7 +49,7 @@ class ValidationScheme:
         self.schema = None  # the content of the schema
 
         try:
-            path = os.path.join(PATH_INSTDIR, f"schemes/{self.schema_name}-scheme.yml")
+            path = os.path.join(PATH_INSTDIR, f"schemes/generated/{self.schema_name}-scheme.yml")
             with open(path, "r", encoding="utf-8") as fh:
                 self.schema = YAML(typ="safe").load(fh)
         except (IOError, YAMLError) as er:

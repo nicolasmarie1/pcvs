@@ -1,6 +1,6 @@
-name: 'localhost'
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/machine-scheme.yml
+---
+name: "localhost"
 nodes: 1
-# time limit to allocate resources properly
-# Max number of allocation to be made concurrently
+cores_per_node: 16
 concurrent_run: 4
-# Command to use when interacting with batch manager

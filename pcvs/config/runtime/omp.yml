@@ -2,9 +2,10 @@
 ---
 program: mpirun
 criterions:
-  n_mpi:
-    option: "-n"
+  n_omp:
+    option: "OMP_NUM_THREADS="
     numeric: true
-    type: "argument"
     position: "after"
-plugin: "mpi"
+    type: "environment"
+
+plugin: "omp"

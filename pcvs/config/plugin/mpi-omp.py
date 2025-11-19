@@ -5,20 +5,27 @@ class MPIOmpPlugin(Plugin):
     step = Plugin.Step.TEST_EVAL
 
     def run(self, *args, **kwargs):
-        # returns True if the combination should be used
-        config = kwargs["config"]
-        nb_nodes = config["machine"].get("nodes", 1)
-        nb_cores = config["machine"].get("cores_per_node", 1)
+        """Return True if the combination should be used."""
+        hardware_conf = kwargs["config"]["machine"]
+        nb_nodes = hardware_conf.get("nodes", 1)
+        nb_cores = hardware_conf.get("cores_per_node", 1)
 
         comb = kwargs["combination"]
         n_mpi = comb.get("n_mpi", 1)
         n_omp = comb.get("n_omp", 1)
         n_node = comb.get("n_node", 1)
+        n_core = comb.get("n_core", nb_cores)
 
-        if n_mpi * n_omp > n_node * nb_cores:
-            return False
+        # more nodes that available in the partition.
         if n_node > nb_nodes:
             return False
-        if n_omp > nb_cores:
+        # more mpi tasks that available cpu cores.
+        if n_mpi > n_node * min(nb_cores, n_core):
+            return False
+        # more omp threads than available cpu cores per nodes.
+        if n_omp > min(nb_cores, n_core):
+            return False
+        # more omp threads than available cpu cores total.
+        if n_mpi * n_omp > n_node * min(nb_cores, n_core):
             return False
         return True

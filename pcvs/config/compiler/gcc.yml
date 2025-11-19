@@ -1,8 +1,17 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/compiler-scheme.yml
 ---
 compilers:
-  cc: {program: gcc, variants: &var {openmp: {args: ["-fopenmp"]}}}
-  cxx: {program: g++, variants: *var}
-  f77: {program: gfortran, variants: *var}
-  f90: {program: gfortran, variants: *var}
-  f08: {program: gfortran, variants: *var}
-  fc: {program: gfortran, variants: *var}
+  cc:
+    program: "gcc"
+    type: "cc"
+    variants: &openmp
+      openmp:
+        args: ["-fopenmp"]
+  cxx:
+    program: "g++"
+    type: "cxx"
+    variants: *openmp
+  fc:
+    program: "gfortran"
+    type: "fortran"
+    variants: *openmp

@@ -7,4 +7,10 @@ criterions:
     numeric: true
     type: "argument"
     position: "after"
-plugin: "mpi"
+  n_omp:
+    option: "OMP_NUM_THREADS="
+    numeric: true
+    position: "after"
+    type: "environment"
+
+plugin: "mpi-omp"

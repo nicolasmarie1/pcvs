@@ -7,4 +7,15 @@ criterions:
     numeric: true
     type: "argument"
     position: "after"
+  n_node:
+    option: "-N"
+    numeric: true
+    position: "after"
+    type: "argument"
+  n_core:
+    option: "-c"
+    numeric: true
+    position: "after"
+    type: "argument"
+
 plugin: "mpi"

@@ -1,10 +1,11 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/machine-scheme.yml
 ---
 name: 'login-node.hpcdomain.com'
-nodes: 100
-cores_per_node: 8
+nodes: 32
+cores_per_node: 128
 # time limit to allocate resources properly
 # Max number of allocation to be made concurrently
-concurrent_run: 5
+concurrent_run: 8
 # Command to use when interacting with batch manager
 job_manager:
   # max time an allocation can be used before being autokilled

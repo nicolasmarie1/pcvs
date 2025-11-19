@@ -1,9 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/compiler-scheme.yml
 ---
 # List of programs to be used to compile
 # a wide variety of programs
 compilers:
-  cc: {program: mpicc}
-  cxx: {program: mpicxx}
-  f77: {program: mpif77}
-  f90: {program: mpif90}
-  fc: {program: mpif90}
+  cc:
+    program: "mpicc"
+    type: "cc"
+    variants: &openmp
+      openmp:
+        args: ["-fopenmp"]
+  cxx:
+    program: "mpicxx"
+    type: "cxx"
+    variants: *openmp
+  f77:
+    program: "mpif77"
+    extension: "\\.(f|F)77$"
+    variants: *openmp
+  f99:
+    program: "mpif90"
+    extension: "\\.(f|F)(90|95)$"
+    variants: *openmp
+  fc:
+    program: "mpifort"
+    extension: "\\.(f|F)((20)?(03|08)|c)?$"
+    variants: *openmp

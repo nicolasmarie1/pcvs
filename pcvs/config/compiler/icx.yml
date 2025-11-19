@@ -2,16 +2,16 @@
 ---
 compilers:
   cc:
-    program: "icc"
+    program: "icx"
     type: "cc"
     variants: &openmp
       openmp:
         args: ["-fopenmp"]
   cxx:
-    program: "icpc"
+    program: "icpx"
     type: "cxx"
     variants: *openmp
   fc:
-    program: "ifort"
+    program: "ifx"
     type: "fortran"
     variants: *openmp

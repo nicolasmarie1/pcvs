@@ -5,6 +5,8 @@ GRPMPI:
     iterate:
       n_omp:
         values: null
+      net:
+        values: ["default"]
 GRPMPI_NOTHREADS:
   run:
     iterate:
@@ -12,6 +14,8 @@ GRPMPI_NOTHREADS:
         values: null
       n_omp:
         values: null
+      net:
+        values: ["default"]
 GRPOMP:
   run:
     iterate:
@@ -19,14 +23,22 @@ GRPOMP:
         values: null
       n_node:
         values: null
+      n_proc:
+        values: null
+      net:
+        values: ["default"]
 GRPSERIAL:
   run:
     iterate:
-      n_core:
-        values: null
       n_mpi:
         values: null
       n_node:
         values: null
       n_omp:
         values: null
+      n_core:
+        values: null
+      n_proc:
+        values: null
+      net:
+        values: ["default"]

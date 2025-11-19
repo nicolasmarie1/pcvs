@@ -17,7 +17,7 @@
           type: number
           minimum: 0
         soft_timeout:
-          typr: number
+          type: number
           minimum: 0
         hard_timeout:
           type: number

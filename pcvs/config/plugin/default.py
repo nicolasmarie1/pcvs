@@ -1,1 +1,1 @@
-mpi.py
+mpi-omp.py

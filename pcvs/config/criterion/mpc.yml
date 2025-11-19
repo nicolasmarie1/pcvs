@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/criterion-scheme.yml
+---
+# mpc config
+n_node: # nb. nodes
+  subtitle: N
+  values: [1, 2, 4, 16, 32]
+n_mpi: # nb. mpi tasks
+  subtitle: n
+  values: [1, 2, 4, 16, 32]
+n_proc: # nb. of unix process
+  subtitle: p
+  values: [1, 2, 4, 16, 32]
+n_core: # nb. cpu per unix process
+  subtitle: c
+  values: [1, 2, 4, 16, 32]
+n_omp: # nb. omp threads
+  subtitle: o
+  values: [1, 2, 4, 16, 32]
+net: # select network interface to use
+  subtitle: net
+  values: ['ptlshm', 'verbsshm', 'tcpshm']

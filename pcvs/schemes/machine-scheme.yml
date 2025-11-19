@@ -24,9 +24,12 @@ properties:
             allocate: &alloc_node
               type: object
               properties:
-                program: {"type": "string"}
-                args: {"type": "string"}
-                wrapper: {"type": "string"}
+                program:
+                  type: string
+                args:
+                  type: string
+                wrapper:
+                  type: string
               additionalProperties: false
             remote:
               <<: *alloc_node
@@ -34,7 +37,6 @@ properties:
               <<: *alloc_node
           additionalProperties: false
       additionalProperties: false
-
   <<: *raw_properties
   default_partition:
     OneOf:
