@@ -1,0 +1,104 @@
+type: object
+properties:
+  anonymize:
+    type: boolean
+  author:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+  background:
+    type: boolean
+  buildcache:
+    type: string
+  color:
+    type: boolean
+  datetime:
+    type: string
+    format: date
+  default_profile:
+    type: string
+  enable_report:
+    type: boolean
+  onlygen:
+    type: boolean
+  output:
+    type: string
+  override:
+    type: boolean
+  pf_hash:
+    type: string
+  pf_name:
+    type: string
+  print_policy:
+    type: string
+  print_filter:
+    properties:
+      allow:
+        type: string
+      deny:
+        type: string
+  run_filter:
+    properties:
+      allow:
+        type: string
+      deny:
+        type: string
+  reused_build:
+    type: boolean
+  sid:
+    type: integer
+  simulated:
+    type: boolean
+  spack_recipe:
+    type: array
+    items:
+      type: string
+  target_bank:
+    type: string
+  timeout:
+    type: integer
+  verbose:
+    type: integer
+  only_success:
+    type: boolean
+  scheduling:
+    type: object
+    properties:
+      parallel:
+        type: integer
+      model:
+        type: integer
+        minimum: 0
+        maximum: 2
+      based_on:
+        type: string
+    additionalProperties: false
+  result:
+    type: object
+    properties:
+      log:
+        type: integer
+        minimum: 0
+        maximum: 3
+      logsz:
+        type: integer
+        minimum: 0
+      format:
+        type: array
+        items:
+          type: string
+          enum:
+            - junit
+            - json
+            - yaml
+      soft_timeout:
+        OneOf:
+          - type: null
+          - type: integer
+      hard_timeout:
+        OneOf:
+          - type: null
+          - type: integer
+    additionalProperties: false

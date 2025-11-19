@@ -1,0 +1,61 @@
+type: object
+properties:
+  compilers:
+    type: object
+    patternProperties:
+      ^.*$:
+        type: object
+        properties:
+          program:
+            type: string
+          args:
+            OneOf:
+              - type: array
+                items:
+                  type: string
+              - type: string
+          envs:
+            OneOf:
+              - type: array
+                items:
+                  type: string
+              - type: string
+          type:
+            type: string
+          extension:
+            type: string
+          variants:
+            type: object
+            patternProperties:
+              ^.*$:
+                type: object
+                properties:
+                  program:
+                    type: string
+                  args:
+                    OneOf:
+                      - type: array
+                        items:
+                          type: string
+                      - type: string
+                  envs:
+                    OneOf:
+                      - type: array
+                        items:
+                          type: string
+                      - type: string
+                additionalProperties: false
+        additionalProperties: false
+  package_manager:
+    type: object
+    properties:
+      spack:
+        type: array
+        items:
+          type: string
+      module:
+        type: array
+        items:
+          type: string
+    additionalProperties: false
+additionalProperties: false
