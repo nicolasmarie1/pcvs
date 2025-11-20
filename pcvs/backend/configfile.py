@@ -130,7 +130,7 @@ class ConfigFile:
         assert self.exist
         self._load_from_disk()
         edited_stream = click.edit(
-            self._raw, extension=ConfigKind.get_filetype(self._descriptor.kind), require_save=True
+            self._raw, extension=ConfigKind.get_file_ext(self._descriptor.kind), require_save=True
         )
         if edited_stream is not None:
             self._load(edited_stream)

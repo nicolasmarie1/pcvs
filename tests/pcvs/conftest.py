@@ -1,4 +1,5 @@
 import os
+import shutil
 from contextlib import contextmanager
 from importlib.metadata import version
 
@@ -39,29 +40,29 @@ def dummy_config_fs():
 
 @contextmanager
 def dummy_profile_fs():
-    """Create an isolated fs with defaults configurations."""
-    configs = {}
-    kinds = [
-        ConfigKind.PROFILE,
-        ConfigKind.COMPILER,
-        ConfigKind.CRITERION,
-        ConfigKind.GROUP,
-        ConfigKind.MACHINE,
-        ConfigKind.RUNTIME,
-    ]
-    for k in kinds:
-        with open(
-            os.path.join(PATH_INSTDIR, f"config/{str(k)}/default.yml"),
-            "r",
-            encoding="utf-8",
-        ) as conft:
-            configs[k] = conft.readlines()
-    with isolated_fs() as fs:
-        for k in kinds:
-            file_path = os.path.join(
-                os.getcwd(), f".pcvs/{str(k)}/default{ConfigKind.get_filetype(k)}"
-            )
-            os.makedirs(os.path.dirname(file_path))
-            with open(file_path, "w", encoding="utf-8") as file:
-                file.writelines(configs[k])
-        yield fs
+    """Create an isolated fs with GLOBAL configurations in LOCAL."""
+    with isolated_fs() as tmp_dir:
+        for k in ConfigKind.all_kinds():
+            ext = ConfigKind.get_file_ext(k)
+            src_path = os.path.join(PATH_INSTDIR, f"config/{str(k)}/default{ext}")
+            dst_path = os.path.join(tmp_dir, f".pcvs/{str(k)}/default{ext}")
+            os.makedirs(os.path.dirname(dst_path), exist_ok=True)
+            shutil.copy(src_path, dst_path)
+        yield tmp_dir
+
+
+@contextmanager
+def dummy_fs_profiles_in_tmp():
+    """Create a new GLOBAL/USER/LOCAL worktree in /tmp with default configuration copy in each scopes."""
+    with dummy_profile_fs() as tmp_dir:
+        cwd = os.path.join(tmp_dir, "user", "local")
+        glob = os.path.join(tmp_dir, ".pcvs")
+        user = os.path.join(tmp_dir, "user", ".pcvs")
+        local = os.path.join(tmp_dir, "user", "local", ".pcvs")
+        os.makedirs(cwd, exist_ok=True)
+
+        shutil.copytree(glob, user)
+        shutil.copytree(glob, local)
+
+        os.chdir(cwd)
+        yield (glob, user, local)

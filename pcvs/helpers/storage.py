@@ -136,7 +136,7 @@ class ConfigKind(Enum):
         ]
 
     @classmethod
-    def get_filetype(cls, ct) -> str:
+    def get_file_ext(cls, ct) -> str:
         """Get file type from ConfigType."""
         config_extensions = {
             ConfigKind.PROFILE: ".yml",
@@ -224,7 +224,7 @@ class ConfigLocator:
     def check_filename_ext(self, file_name: Path, kind: ConfigKind) -> Path:
         """Check of filename."""
         # check for missing extensions
-        extension = ConfigKind.get_filetype(kind)
+        extension = ConfigKind.get_file_ext(kind)
         if file_name.suffix != extension:
             file_name = file_name.with_suffix(extension)
         return file_name
@@ -392,7 +392,7 @@ class ConfigLocator:
             config_path: Path = self.storage_path(file_name, kind, sc)
             io.console.debug(f"Looking for '{config_path}'.")
             config_path = self.check_filename_ext(config_path, kind)
-            if config_path.is_file() and config_path.suffix == ConfigKind.get_filetype(kind):
+            if config_path.is_file() and config_path.suffix == ConfigKind.get_file_ext(kind):
                 io.console.debug(f"Found '{config_path}'.")
                 return ConfigDesc(config_path.stem, config_path, kind, sc)
         return None
@@ -407,7 +407,7 @@ class ConfigLocator:
             for root, _, files in os.walk(configs_dir):
                 for file in files:
                     config_path = Path(os.path.join(root, file))
-                    if config_path.is_file() and config_path.suffix == ConfigKind.get_filetype(
+                    if config_path.is_file() and config_path.suffix == ConfigKind.get_file_ext(
                         kind
                     ):
                         configs.append(ConfigDesc(config_path.stem, config_path, kind, sc))
