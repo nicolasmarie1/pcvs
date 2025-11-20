@@ -236,7 +236,7 @@ def process_check_directory(directory, pf_name="default.yml", conversion=True):
     """
     errors = {}
     total_nodes = 0
-    cd: ConfigDesc = ConfigLocator().parse_full_user_token(
+    cd: ConfigDesc = ConfigLocator().parse_full_raise(
         pf_name, ConfigKind.PROFILE, should_exist=True
     )
     pf = Profile(cd)

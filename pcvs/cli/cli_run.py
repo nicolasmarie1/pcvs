@@ -422,7 +422,7 @@ def run(
             ) from fnfe
     else:
         cl: ConfigLocator = ConfigLocator()
-        cd: ConfigDesc = cl.parse_full_user_token(
+        cd: ConfigDesc = cl.parse_full_raise(
             val_cfg["default_profile"], kind=ConfigKind.PROFILE, should_exist=True
         )
         pf = pvProfile(cd, cl)

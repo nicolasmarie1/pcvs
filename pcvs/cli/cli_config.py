@@ -95,7 +95,7 @@ def config_list(ctx, token) -> None:  # pylint: disable=unused-argument
     if not token:
         scope, kinds = None, ConfigKind.all_kinds()
     else:
-        scope, kind = ConfigLocator().parse_scope_and_kind_user_token(token)
+        scope, kind = ConfigLocator().parse_scope_and_kind_raise(token)
         kinds = [kind] if kind is not None else ConfigKind.all_kinds()
 
     io.console.print_header("Configuration view")
@@ -112,7 +112,7 @@ def config_list(ctx, token) -> None:  # pylint: disable=unused-argument
 
     io.console.print("Scopes are ordered as follows:")
     for i, sc in enumerate(ConfigScope.all_scopes()):
-        io.console.print(f"{i + 1}. {str(sc).upper()}: {ConfigLocator().storage_dir(sc)}")
+        io.console.print(f"{i + 1}. {str(sc).upper()}: {ConfigLocator().get_storage_dir(sc)}")
 
 
 @config.command(
@@ -134,7 +134,7 @@ def config_show(ctx, token) -> None:  # pylint: disable=unused-argument
     Possible values for KIND are documented
     through the `pcvs config --help` command.
     """
-    cd: ConfigDesc = ConfigLocator().parse_full_user_token(token, should_exist=True)
+    cd: ConfigDesc = ConfigLocator().parse_full_raise(token, should_exist=True)
     configfile.get_conf(cd).display()
 
 
@@ -182,7 +182,7 @@ def config_create(ctx, token, clone, interactive) -> None:  # pylint: disable=un
     Possible values for KIND are documented
     through the `pcvs config --help` command.
     """
-    cd: ConfigDesc = ConfigLocator().parse_full_user_token(token, should_exist=False)
+    cd: ConfigDesc = ConfigLocator().parse_full_raise(token, should_exist=False)
 
     if cd.exist:
         raise click.BadArgumentUsage(f"Configuration '{cd.full_name}' already exists!")
@@ -194,7 +194,7 @@ def config_create(ctx, token, clone, interactive) -> None:  # pylint: disable=un
     conf: ConfigFile = configfile.get_conf(cd)
 
     if clone is not None:
-        cdc: ConfigDesc = ConfigLocator().parse_full_user_token(clone, should_exist=True)
+        cdc: ConfigDesc = ConfigLocator().parse_full_raise(clone, should_exist=True)
         if cdc.kind != cd.kind:
             raise click.BadArgumentUsage("Can only clone from a conf blocks with the same KIND!")
         conf.from_str(configfile.get_conf(cdc).to_str())
@@ -236,7 +236,7 @@ def config_destroy(ctx, token) -> None:  # pylint: disable=unused-argument
     Possible values for KIND are documented
     through the `pcvs config --help` command.
     """
-    cd: ConfigDesc = ConfigLocator().parse_full_user_token(token, should_exist=True)
+    cd: ConfigDesc = ConfigLocator().parse_full_raise(token, should_exist=True)
     if cd.scope == ConfigScope.GLOBAL:
         raise click.BadArgumentUsage(
             f"Can't destroy configuration '{cd.full_name}' in installation scope !"
@@ -263,7 +263,7 @@ def config_edit(ctx, token) -> None:  # pylint: disable=unused-argument
     Possible values for KIND are documented
     through the `pcvs config --help` command.
     """
-    cd: ConfigDesc = ConfigLocator().parse_full_user_token(token, should_exist=True)
+    cd: ConfigDesc = ConfigLocator().parse_full_raise(token, should_exist=True)
     if cd.scope == ConfigScope.GLOBAL:
         raise click.BadArgumentUsage(
             f"Can't edit configuration '{cd.full_name}'.\n"
@@ -307,7 +307,7 @@ def config_import(ctx, token, in_file, force) -> None:  # pylint: disable=unused
     Possible values for KIND are documented
     through the `pcvs config --help` command.
     """
-    cd: ConfigDesc = ConfigLocator().parse_full_user_token(token)
+    cd: ConfigDesc = ConfigLocator().parse_full_raise(token)
     if cd.scope == ConfigScope.GLOBAL:
         raise click.BadArgumentUsage(
             f"Can't import configurations '{cd.full_name}' in installation scope !"
@@ -346,7 +346,7 @@ def config_export(ctx, token, out_file):  # pylint: disable=unused-argument
     Possible values for KIND are documented
     through the `pcvs config --help` command.
     """
-    cd: ConfigDesc = ConfigLocator().parse_full_user_token(token, should_exist=True)
+    cd: ConfigDesc = ConfigLocator().parse_full_raise(token, should_exist=True)
     conf: ConfigFile = configfile.get_conf(cd)
 
     out_file.write(conf.to_str())

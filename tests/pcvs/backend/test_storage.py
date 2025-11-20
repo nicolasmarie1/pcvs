@@ -1,0 +1,152 @@
+import os
+from pathlib import Path
+
+from pcvs.helpers.storage import ConfigDesc
+from pcvs.helpers.storage import ConfigKind
+from pcvs.helpers.storage import ConfigScope
+
+from ..conftest import dummy_fs_with_configlocator_patch
+from ..conftest import isolated_fs
+
+
+def test_scope():
+    """Test ConfigScope class."""
+    assert ConfigScope.fromstr("not a scope") is None
+    for scope in ConfigScope:
+        scope_str = ConfigScope.tostr(scope)
+        assert scope_str is not None
+        assert ConfigScope.fromstr(scope_str) is not None
+        assert scope in ConfigScope.all_scopes()
+
+
+def test_kind():
+    """Test ConfigKind class."""
+    assert ConfigKind.fromstr("not a kind") is None
+    for kind in ConfigKind:
+        kind_str = ConfigKind.tostr(kind)
+        assert kind_str is not None
+        assert ConfigKind.fromstr(kind_str) is not None
+        assert kind in ConfigKind.all_kinds()
+        if kind != ConfigKind.PLUGIN:
+            assert ConfigKind.get_file_ext(kind) == ".yml"
+        else:
+            assert ConfigKind.get_file_ext(kind) == ".py"
+
+
+def test_desc():
+    """Test ConfigDesc class."""
+    with isolated_fs() as tmp:
+        test = ConfigDesc(
+            "name",
+            Path(os.path.join(tmp, ".pcvs", "profile", "default.yml")),
+            ConfigKind.PROFILE,
+            ConfigScope.LOCAL,
+        )
+        assert test.full_name == f"{ConfigScope.LOCAL}:{ConfigKind.PROFILE}:name"
+        assert not test.exist
+        test.path.parent.mkdir(parents=True)
+        test.path.touch()
+        assert test.exist
+
+
+def test_locator():
+    """Test ConfigLocator class."""
+    with dummy_fs_with_configlocator_patch() as (cl, scopes_to_paths):
+        # extension
+        assert cl.check_filename_ext(Path("test.yml"), ConfigKind.PROFILE) == Path("test.yml")
+        assert cl.check_filename_ext(Path("test"), ConfigKind.PROFILE) == Path("test.yml")
+        assert cl.check_filename_ext(Path("test.py"), ConfigKind.PLUGIN) == Path("test.py")
+        assert cl.check_filename_ext(Path("test"), ConfigKind.PLUGIN) == Path("test.py")
+
+        # scope and kind
+        # # 1 token
+        assert cl.parse_scope_and_kind("local") == ((ConfigScope.LOCAL, None), None)
+        assert cl.parse_scope_and_kind("profile") == ((None, ConfigKind.PROFILE), None)
+        assert cl.parse_scope_and_kind("local", ConfigKind.PROFILE) == (
+            (ConfigScope.LOCAL, ConfigKind.PROFILE),
+            None,
+        )
+        assert cl.parse_scope_and_kind("gibrish")[0] is None
+        assert cl.parse_scope_and_kind("profile", ConfigKind.PLUGIN)[0] is None
+        # # 2 tokens
+        assert cl.parse_scope_and_kind("local:profile") == (
+            (ConfigScope.LOCAL, ConfigKind.PROFILE),
+            None,
+        )
+        assert cl.parse_scope_and_kind("local:profile", ConfigKind.PROFILE) == (
+            (ConfigScope.LOCAL, ConfigKind.PROFILE),
+            None,
+        )
+        assert cl.parse_scope_and_kind("gibrish:profile")[0] is None
+        assert cl.parse_scope_and_kind("local:gibrish")[0] is None
+        assert cl.parse_scope_and_kind("local:profile", ConfigKind.PLUGIN)[0] is None
+
+        # get_storage_dir
+        assert cl.get_storage_dir(ConfigScope.LOCAL) == Path(scopes_to_paths[ConfigScope.LOCAL])
+        assert cl.get_storage_dir(ConfigScope.LOCAL, ConfigKind.PROFILE) == Path(
+            scopes_to_paths[ConfigScope.LOCAL]
+        ).joinpath("profile")
+
+        # get_storage_path
+        assert cl.get_storage_path("default.yml", ConfigKind.PROFILE, ConfigScope.LOCAL) == Path(
+            scopes_to_paths[ConfigScope.LOCAL]
+        ).joinpath("profile").joinpath("default.yml")
+
+        # default local profile ConfigDesc
+        default_lp = ConfigDesc(
+            "default",
+            Path(scopes_to_paths[ConfigScope.LOCAL]).joinpath("profile/default.yml"),
+            ConfigKind.PROFILE,
+            ConfigScope.LOCAL,
+        )
+        test_lp = ConfigDesc(
+            "test",
+            Path(scopes_to_paths[ConfigScope.LOCAL]).joinpath("profile/test.yml"),
+            ConfigKind.PROFILE,
+            ConfigScope.LOCAL,
+        )
+
+        # find_config
+        assert cl.find_config("default", ConfigKind.PROFILE) == default_lp
+        assert cl.find_config("default.yml", ConfigKind.PROFILE) == default_lp
+        assert cl.find_config("default", ConfigKind.PROFILE, ConfigScope.LOCAL) == default_lp
+        assert cl.find_config("test", ConfigKind.PROFILE) is None
+
+        # parse_full
+        # # 1 token
+        # kind is passed as parameter and file exist so we can guess scope.
+        assert cl.parse_full("default", ConfigKind.PROFILE, True)[0] == default_lp
+        # kind is passed as parameter but file may not exist -> FAIL
+        assert cl.parse_full("default", ConfigKind.PROFILE, None)[0] is None
+        # kind is passed as parameter but file does not exist -> FAIL
+        assert cl.parse_full("default", ConfigKind.PROFILE, False)[0] is None
+        # kind is missing (not parameter nor token)
+        assert cl.parse_full("default", None, True)[0] is None
+        # # 2 token
+        # no scope provided on a conf that may/does not exist.
+        assert cl.parse_full("profile:default", None, None)[0] is None
+        assert cl.parse_full("profile:default", None, False)[0] is None
+        # no kind specify
+        assert cl.parse_full("local:default", None, None)[0] is None
+        # wrong number of args
+        assert cl.parse_full("test:local:profile:default", None, None)[0] is None
+        # does not exist but should
+        assert cl.parse_full("local:profile:test", None, True)[0] is None
+        # should exist and does
+        assert cl.parse_full("local:profile:default", None, True)[0] == default_lp
+        # may exist and does
+        assert cl.parse_full("local:profile:default", None, None)[0] == default_lp
+        # may exist and does not
+        assert cl.parse_full("local:profile:test", None, None)[0] == test_lp
+        # should not exist and does
+        assert cl.parse_full("local:profile:default", None, False)[0] is None
+        # should not exist and does no
+        assert cl.parse_full("local:profile:test", None, False)[0] == test_lp
+
+        # list_configs
+        assert cl.list_configs(ConfigKind.PROFILE, ConfigScope.LOCAL) == [default_lp]
+        assert len(cl.list_configs(ConfigKind.PROFILE)) == 3
+
+        # list_all_configs
+        assert len(cl.list_all_configs(ConfigScope.LOCAL)) == len(ConfigKind.all_kinds())
+        assert len(cl.list_all_configs()) == len(ConfigKind.all_kinds()) * 3

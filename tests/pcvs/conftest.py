@@ -2,11 +2,14 @@ import os
 import shutil
 from contextlib import contextmanager
 from importlib.metadata import version
+from unittest.mock import patch
 
 from click.testing import CliRunner
 
 from pcvs import PATH_INSTDIR
 from pcvs.helpers.storage import ConfigKind
+from pcvs.helpers.storage import ConfigLocator
+from pcvs.helpers.storage import ConfigScope
 from pcvs.main import cli
 
 if version("click") >= "8.2.0":
@@ -16,11 +19,15 @@ else:
 
 
 def click_call(*cmd):
+    """Run a pcvs command."""
     return runner.invoke(cli, ["--no-color", "-vvv", *cmd], catch_exceptions=False)
 
 
+@contextmanager
 def isolated_fs():
-    return runner.isolated_filesystem()
+    """Create isolated file system to run test."""
+    with runner.isolated_filesystem() as tmp:
+        yield tmp
 
 
 @contextmanager
@@ -66,3 +73,17 @@ def dummy_fs_profiles_in_tmp():
 
         os.chdir(cwd)
         yield (glob, user, local)
+
+
+@contextmanager
+def dummy_fs_with_configlocator_patch():
+    """Provide a patched ConfigLocator in /tmp."""
+    with dummy_fs_profiles_in_tmp() as (glob, user, local):
+        cl = ConfigLocator()
+        scopes_to_paths = {
+            ConfigScope.GLOBAL: glob,
+            ConfigScope.USER: user,
+            ConfigScope.LOCAL: local,
+        }
+        with patch.object(cl, "_storage_scope_paths", new=scopes_to_paths):
+            yield (cl, scopes_to_paths)

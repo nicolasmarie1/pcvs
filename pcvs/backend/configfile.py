@@ -253,7 +253,7 @@ class Profile(YmlConfigFile):
             if user_token == "":
                 user_token = f"{str(ConfigScope.GLOBAL)}:default"
 
-            cd: ConfigDesc = self._config_locator.parse_full_user_token(
+            cd: ConfigDesc = self._config_locator.parse_full_raise(
                 user_token, kind=kind, should_exist=True
             )
             c: YmlConfigFile = YmlConfigFile(cd)

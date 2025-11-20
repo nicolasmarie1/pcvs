@@ -161,34 +161,47 @@ class ConfigDesc:
         self._scope: ConfigScope = scope
 
     @property
-    def name(self):
+    def name(self) -> str:
         """The name of the config (with file extension)."""
         return self._name
 
     @property
-    def path(self):
+    def path(self) -> Path:
         """The path of the config."""
         return self._path
 
     @property
-    def kind(self):
+    def kind(self) -> ConfigKind:
         """The type of the config."""
         return self._kind
 
     @property
-    def scope(self):
+    def scope(self) -> ConfigScope:
         """The scope of the config."""
         return self._scope
 
     @property
-    def full_name(self):
+    def full_name(self) -> str:
         """Get the full name of the config."""
         return ":".join([str(self._scope), str(self._kind), self._name])
 
     @property
-    def exist(self):
+    def exist(self) -> bool:
         """Return if the file pointer by this config descriptor exist."""
         return self._path.is_file()
+
+    def __eq__(self, other):
+        """Equality check (used in tsets)."""
+        return (
+            self.name == other.name
+            and self.path == other.path
+            and self.kind == other.kind
+            and self.scope == other.scope
+        )
+
+    def __repr__(self):
+        """Representation Method."""
+        return repr({"name": self.name, "path": self.path, "kind": self.kind, "scope": self.scope})
 
 
 class ConfigLocator:
@@ -229,7 +242,7 @@ class ConfigLocator:
             file_name = file_name.with_suffix(extension)
         return file_name
 
-    def parse_scope_and_kind_user_token(
+    def parse_scope_and_kind_raise(
         self,
         user_token: str,
     ) -> (ConfigScope, ConfigKind):
@@ -282,7 +295,7 @@ class ConfigLocator:
             return ((scope, kind), None)
         return (None, f"Bad user token, token should be 'scope[:kind]', got '{user_token}'")
 
-    def parse_full_user_token(
+    def parse_full_raise(
         self,
         user_token: str,
         kind: ConfigKind = None,
@@ -337,6 +350,13 @@ class ConfigLocator:
 
         file_name = self.check_filename_ext(file_name, kind)
 
+        if should_exist is True:
+            # should exist
+            config: ConfigDesc = self.find_config(file_name.name, kind, scope)
+            if config is None:
+                return (None, f"Config '{kind}:{file_name}' does not exist !")
+            return (config, None)
+
         if should_exist is None:
             # May exist
             assert scope is not None
@@ -345,26 +365,22 @@ class ConfigLocator:
             config: ConfigDesc = self.find_config(file_name.name, kind, scope)
             if config is not None:
                 return (config, None)
-            config_path: Path = self.storage_path(file_name, kind, scope)
+            config_path: Path = self.get_storage_path(file_name, kind, scope)
             cd: ConfigDesc = ConfigDesc(config_path.stem, config_path, kind, scope)
             return (cd, None)
 
-        if should_exist:
-            # searching for existing config
-            config: ConfigDesc = self.find_config(file_name.name, kind, scope)
-            if config is None:
-                return (None, f"Config '{kind}:{file_name}' does not exist !")
-            return (config, None)
+        if should_exist is False:
+            # should not exist
+            assert scope is not None
+            config_path: Path = self.get_storage_path(file_name, kind, scope)
+            cd: ConfigDesc = ConfigDesc(config_path.stem, config_path, kind, scope)
+            if cd.exist:
+                return (None, f"Config, '{cd.full_name}' already exist !")
+            return (cd, None)
 
-        # should not exist
-        assert scope is not None
-        config_path: Path = self.storage_path(file_name, kind, scope)
-        cd: ConfigDesc = ConfigDesc(config_path.stem, config_path, kind, scope)
-        if cd.exist:
-            return (None, f"Config, '{cd.full_name}' already exist !")
-        return (cd, None)
+        return (None, "Unreachable")
 
-    def storage_dir(self, scope: ConfigScope, kind: ConfigKind = None) -> Path:
+    def get_storage_dir(self, scope: ConfigScope, kind: ConfigKind = None) -> Path:
         """Get config dir from config scope and config type."""
         assert scope is not None
         config_dir: Path = Path(self._storage_scope_paths[scope])
@@ -372,11 +388,12 @@ class ConfigLocator:
             config_dir = config_dir.joinpath(ConfigKind.tostr(kind))
         return config_dir
 
-    def storage_path(self, file_name: str, kind: ConfigKind, scope: ConfigScope) -> Path:
+    def get_storage_path(self, file_name: str, kind: ConfigKind, scope: ConfigScope) -> Path:
         """Get config path from config label name, config type and config scope."""
         assert file_name is not None
         assert scope is not None
-        config_path: Path = self.storage_dir(scope, kind).joinpath(file_name)
+        assert kind is not None
+        config_path: Path = self.get_storage_dir(scope, kind).joinpath(file_name)
         return config_path
 
     def find_config(
@@ -389,7 +406,7 @@ class ConfigLocator:
             f"Searching config for '{file_name}', of kind: '{kind}', in scopes: '{scopes}'"
         )
         for sc in scopes:
-            config_path: Path = self.storage_path(file_name, kind, sc)
+            config_path: Path = self.get_storage_path(file_name, kind, sc)
             io.console.debug(f"Looking for '{config_path}'.")
             config_path = self.check_filename_ext(config_path, kind)
             if config_path.is_file() and config_path.suffix == ConfigKind.get_file_ext(kind):
@@ -403,7 +420,7 @@ class ConfigLocator:
         scopes = ConfigScope.all_scopes() if scope is None else [scope]
         configs: list[ConfigDesc] = []
         for sc in scopes:
-            configs_dir = self.storage_dir(sc, kind)
+            configs_dir = self.get_storage_dir(sc, kind)
             for root, _, files in os.walk(configs_dir):
                 for file in files:
                     config_path = Path(os.path.join(root, file))
