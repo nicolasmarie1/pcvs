@@ -155,7 +155,7 @@ class ResultFile:
         rawout = self._rawout_reader.read(length).decode("utf-8")
 
         if not rawout.startswith(self.MAGIC_TOKEN):
-            raise PublisherException.BadMagicTokenError()
+            raise PublisherException.BadMagicTokenError("Internal Error.")
 
         return rawout[len(self.MAGIC_TOKEN) :]
 

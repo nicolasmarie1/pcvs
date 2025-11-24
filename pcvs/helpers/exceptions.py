@@ -1,10 +1,10 @@
-class GenericException(Exception):
-    """Generic error (custom errors will inherit of this)."""
+class PCVSException(Exception):
+    """Generic PCVS error (custom errors will inherit of this)."""
 
     def __init__(
         self,
-        reason="Unknown error",
-        help_msg="Please check pcvs --help for more information.",
+        reason,
+        help_msg=None,
         dbg_info={},
     ):
         """Constructor for generic errors.
@@ -21,63 +21,37 @@ class GenericException(Exception):
         :return: the string.
         :type: str
         """
-        dbg_str = ""
-        if self._dbg_info:
-            dbg_str = "\n\nAdditional notes:\n" + self.dbg_str
-        return "{}\n{}{}".format(super().__str__(), self._help_msg, dbg_str)
-
-    @property
-    def err(self):
-        """Returns the error part of the exceptions.
-
-        :return: only the error part
-        :rtype: str
-        """
-        return str(self)
-
-    @property
-    def help(self):
-        """Returns the help part of the exceptions.
-
-        :return: only the help part
-        :rtype: str
-        """
-        return self._help_msg
-
-    @property
-    def dbg(self):
-        """Returns the extra infos of the exceptions (if any).
-
-        :return: only the debug infos.
-        :rtype: str
-        """
-        return self._dbg_info
+        name_msg = super().__str__() + "\n"
+        help_msg = f"{self._help_msg}\n" if self._help_msg else ""
+        dbg_msg = "Additional notes:\n" + self.__dbg_str() + "\n" if self._dbg_info else ""
+        cause_msg = f"From:\n{self.__cause__}" if self.__cause__ is not None else ""
+        return f"{name_msg}{help_msg}{dbg_msg}{cause_msg}"
 
     def add_dbg(self, **kwargs):
         for k, v in kwargs.items():
             if k not in self._dbg_info:
                 self._dbg_info[k] = v
 
-    @property
-    def dbg_str(self):
-        """Stringify the debug infos. These infos are stored as a dict
-        initially.
+    def __dbg_str(self) -> str:
+        """
+        Stringify the debug infos. These infos are stored as a dict initially.
 
-                :return: a itemized string.
-                :rtype: str"""
+        :return: a itemized string.
+        :rtype: str
+        """
         if not self._dbg_info:
-            return " - None"
-        w = max([len(k) for k in self._dbg_info.keys()])
-        return "\n".join([" - {:<{w}}: {}".format(k, v, w=w) for k, v in self._dbg_info.items()])
+            return ""
+        w = max(len(k) for k in self._dbg_info.keys())
+        return "\n".join([f"- {k:<{w}}: {v}" for k, v in self._dbg_info.items()])
 
 
-class CommonException(BaseException):
+class CommonException(PCVSException):
     """Gathers exceptions commonly encountered by more specific namespaces."""
 
-    class NotPCVSRelated(GenericException):
+    class NotPCVSRelated(PCVSException):
         pass
 
-    class AlreadyExistError(GenericException):
+    class AlreadyExistError(PCVSException):
         """The content already exist as it should."""
 
         def __init__(self, reason="Already Exist", **kwargs):
@@ -93,32 +67,32 @@ class CommonException(BaseException):
                 dbg_info=kwargs,
             )
 
-    class UnclassifiableError(GenericException):
+    class UnclassifiableError(PCVSException):
         """Unable to classify this common error."""
 
-    class NotFoundError(GenericException):
+    class NotFoundError(PCVSException):
         """Content haven't been found based on specifications."""
 
-    class IOError(GenericException):
+    class IOError(PCVSException):
         """Communication error (FS, process) while processing data."""
 
-    class WIPError(GenericException):
+    class WIPError(PCVSException):
         """Work in Progress, not a real error."""
 
-    class TimeoutError(GenericException):
+    class TimeoutError(PCVSException):
         """The parent class timeout error."""
 
-    class NotImplementedError(GenericException):
+    class NotImplementedError(PCVSException):
         """Missing implementation for this particular feature."""
 
 
 class BankException(CommonException):
     "Bank-specific exceptions." ""
 
-    class NotFoundError(GenericException):
+    class NotFoundError(PCVSException):
         """Bank not Found."""
 
-    class ProjectNameError(GenericException):
+    class ProjectNameError(PCVSException):
         """name is not a valid project under the given bank."""
 
 
@@ -129,14 +103,29 @@ class ConfigException(CommonException):
 class ProfileException(CommonException):
     """Profile-specific exceptions."""
 
-    class IncompleteError(GenericException):
+    class IncompleteError(PCVSException):
         """A configuration block is missing to build the profile."""
 
 
-class ValidationException(CommonException):
+class ValidationException(PCVSException):
     """Validation-specific exceptions."""
 
-    class FormatError(GenericException):
+    class YamlError(PCVSException):
+        """An error ocured when parsing an Invalid yaml structure."""
+
+        def __init__(self, file: str, content: str):
+            """Updated Constructor"""
+            super().__init__(reason="Fail to load the following yaml")
+            self.add_dbg(file_path=file, raw_yaml=content)
+
+    class SetupError(PCVSException):
+        """An error ocured when run pcvs.setup file."""
+
+        def __init__(self, file: str):
+            super().__init__(reason="Fail to run the following setup file")
+            self.add_dbg(file_path=file)
+
+    class FormatError(PCVSException):
         """The content does not comply the required format (schemes)."""
 
         def __init__(self, reason="Invalid format", **kwargs):
@@ -147,7 +136,7 @@ class ValidationException(CommonException):
                 dbg_info=kwargs,
             )
 
-    class WrongTokenError(GenericException):
+    class WrongTokenError(PCVSException):
         """A unknown token is found in valided content"""
 
         def __init__(self, reason="Invalid token(s) used as Placeholders", **kwargs):
@@ -158,7 +147,7 @@ class ValidationException(CommonException):
                 dbg_info=kwargs,
             )
 
-    class SchemeError(GenericException):
+    class SchemeError(PCVSException):
         """The content is not a valid format (scheme)."""
 
         def __init__(self, reason="Invalid Scheme provided", **kwargs):
@@ -178,7 +167,7 @@ class ValidationException(CommonException):
 class RunException(CommonException):
     """Run-specific exceptions."""
 
-    class InProgressError(GenericException):
+    class InProgressError(PCVSException):
         """A run is currently occurring in the given dir."""
 
         def __init__(self, reason="Build directory currently used by another instance", **kwargs):
@@ -194,18 +183,18 @@ class RunException(CommonException):
                 dbg_info=kwargs,
             )
 
-    class NonZeroSetupScript(GenericException):
+    class NonZeroSetupScript(PCVSException):
         """a setup script (=pcvs.setup) completed but returned non-zero exit code."""
 
         def __init__(self, reason="A setup script failed to complete", **kwargs):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
-                help_msg="\n".join(["Try to run manually the setup script below."]),
+                help_msg="\n".join(["Try to run manually the setup script"]),
                 dbg_info=kwargs,
             )
 
-    class ProgramError(GenericException):
+    class ProgramError(PCVSException):
         """The given program cannot be found."""
 
         def __init__(self, reason="A program cannot be found", **kwargs):
@@ -226,7 +215,7 @@ class RunException(CommonException):
 class TestException(CommonException):
     """Test-specific exceptions."""
 
-    class TestExpressionError(GenericException):
+    class TestExpressionError(PCVSException):
         """Test description is wrongly formatted."""
 
         def __init__(
@@ -245,51 +234,51 @@ class TestException(CommonException):
 class OrchestratorException(CommonException):
     """Execution-specific errors."""
 
-    class UndefDependencyError(GenericException):
+    class UndefDependencyError(PCVSException):
         """Declared job dep cannot be fully qualified, not defined."""
 
-    class CircularDependencyError(GenericException):
+    class CircularDependencyError(PCVSException):
         """Circular dep detected while processing job dep tree."""
 
 
 class RunnerException(CommonException):
     """RunnerException"""
 
-    class LaunchError(GenericException):
+    class LaunchError(PCVSException):
         """Unable to run a remote container"""
 
 
 class PublisherException(CommonException):
     """PublisherException"""
 
-    class BadMagicTokenError(GenericException):
+    class BadMagicTokenError(PCVSException):
         """Issue with token stored to file to check consistency"""
 
-    class UnknownJobError(GenericException):
+    class UnknownJobError(PCVSException):
         """Unable to identify a job by its ID"""
 
-    class AlreadyExistJobError(GenericException):
+    class AlreadyExistJobError(PCVSException):
         """A single ID leads to multiple jobs."""
 
 
 class LockException(CommonException):
     """Lock-specific exceptions."""
 
-    class BadOwnerError(GenericException):
+    class BadOwnerError(PCVSException):
         """Attempt to manipulate the lock while the current process is not the
         owner."""
 
-    class TimeoutError(GenericException):
+    class TimeoutError(PCVSException):
         """Timeout reached before lock."""
 
 
 class PluginException(CommonException):
     """Plugin-related exceptions."""
 
-    class BadStepError(GenericException):
+    class BadStepError(PCVSException):
         """targeted pass does not exist."""
 
-    class LoadError(GenericException):
+    class LoadError(PCVSException):
         """Unable to load plugin directory."""
 
         def __init__(self, reason="Issue(s) while loading plugin", **kwargs):
@@ -309,5 +298,5 @@ class PluginException(CommonException):
 class GitException(CommonException):
     """GitException"""
 
-    class BadEntryError(GenericException):
+    class BadEntryError(PCVSException):
         """BadEntryError"""

@@ -1,24 +1,23 @@
 import os
-import subprocess
-import tempfile
 
 from click import BadArgumentUsage
 from ruamel.yaml import YAML
-from ruamel.yaml import YAMLError
 
 from pcvs import io
 from pcvs.backend import run
+from pcvs.backend.config import Config
 from pcvs.backend.configfile import ConfigFile
 from pcvs.backend.configfile import Profile
 from pcvs.backend.metaconfig import GlobalConfig
-from pcvs.backend.metaconfig import MetaConfig
+from pcvs.helpers import criterion
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import ValidationException
 from pcvs.helpers.storage import ConfigDesc
 from pcvs.helpers.storage import ConfigKind
 from pcvs.helpers.storage import ConfigLocator
+from pcvs.orchestration import Orchestrator
 from pcvs.orchestration.publishers import BuildDirectoryManager
-from pcvs.testing.testfile import TestFile
+from pcvs.testing.tedesc import TEDescriptor
 
 
 def locate_scriptpaths(output=None):
@@ -105,7 +104,7 @@ def process_check_configs():
             ConfigFile(cd)
             token = io.console.utf("succ")
         except ValidationException.FormatError as e:
-            err_msg = str(e.dbg)
+            err_msg = str(e)
             errors.setdefault(err_msg, 0)
             errors[err_msg] += 1
             io.console.debug(str(e))
@@ -138,7 +137,7 @@ def process_check_profiles():
             errors[err_msg] += 1
             io.console.debug(e.message)
         except ValidationException.FormatError as e:
-            err_msg = str(e.dbg)
+            err_msg = str(e)
             errors.setdefault(err_msg, 0)
             errors[err_msg] += 1
             io.console.debug(str(e))
@@ -148,81 +147,7 @@ def process_check_profiles():
     return errors
 
 
-# TODO: this does not work, fix this
-def process_check_setup_file(root, prefix, run_configuration):
-    """Check if a given pcvs.setup could be parsed if used in a regular process.
-
-    :param root: the pcvs.setup filepath
-    :type root: str
-    :param prefix: the subtree the setup is extract from (used as argument)
-    :type prefix: str
-    :param run_configuration: the system env to herit for this setup check
-    :type run_configuration: dict
-    :return: a tuple (err msg, icon to print, parsed data)
-    :rtype: tuple
-    """
-    err_msg = None
-    data = None
-    env = os.environ
-    env.update(run_configuration)
-
-    try:
-        tdir = tempfile.mkdtemp()
-        with utils.cwd(tdir):
-            env["pcvs_src"] = root
-            env["pcvs_testbuild"] = tdir
-
-            if not os.path.isdir(os.path.join(tdir, prefix)):
-                os.makedirs(os.path.join(tdir, prefix))
-            if not prefix:
-                prefix = ""
-            proc = subprocess.Popen(
-                [os.path.join(root, prefix, "pcvs.setup"), prefix],
-                env=env,
-                stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-            )
-            fdout, fderr = proc.communicate()
-
-            if proc.returncode != 0:
-                if not fderr:
-                    fderr = "Non-zero status (no stderr): {}".format(proc.returncode).encode(
-                        "utf-8"
-                    )
-                err_msg = fderr
-            else:
-                data = fdout.decode("utf-8")
-    except subprocess.CalledProcessError as e:
-        err_msg = str(e.stderr).encode("utf-8")
-
-    return (err_msg, data)
-
-
-def __set_token(token, nset=None) -> str:
-    """Manage display token (job display) depending on given condition.
-
-    if the condition is a success, insert the UTF 'succ' code, 'fail' otherwise.
-    A custom str can be provided if the condition is neither a success or a
-    failure (=None was given).
-
-    :param token: the condition
-    :type token: bool
-    :param nset: default pattern to insert
-    :type nset: str, optional
-    :return: the pretty-printable token
-    :rtype: str
-    """
-    if not nset:
-        nset = io.console.utf("none")
-    if token is None:
-        return "[yellow bold]{}[/]".format(nset)
-    elif token:
-        return "[green bold]{}[/]".format(io.console.utf("succ"))
-    else:
-        return "[red bold]{}[/]".format(io.console.utf("fail"))
-
-
-def process_check_directory(directory, pf_name="default.yml", conversion=True):
+def process_check_directory(directory, pf_name="default.yml"):
     """Analyze a directory to ensure defined test files are valid.
 
     :param conversion: allow legacy format for this check (True by default)
@@ -235,82 +160,75 @@ def process_check_directory(directory, pf_name="default.yml", conversion=True):
     :rtype: dict
     """
     errors = {}
-    total_nodes = 0
     cd: ConfigDesc = ConfigLocator().parse_full_raise(
         pf_name, ConfigKind.PROFILE, should_exist=True
     )
     pf = Profile(cd)
 
-    GlobalConfig.root = MetaConfig()
-    GlobalConfig.root["validation"] = {}
+    GlobalConfig.root.bootstrap_validation(Config())
     GlobalConfig.root.bootstrap_from_profile(pf)
     GlobalConfig.root["validation"]["output"] = "/tmp"
-    buildenv = run.build_env_from_configuration(GlobalConfig.root)
+    GlobalConfig.root["validation"]["dirs"] = {os.path.basename(directory): directory}
+
+    build_manager = BuildDirectoryManager(build_dir=GlobalConfig.root["validation"]["output"])
+    GlobalConfig.root.set_internal("build_manager", build_manager)
+
+    # run prepare section:
+    run.check_defined_program_validity()
+    criterion.initialize_from_system()
+    TEDescriptor.init_system_wide("n_node")
+    GlobalConfig.root.set_internal("orchestrator", Orchestrator())
+
+    # get environment variables
+    env_config = run.build_env_from_configuration(GlobalConfig.root)
+    # export to process env
+    os.environ.update(env_config)
     setup_files, yaml_files = run.find_files_to_process({os.path.basename(directory): directory})
 
     from rich.table import Table
 
-    table = Table(title="Results", expand=True, row_styles=["dim", ""])
+    table = Table(title="Results", expand=True)
     table.add_column("Runnable Script", justify="center", max_width=5)
-    table.add_column("Valid", justify="center", max_width=5)
-    table.add_column("Node count", justify="center", max_width=5)
+    table.add_column("Valid YAML", justify="center", max_width=5)
     table.add_column("File Path", justify="left")
+
+    token_ok = f"[green bold]{io.console.utf('succ')}[/]"
+    token_bad = f"[red bold]{io.console.utf('fail')}[/]"
+    token_unknown = f"[yellow bold]{io.console.utf('none')}[/]"
+
     # with io.console.pager():
     # with Live(table, refresh_per_second=4):
-    for _, subprefix, f in io.console.progress_iter([*setup_files, *yaml_files]):
-        setup_ok = __set_token(None)
-        yaml_ok = __set_token(None)
-        nb_nodes = __set_token(None, "----")
-        data = ""
+    for label, subtree, file in io.console.progress_iter([*setup_files, *yaml_files]):
+        is_setup = (label, subtree, file) in setup_files
+        setup_ok = token_ok if is_setup else token_unknown
+        yaml_ok = token_ok
         err = None
 
-        if subprefix is None:
-            subprefix = ""
+        if subtree is None:
+            subtree = ""
 
-        if f.endswith("pcvs.setup"):
-            err, data = process_check_setup_file(directory, subprefix, buildenv)
-            setup_ok = __set_token(err is None)
-        else:
-            with open(os.path.join(directory, subprefix, f), "r") as fh:
-                data = fh.read()
+        try:
+            if is_setup:
+                run.process_dyn_setup(label, subtree, file)
+            else:
+                run.process_static_yaml(label, subtree, file)
+        except ValidationException.YamlError as val_err:
+            err = val_err
+            yaml_ok = token_bad
+        except ValidationException.SetupError as setup_err:
+            err = setup_err
+            setup_ok = token_bad
+            yaml_ok = token_unknown
 
-        if not err:
-            converted = None
-            dflt = None
-            err = None
-            try:
-                cur = TestFile(file_in="", path_out="", label="", prefix=subprefix)
-                cur.load_from_str(data)
-                converted = not cur.validate(allow_conversion=conversion)
-                nb_nodes = cur.nb_descs
-                total_nodes += nb_nodes
-                success = True
-
-            except YAMLError as e:
-                err = str(e)
-                success = False
-            except ValidationException.FormatError as e:
-                err = str(e)
-                success = False
-
-            if converted is True:
-                # yaml VALID but old syntax
-                # --> yellow
-                success = None
-                dflt = "{} {}".format(io.console.utf("succ"), io.console.utf("copy"))
-            yaml_ok = __set_token(success, nset=dflt)
-
-        table.add_row(
-            setup_ok, yaml_ok, "{:>4}".format(nb_nodes), "./" if not subprefix else subprefix
-        )
-
+        table.add_row(setup_ok, yaml_ok, "." if not subtree else subtree)
         if err:
-            io.console.info("FAILED: {}".format(err.decode("utf-8")))
+            io.console.error(err)
             errors.setdefault(err, 0)
             errors[err] += 1
+
     io.console.print(table)
-    io.console.print_item("Total node count: {}".format(total_nodes))
     return errors
+    # TODO: format and return errors
 
 
 class BuildSystem:

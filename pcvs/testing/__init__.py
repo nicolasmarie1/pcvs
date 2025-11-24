@@ -4,7 +4,8 @@ from pcvs.backend.metaconfig import GlobalConfig
 
 
 def generate_local_variables(label, subprefix):
-    """Return directories from PCVS working tree :
+    """
+    Return directories from PCVS working tree.
 
         - the base source directory
         - the current source directory

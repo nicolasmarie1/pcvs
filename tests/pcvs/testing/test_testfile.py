@@ -128,6 +128,7 @@ def test_TestFile(isolated_yml_test):  # pylint: disable=redefined-outer-name
             label="keytestdir",
             prefix=".",
         )
+        testfile.load_from_file()
         testfile.process()
         testfile.generate_debug_info()
         testfile.flush_sh_file()

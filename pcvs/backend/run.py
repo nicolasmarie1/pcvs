@@ -4,7 +4,6 @@ import pprint
 import shutil
 import subprocess
 import time
-from subprocess import CalledProcessError
 
 from ruamel.yaml import YAML
 
@@ -25,6 +24,7 @@ from pcvs.helpers import communications
 from pcvs.helpers import criterion
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import RunException
+from pcvs.helpers.exceptions import ValidationException
 from pcvs.orchestration import Orchestrator
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.plugins import Plugin
@@ -202,7 +202,7 @@ def process_main_workflow(the_session=None):
     return rc
 
 
-def __check_defined_program_validity():
+def check_defined_program_validity():
     """Ensure most programs defined in profiles & parameters are valid in the
     current environment.
 
@@ -262,13 +262,10 @@ def prepare():
     valcfg["buildcache"] = os.path.join(build_man.prefix, NAME_BUILD_CACHEDIR)
 
     io.console.print_item("Ensure user-defined programs exist")
-    __check_defined_program_validity()
+    check_defined_program_validity()
 
     io.console.print_item("Init & expand criterions")
     criterion.initialize_from_system()
-    # Pick on criterion used as 'resources' by JCHRONOSS
-    # this is set by the run configuration
-    # TODO: replace resource here by the one read from config
     TEDescriptor.init_system_wide("n_node")
 
     if valcfg["enable_report"]:
@@ -334,6 +331,7 @@ def find_files_to_process(path_dict):
     return (setup_files, yaml_files)
 
 
+@io.capture_exception(Exception, doexit=True)
 def process_files():
     """Process the test-suite generation.
 
@@ -348,10 +346,25 @@ def process_files():
     io.console.debug(f"Found setup files: {pprint.pformat(setup_files)}")
     io.console.debug(f"Found static files: {pprint.pformat(yaml_files)}")
 
+    prepare_runtime_env_file()
+
     io.console.print_item(f"Extract tests from dynamic definitions ({len(setup_files)} found)")
     process_dyn_setup_scripts(setup_files)
     io.console.print_item(f"Extract tests from static definitions ({len(yaml_files)} found)")
     process_static_yaml_files(yaml_files)
+
+
+def prepare_runtime_env_file():
+    io.console.info("Building env from config.")
+    env_config = build_env_from_configuration(GlobalConfig.root)
+
+    with open(
+        os.path.join(GlobalConfig.root["validation"]["output"], NAME_BUILD_CONF_SH),
+        "w",
+        encoding="utf-8",
+    ) as fh:
+        fh.write(utils.str_dict_as_envvar(env_config))
+        fh.close()
 
 
 def process_spack():
@@ -423,15 +436,7 @@ def build_env_from_configuration(config: dict) -> dict:
     return env
 
 
-# Needed to keep capture exception at runtime,
-# While allowing pytest to test process_syn function.
-@io.capture_exception(Exception, doexit=True)
 def process_dyn_setup_scripts(setup_files):
-    """Wrapper to process_static_yaml_files to use @io.capture_exception."""
-    unsafe_process_dyn_setup_scripts(setup_files)
-
-
-def unsafe_process_dyn_setup_scripts(setup_files):
     """Process dynamic test files and generate associated tests.
 
     This function executes pcvs.setup files after deploying the environment (to
@@ -444,94 +449,13 @@ def unsafe_process_dyn_setup_scripts(setup_files):
     :return: list of errors encountered while processing.
     :rtype: list
     """
-    io.console.info("Convert configuration to Shell variables")
-    env_config = build_env_from_configuration(GlobalConfig.root)
-    env = os.environ.copy()
-
-    with open(
-        os.path.join(GlobalConfig.root["validation"]["output"], NAME_BUILD_CONF_SH),
-        "w",
-        encoding="utf-8",
-    ) as fh:
-        fh.write(utils.str_dict_as_envvar(env_config))
-        fh.close()
 
     io.console.info("Iteration over files")
-    for label, subprefix, fname in io.console.progress_iter(setup_files):
-        io.console.info(f"Processing {subprefix} dynamic script. ({label})")
-        start_time = time.time()
-        base_src, cur_src, base_build, cur_build = testing.generate_local_variables(
-            label, subprefix
-        )
-        # prepre to exec pcvs.setup script
-        # 1. setup the env
-        env["pcvs_src"] = base_src
-        env["pcvs_testbuild"] = base_build
-
-        if not os.path.isdir(cur_build):
-            os.makedirs(cur_build)
-
-        f = os.path.join(cur_src, fname)
-
-        if not subprefix:
-            subprefix = ""
-        # Run the script
-        try:
-            fds = subprocess.Popen(
-                [f, subprefix], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-            )
-            fdout, fderr = fds.communicate()
-
-            if fds.returncode != 0:
-                raise RunException.NonZeroSetupScript(rc=fds.returncode, err=fderr, file=f)
-            # should be enabled only in debug mode
-            # flush the output to $BUILD/pcvs.yml
-            # out_file = os.path.join(cur_build, 'pcvs.yml')
-            # with open(out_file, 'w') as fh:
-            # fh.write(fdout.decode('utf-8'))
-        except CalledProcessError as callerror:
-            io.console.error(f"{f}: Error when launching setup script: {callerror}")
-            raise callerror
-        except RunException.NonZeroSetupScript as runerror:
-            io.console.error(f"{f}: Error during the execution of setup script: {runerror}")
-            raise runerror
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        io.console.info(f"Subscript {subprefix} done in {elapsed_time:.3f} seconds.")
-
-        out = fdout.decode("utf-8")
-        if not out:
-            # pcvs.setup did not output anything
-            continue
-
-        # Now create the file handler
-        GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.TFILE_BEFORE)
-
-        try:
-            obj = TestFile(file_in=f, path_out=cur_build, label=label, prefix=subprefix)
-
-            obj.load_from_str(out)
-            obj.save_yaml()
-
-            obj.process()
-            obj.flush_sh_file()
-            io.console.info(f"Adding {obj.nb_tests} tests from {f}.")
-        except Exception as e:
-            io.console.error(f"In file: {f}\nFailed to parse the following invalid yaml:\n{out}")
-            raise e
-
-        GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.TFILE_AFTER)
+    for label, prefix, fname in io.console.progress_iter(setup_files):
+        process_dyn_setup(label, prefix, fname)
 
 
-# Needed to keep capture exception at runtime,
-# While allowing pytest to test process_static function.
-@io.capture_exception(Exception, doexit=True)
 def process_static_yaml_files(yaml_files):
-    """Wrapper to process_static_yaml_files to use @io.capture_exception."""
-    unsafe_process_static_yaml_files(yaml_files)
-
-
-def unsafe_process_static_yaml_files(yaml_files):
     """
     Process 'pcvs.yml' files to construct the test base.
 
@@ -541,20 +465,85 @@ def unsafe_process_static_yaml_files(yaml_files):
     :rtype: list
     """
     io.console.info("Iteration over files")
-    for label, subprefix, fname in io.console.progress_iter(yaml_files):
-        _, cur_src, _, cur_build = testing.generate_local_variables(label, subprefix)
-        if not os.path.isdir(cur_build):
-            os.makedirs(cur_build)
-        f = os.path.join(cur_src, fname)
+    for label, prefix, fname in io.console.progress_iter(yaml_files):
+        process_static_yaml(label, prefix, fname)
 
-        try:
-            obj = TestFile(file_in=f, path_out=cur_build, label=label, prefix=subprefix)
-            obj.process()
-            io.console.info(f"Adding {obj.nb_tests} tests from {f}.")
-            obj.flush_sh_file()
-        except Exception as e:
-            io.console.error(f"{f} (failed to parse): {e}")
-            raise e
+
+def process_dyn_setup(label: str, prefix: str, file_name: str):
+    io.console.info(f"Processing {prefix} dynamic script. ({label})")
+    base_src, cur_src, base_build, cur_build = testing.generate_local_variables(label, prefix)
+    os.makedirs(cur_build, exist_ok=True)
+    f = os.path.join(cur_src, file_name)
+
+    start_time = time.time()
+    # prepre to exec pcvs.setup script
+    # setup the env
+    env = os.environ
+    # env["PCVS_SRC"] = base_src
+    env["pcvs_src"] = base_src
+    # env["PCVS_BUILD"] = base_build
+    env["pcvs_testbuild"] = base_build
+
+    if not prefix:
+        prefix = ""
+    # Run the script
+    try:
+        fds = subprocess.Popen([f, prefix], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        fdout, fderr = fds.communicate()
+
+        if fds.returncode != 0:
+            raise RunException.NonZeroSetupScript(rc=fds.returncode, err=fderr, file=f)
+        # should be enabled only in debug mode
+        # flush the output to $BUILD/pcvs.yml
+        # out_file = os.path.join(cur_build, 'pcvs.yml')
+        # with open(out_file, 'w') as fh:
+        # fh.write(fdout.decode('utf-8'))
+    except Exception as err:
+        raise ValidationException.SetupError(f) from err
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    io.console.info(f"Subscript {prefix} done in {elapsed_time:.3f} seconds.")
+
+    out = fdout.decode("utf-8")
+    if not out:
+        return
+
+    # Now create the file handler
+    process_yaml(file_path=f, build_path=cur_build, label=label, prefix=prefix, content=out)
+
+
+def process_static_yaml(label: str, prefix: str, file_name: str):
+    _, cur_src, _, cur_build = testing.generate_local_variables(label, prefix)
+    os.makedirs(cur_build, exist_ok=True)
+    f = os.path.join(cur_src, file_name)
+
+    process_yaml(file_path=f, build_path=cur_build, label=label, prefix=prefix)
+
+
+def process_yaml(file_path: str, build_path: str, label: str, prefix: str, content: str = None):
+    """Process one yaml file and register it's test descriptor."""
+    GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.TFILE_BEFORE)
+
+    try:
+        test_file = TestFile(file_in=file_path, path_out=build_path, label=label, prefix=prefix)
+
+        if content is None:
+            test_file.load_from_file()
+        else:
+            test_file.load_from_str(content)
+            test_file.save_yaml()
+
+        test_file.process()
+        test_file.flush_sh_file()
+        io.console.info(f"Adding {test_file.nb_tests} tests from {file_path}.")
+    except Exception as e:
+        raise ValidationException.YamlError(file_path, test_file.raw_yaml) from e
+        # io.console.error(
+        #    f"In file: {file_path}\nFailed to parse the following invalid yaml:\n{test_file.raw_yaml}"
+        # )
+        # raise e
+
+    GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.TFILE_AFTER)
 
 
 def anonymize_archive():

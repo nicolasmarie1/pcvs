@@ -316,19 +316,6 @@ class Report:
         return self.__dict__.items()
 
 
-def build_static_pages(buildir) -> None:
-    """From a given build directory, generate static pages.
-
-    This can be used only for already run test-suites (no real-time support) and
-    when Flask cannot/don't want to be used.
-
-    :param buildir: the build directory to load
-    :type buildir: str
-    :raises WIPError: Not implemented yet
-    """
-    raise CommonException.WIPError()
-
-
 def start_server(report: Report):
     """Initialize the Flask server, default to 5000.
 

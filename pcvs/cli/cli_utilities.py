@@ -12,7 +12,7 @@ from pcvs import io
 from pcvs import NAME_BUILD_ARCHIVE_DIR
 from pcvs import NAME_BUILDFILE
 from pcvs.backend import utilities as pvUtils
-from pcvs.backend.config import Config
+from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.backend.metaconfig import MetaConfig
 
 try:
@@ -190,23 +190,15 @@ def exec_cli(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout, p
     help="Check correctness for all registered profiles",
 )
 @click.option(
-    "--profile-model",
     "-p",
-    "pf_name",
+    "--profile",
+    "profile",
     default="default",
     help="Custom profile to use when checking pcvs.setup scripts",
 )
-@click.option(
-    "--conversion/--no-conversion",
-    "-t/-T",
-    "conversion",
-    is_flag=True,
-    default=True,
-    help="Enable/Disable auto-conversion through `pcvs_convert`",
-)
 @click.pass_context
 def check(
-    ctx, directory, encoding, color, configs, profiles, pf_name, conversion
+    ctx, directory, encoding, color, configs, profiles, profile
 ):  # pylint: disable=unused-argument
     """Global input/output analyzer, validating configuration, profiles &
     terminal supports."""
@@ -247,17 +239,11 @@ def check(
 
     if directory:
         io.console.print_header("Test directories")
-        io.console.print_section("Prepare the environment")
-        # first, replace build dir with a temp one
-        settings = MetaConfig()
-        settings.bootstrap_validation(Config())
-        cfg_val = settings["validation"]
-        cfg_val.set_ifdef("output", "/tmp/test")
+        GlobalConfig.root = MetaConfig()
+        GlobalConfig.root.set_internal("pColl", ctx.obj["plugins"])
         errors = {
             **errors,
-            **pvUtils.process_check_directory(
-                os.path.abspath(directory), pf_name, conversion=conversion
-            ),
+            **pvUtils.process_check_directory(os.path.abspath(directory), profile),
         }
 
     table = Table("Count", "Type of error", title="Classification of errors", expand=True)

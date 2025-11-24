@@ -18,13 +18,6 @@ except ImportError:
     "report",
     short_help="Manage PCVS result reporting interface",
 )
-@click.option(
-    "-s",
-    "--static-pages",
-    "static",
-    flag_value=".",
-    default=None,
-)
 @click.argument(
     "path_list",
     nargs=-1,
@@ -32,7 +25,7 @@ except ImportError:
     type=click.Path(exists=True),
 )
 @click.pass_context
-def report(ctx, path_list, static):
+def report(ctx, path_list):
     """Start a webserver to browse result during or after execution.
 
     Listens by default to http://localhost:5000/"""
@@ -59,19 +52,14 @@ def report(ctx, path_list, static):
 
         return gui.start_app(inputs)
 
-    if static:
-        # server old-style JCRHONOSS pages after JSON transformation
-        for prefix in inputs:
-            pvReport.build_static_pages(prefix)
-    else:
-        # feed with prefixes
-        r = pvReport.Report()
-        for prefix in inputs:
-            try:
-                r.add_session(prefix)
-            except Exception as e:
-                io.console.warn("Unable to parse {}".format(prefix))
-                io.console.debug("Caught {}".format(e))
-                raise e
-        # create the app
-        pvReport.start_server(r)
+    # feed with prefixes
+    r = pvReport.Report()
+    for prefix in inputs:
+        try:
+            r.add_session(prefix)
+        except Exception as e:
+            io.console.warn("Unable to parse {}".format(prefix))
+            io.console.debug("Caught {}".format(e))
+            raise e
+    # create the app
+    pvReport.start_server(r)

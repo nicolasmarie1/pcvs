@@ -129,7 +129,9 @@ class TestFile:
         if TestFile.val_scheme is None:
             TestFile.val_scheme = system.ValidationScheme("te")
 
-    def load_from_file(self, f):
+    def load_from_file(self, f=None):
+        if f is None:
+            f = self._in
         with open(f, "r") as fh:
             stream = fh.read()
             self.load_from_str(stream)
@@ -210,14 +212,19 @@ class TestFile:
             return 0
         return len(self._tests)
 
+    @property
+    def raw_yaml(self):
+        """Return raw yaml from TestFile."""
+        return self._raw
+
     def process(self):
         """Load the YAML file and map YAML nodes to Test()."""
         # _, _, _, _ = testing.generate_local_variables(
         #     self._label, self._prefix)
 
         # if file hasn't be loaded yet
-        if self._raw is None:
-            self.load_from_file(self._in)
+        # if self._raw is None:
+        #     self.load_from_file(self._in)
 
         self.validate()
 
