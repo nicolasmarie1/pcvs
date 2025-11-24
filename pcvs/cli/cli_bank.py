@@ -15,7 +15,8 @@ except ImportError:
 
 
 def compl_list_banks(ctx, args, incomplete):  # pylint: disable=unused-argument
-    """bank name completion function.
+    """
+    Bank name completion function.
 
     :param ctx: Click context
     :type ctx: :class:`Click.Context`
@@ -24,15 +25,15 @@ def compl_list_banks(ctx, args, incomplete):  # pylint: disable=unused-argument
     :param incomplete: the user input
     :type incomplete: str
     """
-    pvBank.init()
     array = list()
-    for k, v in pvBank.Bank.BANKS.items():
+    for k, v in pvBank.list_banks().items():
         array.append((k, v))
     return [CompletionItem(elt[0], help=elt[1]) for elt in array if incomplete in elt[0]]
 
 
 def compl_bank_projects(ctx, args, incomplete):  # pylint: disable=unused-argument
-    """bank project completion function.
+    """
+    Bank project completion function.
 
     :param ctx: Click context
     :type ctx: :class:`Click.Context`
@@ -41,7 +42,6 @@ def compl_bank_projects(ctx, args, incomplete):  # pylint: disable=unused-argume
     :param incomplete: the user input
     :type incomplete: str
     """
-    pvBank.init()
     array = []
     for bankname, bankpath in compl_list_banks(None, None, ""):
         result_bank = pvBank.Bank(token=bankname)
@@ -121,14 +121,14 @@ def bank_show(ctx, name, path):  # pylint: disable=unused-argument
     type=click.Path(exists=False, file_okay=False),
 )
 @click.pass_context
-def bank_create(ctx, name, path):  # pylint: disable=unused-argument
+def bank_init(ctx, name, path):  # pylint: disable=unused-argument
     """Create a new bank, named NAME, data will be stored under PATH."""
     io.console.print_header("Bank Init")
     if path is None:
         path = os.path.join(os.getcwd(), name)
     path = os.path.abspath(path)
 
-    if not pvBank.create_bank(name, path):
+    if not pvBank.init_banklink(name, path):
         raise click.BadArgumentUsage(f"'{name}' already exist or can't be created")
 
 

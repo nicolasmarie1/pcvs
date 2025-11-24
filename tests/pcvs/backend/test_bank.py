@@ -1,74 +1,27 @@
-import json
 import os
-from datetime import datetime
 
 import pytest
-from click.testing import CliRunner
-from ruamel.yaml import YAML
 
 import pcvs
 from pcvs.backend import bank as tested
 from pcvs.helpers import git
 from pcvs.helpers import utils
-from tests.pcvs.conftest import isolated_fs
 
-
-@pytest.fixture
-def mock_repo_fs():
-    with CliRunner().isolated_filesystem():
-        path = os.path.join(os.getcwd(), "fake_bank")
-        os.makedirs(path)
-        yield path
+from ..conftest import dummy_run_fs
+from ..conftest import isolated_fs
 
 
 @pytest.fixture
 def dummy_run():
-    with isolated_fs():
-        path = os.getcwd()
-        build_path = os.path.join(path, ".pcvs-build")
+    with dummy_run_fs() as path:
+        yield path
 
-        os.makedirs(os.path.join(build_path, "rawdata"))
-        open(os.path.join(build_path, pcvs.NAME_BUILDFILE), "w+", encoding="utf-8").close()
 
-        with open(
-            os.path.join(build_path, "rawdata/pcvs_rawdat0000.json"), "w+", encoding="utf-8"
-        ) as fh:
-            content = {
-                "tests": [
-                    {
-                        "id": {
-                            "te_name": "test_main",
-                            "label": "TBD",
-                            "subtree": "tmp",
-                            "fq_name": "tmp/test_main_c4_n4_N1_o4",
-                            "comb": "TBD",
-                        },
-                        "exec": "mpirun --share-node --clean -c=4 -n=4 -N=1 /tmp/my_program ",
-                        "result": {"state": -1, "time": 0.0, "output": None},
-                        "data": {
-                            "tags": "TBD",
-                            "metrics": "TBD",
-                            "artifacts": "TBD",
-                        },
-                    }
-                ]
-            }
-            json.dump(content, fh)
-
-        with open(os.path.join(build_path, "conf.yml"), "w", encoding="utf-8") as fh:
-            content = {
-                "validation": {
-                    "dirs": {"LABEL_A": "DIR_A"},
-                    "author": {
-                        "name": "John Doe",
-                        "email": "johndoe@example.com",
-                    },
-                    "pf_hash": "profile_hash",
-                }
-            }
-            content["validation"]["datetime"] = datetime.now()
-            YAML(typ="safe").dump(content, fh)
-
+@pytest.fixture
+def mock_repo_fs():
+    with isolated_fs() as tmp:
+        path = os.path.join(tmp, "fake_bank")
+        os.makedirs(path)
         yield path
 
 

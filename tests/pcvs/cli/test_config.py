@@ -122,7 +122,7 @@ def test_destroy():
 def test_edit():
     # edit a config that does not exist
     with isolated_fs():
-        res = click_call("config", "edit", "compiler:dummy-config")
+        res = click_call("config", "edit", "local:compiler:dummy-config")
         assert res.exit_code != 0
 
 

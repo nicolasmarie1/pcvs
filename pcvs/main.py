@@ -2,7 +2,6 @@
 from importlib.metadata import version
 
 from pcvs import io
-from pcvs.backend import bank
 from pcvs.cli import cli_bank
 from pcvs.cli import cli_config
 from pcvs.cli import cli_convert
@@ -165,9 +164,6 @@ def cli(ctx, verbose, color, encoding, exec_path, plugin_path, select_plugins, t
             pcoll.activate_plugin(select)
 
     pcoll.invoke_plugins(Plugin.Step.START_BEFORE)
-
-    # detections
-    bank.init()
 
     pcoll.invoke_plugins(Plugin.Step.START_AFTER)
 

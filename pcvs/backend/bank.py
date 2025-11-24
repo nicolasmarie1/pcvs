@@ -1,7 +1,6 @@
 import os
 import tarfile
 import tempfile
-from typing import Dict
 from typing import List
 from typing import Optional
 
@@ -39,10 +38,6 @@ class Bank(dsl.Bank):
     :type proj_name: str
     """
 
-    #: :var BANKS: list of available banks when PCVS starts up
-    #: :type BANKS: dict, keys are bank names, values are file path
-    BANKS: Dict[str, str] = {}
-
     def __init__(self, token: str) -> None:
         """Build a Bank.
 
@@ -67,12 +62,13 @@ class Bank(dsl.Bank):
             path_or_name = array[1]
 
         # by name
-        if path_or_name in Bank.BANKS:
+        banks = list_banks()
+        if path_or_name in banks:
             self._name = path_or_name
-            self._path = Bank.BANKS[path_or_name]
+            self._path = banks[path_or_name]
         # by paths
-        elif path_or_name in Bank.BANKS.values():
-            for k, v in Bank.BANKS.items():
+        elif path_or_name in banks.values():
+            for k, v in banks.items():
                 if v == path_or_name:
                     self._name = k
                     break
@@ -286,31 +282,7 @@ class Bank(dsl.Bank):
         return len(self.list_projects())
 
 
-def init() -> None:
-    """Bank interface detection.
-
-    Called when program initializes. Detects defined banks in ``PATH_BANK``
-    """
-    try:
-        with open(PATH_BANK, "r", encoding="utf-8") as f:
-            Bank.BANKS = YAML(typ="safe").load(f)
-    except FileNotFoundError:
-        # nothing to do, file may not exist
-        pass
-    if Bank.BANKS is None:
-        Bank.BANKS = {}
-
-
-def list_banks() -> dict:
-    """Accessor to bank dict (outside of this module).
-
-    :return: dict of available banks.
-    :rtype: dict
-    """
-    return Bank.BANKS
-
-
-def create_bank(name: str, path: str) -> bool:
+def init_banklink(name: str, path: str) -> bool:
     """
     Create a new bank and store it to the global system.
 
@@ -321,8 +293,12 @@ def create_bank(name: str, path: str) -> bool:
     :return: if bank was successfully created
     :rtype: bool
     """
+    banks = list_banks()
     # check if the bank name already exist
-    if name in Bank.BANKS[name]:
+    if name in banks:
+        return False
+    # trying to import a bank that already exist with an other name
+    if path in banks.values():
         return False
 
     # check if the folder of the bank can be created
@@ -333,8 +309,8 @@ def create_bank(name: str, path: str) -> bool:
         return False
 
     # register bank name/path in pcvs home configuration
-    Bank.BANKS[name] = path
-    flush_to_disk()
+    banks[name] = path
+    write_banks(banks)
 
     # create the bank
     b = Bank(name)
@@ -349,22 +325,28 @@ def rm_banklink(name: str) -> None:
     :param name: bank name
     :type name: str
     """
-    if name in Bank.BANKS:
-        Bank.BANKS.pop(name)
-        flush_to_disk()
+    write_banks(list_banks().pop(name))
 
 
-def flush_to_disk() -> None:
-    """Update the ``PATH_BANK`` file with in-memory object.
+def list_banks() -> dict:
+    """Read Banks."""
+    banks = {}
+    try:
+        with open(PATH_BANK, "r", encoding="utf-8") as f:
+            banks = YAML(typ="safe").load(f)
+    except FileNotFoundError:
+        # nothing to do, file may not exist
+        pass
+    return banks
 
-    :raises IOError: Unable to properly manipulate the tree layout
-    """
-    global PATH_BANK
+
+def write_banks(banks: dict[str, str]):
+    """Write banks."""
     try:
         prefix_file = os.path.dirname(PATH_BANK)
         if not os.path.isdir(prefix_file):
             os.makedirs(prefix_file, exist_ok=True)
         with open(PATH_BANK, "w+", encoding="utf-8") as f:
-            YAML(typ="safe").dump(Bank.BANKS, f)
+            YAML(typ="safe").dump(banks, f)
     except IOError as e:
         raise BankException.IOError(e)
