@@ -183,6 +183,7 @@ def process_check_directory(directory, pf_name="default.yml"):
     env_config = run.build_env_from_configuration(GlobalConfig.root)
     # export to process env
     os.environ.update(env_config)
+    # get files to validate
     setup_files, yaml_files = run.find_files_to_process({os.path.basename(directory): directory})
 
     from rich.table import Table

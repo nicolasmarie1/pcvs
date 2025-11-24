@@ -105,13 +105,6 @@ def print_version(ctx, param, value):  # pylint: disable=unused-argument
     is_flag=True,
     help="Display current version",
 )
-# unused
-# @click.option("-w",
-#               "--width",
-#               "width",
-#               type=int,
-#               default=None,
-#               help="Terminal width (autodetection if omitted")
 @click.option(
     "-P",
     "--plugin-path",
@@ -119,9 +112,15 @@ def print_version(ctx, param, value):  # pylint: disable=unused-argument
     multiple=True,
     type=click.Path(exists=True),
     show_envvar=True,
-    help="Default Plugin path prefix",
+    help="Default Plugin PATH",
 )
-@click.option("-m", "--plugin", "select_plugins", multiple=True)
+@click.option(
+    "-m",
+    "--plugin",
+    "select_plugins",
+    multiple=True,
+    help="Default plugin names to enables.",
+)
 @click.option(
     "-t",
     "--tui",

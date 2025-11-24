@@ -82,7 +82,7 @@ class Collection:
 
     def __init__(self):
         """constructor method"""
-        self._plugins = {name: [] for name in list(Plugin.Step)}
+        self._plugins = {name: {} for name in list(Plugin.Step)}
         self._enabled = {name: None for name in list(Plugin.Step)}
 
     def register_default_plugins(self):
@@ -90,14 +90,15 @@ class Collection:
         try:
             self.register_plugin_by_package("pcvs.plugins.default", activate=True)
             self.register_plugin_by_package("pcvs.plugins.contrib")
+            self.register_plugin_by_package("pcvs.config.plugin")
         except Exception as e:
             raise PluginException("Error while registering plugin.") from e
 
     def exist_plugin(self, name):
         """Check if a plugin already exist."""
         for _, plugins in self._plugins.items():
-            for p in plugins:
-                if name.lower() == type(p).__name__.lower():
+            for plname, _ in plugins.items():
+                if name.lower() == plname:
                     return True
         return False
 
@@ -108,12 +109,12 @@ class Collection:
         :param name: the plugin name.
         :type name: str"""
         for _, plugins in self._plugins.items():
-            for p in plugins:
-                if name.lower() == type(p).__name__.lower():
+            for plname, plugin in plugins.items():
+                if name.lower() == plname:
                     io.console.debug("Activate {}".format(name))
-                    if self._enabled[p.step]:
-                        io.console.debug(" -> overrides {}".format(self._enabled[p.step]))
-                    self._enabled[p.step] = p
+                    if self._enabled[plugin.step]:
+                        io.console.debug(" -> overrides {}".format(self._enabled[plugin.step]))
+                    self._enabled[plugin.step] = plugin
                     return
         io.console.warn("Unable to find a plugin named '{}'".format(name))
 
@@ -148,8 +149,6 @@ class Collection:
         :return: True if defined, False otherwise
         :rtype: bool
         """
-        if step not in self._enabled:
-            return False
         if self._enabled[step] is None:
             return False
         if not hasattr(self._enabled[step], method):
@@ -178,8 +177,8 @@ class Collection:
         for step, elements in self._plugins.items():
             if len(elements) > 0:
                 io.console.print_section("Step {}:".format(str(step)))
-                for e in elements:
-                    io.console.print_item("{}".format(type(e).__name__))
+                for name, module in elements.items():
+                    io.console.print_item(f"{name}/{type(module).__name__}")
 
     def show_enabled_plugins(self):
         """Display the list of loaded plugins."""
@@ -205,7 +204,7 @@ class Collection:
         spec.loader.exec_module(mod)
         self.register_plugin_by_module(mod, activate)
 
-    def register_plugin_by_module(self, mod, activate=False):
+    def register_plugin_by_module(self, name, mod, activate=False):
         """Based on a module name, load any defined plugin.
 
         mod must be a valid PYTHON module name.
@@ -216,17 +215,12 @@ class Collection:
         for _, the_class in inspect.getmembers(mod, inspect.isclass):
             if issubclass(the_class, Plugin) and the_class is not Plugin:
                 step_str = str(the_class.step)
-                class_name = the_class.__name__
-                if self.exist_plugin(class_name):
-                    io.console.critical(
-                        f"A plugin with the name {class_name} " "is already register."
-                    )
-                io.console.debug(
-                    f"Registering plugin by module " f"{mod}/{class_name} ({step_str})"
-                )
-                self._plugins[the_class.step].append(the_class())
+                if self.exist_plugin(name):
+                    io.console.critical(f"A plugin with the name {name} is already register.")
+                io.console.debug(f"Registering plugin '{name}' by module '{mod}' ({step_str})")
+                self._plugins[the_class.step][name] = the_class()
                 if activate:
-                    self.activate_plugin(class_name)
+                    self.activate_plugin(name)
 
     def register_plugin_by_dir(self, pkgpath, activate=False):
         """From a prefix directory, load any plugin defined in it.
@@ -255,6 +249,6 @@ class Collection:
         for _, name, _ in pkgutil.iter_modules(mod.__path__, mod.__name__ + "."):
             try:
                 submod = importlib.import_module(name)
-                self.register_plugin_by_module(submod, activate)
+                self.register_plugin_by_module(name.split(".")[-1], submod, activate)
             except Exception as e:
                 raise PluginException.LoadError(name) from e
