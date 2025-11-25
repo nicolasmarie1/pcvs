@@ -224,8 +224,8 @@ def process_check_directory(directory, pf_name="default.yml"):
         table.add_row(setup_ok, yaml_ok, "." if not subtree else subtree)
         if err:
             io.console.error(err)
-            errors.setdefault(err, 0)
-            errors[err] += 1
+            errors.setdefault(str(err), 0)
+            errors[str(err)] += 1
 
     io.console.print(table)
     return errors

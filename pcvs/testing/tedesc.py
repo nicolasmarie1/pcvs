@@ -20,7 +20,7 @@ from pcvs.testing.test import Test
 # appearing in this list will be considered as the main language
 
 
-def detect_compiler(build_info: dict) -> list[str | None]:
+def detect_compiler(build_info: dict) -> list[str] | None:
     """
     Determine compilers to use for a target file (or list of files).
 
@@ -47,7 +47,7 @@ def detect_compiler(build_info: dict) -> list[str | None]:
     if len(detect) > 0:
         return detect
     # fail to detect compiler
-    return [None]
+    return None
 
 
 def extract_compilers_envs():
@@ -360,7 +360,7 @@ class TEDescriptor:
         :rtype: str
         """
         compilers = detect_compiler(self._build)
-        if len(compilers) < 1 or compilers[0] is None:
+        if compilers is None:
             raise TestException.TestExpressionError(
                 self._build["files"], f"Unable to dect compilers for files: {self._build['files']}"
             )
