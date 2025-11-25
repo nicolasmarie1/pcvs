@@ -14,7 +14,7 @@ NAME_BUILD_ARCHIVE_DIR = "old_archives"
 NAME_BUILD_CACHEDIR = "cache"
 NAME_BUILD_CONTEXTDIR = os.path.join(NAME_BUILD_CACHEDIR, "runner_ctx")
 
-NAME_DEBUG_FILE = "pcvs-debug.log"
+NAME_DEBUG_FILE = f"pcvs-debug-{os.getpid()}.log"
 NAME_LOG_FILE = "pcvs-out.log"
 
 PATH_INSTDIR = os.path.dirname(__file__)

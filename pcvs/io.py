@@ -211,7 +211,7 @@ class PCVSConsole:
 
     def move_debug_file(self, newdir):
         assert os.path.isdir(newdir)
-        if self._debugfile:
+        if self._debugfile and os.path.exists(self._debugfile.name):
             shutil.move(self._debugfile.name, os.path.join(newdir, pcvs.NAME_DEBUG_FILE))
         else:
             self.warning("No '{}' file found for this Console".format(pcvs.NAME_DEBUG_FILE))
