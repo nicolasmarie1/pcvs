@@ -115,16 +115,15 @@ def handle_build_lockfile(exc=None):
 
 def parse_tags(filters: str) -> dict[list[str]]:
     """Parse input to generate tags set."""
-    allow_tags = []
-    deny_tags = []
+    tags = {}
     for f in filters.split(","):
         if len(f) == 0:
             continue
         if f[0] == "!":
-            deny_tags.append(f[1:])
+            tags[f[1:]] = False
         else:
-            allow_tags.append(f)
-    return {"allow": allow_tags, "deny": deny_tags}
+            tags[f] = True
+    return tags
 
 
 @click.command(
@@ -279,7 +278,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "print_filter",
     type=str,
     default="",
-    help="Filter test output based on tags",
+    help="Filter test output based on a list of tags.",
 )
 @click.option(
     "-R",
@@ -287,7 +286,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "run_filter",
     type=str,
     default="",
-    help="Filter which tests are run based on tags",
+    help="Filter which tests are run based on a list of tags.",
 )
 @click.argument(
     "dirs",
@@ -328,6 +327,10 @@ def run(
     By default the current directory is scanned to find test-suites to run.
     May also be provided as a list of directories as described by tests
     found in DIRS.
+
+    Warning: Tags filters are order sensitive, a test with 'compiler' and 'test' tags
+    will be filter out by '!test,compiler' but included by 'compiler,!test'.
+    (The first tag in the filter to match a tag in the test rule).
     """
 
     io.console.info("PRE-RUN: start")

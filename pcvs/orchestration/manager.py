@@ -185,7 +185,7 @@ class Manager:
             change = False
             for joblist in self._dims.values():
                 for job in joblist:
-                    if job.filter_run():
+                    if not job.should_run():
                         io.console.debug(f"Filtering test: {job.name}")
                         job.remove_test_from_deps()
                         joblist.remove(job)

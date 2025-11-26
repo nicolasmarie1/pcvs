@@ -341,23 +341,26 @@ class Test:
         for test in self._deps:
             test.remove_dependee(self)
 
-    def filter_run(self) -> bool:
+    def should_run(self) -> bool:
+        """Should the test be run."""
         if len(self._dependee) > 0:
-            return False
-
-        filter_test: bool = True
+            return True
         valcfg = GlobalConfig.root["validation"]
-        if len(valcfg["run_filter"]["allow"]) > 0:
-            for t in self.tags:
-                if t in valcfg["run_filter"]["allow"]:
-                    filter_test = False
-            return filter_test
 
-        filter_test = False
-        for t in self.tags:
-            if t in valcfg["run_filter"]["deny"]:
-                filter_test = True
-        return filter_test
+        contain_allow_filter: bool = False
+        for t, allow in valcfg["run_filter"].items():
+            if allow:
+                contain_allow_filter = True
+                if t in self.tags:
+                    return True
+            else:
+                if t in self.tags:
+                    return False
+
+        # if there is allow filters, deny every thing that is not in it.
+        if contain_allow_filter:
+            return False
+        return True
 
     def has_completed_deps(self):
         """Check if the test can be scheduled.
@@ -566,18 +569,24 @@ class Test:
         self._state = state if isinstance(state, Test.State) else Test.State.FAILURE
 
     def should_print(self) -> bool:
+        """Should the test result be printed."""
         if not self._output:
             return False
         valcfg = GlobalConfig.root["validation"]
 
-        # tags filtering override print policy
-        if len(valcfg["print_filter"]["allow"]) > 0:
-            for t in self.tags:
-                if t in valcfg["print_filter"]["allow"]:
+        contain_allow_filter: bool = False
+        for t, allow in valcfg["print_filter"].items():
+            if allow:
+                contain_allow_filter = True
+                if t in self.tags:
                     return True
-        for t in self.tags:
-            if t in valcfg["print_filter"]["deny"]:
-                return False
+            else:
+                if t in self.tags:
+                    return False
+
+        # if there is allow filters, deny every thing that is not in it.
+        if contain_allow_filter:
+            return False
 
         # print policy
         if valcfg["print_policy"] == "all":
