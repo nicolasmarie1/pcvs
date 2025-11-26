@@ -111,7 +111,7 @@ class Collection:
         for _, plugins in self._plugins.items():
             for plname, plugin in plugins.items():
                 if name.lower() == plname:
-                    io.console.debug("Activate {}".format(name))
+                    io.console.debug("Activate plugin: '{}'".format(name))
                     if self._enabled[plugin.step]:
                         io.console.debug(" -> overrides {}".format(self._enabled[plugin.step]))
                     self._enabled[plugin.step] = plugin
@@ -157,7 +157,7 @@ class Collection:
 
     def try_invoke_plugins(self, step: Plugin.Step, method: str = "run", *args, **kwargs):
         if self.has_enabled_step(step, method):
-            self.invoke_plugins(step, method, *args, **kwargs)
+            return self.invoke_plugins(step, method, *args, **kwargs)
 
     def nb_plugins_for(self, step):
         """Count the number of possible plugins for a given step.

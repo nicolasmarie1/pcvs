@@ -368,7 +368,7 @@ class PCVSConsole:
         table = Table(expand=True, box=box.SIMPLE)
         table.add_column("Name", justify="left", ratio=10)
         for state in PCVSConsole.ALL_STATES:
-            table.add_column(state, justify="center")
+            table.add_column(state, justify="right")
         for label, lvalue in self.job_summary_data_table.items():
             for subtree, svalue in lvalue.items():
                 if sum(svalue.values()) == svalue.get("SUCCESS", 0):

@@ -15,27 +15,14 @@ class Manager:
     requested to be run). To extract jobs to be scheduled, a Manager will create
     Set()s. Once completed Sets are merged to the Manager before publishing the
     results.
-
-    :ivar dims: hierarchical dict storing jobs
-    :type dims: dict
-    :ivar _max_size: max number of resources allowed by the profile
-    :type _max_size: int
-    :ivar _publisher: the Formatter object, publishing results into files
-    :type _publisher: :class:`ResultFileManager`
-    :ivar _count: dict gathering various counters (total, executed...)
-    :type _count: dict
     """
 
-    jobs = {}
-    dep_rules = {}
-
     def __init__(self, max_nodes=0, publisher=None):
-        """constructor method.
+        """
+        Initialize  a Job Manager.
 
-        :param max_size: max number of resource allowed to schedule.
-        :type max_size: int
-        :param builder: Not used yet
-        :type builder: None
+        :param max_nodes: max number of nodes allowed to schedule.
+        :type max_nodes: int
         :param publisher: requested publisher by the orchestrator
         :type publisher: :class:`ResultFileManager`
         """
@@ -44,21 +31,15 @@ class Manager:
         self._concurrent_level = GlobalConfig.root["machine"].get("concurrent_run", 1)
 
         self._max_nodes = max_nodes
-        self._dims = {n: [] for n in range(1, self._max_nodes + 1)}
+
+        # jid to Job bindings
+        self.jobs = {}
+        # job dependency rules
+        self.dep_rules = {}
+
+        # self._dims = {n: [] for n in range(1, self._max_nodes + 1)}
         self._publisher = publisher
         self._count = {"total": 0, "executed": 0}
-
-    def get_dim(self, dim):
-        """Get the list of jobs satisfying the given dimension.
-
-        :param dim: the target dim
-        :type dim: int
-        :return: the list of jobs for this dimension, empty if dim is invalid
-        :rtype: list
-        """
-        if dim not in self._dims:
-            return []
-        return self._dims[dim]
 
     @property
     def nb_max_nodes(self):
@@ -69,15 +50,8 @@ class Manager:
         """
         return self._max_nodes
 
-    def __add_job(self, job):
-        """Store a new job to the job Queue.
-
-        :param job: The job to append
-        :type job: :class:`Test`
-        """
-        test_nodes_nb = min(self._max_nodes, job.get_nb_nodes())
-
-        self._dims[test_nodes_nb].append(job)
+    def __add_job(self, job: Test):
+        self.jobs[job.jid] = job
 
     def add_job(self, job):
         """Store a new job to the Job Queue, the Manager table,
@@ -86,11 +60,9 @@ class Manager:
         :param job: The job to append
         :type job: :class:`Test`
         """
-        self.__add_job(job)
-
         # if test is not know yet, add + increment
         if job.jid not in self.jobs:
-            self.jobs[job.jid] = job
+            self.__add_job(job)
             self._count["total"] += 1
             self.save_dependency_rule(job.basename, job)
 
@@ -119,16 +91,14 @@ class Manager:
         This function is meant to be called once and browse every single tests
         to resolve dep names to their real associated object.
         """
-        for joblist in self._dims.values():
-            for job in joblist:
-                self.resolve_single_job_deps(job, [])
+        for _, job in self.jobs.items():
+            self.resolve_single_job_deps(job, [])
 
     def print_dep_graph(self, outfile=None):
         s = ["digraph D {"]
-        for joblist in self._dims.values():
-            for job in joblist:
-                for d in job.get_dep_graph().keys():
-                    s.append('"{}"->"{}";'.format(job.name, d))
+        for _, job in self.jobs.items():
+            for d in job.get_dep_graph().keys():
+                s.append(f'"{job.name}"->"{d}";')
         s.append("}")
 
         if not outfile:
@@ -174,23 +144,21 @@ class Manager:
                 job.resolve_a_dep(depname, job_dep)
 
     def _transpose_dep_graph(self):
-        for joblist in self._dims.values():
-            for job in joblist:
-                job.transpose_deps()
+        for _, job in self.jobs.items():
+            job.transpose_deps()
 
     def filter_tags(self):
         self._transpose_dep_graph()
         change: bool = True
         while change:
             change = False
-            for joblist in self._dims.values():
-                for job in joblist:
-                    if not job.should_run():
-                        io.console.debug(f"Filtering test: {job.name}")
-                        job.remove_test_from_deps()
-                        joblist.remove(job)
-                        self._count["total"] -= 1
-                        change = True
+            for jid, job in self.jobs.items():
+                if not job.should_run():
+                    io.console.debug(f"Filtering test: {job.name}")
+                    job.remove_test_from_deps()
+                    self.jobs.pop(jid)
+                    self._count["total"] -= 1
+                    change = True
 
     def get_leftjob_count(self):
         """Return the number of jobs remaining to be executed.
@@ -213,10 +181,8 @@ class Manager:
         self._publisher.save(job)
 
     def prune_all_jobs_as_non_runnable(self):
-        for k in sorted(self._dims.keys(), reverse=True):
-            for job in self._dims[k]:
-                self.publish_failed_to_run_job(job, Test.DISCARDED_STR, Test.State.ERR_OTHER)
-            self._dims[k].clear()
+        for _, job in self.jobs.items():
+            self.publish_failed_to_run_job(job, Test.DISCARDED_STR, Test.State.ERR_OTHER)
 
     def create_subset(self, resources_tracker: ResourceTracker):
         """Extract one or more jobs, ready to be run.
@@ -242,13 +208,14 @@ class Manager:
         return the_set
 
     def __get_next_job(self) -> Test:
-        for k in sorted(self._dims.keys(), reverse=True):
-            job: Test = None
-            while len(self._dims[k]) > 0:
-                job = self._dims[k].pop(0)
-                assert job is not None
-                return job
-        return None
+        if len(self.jobs) <= 0:
+            return None
+        jid, job = sorted(
+            self.jobs.items(), key=lambda entry: entry[1].get_nb_nodes(), reverse=True
+        )[0]
+        assert job is not None
+        self.jobs.pop(jid)
+        return job
 
     def __default_create_subset(self, resources_tracker: ResourceTracker):
         scheduled_set = None
@@ -258,6 +225,7 @@ class Manager:
         to_resched_jobs = []
 
         while (job := self.__get_next_job()) is not None:
+            # test not ready to be run
             if job.state != Test.State.WAITING:
                 continue
 
