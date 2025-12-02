@@ -91,7 +91,7 @@ def config(ctx: click.Context) -> None:  # pylint: disable=unused-argument
     required=False,
     type=str,
     shell_complete=compl_list_scope_kind,
-    help="Token in the form scope[:kind] or kind",
+    # help="Token in the form scope[:kind] or kind",
 )
 @click.pass_context
 def config_list(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
@@ -131,7 +131,7 @@ def config_list(ctx: click.Context, token: str) -> None:  # pylint: disable=unus
     nargs=1,
     type=str,
     shell_complete=compl_list_configs,
-    help="Token in the form [scope:[kind:]]label",
+    # help="Token in the form [scope:[kind:]]label",
 )
 @click.pass_context
 def config_show(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
