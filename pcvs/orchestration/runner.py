@@ -68,7 +68,7 @@ class RemoteContext:
         if self._outfile is None:
             self._outfile = open(os.path.join(self._path, "output.bin"), "wb")
         assert self._outfile is not None
-        data = job.encoded_output
+        data = job.b64_output_bytes
         self._outfile.writelines(
             [
                 "{}:{}:{}:{}:{}\n".format(
@@ -90,12 +90,10 @@ class RemoteContext:
                     datalen: int = int(_datalen)
                     timexec: float = float(_timexec)
                     retcode: int = int(_retcode)
-                    data = b""
                     job: Test | None = jobs.find(jobid)
                     assert job is not None
                     if datalen > 0:
-                        data = lines[lineum + 1].strip()
-                        job.encoded_output = data
+                        job.b64_output_bytes = lines[lineum + 1]
                     job.save_raw_run(rc=retcode, time=timexec)
                     job.save_status(TestState.EXECUTED)
 
@@ -155,7 +153,8 @@ class RunnerAdapter(threading.Thread):
 
         :raises Exception: Something occurred while running a test"""
         io.console.nodebug("{}: [LOCAL] Set start".format(self.ident))
-        for job in jobs.content:
+        for _job in jobs.content:
+            job: Test = _job
             p = subprocess.Popen(
                 "{}".format(job.invocation_command),
                 shell=True,
@@ -199,7 +198,9 @@ class RunnerAdapter(threading.Thread):
                     return
 
             job.save_status(TestState.EXECUTED)
-            job.save_raw_run(time=run_time, rc=rc, out=stdout, hard_timeout=hard_timeout)
+            job.save_raw_run(
+                time=run_time, rc=rc, out=stdout.decode("utf-8"), hard_timeout=hard_timeout
+            )
         jobs.completed = True
 
     def remote_exec(self, jobs: Set) -> None:

@@ -79,8 +79,7 @@ def get_logged_output(prefix: str, testname: str) -> str:
         man = BuildDirectoryManager(build_dir=buildir)
         man.init_results()
         for test in man.results.retrieve_tests_by_name(name=testname):
-            output = test.get_raw_output(encoding="utf-8")
-            assert isinstance(output, str)
+            output = test.output
             s += output
         man.finalize()
     if not s:

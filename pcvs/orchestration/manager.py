@@ -174,7 +174,7 @@ class Manager:
         return self._count["total"] - self._count["executed"]
 
     def publish_job(
-        self, job: Test, publish_args: tuple[int, float, bytes, TestState] | None = None
+        self, job: Test, publish_args: tuple[int, float, str, TestState] | None = None
     ) -> None:
         if publish_args is not None:
             job.save_final_result(
@@ -297,7 +297,7 @@ class Manager:
 
         return scheduled_set
 
-    def publish_failed_to_run_job(self, job: Test, out: bytes, state: TestState) -> None:
+    def publish_failed_to_run_job(self, job: Test, out: str, state: TestState) -> None:
         publish_job_args = (-1, 0.0, out, state)
         self.publish_job(job, publish_args=publish_job_args)
         job.display()

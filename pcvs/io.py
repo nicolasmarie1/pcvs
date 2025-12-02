@@ -297,7 +297,7 @@ class PCVSConsole:
     def exception(self, e: Exception) -> None:
         """Print exceptions."""
         if self._verbose >= Verbosity.DEBUG:
-            self._stderr.print_exception(word_wrap=True, show_locals=True)
+            self._stderr.print_exception(word_wrap=True, show_locals=True, extra_lines=16)
         else:
             self._stderr.print_exception(extra_lines=0)
         self._loghdl.exception(e)

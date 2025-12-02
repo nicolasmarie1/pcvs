@@ -356,6 +356,5 @@ def start_app(p: list[str]) -> int:  # pylint: disable=unused-argument
     :rtype: int
     """
     app: ReportApplication = ReportApplication(ReportModel(p))
-    res = app.run()
-    assert isinstance(res, int)
-    return res
+    app.run()
+    return 0

@@ -319,7 +319,7 @@ def find_files_to_process(
     """
     setup_files = []
     yaml_files = []
-
+    io.console.debug(f"Looking for files in:\n{path_dict}")
     # discovery may take a while with some systems
     # iterate over user directories
     for label, path in path_dict.items():

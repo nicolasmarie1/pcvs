@@ -148,7 +148,7 @@ class ResultFile:
             length = data["result"]["output"]["length"]
             if offset >= 0 and length > 0:
                 # TODO: remove re-encode to re-decode later ...
-                elt.encoded_output = self.extract_output(offset, length).encode("utf-8")
+                elt.b64_output = self.extract_output(offset, length)
             yield elt
 
     def extract_output(self, offset: int, length: int) -> str:
@@ -199,7 +199,7 @@ class ResultFile:
 
             eltt = Test()
             eltt.from_json(elt, "internal, this should not fail")
-            eltt.encoded_output = rawout.encode("utf-8")  # TODO: remove encode
+            eltt.b64_output = rawout
             res.append(eltt)
 
         return res
@@ -441,7 +441,7 @@ class ResultFileManager:
             self.create_new_result_file()
 
         # save info to file
-        self._current_file.save(job_id, job.to_json(), job.encoded_output)
+        self._current_file.save(job_id, job.to_json(), job.b64_output_bytes)
 
         # register this location from the map-id table
         self._mapdata_rev[job_id] = self._current_file.prefix

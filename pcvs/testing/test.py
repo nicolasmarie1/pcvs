@@ -35,8 +35,8 @@ class Test:
 
     res_scheme = ValidationScheme("test-result")
 
-    NOSTART_STR = b"This test cannot be started."
-    DISCARDED_STR = b"This test has failed to be scheduled. Discarded."
+    NOSTART_STR = "This test cannot be started."
+    DISCARDED_STR = "This test has failed to be scheduled. Discarded."
 
     def __init__(
         self,
@@ -85,6 +85,7 @@ class Test:
         self._tags: list[str] = tags
         self._artifacts: dict = artifacts
         self._comb: Combination | None = comb
+        self._comb_str: str | None = comb_str
         self._resources: list[int] = _resources
         self._metrics: dict = metrics
         self._mod_deps: list = mod_deps
@@ -94,7 +95,7 @@ class Test:
         self._rc: int = 0
         self._cwd: str | None = wd
         self._exectime: float = 0.0
-        self._output: bytes = b""
+        self._output: str = ""
         self._state: TestState = TestState.WAITING
         self._deps: list[Self] = []
         self._dependee: list[Self] = []
@@ -413,7 +414,7 @@ class Test:
         return self._resources
 
     def save_final_result(
-        self, rc: int = 0, time: float = 0.0, out: bytes = b"", state: TestState | None = None
+        self, rc: int = 0, time: float = 0.0, out: str = "", state: TestState | None = None
     ) -> None:
         """Build the final Test result node.
 
@@ -421,8 +422,8 @@ class Test:
         :type rc: int, optional
         :param time: elapsed time, defaults to 0.0
         :type time: float, optional
-        :param out: standard out/err, defaults to b''
-        :type out: bytes, optional
+        :param out: standard out/err, default to ""
+        :type out: str, optional
         :param state: Job final status (if override needed), defaults to FAILED
         :type state: :class:`TestState`, optional
         """
@@ -444,24 +445,22 @@ class Test:
 
     def save_raw_run(
         self,
-        out: bytes | None = None,
+        out: str | None = None,
         rc: int | None = None,
         time: float | None = None,
         hard_timeout: bool = False,
     ) -> None:
         """TODO:"""
+        if out is not None:
+            self._output = out
         if rc is not None:
             self._rc = rc
-        if out is not None:
-            self._output = base64.b64encode(out)
-            self._output_info["raw"] = self._output
         if time is not None:
             self._exectime = time
         self._has_hard_timeout = hard_timeout
 
     def extract_metrics(self) -> None:
         """TODO:"""
-        raw_output = self.output
         for name in self._metrics.keys():
             node = self._metrics[name]
 
@@ -470,7 +469,7 @@ class Test:
             except KeyError:
                 ens = list
 
-            self._metrics[name]["values"] = list(ens(re.findall(node["key"], raw_output)))
+            self._metrics[name]["values"] = list(ens(re.findall(node["key"], self._output)))
 
     def evaluate(self) -> None:
         """TODO:"""
@@ -484,13 +483,11 @@ class Test:
         if self._expect_rc != self._rc:
             state = TestState.FAILURE
 
-        raw_output = self.output
-
         # validation through a matching regex
         if state == TestState.SUCCESS and self._matchers is not None:
             for _, v in self._matchers.items():
                 expected = v.get("expect", True) is True
-                found = re.search(v["expr"], raw_output)
+                found = re.search(v["expr"], self._output)
                 io.console.debug(
                     f"Looking for expr: {v['expr']}, foud: {found}, expected: {expected}"
                 )
@@ -601,16 +598,16 @@ class Test:
     def display(self) -> None:
         """Print the Test into stdout (through the manager)."""
 
-        raw_output = None
+        output = None
         if self.should_print():
-            raw_output = self.output
+            output = self._output
 
         io.console.print_job(
             self.get_testinfo_fancy(),
             self._state,
             self.label,
             "/{}".format(self.subtree) if self.subtree else "",
-            raw_output,
+            output,
         )
 
     def been_executed(self) -> bool:
@@ -635,43 +632,58 @@ class Test:
         return self._state
 
     @property
-    def encoded_output(self) -> bytes:
+    def output(self) -> str:
+        """Getter for the test output."""
         return self._output
 
-    @encoded_output.setter
-    def encoded_output(self, v: bytes) -> None:
-        self._output = v
-        self._output_info["raw"] = v
-
-    def get_raw_output(self, encoding: str = "utf-8") -> bytes | str:
-        base = base64.b64decode(self._output)
-        return base if not encoding else base.decode(encoding)
+    @output.setter
+    def output(self, output: str) -> None:
+        """Setter for the test output."""
+        self._output = output
 
     @property
-    def output(self) -> str:
-        res = self.get_raw_output(encoding="utf-8")
-        assert isinstance(res, str)
-        return res
+    def b64_output(self) -> str:
+        """Getter for the test output in base64."""
+        return base64.b64encode(self._output.encode("utf-8")).decode("utf-8")
+
+    @b64_output.setter
+    def b64_output(self, v: str) -> None:
+        """Setter for the test output in base64."""
+        self._output = base64.b64decode(v.encode("utf-8")).decode("utf-8")
+
+    @property
+    def b64_output_bytes(self) -> bytes:
+        """Setter for the test output in base64 as utf-8 encoded bytes."""
+        return base64.b64encode(self._output.encode("utf-8"))
+
+    @b64_output_bytes.setter
+    def b64_output_bytes(self, output: bytes) -> None:
+        """Setter for the test output in base64 as utf-8 decoded bytes."""
+        self._output = base64.b64decode(output).decode("utf-8")
 
     @property
     def output_info(self) -> dict:
+        """Info about the output (file, offset & length)."""
         return self._output_info
 
     @property
     def time(self) -> float:
-        """TODO:"""
+        """Execution time."""
         return self._exectime
 
     @property
     def retcode(self) -> int:
+        """Return code of the test process."""
         return self._rc
 
     def to_json(self, strstate: bool = False) -> dict[str, Any]:
         """Serialize the whole Test as a JSON object.
 
         :return: a JSON object mapping the test
-        :rtype: str
+        :rtype: dict[str, Any]
         """
+        output = self.output_info
+        output["raw"] = self.b64_output
         res = {
             "id": {
                 "jid": self._jid,
@@ -680,14 +692,14 @@ class Test:
                 "label": self._label,
                 "subtree": self._subtree,
                 "suffix": self._suffix,
-                "comb": self._comb,
+                "comb": self._comb_str,
             },
             "exec": self._execmd,
             "result": {
                 "rc": self._rc,
                 "state": str(self._state) if strstate else self._state,
                 "time": self._exectime,
-                "output": self._output_info,
+                "output": output,
             },
             "data": {
                 "metrics": self._metrics,
@@ -695,7 +707,6 @@ class Test:
                 "artifacts": self._artifacts,
             },
         }
-
         return res
 
     def to_minimal_json(self) -> dict:
@@ -736,7 +747,7 @@ class Test:
         self._state = TestState(res.get("state", TestState.ERR_OTHER))
         self._exectime = res.get("time", 0)
         self._output_info = res.get("output", {})
-        self._output = self._output_info.get("raw", b"")
+        self.b64_output = self._output_info.get("raw", "")
 
         if "data" in test_json:
             self._metrics = test_json["data"].get("metrics", {})

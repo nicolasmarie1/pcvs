@@ -45,38 +45,34 @@ def iterate_dirs(
     :return: properly formatted dict of user directories, keys are labels.
     :rtype: dict
     """
-    list_of_dirs: dict[str, str] = {}
-    if not value:  # if not specified
+    dirs: dict[str, str] = {}
+    if value is None:  # if not specified
         return None
-    else:  # once specified
-        err_msg = ""
-        for d in value:
-            if ":" in d:  # split under LABEL:PATH semantics
-                [label, testpath] = d.split(":")
-                testpath = os.path.abspath(testpath)
-            else:  # otherwise, LABEL = dirname
-                testpath = os.path.abspath(d)
-                label = os.path.basename(testpath)
 
-            # if label already used for a different path
-            if label in list_of_dirs.keys() and testpath != list_of_dirs[label]:
-                err_msg += "- '{}': Used more than once\n".format(label.upper())
-            elif not os.path.isdir(testpath):
-                err_msg += "- '{}': No such directory\n".format(testpath)
-            # else, add it
-            else:
-                list_of_dirs[label] = testpath
-        if len(err_msg):
-            raise click.BadArgumentUsage(
-                "\n".join(
-                    [
-                        "While parsing user directories:",
-                        "{}".format(err_msg),
-                        "please see '--help' for more information",
-                    ]
-                )
+    err_msg = ""
+    for d in value:
+        testpath = os.path.abspath(d)
+        label = os.path.basename(testpath)
+
+        # if label already used for a different path
+        if label in dirs.keys() and testpath != dirs[label]:
+            err_msg += "- '{}': Used more than once\n".format(label.upper())
+        elif not os.path.isdir(testpath):
+            err_msg += "- '{}': No such directory\n".format(testpath)
+        # else, add it
+        else:
+            dirs[label] = testpath
+    if len(err_msg) > 0:
+        raise click.BadArgumentUsage(
+            "\n".join(
+                [
+                    "While parsing user directories:",
+                    "{}".format(err_msg),
+                    "please see '--help' for more information",
+                ]
             )
-    return list_of_dirs
+        )
+    return dirs
 
 
 def compl_list_dirs(
@@ -325,7 +321,7 @@ def run(
     print_policy: str,
     print_filter: str,
     run_filter: str,
-    dirs: set[str],
+    dirs: dict[str, str],  # see callback function for type infos
 ) -> None:
     """
     Execute a validation suite from a given PROFILE.
@@ -381,15 +377,14 @@ def run(
     val_cfg.set_ifdef("buildcache", os.path.join(val_cfg["output"], "cache"))
 
     # if dirs not set by config file nor CLI
-    if dirs is not None:
-        val_cfg["dirs"] = {os.path.basename(path): os.path.abspath(path) for path in dirs}
-    elif dirs is None and val_cfg["dirs"] is None:
-        cfg_dirs = {}
+    if not dirs and not val_cfg["dirs"]:
+        dirs = {}
         if not spack_recipe:
             testpath = os.getcwd()
-            cfg_dirs = {os.path.basename(testpath): testpath}
-        # not overriding if dirs is None
-        val_cfg.set_ifdef("dirs", cfg_dirs)
+            dirs = {os.path.basename(testpath): testpath}
+
+    # not overriding if dirs is None
+    val_cfg.set_ifdef("dirs", dirs)
 
     if bank is not None:
         obj = pvBank.Bank(bank)
