@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import Any
 
 import requests
 
@@ -11,25 +12,29 @@ sendData = False
 
 class GenericServer:
 
-    def __init__(self, session_id):
-        self._waitlist = []
-        self._metadata = {"rootdir": "remote server", "sid": session_id, "count": {}}
+    def __init__(self, session_id: str) -> None:
+        self._waitlist: list = []
+        self._metadata: dict[str, Any] = {
+            "rootdir": "remote server",
+            "sid": session_id,
+            "count": {},
+        }
 
     @abstractmethod
-    def send(self, data):
+    def send(self, data: Any) -> None:
         pass
 
     @abstractmethod
-    def recv(self):
+    def recv(self) -> None:
         pass
 
 
 class EmbeddedServer(GenericServer):
 
-    def send(self, data):
+    def send(self, data: Any) -> None:
         pass
 
-    def recv(self):
+    def recv(self) -> None:
         pass
 
 
@@ -37,19 +42,19 @@ class RemoteServer(GenericServer):
 
     DEFAULT_SRV_ADDR = "http://localhost:5000"
 
-    def __init__(self, sid, server_address):
+    def __init__(self, sid: str, server_address: str):
         super().__init__(sid)
         if not server_address:
             server_address = self.DEFAULT_SRV_ADDR
 
-        self._serv = server_address
+        self._serv: str = server_address
 
         if not server_address.startswith("http"):
             self._serv = "http://" + server_address
 
         self.open_connection()
 
-    def open_connection(self):
+    def open_connection(self) -> None:
         self._json_send(
             "/submit/session_init",
             {
@@ -60,38 +65,38 @@ class RemoteServer(GenericServer):
             },
         )
 
-    def close_connection(self):
+    def close_connection(self) -> None:
         self._json_send(
             "/submit/session_fini", {"sid": self._metadata["sid"], "state": Session.State.COMPLETED}
         )
 
     @property
-    def endpoint(self):
+    def endpoint(self) -> str:
         return self._serv
 
-    def send(self, data):
+    def send(self, data: Any) -> None:
         if self._send_unitary_test(data):
             self.retry_pending()
         else:
             self._waitlist.append(data)
 
-    def retry_pending(self):
+    def retry_pending(self) -> None:
         while len(self._waitlist) > 0:
             prev_test = self._waitlist.pop()
             if not self._send_unitary_test(prev_test):
                 self._waitlist.append(prev_test[1])
 
-    def _send_unitary_test(self, test):
+    def _send_unitary_test(self, test: Test) -> Any:
         assert isinstance(test, Test)
         to_send = {"metadata": self._metadata, "test_data": test.to_json(), "state": test.state}
         return self._json_send("/submit/test", to_send)
 
-    def _json_send(self, prefix, json_data):
+    def _json_send(self, prefix: str, json_data: Any) -> bool:
         try:
             requests.post(self._serv + prefix, json=json_data, timeout=1)
             return True
         except requests.exceptions.ConnectionError:
             return False
 
-    def recv(self):
+    def recv(self) -> None:
         pass

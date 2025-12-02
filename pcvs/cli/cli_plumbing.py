@@ -9,7 +9,7 @@ try:
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
 
 
 @click.command(
@@ -34,7 +34,9 @@ except ImportError:
     help="read from file instead of stdin",
 )
 @click.pass_context
-def resolve(ctx, file, bankname):  # pylint: disable=unused-argument
+def resolve(
+    ctx: click.Context, file: str, bankname: str | None  # pylint: disable=unused-argument
+) -> None:
 
     if file:
         with open(file, "r") as fh:

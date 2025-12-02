@@ -1,6 +1,9 @@
 import os
+from abc import abstractmethod
+from typing import Any
 
 from click import BadArgumentUsage
+from rich.table import Column
 from ruamel.yaml import YAML
 
 from pcvs import io
@@ -11,16 +14,16 @@ from pcvs.backend.configfile import Profile
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers import criterion
 from pcvs.helpers import utils
+from pcvs.helpers.exceptions import PCVSException
 from pcvs.helpers.exceptions import ValidationException
 from pcvs.helpers.storage import ConfigDesc
 from pcvs.helpers.storage import ConfigKind
 from pcvs.helpers.storage import ConfigLocator
-from pcvs.orchestration import Orchestrator
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.testing.tedesc import TEDescriptor
 
 
-def locate_scriptpaths(output=None):
+def locate_scriptpaths(output: str | None = None) -> list[str]:
     """Path lookup to find all 'list_of_tests' script within a given prefix.
 
     :param output: prefix to walk through, defaults to current directory
@@ -38,7 +41,7 @@ def locate_scriptpaths(output=None):
     return scripts
 
 
-def compute_scriptpath_from_testname(testname, output=None):
+def compute_scriptpath_from_testname(testname: str, output: str | None = None) -> str:
     """Locate the proper 'list_of_tests.sh' according to a fully-qualified test
     name.
 
@@ -57,7 +60,7 @@ def compute_scriptpath_from_testname(testname, output=None):
     return os.path.join(buildir, "test_suite", prefix, "list_of_tests.sh")
 
 
-def get_logged_output(prefix, testname) -> str:
+def get_logged_output(prefix: str, testname: str) -> str:
     """
     Get job output from the given archive/build path.
 
@@ -76,7 +79,9 @@ def get_logged_output(prefix, testname) -> str:
         man = BuildDirectoryManager(build_dir=buildir)
         man.init_results()
         for test in man.results.retrieve_tests_by_name(name=testname):
-            s += test.get_raw_output(encoding="utf-8")
+            output = test.get_raw_output(encoding="utf-8")
+            assert isinstance(output, str)
+            s += output
         man.finalize()
     if not s:
         s = "No test named '{}' found here.".format(testname)
@@ -84,7 +89,7 @@ def get_logged_output(prefix, testname) -> str:
     return s
 
 
-def process_check_configs():
+def process_check_configs() -> dict[str, int]:
     """Analyse available configurations.
 
     To ensure their correctness relatively to their respective schemes.
@@ -92,8 +97,8 @@ def process_check_configs():
     :return: caught errors, as a dict, where the keys is the errmsg base64
     :rtype: dict
     """
-    errors = {}
-    t = io.console.create_table("Configurations", ["Valid", "ID"])
+    errors: dict[str, int] = {}
+    t = io.console.create_table("Configurations", [Column("Valid"), Column("ID")])
 
     cds: list[ConfigDesc] = ConfigLocator().list_all_configs()
     for cd in cds:
@@ -110,11 +115,11 @@ def process_check_configs():
             io.console.debug(str(e))
 
         t.add_row(token, cd.full_name)
-    io.console.print(t)
+    io.console.print(str(t))
     return errors
 
 
-def process_check_profiles():
+def process_check_profiles() -> dict[str, int]:
     """Analyse availables profiles and check their correctness.
 
     Relatively to the base scheme.
@@ -122,8 +127,8 @@ def process_check_profiles():
     :return: list of caught errors as a dict, where keys are error msg base64
     :rtype: dict
     """
-    t = io.console.create_table("Available Profiles", ["Valid", "ID"])
-    errors = {}
+    t = io.console.create_table("Available Profiles", [Column("Valid"), Column("ID")])
+    errors: dict[str, int] = {}
 
     cds: list[ConfigDesc] = ConfigLocator().list_configs(ConfigKind.PROFILE)
     for cd in cds:
@@ -143,11 +148,11 @@ def process_check_profiles():
             io.console.debug(str(e))
 
         t.add_row(token, cd.full_name)
-    io.console.print(t)
+    io.console.print(str(t))
     return errors
 
 
-def process_check_directory(directory, pf_name="default.yml"):
+def process_check_directory(directory: str, pf_name: str = "default.yml") -> dict[str, int]:
     """Analyze a directory to ensure defined test files are valid.
 
     :param conversion: allow legacy format for this check (True by default)
@@ -159,7 +164,7 @@ def process_check_directory(directory, pf_name="default.yml"):
     :return: a dict of caught errors
     :rtype: dict
     """
-    errors = {}
+    errors: dict[str, int] = {}
     cd: ConfigDesc = ConfigLocator().parse_full_raise(
         pf_name, ConfigKind.PROFILE, should_exist=True
     )
@@ -177,7 +182,7 @@ def process_check_directory(directory, pf_name="default.yml"):
     run.check_defined_program_validity()
     criterion.initialize_from_system()
     TEDescriptor.init_system_wide("n_node")
-    GlobalConfig.root.set_internal("orchestrator", Orchestrator())
+    # GlobalConfig.root.set_internal("orchestrator", Orchestrator())
 
     # get environment variables
     env_config = run.build_env_from_configuration(GlobalConfig.root)
@@ -203,7 +208,7 @@ def process_check_directory(directory, pf_name="default.yml"):
         is_setup = (label, subtree, file) in setup_files
         setup_ok = token_ok if is_setup else token_unknown
         yaml_ok = token_ok
-        err = None
+        err: PCVSException | None = None
 
         if subtree is None:
             subtree = ""
@@ -223,11 +228,11 @@ def process_check_directory(directory, pf_name="default.yml"):
 
         table.add_row(setup_ok, yaml_ok, "." if not subtree else subtree)
         if err:
-            io.console.error(err)
+            io.console.error(str(err))
             errors.setdefault(str(err), 0)
             errors[str(err)] += 1
 
-    io.console.print(table)
+    io.console.print(str(table))
     return errors
     # TODO: format and return errors
 
@@ -242,31 +247,32 @@ class BuildSystem:
     :ivar _files: list of files found in _root
     :type _files: List[str]
     :ivar _stream: the resulted dict, representing targeted YAML architecture
-    :type _stream: dict"""
+    :type _stream: dict
+    """
 
-    def __init__(self, root, dirs=None, files=None):
+    def __init__(self, root: str, dirs: list[str] | None = None, files: list[str] | None = None):
         """Constructor method.
 
         :param root: root dir where discovery service is applied
         :type root: str
         :param dirs: list of dirs, defaults to None
-        :type dirs: str, optional
+        :type dirs: list[str], optional
         :param files: list of files, defaults to None
-        :type files: str, optional
+        :type files: list[str], optional
         """
         self._root = root
         self._dirs = dirs
         self._files = files
-        self._stream = {}
+        self._stream: dict[str, Any] = {}
 
-    def fill(self):
+    @abstractmethod
+    def fill(self) -> None:
         """This function should be overridden by overridden classes.
 
         Nothing to do, by default.
         """
-        assert False
 
-    def generate_file(self, filename="pcvs.yml", force=False):
+    def generate_file(self, filename: str = "pcvs.yml", force: bool = False) -> None:
         """Build the YAML test file, based on path introspection and build
         model.
 
@@ -287,12 +293,14 @@ class BuildSystem:
 class AutotoolsBuildSystem(BuildSystem):
     """Derived BuildSystem targeting Autotools projects."""
 
-    def fill(self):
+    def fill(self) -> None:
         """Populate the dict relatively to the build system to build the proper
         YAML representation."""
         name = os.path.basename(self._root)
         self._stream.setdefault(name, {}).setdefault("build", {}).setdefault("autotools", {})
-        self._stream[name]["build"]["autotools"]["autogen"] = "autogen.sh" in self._files
+        self._stream[name]["build"]["autotools"]["autogen"] = (
+            ("autogen.sh" in self._files) if self._files is not None else False
+        )
         self._stream[name]["build"]["files"] = os.path.join(self._root, "configure")
         self._stream[name]["build"]["autotools"]["params"] = ""
 
@@ -300,7 +308,7 @@ class AutotoolsBuildSystem(BuildSystem):
 class CMakeBuildSystem(BuildSystem):
     """Derived BuildSystem targeting CMake projects."""
 
-    def fill(self):
+    def fill(self) -> None:
         """Populate the dict relatively to the build system to build the proper
         YAML representation."""
         name = os.path.basename(self._root)
@@ -312,7 +320,7 @@ class CMakeBuildSystem(BuildSystem):
 class MakefileBuildSystem(BuildSystem):
     """Derived BuildSystem targeting Makefile-based projects."""
 
-    def fill(self):
+    def fill(self) -> None:
         """Populate the dict relatively to the build system to build the proper
         YAML representation."""
         name = os.path.basename(self._root)
@@ -321,7 +329,7 @@ class MakefileBuildSystem(BuildSystem):
         self._stream[name]["build"]["files"] = os.path.join(self._root, "Makefile")
 
 
-def process_discover_directory(path, override=False, force=False):
+def process_discover_directory(path: str, override: bool = False, force: bool = False) -> None:
     """Path discovery to detect & initialize build systems found.
 
     :param path: the root path to start with
@@ -332,7 +340,8 @@ def process_discover_directory(path, override=False, force=False):
     :type force: bool
     """
     for root, dirs, files in os.walk(path):
-        obj, n = None, None
+        obj: BuildSystem | None = None
+        n = None
         if "configure" in files:
             n = "[yellow bold]Autotools[/]"
             obj = AutotoolsBuildSystem(root, dirs, files)

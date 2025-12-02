@@ -4,7 +4,7 @@ from pcvs.plugins import Plugin
 class MPIOmpPlugin(Plugin):
     step = Plugin.Step.TEST_EVAL
 
-    def run(self, *args, **kwargs):
+    def run(self, *args, **kwargs):  # type: ignore
         """Return True if the combination should be used."""
         hardware_conf = kwargs["config"]["machine"]
         nb_nodes = hardware_conf.get("nodes", 1)

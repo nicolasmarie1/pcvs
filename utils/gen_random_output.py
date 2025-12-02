@@ -49,7 +49,6 @@ for t in track(range(1, test_count)):
         label=label,
         subtree="sub",
         te_name="test_{}".format(t),
-        dim=random.randint(0, 10),
         command="sh list_of_tests.sh '{}'".format("{}/{}/test_{}".format(label, "sub", t)),
         tags=tags,
     )

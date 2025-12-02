@@ -20,7 +20,7 @@ try:
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
 
 
 @click.command(
@@ -55,40 +55,55 @@ except ImportError:
     "-C",
     "--print-command",
     "pcmd",
-    flag_value="cmd",
+    is_flag=True,
     help="Dedicated option to print target command",
 )
 @click.option(
     "-E",
     "--print-env",
     "penv",
-    flag_value="env",
+    is_flag=True,
     help="Dedicated option to print target modified environment",
 )
 @click.option(
     "-M",
     "--print-module",
     "pmod",
-    flag_value="mod",
+    is_flag=True,
     help="Dedicated option to print target manager pre-load",
 )
 @click.option(
     "-O",
     "--print-output",
     "pout",
-    flag_value="out",
+    is_flag=True,
     help="Dedicated option to print target output",
 )
 @click.option(
     "-A",
     "--print-all",
     "pall",
-    flag_value="all",
+    is_flag=True,
     help="Dedicated option to print everything",
 )
-@click.argument("argument", type=str, required=False)
+@click.argument(
+    "argument",
+    type=str,
+    required=False,
+)
 @click.pass_context
-def exec_cli(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout, pall) -> None:
+def exec_cli(
+    ctx: click.Context,
+    output: str,
+    argument: str,
+    gen_list: bool,
+    display: set[str],
+    pcmd: bool,
+    penv: bool,
+    pmod: bool,
+    pout: bool,
+    pall: bool,
+) -> None:
     """Run a unit test as it would have been through the whole engine (for
     reproducing purposes) from the command line."""
     rc = 0
@@ -97,19 +112,16 @@ def exec_cli(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout, p
 
     display = set(display)
     if pall or "all" in display:
-        pmod = "mod"
-        penv = "env"
-        pcmd = "cmd"
-        pout = "out"
+        pmod, penv, pcmd, pout = True, True, True, True
 
     if pmod:
-        display.add(pmod)
+        display.add("mod")
     if pcmd:
-        display.add(pcmd)
+        display.add("cmd")
     if pout:
-        display.add(pout)
+        display.add("out")
     if penv:
-        display.add(penv)
+        display.add("env")
 
     if len(display) > 0:
         env.update({"PCVS_SHOW": "1"})
@@ -198,12 +210,18 @@ def exec_cli(ctx, output, argument, gen_list, display, pcmd, penv, pmod, pout, p
 )
 @click.pass_context
 def check(
-    ctx, directory, encoding, color, configs, profiles, profile
-):  # pylint: disable=unused-argument
+    ctx: click.Context,  # pylint: disable=unused-argument
+    directory: str,
+    encoding: bool,
+    color: bool,
+    configs: bool,
+    profiles: bool,
+    profile: str,
+) -> None:
     """Global input/output analyzer, validating configuration, profiles &
     terminal supports."""
     io.console.print_banner()
-    errors = dict()
+    errors: dict[str, int] = {}
     if color:
         display = Panel.fit(
             "\n".join(
@@ -215,7 +233,7 @@ def check(
                 ]
             )
         )
-        io.console.print(display)
+        io.console.print(str(display))
         return
 
     if encoding:
@@ -226,7 +244,7 @@ def check(
             if k.startswith("_"):
                 continue
             t.add_row(k, str(getattr(w, k)), str(getattr(wo, k)))
-        io.console.print(t)
+        io.console.print(str(t))
         return
 
     if configs:
@@ -250,7 +268,7 @@ def check(
     if errors:
         for k, v in errors.items():
             table.add_row(str(v), k)
-        io.console.print(table)
+        io.console.print(str(table))
     else:
         io.console.print(
             "{succ} {cg} {succ}".format(
@@ -294,15 +312,20 @@ def check(
     default=False,
 )
 @click.argument(
-    "paths",
+    "path",
     required=False,
     type=click.Path(exists=True),
     nargs=-1,
 )
 @click.pass_context
 def clean(
-    ctx, force, fake, paths, remove_build_dir, interactive
-):  # pylint: disable=unused-argument
+    ctx: click.Context,  # pylint: disable=unused-argument
+    force: bool,
+    fake: bool,
+    interactive: bool,
+    remove_build_dir: bool,
+    path: str,
+) -> None:
     """Find & clean workspaces from PCVS artifacts (build & archives)"""
     if not fake and not force:
         io.console.warn(
@@ -319,45 +342,44 @@ def clean(
             )
         )
         sys.exit(0)
-    if not paths:
-        paths = [os.getcwd()]
+    if not path:
+        path = os.getcwd()
 
     io.console.print_header("DELETION")
-    for path in paths:
-        for root, dirs, files in os.walk(path):
-            # current root need to be cleaned
-            if NAME_BUILDFILE in files:
-                io.console.print_section("Found build: {}".format(root))
+    for root, dirs, files in os.walk(path):
+        # current root need to be cleaned
+        if NAME_BUILDFILE in files:
+            io.console.print_section("Found build: {}".format(root))
 
-                archive_dir = os.path.join(root, NAME_BUILD_ARCHIVE_DIR)
-                archives = sorted([x for x in os.listdir(archive_dir)])
+            archive_dir = os.path.join(root, NAME_BUILD_ARCHIVE_DIR)
+            archives = sorted([x for x in os.listdir(archive_dir)])
 
-                if len(archives) == 0 and fake:
-                    io.console.print_item("No archive found.")
-                else:
-                    for f in archives:
-                        arch_date = datetime.strptime(
-                            f.replace("pcvsrun_", "").replace(".tar.gz", ""), "%Y%m%d%H%M%S"
-                        )
-                        delta = datetime.now() - arch_date
-                        if fake:
-                            io.console.print_item("Age: {:>3} day(s): {}".format(delta.days, f))
+            if len(archives) == 0 and fake:
+                io.console.print_item("No archive found.")
+            else:
+                for f in archives:
+                    arch_date = datetime.strptime(
+                        f.replace("pcvsrun_", "").replace(".tar.gz", ""), "%Y%m%d%H%M%S"
+                    )
+                    delta = datetime.now() - arch_date
+                    if fake:
+                        io.console.print_item("Age: {:>3} day(s): {}".format(delta.days, f))
+                        continue
+                    elif interactive:
+                        if not click.confirm("{}: ({} days ago) ?".format(f, delta.days)):
                             continue
-                        elif interactive:
-                            if not click.confirm("{}: ({} days ago) ?".format(f, delta.days)):
-                                continue
-                        os.remove(os.path.join(archive_dir, f))
-                        io.console.print_item("Deleting {}".format(f))
-                if remove_build_dir:
-                    if not fake:
-                        if interactive:
-                            if not click.confirm("{}: ?".format(root)):
-                                continue
-                        shutil.rmtree(root)
-                        io.console.print_item("Deleted {}".format(root))
+                    os.remove(os.path.join(archive_dir, f))
+                    io.console.print_item("Deleting {}".format(f))
+            if remove_build_dir:
+                if not fake:
+                    if interactive:
+                        if not click.confirm("{}: ?".format(root)):
+                            continue
+                    shutil.rmtree(root)
+                    io.console.print_item("Deleted {}".format(root))
 
-                # stop the walk down to this top directory
-                dirs[:] = []
+            # stop the walk down to this top directory
+            dirs[:] = []
 
 
 @click.command(
@@ -365,7 +387,8 @@ def clean(
     short_help="Analyze directories to build up test conf. files",
 )
 @click.argument(
-    "paths",
+    "path",
+    type=str,
     default=None,
     nargs=-1,
 )
@@ -384,13 +407,13 @@ def clean(
     default=False,
 )
 @click.pass_context
-def discover(ctx, paths, create, force):  # pylint: disable=unused-argument
+def discover(
+    ctx: click.Context, path: str, create: bool, force: bool  # pylint: disable=unused-argument
+) -> None:
     """Discover & integrate new benchmarks to PCVS format."""
-    if not paths:
-        paths = [os.getcwd()]
+    path = os.getcwd()
 
-    paths = [os.path.abspath(x) for x in paths]
+    path = os.path.abspath(path)
 
-    for p in paths:
-        io.console.print_section("{}".format(p))
-        pvUtils.process_discover_directory(p, create, force)
+    io.console.print_section("{}".format(path))
+    pvUtils.process_discover_directory(path, create, force)

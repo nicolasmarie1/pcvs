@@ -1,5 +1,5 @@
 from pcvs.plugins import Plugin
-from pcvs.testing.test import Test
+from pcvs.testing.teststate import TestState
 
 LOAD_FAILED = False
 try:
@@ -13,7 +13,7 @@ class JUnit(Plugin):
 
     step = Plugin.Step.SCHED_PUBLISH_WRITE
 
-    def run(self, *args, **kwargs):
+    def run(self, *args, **kwargs):  # type: ignore
         if LOAD_FAILED:
             raise ImportError("Fail to load junit_xml.")
         data = kwargs.get("data", {})
@@ -30,13 +30,13 @@ class JUnit(Plugin):
                 elapsed_sec=t["result"]["time"],
             )
 
-            if state == Test.State.FAILURE:
+            if state == TestState.FAILURE:
                 tt.add_failure_info(message="failure", output=t["result"]["output"])
-            elif state == Test.State.ERR_DEP:
+            elif state == TestState.ERR_DEP:
                 tt.add_skipped_info(
                     message="Dependency not satisfied", output=t["result"]["output"]
                 )
-            elif state != Test.State.SUCCESS:
+            elif state != TestState.SUCCESS:
                 tt.add_error_info(
                     message="Unknown error", output=t["result"]["output"], error_type=str(state)
                 )

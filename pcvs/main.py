@@ -25,7 +25,7 @@ try:
     click.rich_click.STYLE_COMMANDS_PANEL_BOX = box.SIMPLE
     click.rich_click.STYLE_OPTIONS_PANEL_BOX = box.SIMPLE
 except ImportError:
-    import click
+    import click  # type: ignore
 
 CONTEXT_SETTINGS = dict(
     help_option_names=["-h", "--help", "-help"],
@@ -35,7 +35,9 @@ CONTEXT_SETTINGS = dict(
 )
 
 
-def print_version(ctx, param, value):  # pylint: disable=unused-argument
+def print_version(
+    ctx: click.Context, param: click.Parameter, value: bool  # pylint: disable=unused-argument
+) -> None:
     """Print current version.
 
     This is used as an option formatter, PCVS is not event loaded yet.
@@ -132,7 +134,17 @@ def print_version(ctx, param, value):  # pylint: disable=unused-argument
 @click.pass_context
 @io.capture_exception(PluginException.NotFoundError)
 @io.capture_exception(PluginException.LoadError)
-def cli(ctx, verbose, color, encoding, exec_path, plugin_path, select_plugins, tui, debug):
+def cli(
+    ctx: click.Context,
+    verbose: int,
+    color: bool,
+    encoding: bool,
+    exec_path: str,
+    plugin_path: list[str],
+    select_plugins: list[str],
+    tui: bool,
+    debug: bool,
+) -> None:
     """PCVS main program."""
     ctx.ensure_object(dict)
     ctx.obj["verbose"] = verbose if not debug else 10

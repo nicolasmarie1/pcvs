@@ -3,6 +3,7 @@ from unittest.mock import patch
 from pcvs.backend.metaconfig import MetaConfig
 from pcvs.helpers import pm
 from pcvs.testing import test as tested
+from pcvs.testing.test import TestState
 
 
 @patch(
@@ -32,17 +33,26 @@ def test_test():
         wd="testchdir",
         job_deps=["testdep"],
         mod_deps=[pm.SpackManager("recipe")],
-        env=["testenv"],
-        matchers={"matcher1": {"expr": "test"}},
-        valscript="testvalscript",
+        environment=["testenv=test"],
+        validation={
+            "match": {
+                "matcher1": {
+                    "expr": "test",
+                    "expect": True,
+                },
+            },
+            "script": {
+                "path": "testvalscript",
+            },
+        },
     )
     assert test.name == "label/testsubtree/testte_name"
     assert test.command == "testcommand"
     assert not test.been_executed()
-    assert test.state == tested.Test.State.WAITING
-    test.save_status(test.State.EXECUTED)
+    assert test.state == tested.TestState.WAITING
+    test.save_status(TestState.EXECUTED)
     assert not test.been_executed()
-    test.save_status(test.State.SUCCESS)
+    test.save_status(TestState.SUCCESS)
     assert test.been_executed()
     testjson = test.to_json()
     assert testjson["id"]["te_name"] == test.te_name

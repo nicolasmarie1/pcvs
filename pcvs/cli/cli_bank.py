@@ -4,6 +4,7 @@ from click.shell_completion import CompletionItem
 
 from pcvs import io
 from pcvs.backend import bank as pvBank
+from pcvs.dsl import Job
 from pcvs.helpers import utils
 
 try:
@@ -11,17 +12,19 @@ try:
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
 
 
-def compl_list_banks(ctx, args, incomplete):  # pylint: disable=unused-argument
+def compl_list_banks(
+    ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
+) -> list[CompletionItem]:
     """
     Bank name completion function.
 
     :param ctx: Click context
-    :type ctx: :class:`Click.Context`
-    :param args: the option/argument requesting completion.
-    :type args: str
+    :type ctx: :class:`click.Context`
+    :param param: the option/argument requesting completion.
+    :type param: :class: `click.Parameter`
     :param incomplete: the user input
     :type incomplete: str
     """
@@ -31,19 +34,22 @@ def compl_list_banks(ctx, args, incomplete):  # pylint: disable=unused-argument
     return [CompletionItem(elt[0], help=elt[1]) for elt in array if incomplete in elt[0]]
 
 
-def compl_bank_projects(ctx, args, incomplete):  # pylint: disable=unused-argument
+def compl_bank_projects(
+    ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
+) -> list[CompletionItem]:
     """
     Bank project completion function.
 
     :param ctx: Click context
     :type ctx: :class:`Click.Context`
-    :param args: the option/argument requesting completion.
-    :type args: str
+    :param param: the option/argument requesting completion.
+    :type param: :class: `click.Parameter`
     :param incomplete: the user input
     :type incomplete: str
     """
     array = []
-    for bankname, bankpath in compl_list_banks(None, None, ""):
+    for completion in compl_list_banks(ctx, param, ""):
+        bankname, bankpath = completion.value, completion.help
         result_bank = pvBank.Bank(token=bankname)
         result_bank.connect()
         for project in result_bank.list_projects():
@@ -58,7 +64,7 @@ def compl_bank_projects(ctx, args, incomplete):  # pylint: disable=unused-argume
     short_help="Persistent data repository management",
 )
 @click.pass_context
-def bank(ctx):  # pylint: disable=unused-argument
+def bank(ctx: click.Context) -> None:  # pylint: disable=unused-argument
     """Bank entry-point."""
 
 
@@ -67,7 +73,7 @@ def bank(ctx):  # pylint: disable=unused-argument
     short_help="List known repositories",
 )
 @click.pass_context
-def bank_list(ctx):  # pylint: disable=unused-argument
+def bank_list(ctx: click.Context) -> None:  # pylint: disable=unused-argument
     """List known repositories, stored under ``PATH_BANK``."""
     io.console.print_header("Bank List")
     for label, path in pvBank.list_banks().items():
@@ -94,7 +100,7 @@ def bank_list(ctx):  # pylint: disable=unused-argument
     help="Display bank location",
 )
 @click.pass_context
-def bank_show(ctx, name, path):  # pylint: disable=unused-argument
+def bank_show(ctx: click.Context, name: str, path: str) -> None:  # pylint: disable=unused-argument
     """Display all data stored into NAME repository"""
     b = pvBank.Bank(token=name)
     b.connect()
@@ -121,7 +127,7 @@ def bank_show(ctx, name, path):  # pylint: disable=unused-argument
     type=click.Path(exists=False, file_okay=False),
 )
 @click.pass_context
-def bank_init(ctx, name, path):  # pylint: disable=unused-argument
+def bank_init(ctx: click.Context, name: str, path: str) -> None:  # pylint: disable=unused-argument
     """Create a new bank, named NAME, data will be stored under PATH."""
     io.console.print_header("Bank Init")
     if path is None:
@@ -157,7 +163,9 @@ def bank_init(ctx, name, path):  # pylint: disable=unused-argument
     help="Do not ask for confirmation before deletion",
 )
 @click.pass_context
-def bank_destroy(ctx, name, symlink):  # pylint: disable=unused-argument
+def bank_destroy(
+    ctx: click.Context, name: str, symlink: bool  # pylint: disable=unused-argument
+) -> None:
     """Remove the bank NAME from PCVS management. This does not include
     repository deletion. 'data.yml' and bank entry in the configuratino file
     will be removed but existing data are preserved.
@@ -195,7 +203,9 @@ def bank_destroy(ctx, name, symlink):  # pylint: disable=unused-argument
     help="Use a custom Run() message",
 )
 @click.pass_context
-def bank_save_run(ctx, name, path, msg):  # pylint: disable=unused-argument
+def bank_save_run(
+    ctx: click.Context, name: str, path: str, msg: str  # pylint: disable=unused-argument
+) -> None:
     """Create a backup from a previously generated build directory. NAME will be
     the target bank name, PATH the build directory"""
 
@@ -231,10 +241,14 @@ def bank_save_run(ctx, name, path, msg):  # pylint: disable=unused-argument
     help="Select only a subset of each runs based on provided prefix",
 )
 @click.pass_context
-def bank_load(ctx, name, prefix):  # pylint: disable=unused-argument
+def bank_load(
+    ctx: click.Context, name: str, prefix: str  # pylint: disable=unused-argument
+) -> None:
     b = pvBank.Bank(token=name)
     series = b.get_series()
+    assert series is not None
     run = series.last
+    assert run is not None
     data = []
     from rich.progress import Progress
 
@@ -243,8 +257,9 @@ def bank_load(ctx, name, prefix):  # pylint: disable=unused-argument
             for j in run.jobs:
                 data.append(j.to_json())
         else:
-            for j in run.get_data(prefix):
-                data.append(j.to_json())
+            job: Job | None = run.get_data(prefix)
+            assert job is not None
+            data.append(job.to_json())
     import json
 
     print(json.dumps(data))

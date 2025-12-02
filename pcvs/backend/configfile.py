@@ -51,7 +51,7 @@ class ConfigFile:
     def __init__(self, config_desc: ConfigDesc):
         """Initialize a configuration file representation."""
         self._descriptor: ConfigDesc = config_desc
-        self._raw: str = None
+        self._raw: str = ""
         if self.exist:
             self._load_from_disk()
             self._check()
@@ -88,7 +88,7 @@ class ConfigFile:
     @property
     def loaded(self) -> bool:
         """Return if the config is loaded in Object."""
-        return self._raw is not None
+        return self._raw != ""
 
     # Accessors
     @property
@@ -153,11 +153,11 @@ class ConfigFile:
         assert self.loaded
         self._check()
 
-    def to_str(self):
+    def to_str(self) -> str:
         """Get configuration as str."""
         return self._flush()
 
-    def from_str(self, raw: str):
+    def from_str(self, raw: str) -> None:
         """Set configuration from str."""
         self._load(raw)
 
@@ -167,7 +167,7 @@ class YmlConfigFile(ConfigFile):
     def __init__(self, config_desc: ConfigDesc):
         """Initialize a configuration file representation."""
         assert config_desc.kind != ConfigKind.PLUGIN
-        self._details = None
+        self._details: dict = {}
         super().__init__(config_desc)
 
     # Private unguarded functions
@@ -176,8 +176,8 @@ class YmlConfigFile(ConfigFile):
     def _check(self) -> None:
         """Validate a config according to its scheme."""
         super()._check()
-        ValidationScheme(self._descriptor.kind).validate(
-            self._details, filepath=self._descriptor.path
+        ValidationScheme(str(self._descriptor.kind).lower()).validate(
+            self._details, filepath=self._descriptor.path.name
         )
 
     def _load(self, raw: str) -> None:
@@ -217,7 +217,7 @@ class YmlConfigFile(ConfigFile):
 
     # Others
     @property
-    def config(self) -> None:
+    def config(self) -> Config:
         """Get config object associated with config file."""
         return Config(self._details)
 
@@ -239,17 +239,17 @@ class Profile(YmlConfigFile):
         ConfigKind.RUNTIME,
     ]
 
-    def __init__(self, config_desc: ConfigDesc, cl: ConfigLocator = None):
+    def __init__(self, config_desc: ConfigDesc, cl: ConfigLocator | None = None):
         """Initialize a profile."""
         assert config_desc.kind == ConfigKind.PROFILE
         self._config_locator = cl if cl is not None else ConfigLocator()
-        self._innerconfigs: dict[str, YmlConfigFile] = {}
+        self._innerconfigs: dict[ConfigKind, YmlConfigFile] = {}
         super().__init__(config_desc)
 
-    def _load_sub_configs(self):
+    def _load_sub_configs(self) -> None:
         assert self.loaded
         for kind in Profile.CONFIGS_KINDS:
-            user_token: str = super().config[str(kind)]
+            user_token: str = super().config[str(kind).lower()]
             if user_token == "":
                 user_token = f"{str(ConfigScope.GLOBAL)}:default"
 
@@ -259,7 +259,7 @@ class Profile(YmlConfigFile):
             c: YmlConfigFile = YmlConfigFile(cd)
             self._innerconfigs[kind] = c
 
-    def _check(self):
+    def _check(self) -> None:
         super()._check()
         for kind in Profile.CONFIGS_KINDS:
             self._innerconfigs[kind].validate()

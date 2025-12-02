@@ -8,7 +8,7 @@ try:
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
 
 
 @click.command(
@@ -40,7 +40,12 @@ except ImportError:
     help="Run jobs concurrently",
 )
 @click.pass_context
-def remote_run(ctx, buildir, ctx_path, parallel):  # pylint: disable=unused-argument
+def remote_run(
+    ctx: click.Context,  # pylint: disable=unused-argument
+    buildir: str,
+    ctx_path: str,
+    parallel: int,
+) -> None:
     """
     This command is not intended to be used by end users. Please reporte any
     failure coming from this invocation.

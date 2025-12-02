@@ -12,7 +12,7 @@ try:
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
 
 
 @click.command(
@@ -75,8 +75,14 @@ except ImportError:
 )
 @click.pass_context
 def cli_graph(
-    ctx, bank_name, graph_types, path, show, extension, limit
-):  # pylint: disable=unused-argument
+    ctx: click.Context,  # pylint: disable=unused-argument
+    bank_name: str,
+    graph_types: set[str],
+    path: str,
+    show: bool,
+    extension: str,
+    limit: int,
+) -> None:
     if path is None:
         show = True
     else:
@@ -93,7 +99,7 @@ def cli_graph(
 
     graph_types = set(graph_types)
     if "all" in graph_types:
-        graph_types = ["rate", "duration"]
+        graph_types = set(["rate", "duration"])
 
     io.console.debug(f"graph types: {graph_types}")
 

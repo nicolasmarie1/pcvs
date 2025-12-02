@@ -5,6 +5,8 @@ import os
 import pkgutil
 import sys
 from abc import abstractmethod
+from types import ModuleType
+from typing import Any
 
 from pcvs import io
 from pcvs.helpers.exceptions import PluginException
@@ -53,7 +55,7 @@ class Plugin:
         END_BEFORE = enum.auto()
         END_AFTER = enum.auto()
 
-        def __str__(self):
+        def __str__(self) -> str:
             """Stringify a Step as a printable string
 
             :return: a printable string according to the step
@@ -63,14 +65,14 @@ class Plugin:
 
     step = Step.INVALID
 
-    def __init__(self):
+    def __init__(self) -> None:
         """constructor method."""
         self._type = type(self)
 
     @abstractmethod
-    def run(self, *args, **kwargs):
+    def run(self, *args, **kwargs):  # type: ignore
         """To-be-overridden method."""
-        raise PluginException.NotImplementedError(type(self))
+        raise PluginException.NotImplementedError(str(type(self)))
 
 
 class Collection:
@@ -80,12 +82,12 @@ class Collection:
     plugin can be set to a given step (the last loaded).
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """constructor method"""
-        self._plugins = {name: {} for name in list(Plugin.Step)}
-        self._enabled = {name: None for name in list(Plugin.Step)}
+        self._plugins: dict[Plugin.Step, dict[str, Any]] = {step: {} for step in list(Plugin.Step)}
+        self._enabled: dict[Plugin.Step, Any] = {step: None for step in list(Plugin.Step)}
 
-    def register_default_plugins(self):
+    def register_default_plugins(self) -> None:
         """Detect plugins stored in default places."""
         try:
             self.register_plugin_by_package("pcvs.plugins.default", activate=True)
@@ -94,7 +96,7 @@ class Collection:
         except Exception as e:
             raise PluginException("Error while registering plugin.") from e
 
-    def exist_plugin(self, name):
+    def exist_plugin(self, name: str) -> bool:
         """Check if a plugin already exist."""
         for _, plugins in self._plugins.items():
             for plname, _ in plugins.items():
@@ -102,7 +104,7 @@ class Collection:
                     return True
         return False
 
-    def activate_plugin(self, name):
+    def activate_plugin(self, name: str) -> None:
         """Flag a plugin as active, meaning it will be called when the pass is
         reached.
 
@@ -118,7 +120,7 @@ class Collection:
                     return
         io.console.warn("Unable to find a plugin named '{}'".format(name))
 
-    def invoke_plugins(self, step: Plugin.Step, method: str = "run", *args, **kwargs):
+    def invoke_plugins(self, step: Plugin.Step, method: str = "run", *args, **kwargs):  # type: ignore
         """Load the appropriate plugin, given a step
 
         :param step: the step to target
@@ -128,7 +130,7 @@ class Collection:
         :rtype: Any
         """
         if step not in list(Plugin.Step):
-            raise PluginException.BadStepError(step)
+            raise PluginException.BadStepError(f"Invalid step: '{step}'")
 
         if self._enabled[step]:
             assert method
@@ -141,7 +143,7 @@ class Collection:
 
         return None
 
-    def has_enabled_step(self, step: Plugin.Step, method: str = "run"):
+    def has_enabled_step(self, step: Plugin.Step, method: str = "run") -> bool:
         """Check if a given pass is enabled.
 
         :param step: the pass
@@ -155,11 +157,11 @@ class Collection:
             return False
         return True
 
-    def try_invoke_plugins(self, step: Plugin.Step, method: str = "run", *args, **kwargs):
+    def try_invoke_plugins(self, step: Plugin.Step, method: str = "run", *args, **kwargs):  # type: ignore
         if self.has_enabled_step(step, method):
             return self.invoke_plugins(step, method, *args, **kwargs)
 
-    def nb_plugins_for(self, step):
+    def nb_plugins_for(self, step: Plugin.Step) -> int:
         """Count the number of possible plugins for a given step.
 
         :param step: the step to check
@@ -172,7 +174,7 @@ class Collection:
 
         return len(self._plugins[step])
 
-    def show_plugins(self):
+    def show_plugins(self) -> None:
         """Display plugin context to stdout."""
         for step, elements in self._plugins.items():
             if len(elements) > 0:
@@ -180,7 +182,7 @@ class Collection:
                 for name, module in elements.items():
                     io.console.print_item(f"{name}/{type(module).__name__}")
 
-    def show_enabled_plugins(self):
+    def show_enabled_plugins(self) -> None:
         """Display the list of loaded plugins."""
         empty = True
         for step, e in self._enabled.items():
@@ -191,7 +193,7 @@ class Collection:
         if empty:
             io.console.print_item("None")
 
-    def register_plugin_by_file(self, modpath, activate=False):
+    def register_plugin_by_file(self, modpath: str, activate: bool = False) -> None:
         """Based on a filepath (as a module dir), load plugins contained in it.
 
         :param modpath: valid python filepath
@@ -200,11 +202,13 @@ class Collection:
         io.console.debug(f"Registering plugin by path: {modpath}")
         # the content is added to "pcvs-contrib" module
         spec = importlib.util.spec_from_file_location("contrib", modpath)
+        assert spec is not None
         mod = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
         spec.loader.exec_module(mod)
-        self.register_plugin_by_module(mod, activate)
+        self.register_plugin_by_module(str(mod), mod, activate)
 
-    def register_plugin_by_module(self, name, mod, activate=False):
+    def register_plugin_by_module(self, name: str, mod: ModuleType, activate: bool = False) -> None:
         """Based on a module name, load any defined plugin.
 
         mod must be a valid PYTHON module name.
@@ -222,7 +226,7 @@ class Collection:
                 if activate:
                     self.activate_plugin(name)
 
-    def register_plugin_by_dir(self, pkgpath, activate=False):
+    def register_plugin_by_dir(self, pkgpath: str, activate: bool = False) -> None:
         """From a prefix directory, load any plugin defined in it.
 
         Mainly used to load any Plugin classes defined in a directory. The
@@ -238,7 +242,7 @@ class Collection:
         self.register_plugin_by_package(pkgname, activate)
         sys.path.remove(path)
 
-    def register_plugin_by_package(self, pkgname, activate=False):
+    def register_plugin_by_package(self, pkgname: str, activate: bool = False) -> None:
         """Based on a package name, load any plugin defined into it.
 
         :param pkgname: package name, valid under current PYTHON env.

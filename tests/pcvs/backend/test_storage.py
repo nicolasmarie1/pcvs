@@ -13,7 +13,7 @@ def test_scope():
     """Test ConfigScope class."""
     assert ConfigScope.fromstr("not a scope") is None
     for scope in ConfigScope:
-        scope_str = ConfigScope.tostr(scope)
+        scope_str = str(scope)
         assert scope_str is not None
         assert ConfigScope.fromstr(scope_str) is not None
         assert scope in ConfigScope.all_scopes()
@@ -23,7 +23,7 @@ def test_kind():
     """Test ConfigKind class."""
     assert ConfigKind.fromstr("not a kind") is None
     for kind in ConfigKind:
-        kind_str = ConfigKind.tostr(kind)
+        kind_str = str(kind)
         assert kind_str is not None
         assert ConfigKind.fromstr(kind_str) is not None
         assert kind in ConfigKind.all_kinds()

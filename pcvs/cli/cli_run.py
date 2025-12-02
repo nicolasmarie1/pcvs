@@ -23,10 +23,14 @@ try:
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
+
+from click.shell_completion import CompletionItem
 
 
-def iterate_dirs(ctx, param, value) -> dict:  # pylint: disable=unused-argument
+def iterate_dirs(
+    ctx: click.Context, param: click.Parameter, value: str  # pylint: disable=unused-argument
+) -> dict[str, str] | None:
     """Validate directories provided by users & format them correctly.
 
     Set the default label for a given path if not specified & Configure default
@@ -41,7 +45,7 @@ def iterate_dirs(ctx, param, value) -> dict:  # pylint: disable=unused-argument
     :return: properly formatted dict of user directories, keys are labels.
     :rtype: dict
     """
-    list_of_dirs = dict()
+    list_of_dirs: dict[str, str] = {}
     if not value:  # if not specified
         return None
     else:  # once specified
@@ -75,27 +79,29 @@ def iterate_dirs(ctx, param, value) -> dict:  # pylint: disable=unused-argument
     return list_of_dirs
 
 
-def compl_list_dirs(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
+def compl_list_dirs(
+    ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
+) -> list[CompletionItem]:
     """directory completion function.
 
     :param ctx: Click context
     :type ctx: :class:`Click.Context`
-    :param args: the option/argument requesting completion.
-    :type args: str
+    :param param: the option/argument requesting completion.
+    :type param: click.Parameter
     :param incomplete: the user input
     :type incomplete: str
     """
     obj = click.Path(exists=True, dir_okay=True, file_okay=False)
-    obj.shell_complete(ctx, args, incomplete)
+    return obj.shell_complete(ctx, param, incomplete)
 
 
-def handle_build_lockfile(exc=None):
+def handle_build_lockfile(exc: Exception | None = None) -> None:
     """Remove the file lock in build dir if the application stops abruptly.
 
     This function will automatically forward the raising exception to the next
     handler.
 
-    :raises Exception: any exception triggering this handler
+    :raises Exception: Any exception triggering this handler
     :param exc: The raising exception.
     :type exc: Exception
     """
@@ -113,7 +119,7 @@ def handle_build_lockfile(exc=None):
         raise exc
 
 
-def parse_tags(filters: str) -> dict[list[str]]:
+def parse_tags(filters: str) -> dict[str, bool]:
     """Parse input to generate tags set."""
     tags = {}
     for f in filters.split(","):
@@ -156,13 +162,13 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "settings_file",
     default=None,
     show_envvar=True,
-    type=click.File("r"),
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
     help="Invoke file gathering validation options",
 )
 @click.option(
     "--detach",
     "detach",
-    default=None,
+    default=False,
     is_flag=True,
     show_envvar=True,
     help="Run the validation asynchronously (WIP)",
@@ -171,7 +177,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "-f/-F",
     "--override/--no-override",
     "override",
-    default=None,
+    default=False,
     is_flag=True,
     show_envvar=True,
     help="Allow to reuse an already existing output directory",
@@ -188,7 +194,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "-a",
     "--anonymize",
     "anon",
-    default=None,
+    default=False,
     is_flag=True,
     help="Purge the results from sensitive data (HOME, USER...)",
 )
@@ -221,7 +227,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "enable_report",
     show_envvar=True,
     is_flag=True,
-    default=None,
+    default=False,
     help="Attach a webview server to the current session run.",
 )
 @click.option(
@@ -236,7 +242,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "--generate-only",
     "generate_only",
     is_flag=True,
-    default=None,
+    default=False,
     help="Rebuild the test-base, populating resources for `pcvs exec`",
 )
 @click.option(
@@ -253,7 +259,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "--successful",
     "only_success",
     is_flag=True,
-    default=None,
+    default=False,
     help="Return non-zero exit code if a single test has failed",
 )
 @click.option(
@@ -299,27 +305,27 @@ def parse_tags(filters: str) -> dict[list[str]]:
 @io.capture_exception(Exception, handle_build_lockfile)
 @io.capture_exception(KeyboardInterrupt, handle_build_lockfile)
 def run(
-    ctx,
-    profilename,
-    output,
-    detach,
-    override,
-    anon,
-    settings_file,
-    generate_only,
-    spack_recipe,
-    print_policy,
-    print_filter,
-    run_filter,
-    simulated,
-    bank,
-    msg,
-    dup,
-    dirs,
-    enable_report,
-    report_addr,
-    only_success,
-    timeout,
+    ctx: click.Context,
+    profilename: str,
+    output: str,
+    settings_file: str,
+    detach: bool,
+    override: bool,
+    simulated: bool,
+    anon: bool,
+    bank: str,
+    msg: str,
+    dup: str,
+    enable_report: bool,
+    report_addr: str,
+    generate_only: bool,
+    timeout: int,
+    only_success: bool,
+    spack_recipe: str,
+    print_policy: str,
+    print_filter: str,
+    run_filter: str,
+    dirs: set[str],
 ) -> None:
     """
     Execute a validation suite from a given PROFILE.
@@ -375,14 +381,15 @@ def run(
     val_cfg.set_ifdef("buildcache", os.path.join(val_cfg["output"], "cache"))
 
     # if dirs not set by config file nor CLI
-    if not dirs and not val_cfg["dirs"]:
-        dirs = {}
+    if dirs is not None:
+        val_cfg["dirs"] = {os.path.basename(path): os.path.abspath(path) for path in dirs}
+    elif dirs is None and val_cfg["dirs"] is None:
+        cfg_dirs = {}
         if not spack_recipe:
             testpath = os.getcwd()
-            dirs = {os.path.basename(testpath): testpath}
-
-    # not overriding if dirs is None
-    val_cfg.set_ifdef("dirs", dirs)
+            cfg_dirs = {os.path.basename(testpath): testpath}
+        # not overriding if dirs is None
+        val_cfg.set_ifdef("dirs", cfg_dirs)
 
     if bank is not None:
         obj = pvBank.Bank(bank)
@@ -403,7 +410,7 @@ def run(
                 raise exceptions.RunException.InProgressError(
                     path=val_cfg["output"],
                     lockfile=buildfile,
-                    owner_pid=utils.get_lock_owner(buildfile),
+                    owner_pid=str(utils.get_lock_owner(buildfile)),
                 )
 
     elif not os.path.exists(val_cfg["output"]):

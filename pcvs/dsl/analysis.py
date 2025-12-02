@@ -1,19 +1,20 @@
 from abc import ABC
+from typing import Any
 
+from pcvs.dsl import Bank
 from pcvs.dsl import Series
+from pcvs.testing.teststate import TestState
 
 
 class BaseAnalysis(ABC):
 
-    def __init__(self, bank):
+    def __init__(self, bank: Bank):
         self._bank = bank
 
 
 class SimpleAnalysis(BaseAnalysis):
 
-    def generate_series_trend(self, series, limit: int):
-        if not isinstance(series, Series):
-            series = self._bank.get_series(series)
+    def generate_series_trend(self, series: Series, limit: int) -> list[dict[str, Any]]:
         stats = []
         for run in series.history(limit):
             ci_meta = run.get_info()
@@ -22,29 +23,28 @@ class SimpleAnalysis(BaseAnalysis):
 
         return stats
 
-    def generate_series_infos(self, series: Series, limit: int):
-        if not isinstance(series, Series):
-            series = self._bank.get_series(series)
+    def generate_series_infos(
+        self,
+        series: Series,
+        limit: int,
+        # date -> job_name -> (base_name, state, time)
+    ) -> dict[str, dict[str, tuple[str, TestState, float]]]:
         stats = {}
         for run in series.history(limit):
             date = run.get_info()["date"]
             run_stat = {}
             for job in run.jobs:
-                run_stat[job.name] = {
-                    "basename": job.basename,
-                    "status": job.state,
-                    "time": job.time,
-                }
+                run_stat[job.name] = (job.basename, job.state, job.time)
             stats[date] = run_stat
         return stats
 
 
 class ResolverAnalysis(BaseAnalysis):
 
-    def __init__(self, bank):
+    def __init__(self, bank: Bank):
         super().__init__(bank)
-        self._data = None
+        self._data: dict[str, Any] | None = None
 
-    def fill(self, data):
+    def fill(self, data: dict[str, Any]) -> None:
         assert isinstance(data, dict)
         self._data = data

@@ -130,7 +130,7 @@ matrix = {
 def test_value_expansion(op):
     d = {"numeric": True, "option": "-np ", "position": "after", "subtitle": "n"}
     for elt in matrix[op]:
-        c = tested.Criterion("n_mpi", {**d, "values": [{**elt[0], "op": op}]})
+        c = tested.Criterion("n_mpi", {**d, "values": {**elt[0], "op": op}})
         c.expand_values()
         assert c.values == elt[1]
 

@@ -10,7 +10,7 @@ try:
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
 
 
 @click.command()
@@ -36,7 +36,7 @@ except ImportError:
     is_flag=True,
     help="Override dest directory if if already exists",
 )
-def main(source, dest, force):
+def main(source: str, dest: str, force: bool) -> None:
 
     if "conf.yml" not in os.listdir(source):
         raise click.BadOptionUsage(
@@ -57,12 +57,13 @@ def main(source, dest, force):
     id_incr = 0
     json_filepath = os.path.join(source, "rawdata")
     for f in os.listdir(json_filepath):
-        with open(os.path.join(json_filepath, f), "r") as fh:
+        filepath = os.path.join(json_filepath, f)
+        with open(filepath, "r") as fh:
             data = json.load(fh)
             assert "tests" in data.keys()
             for test_data in data["tests"]:
                 job = Test()
-                job.from_json(test_data, None)
+                job.from_json(test_data, filepath)
                 results.save(job)
                 id_incr += 1
 

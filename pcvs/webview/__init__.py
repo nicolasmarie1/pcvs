@@ -7,25 +7,26 @@ from flask import render_template
 from flask import request
 
 from pcvs import PATH_INSTDIR
+from pcvs.backend.report import Report
 from pcvs.testing.test import Test
 
 data_manager = None
 
 
-def create_app(iface):
+def create_app(report: Report) -> Flask:
     """Start and run the Flask application.
 
     :return: the application
     :rtype: :class:`Flask`
     """
     global data_manager
-    data_manager = iface
+    data_manager = report
 
     app = Flask(__name__, template_folder=os.path.join(PATH_INSTDIR, "webview/templates"))
 
     # app.config.from_object(...)
     @app.route("/about")
-    def about():
+    def about() -> str:
         """Provide the about-us page.
 
         :return: webpage content
@@ -34,7 +35,7 @@ def create_app(iface):
         return render_template("tbw.html")
 
     @app.route("/doc")
-    def doc():
+    def doc() -> str:
         """Provide the doc page.
 
         :return: webpage content
@@ -45,18 +46,18 @@ def create_app(iface):
     @app.route("/welcome")
     @app.route("/main")
     @app.route("/")
-    def root():
+    def root() -> str:
         """Provide the main page.
 
         :return: webpage content
         :rtype: str
         """
         if "json" in request.args.get("render", []):
-            return jsonify(list(data_manager.session_infos()))
+            return jsonify(list(data_manager.session_infos()))  # type: ignore
         return render_template("main.html")
 
     @app.route("/run/<sid>")
-    def session_main(sid: str):
+    def session_main(sid: str) -> str:
         """Provide the per-session main page
 
         :param sid: session id
@@ -72,7 +73,7 @@ def create_app(iface):
         jobs_cnt = data_manager.single_session_job_cnt(sid)
 
         if "json" in request.args.get("render", []):
-            return jsonify(
+            return jsonify(  # type: ignore
                 {
                     "tag": len(tags),
                     "label": len(labels),
@@ -90,7 +91,7 @@ def create_app(iface):
         )
 
     @app.route("/compare")
-    def compare():
+    def compare() -> str:
         """Provide the archive comparison interface.
 
         :return: webpage content
@@ -99,7 +100,7 @@ def create_app(iface):
         return render_template("tbw.html")
 
     @app.route("/run/<sid>/<selection>/list")
-    def get_list(sid: str, selection):
+    def get_list(sid: str, selection: str) -> str:
         """Get a listing.
 
         The response will depend on the request, which can be:
@@ -117,14 +118,15 @@ def create_app(iface):
         if "json" in request.args.get("render", []):
             out = []
             infos = data_manager.single_session_get_view(sid, selection, summary=True)
+            assert infos is not None
             for k, v in infos.items():
                 out.append({"name": k, "count": v})
-            return jsonify(out)
+            return jsonify(out)  # type: ignore
 
         return render_template("list_view.html", sid=sid, selection=selection)
 
     @app.route("/run/<sid>/<selection>/detail")
-    def get_details(sid: str, selection):
+    def get_details(sid: str, selection: str) -> tuple[str, int]:
         """Get a detailed view of a component.
 
         The response will depend on the request, which can be:
@@ -159,17 +161,21 @@ def create_app(iface):
                     for _, s in m.items():
                         job_list += s
             for elt in job_list:
-                cur: Test = data_manager.single_session_map_id(sid, elt)
-                out.append(cur.to_json(strstate=True))
+                cur: Test | None = data_manager.single_session_map_id(sid, elt)
+                if cur is not None:
+                    out.append(cur.to_json(strstate=True))
 
-            return jsonify(out)
+            return jsonify(out)  # type: ignore
 
-        return render_template(
-            "detailed_view.html", sid=sid, selection=selection, sel_item=request_item
+        return (
+            render_template(
+                "detailed_view.html", sid=sid, selection=selection, sel_item=request_item
+            ),
+            200,
         )
 
     @app.route("/submit/session_init", methods=["POST"])
-    def submit_new_session():
+    def submit_new_session() -> tuple[str, int]:
         """Entry point to receive new session request.
 
         :return: OK
@@ -177,12 +183,12 @@ def create_app(iface):
         """
         json_session = request.get_json()
         sid = json_session["sid"]
-        data_manager.add_session(sid, json_session)
+        data_manager.add_session(sid)
 
         return "OK!", 200
 
     @app.route("/submit/session_fini", methods=["POST"])
-    def submit_end_session():
+    def submit_end_session() -> tuple[str, int]:
         """Entry point to request a session end.
 
         :return: OK
@@ -191,7 +197,7 @@ def create_app(iface):
         return "OK!", 200
 
     @app.route("/submit/test", methods=["POST"])
-    def submit():
+    def submit() -> tuple[str, int]:
         """Entry point to receive test data.
 
         :return: OK
@@ -199,18 +205,20 @@ def create_app(iface):
         """
         json_str = request.get_json()
 
-        test_sid = json_str["metadata"]["sid"]
+        # test_sid = json_str["metadata"]["sid"]  # pylint: disable=unused-variable
         test_obj = Test()
-        test_obj.from_json(json_str["test_data"], None)
+        test_obj.from_json(json_str["test_data"], "Webview API INIT")
 
-        ok = data_manager.insert_test(test_sid, test_obj)
+        # TODO: implement insert test function and test management in data_manager
+        # ok = data_manager.insert_test(test_sid, test_obj)
+        ok = False
 
         if not ok:
             return "", 406
         return "OK!", 200
 
     @app.errorhandler(404)
-    def page_not_found(e):  # pylint: disable=unused-argument
+    def page_not_found(e: int) -> str:  # pylint: disable=unused-argument
         """404 Not found page handler.
 
         :param e: the caught error, only 404 here
@@ -221,3 +229,15 @@ def create_app(iface):
         return render_template("404.html")
 
     return app
+
+
+def start_server(report: Report) -> int:
+    """Initialize the Flask server, default to 5000.
+
+    A random port is picked if the default is already in use.
+    :param report: The model to be used.
+    :type report: Report
+    """
+    app = create_app(report)
+    app.run(host="0.0.0.0", port=int(os.getenv("PCVS_REPORT_PORT", str(5000))), debug=True)
+    return 0

@@ -1,3 +1,6 @@
+from typing import Any
+
+
 class Config(dict):
     """
     A 'Config' is a dict used to manage all configuration fields.
@@ -18,18 +21,18 @@ class Config(dict):
 
     # recursive exportation to pure python dict for ruyaml representer
     @classmethod
-    def __to_dict(cls, d):
+    def __to_dict(cls, d: dict[str, str | dict[str, Any]]) -> dict[str, str | dict[str, Any]]:
         for k, v in d.items():
             if isinstance(v, dict):  # is MetaConfig or v is Config:
                 d[k] = Config.__to_dict(v)
         return dict(d)
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, str | dict[str, Any]]:
         """Convert the Config() to regular dict."""
         return Config.__to_dict(self)
 
     # Additional dict functions
-    def set_ifdef(self, k, v):
+    def set_ifdef(self, k: str, v: str | dict[str, Any]) -> None:
         """
         Shortcut function: init self[k] only if v is not None.
 

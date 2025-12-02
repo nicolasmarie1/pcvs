@@ -4,8 +4,11 @@ import shutil
 import signal
 import socket
 import time
+from collections.abc import Callable
 from contextlib import contextmanager
 from shutil import SameFileError
+from types import FrameType
+from typing import Iterator
 
 from pcvs import io
 from pcvs import NAME_BUILDFILE
@@ -20,7 +23,7 @@ from pcvs.helpers.exceptions import RunException
 # ###################################
 
 
-def create_home_dir():
+def create_home_dir() -> None:
     """Create a home directory"""
     if not os.path.exists(PATH_HOMEDIR):
         # exist_ok=True is important here to avoid race condition
@@ -34,7 +37,7 @@ def create_home_dir():
 # ###################################
 
 
-def create_or_clean_path(prefix, directory=False):
+def create_or_clean_path(prefix: str, directory: bool = False) -> None:
     """Create a path or cleans it if it already exists.
 
     :param prefix: prefix of the path to create
@@ -59,7 +62,7 @@ def create_or_clean_path(prefix, directory=False):
 
 
 @contextmanager
-def cwd(path):
+def cwd(path: str) -> Iterator[str]:
     """Change the working directory.
 
     :param path: new working directory
@@ -70,12 +73,12 @@ def cwd(path):
     oldpwd = os.getcwd()
     os.chdir(path)
     try:
-        yield
+        yield path
     finally:
         os.chdir(oldpwd)
 
 
-def copy_file(src, dest):
+def copy_file(src: str, dest: str) -> None:
     """Copy a source file into a destination directory.
 
     :param src: source file to copy.
@@ -95,7 +98,7 @@ def copy_file(src, dest):
 # ##########################
 
 
-def get_lockfile_name(f):
+def get_lockfile_name(f: str) -> str:
     """From a file to mutex, return the file lock name associated with it.
 
     For instance for /a/b.yml, the lock file name will be /a/.b.yml.lck
@@ -113,7 +116,7 @@ def get_lockfile_name(f):
     return os.path.join(path, filename + ".lck")
 
 
-def unlock_file(f):
+def unlock_file(f: str) -> None:
     """Remove lock from a directory.
 
     :param f: file locking the directory
@@ -136,7 +139,9 @@ def unlock_file(f):
             io.console.warning("Issue unlocking {}: {}".format(lf_name, e))
 
 
-def lock_file(f, reentrant=False, timeout=None, force=True):
+def lock_file(
+    f: str, reentrant: bool = False, timeout: int | None = None, force: bool = True
+) -> bool:
     """Try to lock a directory.
 
     :param f: name of lock
@@ -166,7 +171,7 @@ def lock_file(f, reentrant=False, timeout=None, force=True):
     return locked
 
 
-def trylock_file(f, reentrant=False):
+def trylock_file(f: str, reentrant: bool = False) -> bool:
     """Try to lock a file (used in lock_file).
 
     :param f: name of lock
@@ -210,7 +215,7 @@ def trylock_file(f, reentrant=False):
         return False
 
 
-def is_locked(f):
+def is_locked(f: str) -> bool:
     """Is the given file locked somewhere else ?
 
     :param f: the file to test
@@ -225,10 +230,11 @@ def is_locked(f):
             if data:
                 return True
     except Exception:
-        return False
+        pass
+    return False
 
 
-def get_lock_owner(f):
+def get_lock_owner(f: str) -> tuple[str, int]:
     """The lock file will contain the process ID owning the lock. This function
     returns it.
 
@@ -244,7 +250,7 @@ def get_lock_owner(f):
         return s[0], int(s[1])
 
 
-def program_timeout(sig):
+def program_timeout(sig: int, ft: FrameType | None) -> None:  # pylint: disable=unused-argument
     """Timeout handler, called when a SIGALRM is received.
 
     :param sig: signal number
@@ -260,7 +266,12 @@ def program_timeout(sig):
 # ###################################
 
 
-def check_valid_program(p, succ=None, fail=None, raise_on_fail=True):
+def check_valid_program(
+    p: str,
+    succ: Callable | None = None,
+    fail: Callable | None = None,
+    raise_on_fail: bool = True,
+) -> bool:
     """Check if p is a valid program, using the ``which`` function.
 
     :param p: program to check
@@ -278,7 +289,10 @@ def check_valid_program(p, succ=None, fail=None, raise_on_fail=True):
     assert p
     try:
         filepath = shutil.which(p)
-        res = os.access(filepath, mode=os.X_OK)
+        if filepath is not None:
+            res = os.access(filepath, mode=os.X_OK)
+        else:
+            res = False
     except TypeError:  # which() can return None
         res = False
 
@@ -295,7 +309,7 @@ def check_valid_program(p, succ=None, fail=None, raise_on_fail=True):
     return res
 
 
-def find_buildir_from_prefix(path):
+def find_buildir_from_prefix(path: str) -> str:
     """Find the build directory from the ``path`` prefix.
 
     :param path: path to search the build directory from
@@ -315,7 +329,7 @@ def find_buildir_from_prefix(path):
     return path
 
 
-def start_autokill(timeout=None):
+def start_autokill(timeout: int | None = None) -> None:
     """Initialize a new time to automatically stop the
     current process once time is expired.
 
@@ -329,7 +343,7 @@ def start_autokill(timeout=None):
         signal.alarm(timeout)
 
 
-def str_dict_as_envvar(d: dict[str]):
+def str_dict_as_envvar(d: dict[str, str]) -> str:
     """Convert a dict to a list of shell-compliant variable strings.
 
     The final result is a regular multiline str, each line being an entry.
@@ -346,25 +360,29 @@ def str_dict_as_envvar(d: dict[str]):
     # return "\n".join(["{}='{}'".format(i, d[i]) for i in sorted(d.keys())])
 
 
-def check_is_buildir(p):
+def check_is_buildir(p: str) -> bool:
     if not os.path.isdir(p):
         return False
     return NAME_BUILDFILE in os.listdir(p)
 
 
-def check_is_archive(f):
+def check_is_archive(f: str) -> bool:
     if not os.path.isfile(f):
         return False
     return os.path.basename(f).startswith("pcvsrun_")
 
 
-def check_is_build_or_archive(x):
+def check_is_build_or_archive(x: str) -> bool:
     return check_is_buildir(x) or check_is_archive(x)
 
 
-def list_valid_buildirs_in_dir(p):
-    return [os.path.join(root, d) for root, d, _ in os.walk(p) if check_is_buildir(p)]
+def list_valid_buildirs_in_dir(p: str) -> list[str]:
+    return [
+        os.path.join(root, d) for root, dirs, _ in os.walk(p) for d in dirs if check_is_buildir(d)
+    ]
 
 
-def list_valid_archive_in_dir(p):
-    return [os.path.join(root, f) for root, _, f in os.walk(p) if check_is_archive(f)]
+def list_valid_archive_in_dir(p: str) -> list[str]:
+    return [
+        os.path.join(root, f) for root, _, files in os.walk(p) for f in files if check_is_archive(f)
+    ]

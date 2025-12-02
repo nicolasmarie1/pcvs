@@ -55,8 +55,8 @@ def dummy_profile_fs():
     with isolated_fs() as tmp_dir:
         for k in ConfigKind.all_kinds():
             ext = ConfigKind.get_file_ext(k)
-            src_path = os.path.join(PATH_INSTDIR, f"config/{str(k)}/default{ext}")
-            dst_path = os.path.join(tmp_dir, f".pcvs/{str(k)}/default{ext}")
+            src_path = os.path.join(PATH_INSTDIR, f"config/{str(k).lower()}/default{ext}")
+            dst_path = os.path.join(tmp_dir, f".pcvs/{str(k).lower()}/default{ext}")
             os.makedirs(os.path.dirname(dst_path), exist_ok=True)
             shutil.copy(src_path, dst_path)
         yield tmp_dir

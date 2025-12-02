@@ -1,7 +1,10 @@
 import enum
+from typing import Any
+from typing import Iterable
 
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers import communications
+from pcvs.testing.test import Test
 
 
 class Set:
@@ -22,7 +25,7 @@ class Set:
     """
 
     global_increment = 0
-    comman: communications.GenericServer = None
+    comman: communications.GenericServer | None = None
 
     class ExecMode(enum.IntEnum):
         """
@@ -52,15 +55,15 @@ class Set:
         REMOTE = enum.auto()
         BATCH = enum.auto()
 
-    def __init__(self, execmode=ExecMode.LOCAL):
+    def __init__(self, execmode: ExecMode = ExecMode.LOCAL):
         """constructor method."""
-        self._id = Set.global_increment
+        self._id: int = Set.global_increment
         Set.global_increment += 1
-        self._size = 0
+        self._size: int = 0
         self._completed: bool = False
         self._execmode: Set.ExecMode = execmode
-        self._completed = False
-        self._map = dict()
+        self._map: dict[str, Test] = {}
+        self.comman: dict[str, Any] | None
 
         if not self.comman:
             if GlobalConfig.root.get_internal("comman") is not None:
@@ -80,7 +83,7 @@ class Set:
         return self._execmode
 
     @execmode.setter
-    def execmode(self, v: ExecMode):
+    def execmode(self, v: ExecMode) -> None:
         """
         Init the exec mode after the Set is created.
 
@@ -89,7 +92,7 @@ class Set:
         """
         self._execmode = v
 
-    def add(self, jobs):
+    def add(self, jobs: Test | list[Test]) -> None:
         """Add a job or a list of jobs to the current Set.
 
         :param l: a single or a list of jobs
@@ -101,12 +104,12 @@ class Set:
             self._map[j.jid] = j
         self._size = len(self._map.keys())
 
-    def find(self, job_hash):
+    def find(self, job_hash: str) -> Test | None:
         if job_hash not in self._map:
             return None
         return self._map[job_hash]
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """check is the set is empty (contains no jobs)
 
         :return: True if there is no jobs
@@ -115,7 +118,7 @@ class Set:
         return self._size <= 0
 
     @property
-    def size(self):
+    def size(self) -> int:
         """Getter to size property.
 
         :return: Set size
@@ -124,7 +127,7 @@ class Set:
         return self._size
 
     @property
-    def id(self):
+    def id(self) -> int:
         """Getter to id property.
 
         :return: Set id
@@ -133,7 +136,7 @@ class Set:
         return self._id
 
     @property
-    def dim(self):
+    def dim(self) -> int:
         """Getter to dim property (largest dimension of a single job)
 
         :return: Set dim
@@ -142,11 +145,11 @@ class Set:
         if self._size <= 0:
             return 0
         else:
-            return max(map(lambda x: x.get_dim(), self._map.values()))
+            return max(map(lambda x: x.get_dim(), self._map.values()))  # type: ignore
 
     @property
-    def content(self):
-        """Generator iterating over the job list."""
+    def content(self) -> Iterable[Test]:
+        """Iterable iterating over the job list."""
         for j in self._map.values():
             yield j
 

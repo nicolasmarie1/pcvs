@@ -1,4 +1,5 @@
 import sys
+from typing import TextIO
 
 from pcvs import io
 from pcvs.backend import configfile
@@ -13,24 +14,30 @@ try:
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
 
 
-def compl_list_scope_kind(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
+def compl_list_scope_kind(
+    ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
+) -> list[str]:
     """Scope + Kind completion function."""
     all_name = [f"{str(elt.scope)}:{str(elt.kind)}" for elt in ConfigLocator().list_all_configs()]
     all_scope_kind_pair = sorted(set(all_name))
     return [elt for elt in all_scope_kind_pair if incomplete in elt]
 
 
-def compl_list_configs(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
+def compl_list_configs(
+    ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
+) -> list[str]:
     """All configs name completion function."""
     return [
         elt.full_name for elt in ConfigLocator().list_all_configs() if incomplete in elt.full_name
     ]
 
 
-def compl_list_user_configs(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
+def compl_list_user_configs(
+    ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
+) -> list[str]:
     """User configs name completion function."""
     return [
         elt.full_name
@@ -44,7 +51,7 @@ def compl_list_user_configs(ctx, args, incomplete) -> list:  # pylint: disable=u
     short_help="Manage Configurations",
 )
 @click.pass_context
-def config(ctx) -> None:  # pylint: disable=unused-argument
+def config(ctx: click.Context) -> None:  # pylint: disable=unused-argument
     """The 'config' command helps user to manage configurations.
     Their is multiples KIND of configurations:
 
@@ -87,7 +94,7 @@ def config(ctx) -> None:  # pylint: disable=unused-argument
     help="Token in the form scope[:kind] or kind",
 )
 @click.pass_context
-def config_list(ctx, token) -> None:  # pylint: disable=unused-argument
+def config_list(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
     """List available configurations on the system. The list can be
     filtered by applying a KIND. Possible values for KIND are documented
     through the `pcvs config --help` command.
@@ -127,7 +134,7 @@ def config_list(ctx, token) -> None:  # pylint: disable=unused-argument
     help="Token in the form [scope:[kind:]]label",
 )
 @click.pass_context
-def config_show(ctx, token) -> None:  # pylint: disable=unused-argument
+def config_show(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
     """Prints a detailed description of this configuration block, labeled NAME
     and belonging to the KIND kind.
 
@@ -166,7 +173,9 @@ def config_show(ctx, token) -> None:  # pylint: disable=unused-argument
     help="Directly open the created config block in $EDITOR",
 )
 @click.pass_context
-def config_create(ctx, token, clone, interactive) -> None:  # pylint: disable=unused-argument
+def config_create(
+    ctx: click.Context, token: str, clone: str, interactive: bool  # pylint: disable=unused-argument
+) -> None:
     """
     Create a new configuration block for the given KIND.
 
@@ -229,7 +238,7 @@ def config_create(ctx, token, clone, interactive) -> None:  # pylint: disable=un
     help="Do not ask for confirmation before deletion",
 )
 @click.pass_context
-def config_destroy(ctx, token) -> None:  # pylint: disable=unused-argument
+def config_destroy(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
     """
     Erase from disk a previously created configuration block.
 
@@ -255,7 +264,7 @@ def config_destroy(ctx, token) -> None:  # pylint: disable=unused-argument
     shell_complete=compl_list_user_configs,
 )
 @click.pass_context
-def config_edit(ctx, token) -> None:  # pylint: disable=unused-argument
+def config_edit(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
     """
     Open the file with $EDITOR for direct modifications. The configuration is
     then validated to ensure consistency.
@@ -299,7 +308,12 @@ def config_edit(ctx, token) -> None:  # pylint: disable=unused-argument
     help="Erase any previously existing config.",
 )
 @click.pass_context
-def config_import(ctx, token, in_file, force) -> None:  # pylint: disable=unused-argument
+def config_import(
+    ctx: click.Context,  # pylint: disable=unused-argument
+    token: str,
+    in_file: TextIO,
+    force: bool,
+) -> None:
     """
     Import a new configuration block from a YAML file named IN_FILE.
     The configuration is then validated to ensure consistency.
@@ -339,7 +353,9 @@ def config_import(ctx, token, in_file, force) -> None:  # pylint: disable=unused
     default=sys.stdout,
 )
 @click.pass_context
-def config_export(ctx, token, out_file):  # pylint: disable=unused-argument
+def config_export(
+    ctx: click.Context, token: str, out_file: TextIO  # pylint: disable=unused-argument
+) -> None:
     """
     Export a new configuration block to a YAML file named OUT_FILE.
 

@@ -1,7 +1,9 @@
 import random
+from typing import Any
 
 from pcvs.backend.session import Session
 from pcvs.testing.test import Test
+from pcvs.testing.teststate import TestState
 
 
 class DataRepresentation:
@@ -42,12 +44,12 @@ class DataRepresentation:
 
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """constructor method"""
-        self.rootree = {}
+        self.rootree: dict[str, dict[str, Any]] = {}
 
-    def __insert_in_tree(self, test, node, depth):
-        """insert the given test to the given subtree.
+    def __insert_in_tree(self, test: Test, node: dict[str, Any], depth: list[str]) -> None:
+        """Insert the given test to the given subtree.
 
         This function can be called recursively. depth being the list of node
         names where the Test() should be inserted. The 'node' maps to the
@@ -73,11 +75,11 @@ class DataRepresentation:
             # create default for the first access + init counters to zero
             node.setdefault("__elems", {})
             node["__elems"].setdefault(
-                depth[0], {"__metadata": {"count": {k: 0 for k in list(map(str, Test.State))}}}
+                depth[0], {"__metadata": {"count": {k: 0 for k in list(map(str, TestState))}}}
             )
             self.__insert_in_tree(test, node["__elems"][depth[0]], depth[1:])
 
-    def insert_session(self, sid: str, session_data):
+    def insert_session(self, sid: str, session_data: dict[str, Any]) -> None:
         """Insert a new session into the tree.
 
         :param sid: the session id, will be the data key
@@ -95,16 +97,16 @@ class DataRepresentation:
         self.rootree.setdefault(
             sid,
             {
-                "fs-tree": {"__metadata": {"count": {k: 0 for k in list(map(str, Test.State))}}},
-                "tags": {"__metadata": {"count": {k: 0 for k in list(map(str, Test.State))}}},
-                "iterators": {"__metadata": {"count": {k: 0 for k in list(map(str, Test.State))}}},
-                "failures": {"__metadata": {"count": {k: 0 for k in list(map(str, Test.State))}}},
+                "fs-tree": {"__metadata": {"count": {k: 0 for k in list(map(str, TestState))}}},
+                "tags": {"__metadata": {"count": {k: 0 for k in list(map(str, TestState))}}},
+                "iterators": {"__metadata": {"count": {k: 0 for k in list(map(str, TestState))}}},
+                "failures": {"__metadata": {"count": {k: 0 for k in list(map(str, TestState))}}},
                 "state": Session.State(session_data["state"]),
                 "path": session_data["buildpath"],
             },
         )
 
-    def close_session(self, sid: str, session_data):
+    def close_session(self, sid: str, session_data: dict[str, Any]) -> None:
         """Update the tree when the targeted session is completed.
 
         :param sid: targeted session id
@@ -115,7 +117,7 @@ class DataRepresentation:
         assert sid in self.rootree.keys()
         self.rootree[sid]["state"] = session_data["state"]
 
-    def insert_test(self, sid: str, test: Test):
+    def insert_test(self, sid: str, test: Test) -> bool:
         """Insert a new test.
 
         This test is bound to a session.
@@ -145,13 +147,13 @@ class DataRepresentation:
             for iter_k, iter_v in test.combination.items():
                 self.__insert_in_tree(test, sid_tree["iterators"], [iter_k, iter_v])
 
-        if test.state != Test.State.SUCCESS:
+        if test.state != TestState.SUCCESS:
             # if failed, save it
             self.__insert_in_tree(test, sid_tree["failures"], [])
         return True
 
     @property
-    def session_ids(self):
+    def session_ids(self) -> list[str]:
         """Get list of registered session ids.
 
         :return: the list of know session ids
@@ -159,7 +161,7 @@ class DataRepresentation:
         """
         return list(self.rootree.keys())
 
-    def get_tag_cnt(self, sid: str):
+    def get_tag_cnt(self, sid: str) -> int:
         """Get the number of tag for a given session.
 
         :param sid: session id
@@ -169,7 +171,7 @@ class DataRepresentation:
         """
         return len(self.rootree[sid]["tags"]["__elems"].keys())
 
-    def get_label_cnt(self, sid: str):
+    def get_label_cnt(self, sid: str) -> int:
         """Get the number of labels for a given session.
 
         :param sid: session id
@@ -179,7 +181,7 @@ class DataRepresentation:
         """
         return len(self.rootree[sid]["fs-tree"]["__elems"].keys())
 
-    def get_test_cnt(self, sid: str):
+    def get_test_cnt(self, sid: str) -> int:
         """Get the number of tests for a given session.
 
         :param sid: session id
@@ -189,7 +191,7 @@ class DataRepresentation:
         """
         return sum(self.rootree[sid]["fs-tree"]["__metadata"]["count"].values())
 
-    def get_root_path(self, sid: str):
+    def get_root_path(self, sid: str) -> str:
         """For a session, get the build path where data are stored.
 
         :param sid: session id
@@ -197,9 +199,11 @@ class DataRepresentation:
         :return: build path
         :rtype: str
         """
-        return self.rootree[sid]["path"]
+        path = self.rootree[sid]["path"]
+        assert isinstance(path, str)
+        return path
 
-    def get_token_content(self, sid: str, token):
+    def get_token_content(self, sid: str, token: str) -> Any:
         """Advanced function to access partial data tree.
 
         :param sid: session id
@@ -214,7 +218,7 @@ class DataRepresentation:
 
         return self.rootree[sid][token]
 
-    def extract_tests_under(self, node):
+    def extract_tests_under(self, node: dict[str, Any]) -> list[str]:
         """Retrieve all tests undef a given data tree subnode.
 
         :param node: data subnode
@@ -223,15 +227,19 @@ class DataRepresentation:
         :rtype: list(class:`Test`)
         """
         assert "__elems" in node.keys()
-        if isinstance(node["__elems"], list):
-            return [x.to_json(strstate=True) for x in node["__elems"] if isinstance(x, Test)]
+        elements = node["__elems"]
 
-        ret = list()
-        for elt in node["__elems"].values():
-            ret += self.extract_tests_under(elt)
-        return ret
+        if isinstance(elements, list):
+            return [str(x.to_json(strstate=True)) for x in elements if isinstance(x, Test)]
 
-    def get_sessions(self):
+        if isinstance(elements, dict):
+            ret = []
+            for elt in elements.values():
+                ret += self.extract_tests_under(elt)
+            return ret
+        assert False
+
+    def get_sessions(self) -> list[dict[str, Any]]:
         """Get the list of current known sessions.
 
         :return: a dict mapping to session infos.

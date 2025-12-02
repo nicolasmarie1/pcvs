@@ -1,12 +1,17 @@
+from __future__ import annotations
+
 import json
 import sys
+from datetime import datetime
 from enum import IntEnum
-from typing import Dict
-from typing import List
+from typing import Any
+from typing import Generator
+from typing import Self
 
 from pcvs import io
 from pcvs.helpers import git
 from pcvs.testing.test import Test
+from pcvs.testing.teststate import TestState
 
 
 class Job(Test):
@@ -17,26 +22,21 @@ class Job(Test):
         PROGRESSION = 1
         STABLE = 2
 
-    def __init__(self, s=None, filepath: str = None) -> None:
+    def __init__(
+        self, json_content: dict[str, Any] | None = None, filepath: str | None = None
+    ) -> None:
         super().__init__()
-        if isinstance(s, dict):
-            self.from_json(s, filepath)
+        if json_content is not None:
+            assert filepath is not None
+            self.from_json(json_content, filepath)
 
-    def get_state(self) -> Test.State:
-        """Retrieve job state as stored in the Run.
-
-        :return: the state
-        :rtype: Test.State
-        """
-        return self._state
-
-    def load(self, s="", filepath: str = None) -> None:
+    def load(self, test_json: dict[str, Any], filepath: str) -> None:
         """Populate the job with given data.
 
         :param s: A Job's data dict representation
-        :type s: dict
+        :type s: str
         """
-        self.from_json(s, filepath)
+        self.from_json(test_json, filepath)
 
     def dump(self) -> dict:
         """Return serialied job data.
@@ -50,49 +50,56 @@ class Job(Test):
 class Run:
     """Depict a given run -> Git commit"""
 
-    def __init__(self, repo=None, cid=None, from_series=None):
+    # TODO modify comportement to avoid recursive definition
+    def __init__(
+        self,
+        repo: git.GitByGeneric | None = None,
+        cid: git.Commit | None = None,
+        from_series: Series | None = None,
+    ):
         """Create a new run.
 
         :param repo: the associated repo this run is coming from
         :type repo: Bank
         """
         # this attribute prevails
-        if from_series:
+        if isinstance(from_series, Series):
             repo = from_series.repo
 
         self._repo = repo
-        self._stage = {}
         self._cid = None
+        self._stage: dict = {}
 
-        if self._repo:
-            self._cid = cid
+        if self._repo is not None:
+            if isinstance(cid, git.Commit):
+                self._cid = cid
             # self.load()
 
-    def load(self, cid=None):
-        if cid:
-            self._cid = cid
-        # load into _stage the actual content ?
+    def load(self, cid: git.Commit) -> None:
+        self._cid = cid
 
     @property
-    def changes(self):
+    def changes(self) -> dict:
         return self._stage
 
     @property
-    def previous(self):
+    def previous(self) -> Self | None:
+        assert self._repo is not None and self._cid is not None
         runs = self._repo.get_parents(self._cid)
         if len(runs) <= 0 or runs[0].get_info()["message"] == "INIT":
             return None
-        return Run(repo=self._repo, cid=runs[0])
+        return Run(repo=self._repo, cid=runs[0])  # type: ignore
 
     @property
-    def oneline(self):
+    def oneline(self) -> str:
         """TODO:"""
         assert isinstance(self._cid, git.Commit)
         d = self._cid.get_info()
         return "{}".format(d)
 
     @property
-    def jobs(self):
+    def jobs(self) -> Generator[Job]:
+        assert self._repo is not None
         for file in self._repo.list_files(rev=self._cid):
             if file in ["README", ".pcvs-cache/conf.json"]:
                 continue
@@ -102,49 +109,54 @@ class Run:
             yield job
 
     @property
-    def get_full_data(self):
+    def get_full_data(self) -> str:
         root = [j.to_json() for j in self.jobs]
         return json.dumps(root)
 
-    def get_data(self, jobname):
+    def get_data(self, jobname: str) -> Job | None:
         res = Job()
+        assert self._repo is not None
         data = self._repo.get_tree(tree=self._cid, prefix=jobname)
-        if data is None:
-            return None
+        if isinstance(data, git.Blob):
+            res.from_json(
+                json.loads(str(data)), f"Validation from bank {self._cid} for job {jobname}"
+            )
+            return res
+        return None
 
-        res.from_json(str(data), f"Validation from bank {self._cid} for job {jobname}")
-        return res
-
-    def update(self, prefix, data):
+    def update(self, prefix: str, data: Job | dict[str, Any] | str) -> None:
         if isinstance(data, Job):
             data = data.to_json()
-
         if isinstance(data, dict):
             data = json.dumps(data, default=lambda x: "Invalid type: {}".format(type(x)))
-
+        assert isinstance(data, str)
         self._stage[prefix] = data
 
-    def update_flatdict(self, list_of_updates):
-        for k, v in list_of_updates.items():
+    def update_flatdict(self, updates: dict[str, Job | dict[str, Any] | str]) -> None:
+        for k, v in updates.items():
             self.update(k, v)
 
-    def __handle_subtree(self, prefix, subdict):
+    def __handle_subtree(self, prefix: str, subdict: dict[str, Any]) -> None:
         for k, v in subdict.items():
             if not isinstance(v, dict):
                 self._stage[k] = v
             else:
-                self.__handle_subtree("{}{}/".format(prefix, k), v)
+                self.__handle_subtree(f"{prefix}{k}/", v)
 
-    def update_treedict(self, list_of_updates):
-        self.__handle_subtree("", list_of_updates)
+    def update_treedict(self, updates: dict[str, Any]) -> None:
+        self.__handle_subtree("", updates)
 
-    def get_info(self):
+    def get_info(self) -> dict[str, Any]:
+        assert self._cid is not None
         return self._cid.get_info()
 
-    def get_metadata(self):
+    def get_metadata(self) -> dict[str, Any]:
+        assert self._cid is not None
         raw_msg = self._cid.get_info()["message"]
         meta = raw_msg.split("\n")[2]
-        return json.loads(meta)
+        json_dict = json.loads(meta)
+        assert isinstance(json_dict, dict)
+        return json_dict
 
 
 class Series:
@@ -158,67 +170,78 @@ class Series:
 
     # Depicts an history of runs for a given project/profile.
 
-    def __init__(self, branch):
+    def __init__(self, branch: git.Branch):
         """TODO:"""
-        self._hdl = branch
-        self._repo = branch.repo
+        self._hdl: git.Branch = branch
+        self._repo: git.GitByGeneric = branch.repo
 
     @property
-    def repo(self):
+    def repo(self) -> git.GitByGeneric:
         return self._repo
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._hdl.name
 
     @property
-    def last(self):
+    def last(self) -> Run:
         """Return the last run for this series."""
         return Run(self._repo, self._repo.revparse(self._hdl))
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.find(self.Request.RUNS))
 
-    def __str__(self):
+    def __str__(self) -> str:
         res = ""
         for run in self._repo.iterate_over(self._hdl):
             res += "* {}\n".format(Run(repo=self._repo, cid=run).oneline)
         return res
 
-    def history(self, limit: int = sys.maxsize):
+    def history(self, limit: int = sys.maxsize) -> list[Run]:
         res = []
         size = 0
 
-        parent: Run = self.last
-        while parent and size < limit:
+        parent: Run | None = self.last
+        while parent is not None and size < limit:
             res.append(parent)
             size += 1
             parent = parent.previous
 
         return res
 
-    def find(self, op: Request, since=None, until=None, tree=None):
+    def find(  # type: ignore
+        self,
+        op,  # Request is not yet defined and sphinx does not support future annotation
+        since: datetime | None = None,
+        until: datetime | None = None,
+    ) -> list[Job | Run]:
         """TODO:"""
-        res = None
-
+        res: list[Job | Run] = []
         if op == self.Request.REGRESSIONS:
-            job = Test()
-            res = []
+            # TODO: implement repo.diff_tree
+            assert False  # repo.diff_tree is not implemented, do not use
+            tree = None
+            job = Job()
             for raw_job in self._repo.diff_tree(
                 tree=tree, src=self._hdl, dst=None, since=since, until=until
             ):
                 job.from_json(raw_job, None)
-                if job.state != Test.State.SUCCESS:
+                if job.state != TestState.SUCCESS:
                     res.append(job)
 
         elif op == self.Request.RUNS:
-            res = []
             for elt in self._repo.list_commits(rev=self._hdl, since=since, until=until):
                 if elt.get_info()["message"] != "INIT":
                     res.append(Run(repo=self._repo, cid=elt))
         return res
 
-    def commit(self, run, msg=None, metadata={}, timestamp=None):
+    def commit(
+        self,
+        run: Run,
+        msg: str | None = None,
+        metadata: dict = {},
+        timestamp: int | None = None,
+    ) -> None:
         assert isinstance(run, Run)
         root_tree = None
         msg = "New run" if not msg else msg
@@ -227,15 +250,12 @@ class Series:
         except Exception:
             raw_metadata = ""
 
-        commit_msg = """{}
-
-{}""".format(
-            msg, raw_metadata
-        )
+        commit_msg = f"{msg}\n\n{raw_metadata}"
 
         for k, v in run.changes.items():
             root_tree = self._repo.insert_tree(k, v, root_tree)
-        self._repo.commit(
+        assert root_tree is not None
+        self._repo.do_commit(
             tree=root_tree, msg=commit_msg, parent=self._hdl, timestamp=timestamp, orphan=False
         )
         # self._repo.gc()
@@ -246,12 +266,12 @@ class Bank:
     Bank view from Python API
     """
 
-    def __init__(self, path="", head=None):
-        self._path = path
-        self._repo = git.elect_handler(self._path)
+    def __init__(self, path: str = "", head: str | None = None):
+        self._path: str = path
+        self._repo: git.GitByGeneric = git.elect_handler(self._path)
 
         self._repo.open()
-        if head:
+        if head is not None:
             self._repo.set_head(head)
         else:
             first_branch = [b for b in self._repo.branches() if b.name != "master"]
@@ -264,30 +284,29 @@ class Bank:
             t = self._repo.insert_tree(
                 "README", "This file is intended to be used as a branch bootstrap."
             )
-            c = self._repo.commit(t, "INIT", orphan=True)
+            c = self._repo.do_commit(t, "INIT", orphan=True)
             self._repo.set_branch(git.Branch(self._repo, "master"), c)
 
     @property
-    def path(self):
+    def path(self) -> str:
         return self._path
 
-    def set_id(self, an, am, cn, cm):
+    def set_id(self, an: str, am: str, cn: str, cm: str) -> None:
         self._repo.set_identity(an, am, cn, cm)
 
-    def connect(self):
+    def connect(self) -> None:
         self._repo.open()
 
-    def disconnect(self):
-        if self._repo:
+    def disconnect(self) -> None:
+        if self._repo.is_open():
             self._repo.close()
-            self._repo = None
 
-    def new_series(self, series_name):
+    def new_series(self, series_name: str) -> Series:
         assert series_name is not None
         hdl = self._repo.new_branch(series_name)
         return Series(hdl)
 
-    def get_series(self, series_name=None):
+    def get_series(self, series_name: str | None = None) -> Series | None:
         """TODO"""
         if not series_name:
             series_name = self._repo.get_head().name
@@ -299,16 +318,16 @@ class Bank:
 
         return Series(branch)
 
-    def list_series(self, project=None):
+    def list_series(self, project: str | None = None) -> list[Series]:
         """TODO:"""
-        res = []
+        res: list[Series] = []
         for elt in self._repo.branches():
             array = elt.name.split("/")
             if project is None or array[0].lower() == project.lower():
                 res.append(Series(elt))
         return res
 
-    def list_all(self) -> Dict[str, List]:
+    def list_all(self) -> dict[str, list]:
         """TODO:"""
         res = {}
         for project in self.list_projects():
@@ -316,7 +335,7 @@ class Bank:
                 res[project] = self.list_series(project)
         return res
 
-    def list_projects(self) -> List[str]:
+    def list_projects(self) -> list[str]:
         """Given the bank, list projects with at least one run.
 
         In a bank, each branch is a project, just list available branches.

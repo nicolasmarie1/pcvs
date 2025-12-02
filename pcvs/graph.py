@@ -21,12 +21,12 @@ from matplotlib import pyplot as plt
 from pcvs import io
 from pcvs.dsl import Series
 from pcvs.dsl.analysis import SimpleAnalysis
-from pcvs.testing.test import Test
+from pcvs.testing.teststate import TestState
 
 
 def get_status_series(
     analysis: SimpleAnalysis, series: Series, path: str, show: bool, extension: str, limit: int
-):
+) -> None:
     """
     get_status_series: create a test state graph.
 
@@ -38,16 +38,16 @@ def get_status_series(
     :param limit: nb max of run in the series to query (use sys.maxsize for not
         limit).
     """
-    status_data = analysis.generate_series_trend(series.name, limit)
+    status_data = analysis.generate_series_trend(series, limit)
     xlabels = []
     total, fails, htos, stos, succs, other = [], [], [], [], [], []
 
     for e in sorted(status_data, key=lambda item: item["date"]):
         nb = sum(e["cnt"].values())
-        fail = e["cnt"].get(str(Test.State.FAILURE), 0)
-        hto = e["cnt"].get(str(Test.State.HARD_TIMEOUT), 0)
-        sto = e["cnt"].get(str(Test.State.SOFT_TIMEOUT), 0)
-        succ = e["cnt"].get(str(Test.State.SUCCESS), 0)
+        fail = e["cnt"].get(str(TestState.FAILURE), 0)
+        hto = e["cnt"].get(str(TestState.HARD_TIMEOUT), 0)
+        sto = e["cnt"].get(str(TestState.SOFT_TIMEOUT), 0)
+        succ = e["cnt"].get(str(TestState.SUCCESS), 0)
 
         xlabels.append(e["date"])
         total.append(nb)
@@ -66,11 +66,11 @@ def get_status_series(
         succs,
         other,
         labels=[
-            Test.State.FAILURE.name,
-            Test.State.HARD_TIMEOUT.name,
-            Test.State.SOFT_TIMEOUT.name,
-            Test.State.SUCCESS.name,
-            Test.State.ERR_OTHER.name,
+            TestState.FAILURE.name,
+            TestState.HARD_TIMEOUT.name,
+            TestState.SOFT_TIMEOUT.name,
+            TestState.SUCCESS.name,
+            TestState.ERR_OTHER.name,
         ],
         colors=["red", "orange", "blue", "green", "purple"],
     )
@@ -93,19 +93,20 @@ def get_status_series(
 
 def _get_time_series(
     jobs_base_name: str,
-    jobs: dict[str, dict[str, list[int]]],
-    dates: list[int],
+    # testname -> ([rundate -> index], [rundate -> duration])
+    jobs: dict[str, tuple[list[int], list[float | None]]],
+    dates: list[str],
     path: str,
     show: bool,
-    extension: bool,
-):
+    extension: str,
+) -> None:
     io.console.debug(f"Times for: {jobs_base_name}")
     fig, ax = plt.subplots()
     for job_name, job_data in jobs.items():
         job_spec: str = job_name[len(jobs_base_name) + 1 :]
         if not job_spec:
             job_spec = "default"  # no criterions
-        ax.plot(job_data["indexes"], job_data["times"], label=job_spec, marker="+")
+        ax.plot(job_data["indexes"], job_data["times"], label=job_spec, marker="+")  # type: ignore
     ax.xaxis.set_ticks(range(len(dates)))
     ax.xaxis.set_ticklabels(dates)
 
@@ -126,7 +127,7 @@ def _get_time_series(
 
 def get_time_series(
     analysis: SimpleAnalysis, series: Series, path: str, show: bool, extension: str, limit: int
-):
+) -> None:
     """
     get_time_series: create a test state graph.
 
@@ -138,37 +139,37 @@ def get_time_series(
     :param limit: nb max of run in the series to query (use sys.maxsize for not
         limit).
     """
-    all_time_data: dict[int, dict[str, dict[str, str | int]]] = analysis.generate_series_infos(
-        series.name, limit
+    # rundate -> jobname -> (basename, teststatus, testduration)
+    all_time_data: dict[str, dict[str, tuple[str, TestState, float]]] = (
+        analysis.generate_series_infos(series, limit)
     )
-    group_jobs: dict[str, dict[str, dict[str, list[int]]]] = {}
-    group_dates: dict[str, list[int]] = {}
+    # basename -> name -> ([rundate -> index], [rundate -> duration])
+    group_jobs: dict[str, dict[str, tuple[list[int], list[float | None]]]] = {}
+    # base_name -> [rundate]
+    group_dates: dict[str, list[str]] = {}
 
-    # -> move struct from: date { job { data } }
-    #                  to: jobgroup { job ([index], [data.time]) } } }
-    #                   +: jobgroup { [dates] }
+    # -> move struct from: date -> job_nape -> (basename, state, time)
+    #                  to: jobgroup -> job -> (index, time)
+    #                   +: jobgroup -> time
     #   ie: group by job basename + swap job/date key order
     # + filter data by state == success || state == soft_timeout
     # + make sure we are going by date order to get the right graph.
     i: int = 0
     for run_date, jobs in dict(sorted(all_time_data.items())).items():
         for job_name, job_data in jobs.items():
-            base_name = job_data["basename"]
+            base_name = job_data[0]
             if base_name not in group_jobs:
                 group_jobs[base_name] = {}
                 group_dates[base_name] = []
             if run_date not in group_dates[base_name]:
                 group_dates[base_name].append(run_date)
             if job_name not in group_jobs[base_name]:
-                group_jobs[base_name][job_name] = {"indexes": [], "times": []}
-            group_jobs[base_name][job_name]["indexes"].append(i)
-            if (
-                job_data["status"] == Test.State.SUCCESS
-                or job_data["status"] == Test.State.SOFT_TIMEOUT
-            ):
-                group_jobs[base_name][job_name]["times"].append(job_data["time"])
+                group_jobs[base_name][job_name] = ([], [])
+            group_jobs[base_name][job_name][0].append(i)
+            if job_data[1] == TestState.SUCCESS or job_data[1] == TestState.SOFT_TIMEOUT:
+                group_jobs[base_name][job_name][1].append(job_data[2])
             else:
-                group_jobs[base_name][job_name]["times"].append(None)
+                group_jobs[base_name][job_name][1].append(None)
         i += 1
 
     for jobs_base_name, jobs_data in group_jobs.items():

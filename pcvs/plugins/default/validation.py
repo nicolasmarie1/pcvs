@@ -1,9 +1,13 @@
 import sys
+from typing import Any
 
 from pcvs import io
 from pcvs.backend.metaconfig import GlobalConfig
+from pcvs.dsl import Run
+from pcvs.dsl import Series
 from pcvs.plugins import Plugin
 from pcvs.testing.test import Test
+from pcvs.testing.teststate import TestState
 
 # Configuration needed to run this plugin:
 # from profile configuration:
@@ -23,12 +27,12 @@ class BankValidationPlugin(Plugin):
 
     step = Plugin.Step.TEST_RESULT_EVAL
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self._series = None
+        self._series: Series | None = None
         self._bank_hdl = GlobalConfig.root.get_internal("bank")
 
-    def run(self, *args, **kwargs):
+    def run(self, *args, **kwargs):  # type: ignore
         """TODO:"""
         if self._bank_hdl is None:
             return None  # Not running with a bank, stop !
@@ -53,32 +57,34 @@ class BankValidationPlugin(Plugin):
         return None
 
     # not longer than the average of previous runs
-    def not_longer_than_previous_runs(self, args, job):
-        """TODO:"""
-        if not self._bank_hdl:
-            return (Test.State.ERR_OTHER, 0)
+    def not_longer_than_previous_runs(
+        self, args: dict[str, Any], job: Test
+    ) -> tuple[TestState, float] | None:
+        assert self._bank_hdl is not None
+        assert self._series is not None
 
         max_runs = args.get("history_depth", 1)
         if max_runs == -1:
             max_runs = sys.maxsize
         # 2% tolerace by default
         tolerance = args.get("tolerance", 2)
-        min_time = sys.maxsize
+        min_time: float | int = sys.maxsize
         cnt = 0
-        run = self._series.last
+        run: Run = self._series.last
         while cnt < max_runs:
             res = run.get_data(job.name)
-            if res and res.state == Test.State.SUCCESS:
+            if res and res.state == TestState.SUCCESS:
                 min_time = min(min_time, res.time)
                 cnt += 1
-            run = run.previous
-            if run is None:
+            previous_run: Run | None = run.previous
+            if previous_run is None:
                 break
+            run = previous_run
         if cnt == 0:
             return None
         # soft_timeout = (total_time / cnt) * (1 + tolerance / 100)
         soft_timeout = min_time * (1 + (tolerance / 100))
         io.console.debug("Bank Validation Plugin: {job.time}/{soft_timeout}")
         if cnt >= 0 and job.time >= soft_timeout:
-            return (Test.State.SOFT_TIMEOUT, soft_timeout)
+            return (TestState.SOFT_TIMEOUT, soft_timeout)
         return None

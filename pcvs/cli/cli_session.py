@@ -14,12 +14,14 @@ try:
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
 
 from click.shell_completion import CompletionItem
 
 
-def compl_session_token(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
+def compl_session_token(
+    ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
+) -> list:
     """Session name completion function.
 
     :param ctx: Click context
@@ -40,7 +42,7 @@ def compl_session_token(ctx, args, incomplete) -> list:  # pylint: disable=unuse
     ]
 
 
-def print_sessions(sessions):
+def print_sessions(sessions: dict[str, dict]) -> None:
     """List detached sessions."""
     if len(sessions) <= 0:
         io.console.print("[italic bold]No sessions")
@@ -81,7 +83,7 @@ def print_sessions(sessions):
             ),
             "[{}]{}".format(line_style, s.property("path")),
         )
-    io.console.print(table)
+    io.console.print(str(table))
 
 
 @click.command(name="session", short_help="Manage multiple validations")
@@ -89,7 +91,7 @@ def print_sessions(sessions):
     "-c",
     "--clear",
     "ack",
-    type=int,
+    type=str,
     default=None,
     help="Clear a 'completed' remote session, for removing from logs",
 )
@@ -109,7 +111,12 @@ def print_sessions(sessions):
     help="List detached sessions",
 )
 @click.pass_context
-def session(ctx, ack, list_sessions, ack_all):  # pylint: disable=unused-argument
+def session(
+    ctx: click.Context,  # pylint: disable=unused-argument
+    ack: str,
+    ack_all: bool,
+    list_sessions: bool,
+) -> None:
     """Manage sessions by listing or acknowledging their completion."""
     sessions = pvSession.list_alive_sessions()
     if sessions is None:

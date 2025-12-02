@@ -1,11 +1,14 @@
+from typing import Any
+
+
 class PCVSException(Exception):
     """Generic PCVS error (custom errors will inherit of this)."""
 
     def __init__(
         self,
-        reason,
-        help_msg=None,
-        dbg_info={},
+        reason: str,
+        help_msg: str | None = None,
+        dbg_info: dict[str, str | None] = {},
     ):
         """Constructor for generic errors.
         :param *args: unused
@@ -15,7 +18,7 @@ class PCVSException(Exception):
         self._dbg_info = dbg_info
         super().__init__("{} - {}".format(type(self).__name__, reason))
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Stringify an exception for pretty-printing.
 
         :return: the string.
@@ -23,14 +26,17 @@ class PCVSException(Exception):
         """
         name_msg = super().__str__() + "\n"
         help_msg = f"{self._help_msg}\n" if self._help_msg else ""
-        dbg_msg = "Additional notes:\n" + self.__dbg_str() + "\n" if self._dbg_info else ""
+        dbg_msg = "Additional notes:\n" + self.__dbg_str() + "\n" if self._dbg_info != {} else ""
         cause_msg = f"From:\n{self.__cause__}" if self.__cause__ is not None else ""
         return f"{name_msg}{help_msg}{dbg_msg}{cause_msg}"
 
-    def add_dbg(self, **kwargs):
-        for k, v in kwargs.items():
-            if k not in self._dbg_info:
-                self._dbg_info[k] = v
+    def add_dbg(self, name: str, info: str) -> None:
+        """Add debug info to the current exception."""
+        self._dbg_info.setdefault(name, info)
+
+    def set_dbg(self, dbg_infos: dict[str, Any]) -> None:
+        """Set all debugs infos."""
+        self._dbg_info = dbg_infos
 
     def __dbg_str(self) -> str:
         """
@@ -39,7 +45,7 @@ class PCVSException(Exception):
         :return: a itemized string.
         :rtype: str
         """
-        if not self._dbg_info:
+        if self._dbg_info == {}:
             return ""
         w = max(len(k) for k in self._dbg_info.keys())
         return "\n".join([f"- {k:<{w}}: {v}" for k, v in self._dbg_info.items()])
@@ -54,7 +60,7 @@ class CommonException(PCVSException):
     class AlreadyExistError(PCVSException):
         """The content already exist as it should."""
 
-        def __init__(self, reason="Already Exist", **kwargs):
+        def __init__(self, reason: str = "Already Exist"):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
@@ -64,7 +70,6 @@ class CommonException(PCVSException):
                         "verified through `pcvs check [-C|-P|-D <path>]`",
                     ]
                 ),
-                dbg_info=kwargs,
             )
 
     class UnclassifiableError(PCVSException):
@@ -116,41 +121,51 @@ class ValidationException(PCVSException):
         def __init__(self, file: str, content: str):
             """Updated Constructor"""
             super().__init__(reason="Fail to load the following yaml")
-            self.add_dbg(file_path=file, raw_yaml=content)
+            self.add_dbg("file_path", file)
+            self.add_dbg("raw_yaml", content)
 
     class SetupError(PCVSException):
         """An error ocured when run pcvs.setup file."""
 
         def __init__(self, file: str):
             super().__init__(reason="Fail to run the following setup file")
-            self.add_dbg(file_path=file)
+            self.add_dbg("file_path", file)
 
     class FormatError(PCVSException):
         """The content does not comply the required format (schemes)."""
 
-        def __init__(self, reason="Invalid format", **kwargs):
+        def __init__(self, reason: str = "Invalid format"):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
-                help_msg="\n".join(["Input files may be checked with `pcvs check`"]),
-                dbg_info=kwargs,
             )
 
     class WrongTokenError(PCVSException):
         """A unknown token is found in valided content"""
 
-        def __init__(self, reason="Invalid token(s) used as Placeholders", **kwargs):
+        def __init__(
+            self, invalid_tokens: str, reason: str = "Invalid token(s) used as Placeholders"
+        ):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
                 help_msg="\n".join(["A list of valid tokens is available in the documentation"]),
-                dbg_info=kwargs,
             )
+            self.add_dbg("invalid_tokens", invalid_tokens)
+
+    class InvalidSchemeError(PCVSException):
+        """The schema used to verify the template is not a valid YAML file."""
+
+        def __init__(self, schema: str, reason: str = "Invalid Scheme provided"):
+            super().__init__(reason=reason)
+            self.add_dbg("schema", schema)
 
     class SchemeError(PCVSException):
         """The content is not a valid format (scheme)."""
 
-        def __init__(self, reason="Invalid Scheme provided", **kwargs):
+        def __init__(
+            self, name: str, content: str, error: str, reason: str = "Fail to verify schema"
+        ):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
@@ -160,8 +175,10 @@ class ValidationException(PCVSException):
                         "changed, please report this error.",
                     ]
                 ),
-                dbg_info=kwargs,
             )
+            self.add_dbg("schema", name)
+            self.add_dbg("yaml", content)
+            self.add_dbg("error", error)
 
 
 class RunException(CommonException):
@@ -170,7 +187,13 @@ class RunException(CommonException):
     class InProgressError(PCVSException):
         """A run is currently occurring in the given dir."""
 
-        def __init__(self, reason="Build directory currently used by another instance", **kwargs):
+        def __init__(
+            self,
+            path: str,
+            lockfile: str,
+            owner_pid: str,
+            reason: str = "Build directory currently used by another instance",
+        ):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
@@ -180,24 +203,30 @@ class RunException(CommonException):
                         "You may also use --override or --output to change default build directory",
                     ]
                 ),
-                dbg_info=kwargs,
             )
+            self.add_dbg("output path", path)
+            self.add_dbg("lockfile", lockfile)
+            self.add_dbg("owner pid", owner_pid)
 
     class NonZeroSetupScript(PCVSException):
         """a setup script (=pcvs.setup) completed but returned non-zero exit code."""
 
-        def __init__(self, reason="A setup script failed to complete", **kwargs):
+        def __init__(
+            self, rc: int, err: bytes, file: str, reason: str = "A setup script failed to complete"
+        ):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
                 help_msg="\n".join(["Try to run manually the setup script"]),
-                dbg_info=kwargs,
             )
+            self.add_dbg("exit code", str(rc))
+            self.add_dbg("error", str(err))
+            self.add_dbg("file", file)
 
     class ProgramError(PCVSException):
         """The given program cannot be found."""
 
-        def __init__(self, reason="A program cannot be found", **kwargs):
+        def __init__(self, reason: str = "A program cannot be found"):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
@@ -208,7 +237,6 @@ class RunException(CommonException):
                         "if this is a false warning.",
                     ]
                 ),
-                dbg_info=kwargs,
             )
 
 
@@ -219,7 +247,7 @@ class TestException(CommonException):
         """Test description is wrongly formatted."""
 
         def __init__(
-            self, input_files, reason="Issue(s) while parsing a Test Descriptor", **kwargs
+            self, input_files: list[str], reason: str = "Issue(s) while parsing a Test Descriptor"
         ):
             """Updated constructor"""
             super().__init__(
@@ -227,7 +255,6 @@ class TestException(CommonException):
                 help_msg="\n".join(
                     ["Please check input files with `pcvs check`", "Invalid files are:", "{}"]
                 ).format("\n".join(input_files)),
-                dbg_info=kwargs,
             )
 
 
@@ -281,7 +308,7 @@ class PluginException(CommonException):
     class LoadError(PCVSException):
         """Unable to load plugin directory."""
 
-        def __init__(self, reason="Issue(s) while loading plugin", **kwargs):
+        def __init__(self, reason: str = "Issue(s) while loading plugin"):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
@@ -291,7 +318,6 @@ class PluginException(CommonException):
                         "python3 ./path/to/plugin/file.py",
                     ]
                 ),
-                dbg_info=kwargs,
             )
 
 

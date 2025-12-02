@@ -9,7 +9,6 @@ from ruamel.yaml import YAML
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.backend.metaconfig import MetaConfig
 from pcvs.helpers import pm
-from pcvs.orchestration import Orchestrator
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.plugins import Collection
 from pcvs.testing import testfile as tested
@@ -121,7 +120,7 @@ def test_TestFile(isolated_yml_test):  # pylint: disable=redefined-outer-name
     # after GlobalConfig have already been initialize.
     with isolated_fs():
         GlobalConfig.root.set_internal("build_manager", BuildDirectoryManager())
-        GlobalConfig.root.set_internal("orchestrator", Orchestrator())
+        # GlobalConfig.root.set_internal("orchestrator", Orchestrator())
         testfile = tested.TestFile(
             os.path.join(isolated_yml_test, "test-dir/pcvs.yml"),
             os.path.dirname(isolated_yml_test),

@@ -5,13 +5,16 @@ import os
 import re
 import shlex
 import subprocess
-from enum import IntEnum
+from typing import Any
+from typing import Iterable
+from typing import Self
 
 from pcvs import io
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers.criterion import Combination
-from pcvs.helpers.system import ValidationScheme
+from pcvs.helpers.validation import ValidationScheme
 from pcvs.plugins import Plugin
+from pcvs.testing.teststate import TestState
 
 
 class Test:
@@ -35,140 +38,87 @@ class Test:
     NOSTART_STR = b"This test cannot be started."
     DISCARDED_STR = b"This test has failed to be scheduled. Discarded."
 
-    class State(IntEnum):
-        """Provide Status management, specifically for tests/jobs.
-
-        Defined as an enum, it represents different states a job can take during
-        its lifetime. As tests are then serialized into a JSON file, there is
-        no need for construction/representation (as done for Session states).
-
-        :var int WAITING: Job is currently waiting to be scheduled
-        :var int IN_PROGRESS: A running Set() handle the job, and is scheduled
-            for run.
-        :var int EXECUTED: Job have been executed, but result status
-            has not been computed yet.
-        :var int SUCCESS: Job successfully run and passes all checks (rc,
-            matchers...)
-        :var int FAILURE: Job didn't succeed, at least one condition failed.
-        :var SOFT_TIMEOUT: Job has exceeded his soft time limit but pass.
-        :var HARD_TIMEOUT: Job has exceeded his hard time limit and got killed.
-        :var int ERR_DEP: Special cases to manage jobs descheduled because at
-            least one of its dependencies have failed to complete.
-        :var int ERR_OTHER: Any other uncaught situation.
+    def __init__(
+        self,
+        comb: Combination | None = None,
+        wd: str | None = None,
+        resources: list[int] | None = None,
+        environment: list[str] | None = None,
+        te_name: str = "noname",
+        label: str = "nolabel",
+        subtree: str = "nosubtree",
+        user_suffix: str | None = None,
+        command: str = "",
+        metrics: dict = {},
+        tags: list[str] = [],
+        artifacts: dict = {},
+        validation: dict = {},
+        mod_deps: list = [],
+        job_deps: list = [],
+    ):
         """
-
-        WAITING = 0
-        IN_PROGRESS = 1
-        EXECUTED = 2
-        SUCCESS = 3
-        FAILURE = 4
-        SOFT_TIMEOUT = 5
-        HARD_TIMEOUT = 6
-        ERR_DEP = 7
-        ERR_OTHER = 8
-
-        def __str__(self):
-            """Stringify to return the label.
-
-            :return: the enum name
-            :rtype: str
-            """
-            return self.name
-
-        def __repr__(self):
-            """Enum representation a tuple (name, value).
-
-            :return: a tuple mapping the enum.
-            :rtype: tuple
-            """
-            return "({}, {})".format(self.name, self.value)
-
-    BAD_STATES = [
-        State.ERR_DEP,
-        State.ERR_OTHER,
-        State.FAILURE,
-        State.HARD_TIMEOUT,
-    ]
-
-    ALL_STATES = [
-        State.SUCCESS,
-        State.FAILURE,
-        State.ERR_DEP,
-        State.HARD_TIMEOUT,
-        State.SOFT_TIMEOUT,
-        State.ERR_OTHER,
-    ]
-
-    def __init__(self, **kwargs):
-        """constructor method.
+        Constructu a Test.
 
         :param kwargs: flexible list of arguments to initialize a Test with.
         :type kwargs: dict
         """
-        self._rc = 0
-        self._comb = kwargs.get("comb")
-        self._cwd = kwargs.get("wd")
-        self._exectime = 0.0
-        self._output = b""
-        self._state = Test.State.WAITING
-        cores_per_nodes = GlobalConfig.root.get("machine", {}).get("cores_per_nodes", 1)
-        self._resources: list[int] = kwargs.get("resources", [1, cores_per_nodes])
-        for r in self._resources:
+        # Basic Info Compute
+        comb_str: str | None = comb.translate_to_str() if comb is not None else None
+        fq_name: str = Test.compute_fq_name(label, subtree, te_name, user_suffix, comb_str)
+        jid: str = self.get_jid_from_name(fq_name)
+        cores_per_nodes: int = GlobalConfig.root.get("machine", {}).get("cores_per_nodes", 1)
+        _resources: list[int] = resources if resources is not None else [1, cores_per_nodes]
+        for r in _resources:
             assert r is not None
 
-        self._testenv = kwargs.get("environment")
-        self._id = {
-            "te_name": kwargs.get("te_name", "noname"),
-            "label": kwargs.get("label", "nolabel"),
-            "subtree": kwargs.get("subtree", "nosubtree"),
-            "comb": self._comb.get_combinations() if self._comb else {},
-        }
-        comb_str = self._comb.translate_to_str() if self._comb else None
+        # Identification infos
+        self._jid: str = jid
+        self._fq_name: str = fq_name
+        self._te_name: str = te_name
+        self._label: str = label
+        self._subtree: str = subtree
+        self._suffix: str = user_suffix if user_suffix is not None else ""
 
-        self._id["fq_name"] = Test.compute_fq_name(
-            self._id["label"],
-            self._id["subtree"],
-            self._id["te_name"],
-            suffix=kwargs.get("user_suffix", None),
-            combination=comb_str,
+        # Advanced infos
+        self._testenv: list[str] | None = environment
+        self._execmd: str = command
+        self._tags: list[str] = tags
+        self._artifacts: dict = artifacts
+        self._comb: Combination | None = comb
+        self._resources: list[int] = _resources
+        self._metrics: dict = metrics
+        self._mod_deps: list = mod_deps
+        self._depnames: list[str] = job_deps
+
+        # Runtime infos (change during the run, the others vars should be const)
+        self._rc: int = 0
+        self._cwd: str | None = wd
+        self._exectime: float = 0.0
+        self._output: bytes = b""
+        self._state: TestState = TestState.WAITING
+        self._deps: list[Self] = []
+        self._dependee: list[Self] = []
+        self._has_hard_timeout: bool = False
+        self._invocation_cmd: str | None = (
+            None  # Command that launch list_of_test.sh (not the test command itself)
         )
 
-        # only positive ids
-        self._id["jid"] = self.get_jid_from_name(self.name)
-
-        self._execmd = kwargs.get("command", "")
-
-        self._data = {
-            "metrics": kwargs.get("metrics", {}),
-            "tags": kwargs.get("tags", []),
-            "artifacts": kwargs.get("artifacts", {}),
-        }
-
-        # validation parsing start:
-        validation = kwargs.get("validation", {})
+        # Validation Infos / Compute
         self._expect_rc = validation.get("expect_exit", 0)
-        self._time_validation = None
+        self._time_validation: dict | None = None
         if "time" in validation:
             self._time_validation = {
                 "mean": validation["time"].get("mean", -1),
                 "tolerance": validation["time"].get("tolerance", 0),
                 "coef": validation["time"].get("coef", 1.5),
             }
-        self._soft_timeout = validation.get("time", {}).get("soft_timeout", None)
-        self._hard_timeout = validation.get("time", {}).get("hard_timeout", None)
-        self._matchers = validation.get("match", None)
-        self._analysis = validation.get("analysis", None)
-        self._script = validation.get("script", {}).get("path", None)
-        # validation parsing end
+        self._soft_timeout: int | None = validation.get("time", {}).get("soft_timeout", None)
+        self._hard_timeout: int | None = validation.get("time", {}).get("hard_timeout", None)
+        self._matchers: dict | None = validation.get("match", None)
+        self._analysis: dict | None = validation.get("analysis", None)
+        self._script: str = validation.get("script", {}).get("path", None)
 
-        self._has_hard_timeout = False
-
-        self._mod_deps = kwargs.get("mod_deps", [])
-        self._depnames = kwargs.get("job_deps", [])
-        self._deps = []
-        self._dependee = []
-        self._invocation_cmd = self._execmd
-        self._output_info = {"file": None, "offset": -1, "length": 0}
+        self._output_info: dict[str, Any] = {"file": None, "offset": -1, "length": 0}
         # alloc tracking number, used by job manager to track job allocation
         self.alloc_tracking = 0
 
@@ -178,73 +128,73 @@ class Test:
 
         This attribute is generally set by the manager once job is uploaded
         to the dataset.
-        :return: the job id
-        :rtype: an positive integer of -1 if not set
+        :return: a unique hash of the job name
+        :rtype: str
         """
-        return self._id["jid"]
+        return self._jid
 
     @property
     def basename(self) -> str:
-        return Test.compute_fq_name(self._id["label"], self._id["subtree"], self._id["te_name"])
+        return Test.compute_fq_name(self._label, self._subtree, self._te_name)
 
     @property
-    def tags(self):
+    def tags(self) -> list[str]:
         """Getter for the full list of tags.
 
         :return: the list of of tags
         :rtype: list
         """
-        return self._data["tags"]
+        return self._tags
 
     @property
-    def label(self):
+    def label(self) -> str:
         """Getter to the test label.
 
         :return: the label
         :rtype: str
         """
-        return self._id["label"]
+        return self._label
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Getter for fully-qualified job name.
 
         :return: test name.
         :rtype: str
         """
-        return self._id["fq_name"]
+        return self._fq_name
 
     @property
-    def subtree(self):
+    def subtree(self) -> str:
         """Getter to the test subtree.
 
         :return: test subtree.
         :rtype: str.
         """
-        return self._id["subtree"]
+        return self._subtree
 
     @property
-    def te_name(self):
+    def te_name(self) -> str:
         """Getter to the test TE name.
 
         :return: test TE name.
         :rtype: str.
         """
 
-        return self._id["te_name"]
+        return self._te_name
 
     @property
-    def combination(self):
+    def combination(self) -> Combination:
         """Getter to the test combination dict.
 
         :return: test comb dict.
         :rtype: dict
         """
-
+        assert self._comb is not None
         return self._comb
 
     @property
-    def command(self):
+    def command(self) -> str:
         """Getter for the full command.
 
         This is a real command, executed in a shell, coming from user's
@@ -256,7 +206,7 @@ class Test:
         return self._execmd
 
     @property
-    def invocation_command(self):
+    def invocation_command(self) -> str:
         """Getter for the list_of_test.sh invocation leading to run the job.
 
         This command is under the form: `sh /path/list_of_tests.sh <test-name>`
@@ -264,10 +214,11 @@ class Test:
         :return: wrapper command line
         :rtype: str
         """
+        assert self._invocation_cmd is not None
         return self._invocation_cmd
 
     @property
-    def job_deps(self):
+    def job_deps(self) -> list[Self]:
         """ "Getter to the dependency list for this job.
 
         The dependency struct is an array, where for each name (=key), the
@@ -278,7 +229,7 @@ class Test:
         return self._deps
 
     @property
-    def job_depnames(self):
+    def job_depnames(self) -> list[str]:
         """Getter to the list of deps, as an array of names.
 
         This array is emptied when all deps are converted to objects.
@@ -289,7 +240,7 @@ class Test:
         return self._depnames
 
     @property
-    def mod_deps(self):
+    def mod_deps(self) -> list:
         """Getter to the list of pack-manager rules defined for this job.
 
         There is no need for a ``_depnames`` version as these deps are provided
@@ -301,19 +252,17 @@ class Test:
         return self._mod_deps
 
     @classmethod
-    def get_jid_from_name(self, name):
-        if not isinstance(name, bytes):
-            name = str(name).encode("utf-8")
+    def get_jid_from_name(self, name: str) -> str:
+        namebytes = name.encode("utf-8")
+        return hashlib.md5(namebytes).hexdigest()
 
-        return hashlib.md5(name).hexdigest()
-
-    def get_dep_graph(self):
+    def get_dep_graph(self) -> dict:
         res = {}
         for d in self._deps:
             res[d.name] = d.get_dep_graph()
         return res
 
-    def resolve_a_dep(self, name, obj):
+    def resolve_a_dep(self, name: str, obj: Self) -> None:
         """Resolve the dep object for a given dep name.
 
         :param name: the dep name to resolve, should be a valid dep.
@@ -327,19 +276,19 @@ class Test:
         if obj not in self._deps:
             self._deps.append(obj)
 
-    def add_dependee(self, test):
+    def add_dependee(self, test: Self) -> None:
         self._dependee.append(test)
 
-    def remove_dependee(self, test):
+    def remove_dependee(self, test: Self) -> None:
         self._dependee.remove(test)
 
-    def transpose_deps(self):
+    def transpose_deps(self) -> None:
         for test in self._deps:
-            test.add_dependee(self)
+            test.add_dependee(self)  # type: ignore
 
-    def remove_test_from_deps(self):
+    def remove_test_from_deps(self) -> None:
         for test in self._deps:
-            test.remove_dependee(self)
+            test.remove_dependee(self)  # type: ignore
 
     def should_run(self) -> bool:
         """Should the test be run."""
@@ -351,10 +300,10 @@ class Test:
         for t, allow in valcfg["run_filter"].items():
             if allow:
                 contain_allow_filter = True
-                if t in self.tags:
+                if t in self._tags:
                     return True
             else:
-                if t in self.tags:
+                if t in self._tags:
                     return False
 
         # if there is allow filters, deny every thing that is not in it.
@@ -362,7 +311,7 @@ class Test:
             return False
         return True
 
-    def has_completed_deps(self):
+    def has_completed_deps(self) -> bool:
         """Check if the test can be scheduled.
 
         It ensures it hasn't been executed yet (or currently running) and all
@@ -373,7 +322,7 @@ class Test:
         """
         return len([d for d in self._deps if not d.been_executed()]) == 0
 
-    def has_failed_dep(self):
+    def has_failed_dep(self) -> bool:
         """Check if at least one dep is blocking this job from ever be
         scheduled.
 
@@ -381,11 +330,11 @@ class Test:
         :rtype: bool
         """
         for d in self._deps:
-            if d.state in Test.BAD_STATES:
+            if d.state in TestState.bad_states():
                 return True
         return False
 
-    def first_incomplete_dep(self):
+    def first_incomplete_dep(self) -> Self | None:
         """Retrieve the first ready-for-schedule dep.
 
         This is mainly used to ease the scheduling process by following the job
@@ -395,12 +344,12 @@ class Test:
         :rtype: :class:`Test` or NoneType
         """
         for d in self._deps:
-            if d.state == Test.State.WAITING:
+            if d.state == TestState.WAITING:
                 return d
         return None
 
     @property
-    def soft_timeout(self) -> int | None:
+    def soft_timeout(self) -> int:
         """Getter for Test timeout in seconds.
 
         It cumulates timeout + tolerance, this value being passed to the
@@ -417,22 +366,30 @@ class Test:
         if self._soft_timeout:
             return self._soft_timeout
         if self._time_validation and self._time_validation["mean"] > 0:
-            return (
-                self._time_validation["mean"] + self._time_validation["tolerance"]
-            ) * self._time_validation["coef"]
-        return GlobalConfig.root["validation"]["soft_timeout"]
+            mean = self._time_validation["mean"]
+            tolerance = self._time_validation["tolerance"]
+            coef = self._time_validation["coef"]
+            assert isinstance(mean, (int, float))
+            assert isinstance(tolerance, (int, float))
+            assert isinstance(coef, (int, float))
+            return int((mean + tolerance) * coef)
+        global_soft = GlobalConfig.root["validation"]["soft_timeout"]
+        assert isinstance(global_soft, int)
+        return global_soft
 
     @property
-    def hard_timeout(self) -> int | None:
+    def hard_timeout(self) -> int:
         """Getter for Test hard timeout in seconds.
         :return: an integer if timeout is defined, None otherwise.
         :rtype: int or NoneType
         """
         if self._hard_timeout:
             return self._hard_timeout
-        return GlobalConfig.root["validation"]["hard_timeout"]
+        global_hard = GlobalConfig.root["validation"]["hard_timeout"]
+        assert isinstance(global_hard, int)
+        return global_hard
 
-    def get_nb_nodes(self):
+    def get_nb_nodes(self) -> int:
         """Return the orch-dimension value for this test.
 
         The dimension can be defined by the user and let the orchestrator knows
@@ -455,7 +412,9 @@ class Test:
         """
         return self._resources
 
-    def save_final_result(self, rc=0, time=None, out=b"", state=None):
+    def save_final_result(
+        self, rc: int = 0, time: float = 0.0, out: bytes = b"", state: TestState | None = None
+    ) -> None:
         """Build the final Test result node.
 
         :param rc: return code, defaults to 0
@@ -465,22 +424,31 @@ class Test:
         :param out: standard out/err, defaults to b''
         :type out: bytes, optional
         :param state: Job final status (if override needed), defaults to FAILED
-        :type state: :class:`Test.State`, optional
+        :type state: :class:`TestState`, optional
         """
+        _state: TestState
         if state is None:
-            state = Test.State.SUCCESS if self._expect_rc == rc else Test.State.FAILURE
+            _state = TestState.SUCCESS if self._expect_rc == rc else TestState.FAILURE
+        else:
+            _state = state
 
         self.save_raw_run(rc=rc, out=out, time=time)
-        self.save_status(state)
+        self.save_status(_state)
         self.save_artifacts()
 
-    def save_artifacts(self):
-        for elt_k, elt_v in self._data["artifacts"].items():
+    def save_artifacts(self) -> None:
+        for elt_k, elt_v in self._artifacts.items():
             if os.path.isfile(elt_v):
                 with open(elt_v, "rb") as fh:
-                    self._data["artifacts"][elt_k] = fh.read()
+                    self._artifacts[elt_k] = fh.read()
 
-    def save_raw_run(self, out=None, rc=None, time=None, hard_timeout=False):
+    def save_raw_run(
+        self,
+        out: bytes | None = None,
+        rc: int | None = None,
+        time: float | None = None,
+        hard_timeout: bool = False,
+    ) -> None:
         """TODO:"""
         if rc is not None:
             self._rc = rc
@@ -491,35 +459,35 @@ class Test:
             self._exectime = time
         self._has_hard_timeout = hard_timeout
 
-    def extract_metrics(self):
+    def extract_metrics(self) -> None:
         """TODO:"""
         raw_output = self.output
-        for name in self._data["metrics"].keys():
-            node = self._data["metrics"][name]
+        for name in self._metrics.keys():
+            node = self._metrics[name]
 
             try:
                 ens = set if node["attributes"]["unique"] else list
             except KeyError:
                 ens = list
 
-            self._data["metrics"][name]["values"] = list(ens(re.findall(node["key"], raw_output)))
+            self._metrics[name]["values"] = list(ens(re.findall(node["key"], raw_output)))
 
-    def evaluate(self):
+    def evaluate(self) -> None:
         """TODO:"""
         if self._has_hard_timeout:
-            self._state = Test.State.HARD_TIMEOUT
+            self._state = TestState.HARD_TIMEOUT
             return
 
-        state = Test.State.SUCCESS
+        state = TestState.SUCCESS
 
         # validation by return code
         if self._expect_rc != self._rc:
-            state = Test.State.FAILURE
+            state = TestState.FAILURE
 
         raw_output = self.output
 
         # validation through a matching regex
-        if state == Test.State.SUCCESS and self._matchers is not None:
+        if state == TestState.SUCCESS and self._matchers is not None:
             for _, v in self._matchers.items():
                 expected = v.get("expect", True) is True
                 found = re.search(v["expr"], raw_output)
@@ -527,11 +495,11 @@ class Test:
                     f"Looking for expr: {v['expr']}, foud: {found}, expected: {expected}"
                 )
                 if (found and not expected) or (not found and expected):
-                    state = Test.State.FAILURE
+                    state = TestState.FAILURE
                     break
 
         # validation throw a plugin
-        if state == Test.State.SUCCESS and self._analysis is not None:
+        if state == TestState.SUCCESS and self._analysis is not None:
             res = GlobalConfig.root.get_internal("pColl").invoke_plugins(
                 Plugin.Step.TEST_RESULT_EVAL, analysis=self._analysis, job=self
             )
@@ -539,7 +507,7 @@ class Test:
                 state, self._soft_timeout = res
 
         # validation throw a custom script
-        if state == Test.State.SUCCESS and self._script is not None:
+        if state == TestState.SUCCESS and self._script is not None:
             try:
                 s = subprocess.Popen(self._script, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 s.communicate()
@@ -548,25 +516,26 @@ class Test:
                 rc = 42
 
             if self._expect_rc != rc:
-                state = Test.State.FAILURE
+                state = TestState.FAILURE
 
         # if the test succeed, check for soft timeout
         if (
-            state == Test.State.SUCCESS
+            state == TestState.SUCCESS
             and self._soft_timeout is not None
             and self.time > self._soft_timeout
         ):
-            state = Test.State.SOFT_TIMEOUT
+            state = TestState.SOFT_TIMEOUT
 
         self._state = state
 
-    def save_status(self, state):
+    def save_status(self, state: TestState) -> None:
         """Set current Test state.
 
         :param state: give a special state to the test, defaults to FAILURE
-        :param state: :class:`Test.State`, optional
+        :param state: :class:`TestState`, optional
         """
-        self._state = state if isinstance(state, Test.State) else Test.State.FAILURE
+        assert isinstance(state, TestState)
+        self._state = state
 
     def should_print(self) -> bool:
         """Should the test result be printed."""
@@ -578,10 +547,10 @@ class Test:
         for t, allow in valcfg["print_filter"].items():
             if allow:
                 contain_allow_filter = True
-                if t in self.tags:
+                if t in self._tags:
                     return True
             else:
-                if t in self.tags:
+                if t in self._tags:
                     return False
 
         # if there is allow filters, deny every thing that is not in it.
@@ -593,33 +562,33 @@ class Test:
             return True
         if valcfg["print_policy"] == "none":
             return False
-        if valcfg["print_policy"] == "errors" and self.state in Test.BAD_STATES:
+        if valcfg["print_policy"] == "errors" and self.state in TestState.bad_states():
             return True
         return False
 
-    def get_state_fancy(self):
+    def get_state_fancy(self) -> tuple[str, str, str]:
         """Get the label, color & icon representing the status of the test."""
         label = str(self._state)
         color = "yellow"
         icon = ""
 
-        if self._state == Test.State.SUCCESS:
+        if self._state == TestState.SUCCESS:
             color = "green"
             icon = "succ"
-        elif self._state in [Test.State.FAILURE, Test.State.HARD_TIMEOUT]:
+        elif self._state in [TestState.FAILURE, TestState.HARD_TIMEOUT]:
             color = "red"
             icon = "fail"
-        elif self._state in [Test.State.ERR_DEP, Test.State.ERR_OTHER, Test.State.SOFT_TIMEOUT]:
+        elif self._state in [TestState.ERR_DEP, TestState.ERR_OTHER, TestState.SOFT_TIMEOUT]:
             color = "yellow"
             icon = "fail"
         return (label, color, io.console.utf(icon))
 
-    def get_testinfo_fancy(self):
+    def get_testinfo_fancy(self) -> str:
         label, color, icon = self.get_state_fancy()
 
-        if self._state == Test.State.HARD_TIMEOUT:
+        if self._state == TestState.HARD_TIMEOUT:
             timeout = self.hard_timeout
-        elif self._state == Test.State.SOFT_TIMEOUT:
+        elif self._state == TestState.SOFT_TIMEOUT:
             timeout = self.soft_timeout
         else:
             timeout = 0
@@ -629,7 +598,7 @@ class Test:
         sep = io.console.utf("sep_v")
         return f"[{color} bold]   {icon} {self._exectime:8.2f}s{sep}{label:7}{timeout_str}{sep}{self.name}"
 
-    def display(self):
+    def display(self) -> None:
         """Print the Test into stdout (through the manager)."""
 
         raw_output = None
@@ -644,24 +613,24 @@ class Test:
             raw_output,
         )
 
-    def been_executed(self):
+    def been_executed(self) -> bool:
         """Check if job has been executed (not waiting or in progress).
 
         :return: False if job is waiting for scheduling or in progress.
         :rtype: bool
         """
-        return self._state not in [Test.State.WAITING, Test.State.IN_PROGRESS, Test.State.EXECUTED]
+        return self._state not in [TestState.WAITING, TestState.IN_PROGRESS, TestState.EXECUTED]
 
-    def pick(self):
+    def pick(self) -> None:
         """Flag the job as picked up for scheduling."""
-        self._state = Test.State.IN_PROGRESS
+        self._state = TestState.IN_PROGRESS
 
     @property
-    def state(self):
+    def state(self) -> TestState:
         """Getter for current job state.
 
         :return: the job current status.
-        :rtype: :class:`Test.State`
+        :rtype: :class:`TestState`
         """
         return self._state
 
@@ -670,40 +639,49 @@ class Test:
         return self._output
 
     @encoded_output.setter
-    def encoded_output(self, v) -> None:
+    def encoded_output(self, v: bytes) -> None:
         self._output = v
         self._output_info["raw"] = v
 
-    def get_raw_output(self, encoding="utf-8") -> bytes:
+    def get_raw_output(self, encoding: str = "utf-8") -> bytes | str:
         base = base64.b64decode(self._output)
-
         return base if not encoding else base.decode(encoding)
 
     @property
     def output(self) -> str:
-        return self.get_raw_output(encoding="utf-8")
+        res = self.get_raw_output(encoding="utf-8")
+        assert isinstance(res, str)
+        return res
 
     @property
     def output_info(self) -> dict:
         return self._output_info
 
     @property
-    def time(self):
+    def time(self) -> float:
         """TODO:"""
         return self._exectime
 
     @property
-    def retcode(self):
+    def retcode(self) -> int:
         return self._rc
 
-    def to_json(self, strstate=False):
+    def to_json(self, strstate: bool = False) -> dict[str, Any]:
         """Serialize the whole Test as a JSON object.
 
         :return: a JSON object mapping the test
         :rtype: str
         """
         res = {
-            "id": self._id,
+            "id": {
+                "jid": self._jid,
+                "fq_name": self._fq_name,
+                "te_name": self._te_name,
+                "label": self._label,
+                "subtree": self._subtree,
+                "suffix": self._suffix,
+                "comb": self._comb,
+            },
             "exec": self._execmd,
             "result": {
                 "rc": self._rc,
@@ -711,52 +689,61 @@ class Test:
                 "time": self._exectime,
                 "output": self._output_info,
             },
-            "data": self._data,
+            "data": {
+                "metrics": self._metrics,
+                "tags": self._tags,
+                "artifacts": self._artifacts,
+            },
         }
 
         return res
 
-    def to_minimal_json(self):
+    def to_minimal_json(self) -> dict:
         return {
-            "jid": self.jid,
+            "jid": self._jid,
             "invocation_cmd": self._invocation_cmd,
         }
 
-    def from_minimal_json(self, jsonstr: str):
-        if isinstance(jsonstr, str):
-            jsonstr = json.loads(jsonstr)
-        self._invocation_cmd = jsonstr.get("invocation_cmd", "exit 1")
-        self._id["jid"] = jsonstr.get("jid", "-1")
+    def from_minimal_json(self, jsonstr: str) -> None:
+        assert isinstance(jsonstr, str)
+        jsonobj = json.loads(jsonstr)
+        self._invocation_cmd = jsonobj.get("invocation_cmd", "exit 1")
+        self._jid = jsonobj.get("jid", "-1")
 
-    def from_json(self, test_json: str, filepath: str) -> None:
+    def from_json(self, test_json: dict[str, Any], filepath: str) -> None:
         """Replace the whole Test structure based on input JSON.
 
         :param json: the json used to set this Test
         :type json: test-result-valid JSON-formatted str
         """
-
-        if isinstance(test_json, str):
-            test_json = json.loads(test_json)
-
+        # TODO: make sure this work
         assert isinstance(test_json, dict)
         self.res_scheme.validate(test_json, filepath)
 
-        self._id = test_json.get("id", -1)
-        self._comb = Combination({}, self._id.get("comb", {}), None)
+        if "id" in test_json:
+            self._jid = test_json["id"].get("jid", "")
+            self._fq_name = test_json["id"].get("fq_name", "")
+            self._te_name = test_json["id"].get("te_name", "")
+            self._label = test_json["id"].get("label", "")
+            self._subtree = test_json["id"].get("subtree", "")
+            self._suffix = test_json["id"].get("suffix", "")
+            self._comb = Combination({}, test_json["id"].get("comb", {}), None)
+
         self._execmd = test_json.get("exec", "")
-        self._data = test_json.get("data", "")
 
         res = test_json.get("result", {})
         self._rc = res.get("rc", -1)
-        self._state = Test.State(res.get("state", Test.State.ERR_OTHER))
+        self._state = TestState(res.get("state", TestState.ERR_OTHER))
         self._exectime = res.get("time", 0)
         self._output_info = res.get("output", {})
         self._output = self._output_info.get("raw", b"")
-        if self._output is str:
-            # should only be managed as bytes (as produced by b64 encoding)
-            self._output = self._output.encode("utf-8")
 
-    def generate_script(self, srcfile):
+        if "data" in test_json:
+            self._metrics = test_json["data"].get("metrics", {})
+            self._tags = test_json["data"].get("tags", [])
+            self._artifacts = test_json["data"].get("artifacts", {})
+
+    def generate_script(self, srcfile: str) -> str:
         """Serialize test logic to its Shell representation.
 
         This script provides the shell sequence to put in a shell script
@@ -772,7 +759,7 @@ class Test:
         env_code = ""
         cmd_code = ""
 
-        self._invocation_cmd = "bash {} {}".format(srcfile, self._id["fq_name"])
+        self._invocation_cmd = "bash {} {}".format(srcfile, self._fq_name)
 
         # if changing directory is required by the test
         if self._cwd is not None:
@@ -803,11 +790,18 @@ class Test:
             env_code="{}".format(shlex.quote(env_code)),
             pm_code="{}".format(shlex.quote(pm_code)),
             cd_code=cd_code,
-            name=self._id["fq_name"],
+            name=self._fq_name,
         )
 
     @classmethod
-    def compute_fq_name(self, label, subtree, name, suffix=None, combination=None):
+    def compute_fq_name(
+        self,
+        label: str,
+        subtree: str,
+        name: str,
+        suffix: str | None = None,
+        combination: str | None = None,
+    ) -> str:
         """Generate the fully-qualified (dq) name for a test, based on :
         - the label & subtree (original FS tree)
         - the name (the TE name it is originated)
@@ -819,8 +813,39 @@ class Test:
         path = os.path.normpath(os.path.join(label, subtree, name))
         return "_".join(filter(None, [path, suffix, combination]))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self.__dict__)
 
-    def __rich_repr__(self):
+    def __rich_repr__(self) -> Iterable[tuple[str, Any]]:
         return self.__dict__.items()
+
+
+def generate_local_variables(label: str, subprefix: str) -> tuple[str, str, str, str]:
+    """
+    Return directories from PCVS working tree.
+
+        - the base source directory
+        - the current source directory
+        - the base build directory
+        - the current build directory
+
+    :param label: name of the object used to generate paths
+    :type label: str
+    :param subprefix: path to the subdirectories in the base path
+    :type subprefix: str
+    :raises CommonException.NotFoundError: the label is not recognized as to be
+        validated
+    :return: paths for PCVS working tree
+    :rtype: tuple
+    """
+    if subprefix is None:
+        subprefix = ""
+
+    base_srcdir = os.path.normpath(GlobalConfig.root["validation"]["dirs"].get(label, ""))
+    cur_srcdir = os.path.normpath(os.path.join(base_srcdir, subprefix))
+    base_buildir = os.path.normpath(
+        os.path.join(GlobalConfig.root["validation"]["output"], "test_suite", label)
+    )
+    cur_buildir = os.path.normpath(os.path.join(base_buildir, subprefix))
+
+    return base_srcdir, cur_srcdir, base_buildir, cur_buildir

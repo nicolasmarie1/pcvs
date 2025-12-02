@@ -18,7 +18,7 @@ dependencies = [
   "textual>=0.29.0",
   "matplotlib",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [
   {name = "Julien Adam", email = "adamj@paratools.com"},
   {name = "Paul Canat", email = "pcanat@paratools.com"},
@@ -68,6 +68,9 @@ dev = [
   "sphinx-rtd-theme",
   "textual-dev",
   "python-lsp-server",
+  "pylsp-mypy",
+  "python-lsp-black",
+  "python-lsp-isort",
   #"furo",
 ]
 
@@ -116,12 +119,10 @@ ignore_errors = true
 commands = [
   [
     'pre-commit', 'run', '--all-files',
-  ]
-  # TODO: reenable mypy
-  # add strict typing check
-  #[
-  #  'mypy', '--config-file', './mypy.ini', './pcvs'
-  #],
+  ],
+  [
+    'mypy', '--config-file', './mypy.ini', './pcvs',
+  ],
 ]
 
 # Documentation coverage

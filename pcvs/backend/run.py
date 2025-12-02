@@ -4,6 +4,7 @@ import pprint
 import shutil
 import subprocess
 import time
+from typing import Any
 
 from ruamel.yaml import YAML
 
@@ -20,19 +21,22 @@ from pcvs.backend import bank as pvBank
 from pcvs.backend import spack as pvSpack
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.backend.metaconfig import MetaConfig
+from pcvs.backend.session import Session
 from pcvs.helpers import communications
 from pcvs.helpers import criterion
 from pcvs.helpers import utils
+from pcvs.helpers.communications import GenericServer
 from pcvs.helpers.exceptions import RunException
 from pcvs.helpers.exceptions import ValidationException
 from pcvs.orchestration import Orchestrator
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.plugins import Plugin
 from pcvs.testing.tedesc import TEDescriptor
+from pcvs.testing.test import Test
 from pcvs.testing.testfile import TestFile
 
 
-def print_progbar_walker(elt):
+def print_progbar_walker(elt: tuple[str, str | None]) -> str | None:
     """Walker used to pretty-print progress bar element within Click.
 
     :param elt: the element to pretty-print, containing the label & subprefix
@@ -45,7 +49,7 @@ def print_progbar_walker(elt):
     return "[" + elt[0] + "] " + (elt[1] if elt[1] else "")
 
 
-def display_summary(the_session):
+def display_summary(the_session: Session) -> None:
     """Display a summary for this run, based on profile & CLI arguments.
 
     :param the_session: active session, for extra info to be displayed.
@@ -86,11 +90,13 @@ def display_summary(the_session):
                     "[yellow italic]>>>> Dry run enabled for setup checking purposes.",
                 ]
             ),
-            title="WARNING",
+            panel_options={
+                "title": "WARNING",
+            },
         )
 
 
-def stop_pending_jobs(exc=None):
+def stop_pending_jobs(exc: Exception | None = None) -> None:
     """
     Called when PCVS is going to stop upon external request, stop the scheduler
 
@@ -107,7 +113,7 @@ def stop_pending_jobs(exc=None):
 
 
 @io.capture_exception(Exception, stop_pending_jobs)
-def process_main_workflow(the_session=None):
+def process_main_workflow(the_session: Session) -> int:
     """Main run.py entry point, triggering a PCVS validation run.
 
     This function is called by session management and may be run within an
@@ -148,7 +154,9 @@ def process_main_workflow(the_session=None):
         io.console.print_section("Load Test Suites")
         start = time.time()
         if valcfg["dirs"]:
-            process_files()
+            tests = process_files()  # type: ignore
+            for t in tests:
+                GlobalConfig.root.get_internal("orchestrator").add_new_job(t)
         if valcfg["spack_recipe"]:
             process_spack()
         end = time.time()
@@ -169,13 +177,15 @@ def process_main_workflow(the_session=None):
 
     if valcfg["onlygen"]:
         io.console.warn(
-            [
-                "====================================================",
-                "Tests won't be run. This program will now stop.",
-                "You may list runnable tests with `pcvs exec --list`",
-                "or execute one with `pcvs exec <testname>`",
-                "====================================================",
-            ]
+            str(
+                [
+                    "====================================================",
+                    "Tests won't be run. This program will now stop.",
+                    "You may list runnable tests with `pcvs exec --list`",
+                    "or execute one with `pcvs exec <testname>`",
+                    "====================================================",
+                ]
+            )
         )
         return 0
 
@@ -202,7 +212,7 @@ def process_main_workflow(the_session=None):
     return rc
 
 
-def check_defined_program_validity():
+def check_defined_program_validity() -> None:
     """Ensure most programs defined in profiles & parameters are valid in the
     current environment.
 
@@ -234,7 +244,7 @@ def check_defined_program_validity():
     return
 
 
-def prepare():
+def prepare() -> None:
     """Prepare the environment for a validation run.
 
     This function prepares the build dir, create trees...
@@ -270,7 +280,7 @@ def prepare():
 
     if valcfg["enable_report"]:
         io.console.print_section("Connection to the Reporting Server")
-        comman = None
+        comman: GenericServer
         if valcfg["report_addr"] == "local":
             comman = communications.EmbeddedServer(valcfg["sid"])
             io.console.print_item("Running a local instance")
@@ -286,7 +296,9 @@ def prepare():
     build_man.save_config(GlobalConfig.root)
 
 
-def find_files_to_process(path_dict):
+def find_files_to_process(
+    path_dict: dict[str, str],
+) -> tuple[list[tuple[str, str, str]], list[tuple[str, str, str]]]:
     """Lookup for test files to process, from the list of paths provided as
     parameter.
 
@@ -305,8 +317,8 @@ def find_files_to_process(path_dict):
     :return: a tuple with two lists
     :rtype: tuple
     """
-    setup_files = list()
-    yaml_files = list()
+    setup_files = []
+    yaml_files = []
 
     # discovery may take a while with some systems
     # iterate over user directories
@@ -332,7 +344,7 @@ def find_files_to_process(path_dict):
 
 
 @io.capture_exception(Exception, doexit=True)
-def process_files():
+def process_files() -> list[Test]:
     """Process the test-suite generation.
 
     It includes walking through user directories to find definitions AND
@@ -348,13 +360,15 @@ def process_files():
 
     prepare_runtime_env_file()
 
+    tests: list[Test] = []
     io.console.print_item(f"Extract tests from dynamic definitions ({len(setup_files)} found)")
-    process_dyn_setup_scripts(setup_files)
+    tests += process_dyn_setup_scripts(setup_files)
     io.console.print_item(f"Extract tests from static definitions ({len(yaml_files)} found)")
-    process_static_yaml_files(yaml_files)
+    tests += process_static_yaml_files(yaml_files)
+    return tests
 
 
-def prepare_runtime_env_file():
+def prepare_runtime_env_file() -> None:
     io.console.info("Building env from config.")
     env_config = build_env_from_configuration(GlobalConfig.root)
 
@@ -367,7 +381,7 @@ def prepare_runtime_env_file():
         fh.close()
 
 
-def process_spack():
+def process_spack() -> None:
     """
     Build job to schedule from Spack recipes.
     """
@@ -381,11 +395,11 @@ def process_spack():
     GlobalConfig.root["validation"]["dirs"][label] = path
     build_man = GlobalConfig.root.get_internal("build_manager")
 
-    _, _, rbuild, _ = testing.generate_local_variables(label, "")
+    _, _, rbuild, _ = testing.test.generate_local_variables(label, "")
     build_man.save_extras(os.path.relpath(rbuild, build_man.prefix), dir=True, export=False)
 
     for spec in io.console.progress_iter(GlobalConfig.root["validation"]["spack_recipe"]):
-        _, _, _, cbuild = testing.generate_local_variables(label, spec)
+        _, _, _, cbuild = testing.test.generate_local_variables(label, spec)
         build_man.save_extras(os.path.relpath(cbuild, build_man.prefix), dir=True, export=False)
         pvSpack.generate_from_variants(spec, label, spec)
 
@@ -409,7 +423,7 @@ def build_env_from_configuration(config: dict) -> dict:
     :return: a dict of environment variables to export.
     """
 
-    def to_str(item):
+    def to_str(item: Any) -> str:
         if item is None:
             return ""
         if isinstance(item, list):
@@ -436,7 +450,7 @@ def build_env_from_configuration(config: dict) -> dict:
     return env
 
 
-def process_dyn_setup_scripts(setup_files):
+def process_dyn_setup_scripts(setup_files: list[tuple[str, str, str]]) -> list[Test]:
     """Process dynamic test files and generate associated tests.
 
     This function executes pcvs.setup files after deploying the environment (to
@@ -449,13 +463,14 @@ def process_dyn_setup_scripts(setup_files):
     :return: list of errors encountered while processing.
     :rtype: list
     """
-
     io.console.info("Iteration over files")
+    tests: list[Test] = []
     for label, prefix, fname in io.console.progress_iter(setup_files):
-        process_dyn_setup(label, prefix, fname)
+        tests += process_dyn_setup(label, prefix, fname)
+    return tests
 
 
-def process_static_yaml_files(yaml_files):
+def process_static_yaml_files(yaml_files: list[tuple[str, str, str]]) -> list[Test]:
     """
     Process 'pcvs.yml' files to construct the test base.
 
@@ -465,13 +480,15 @@ def process_static_yaml_files(yaml_files):
     :rtype: list
     """
     io.console.info("Iteration over files")
+    tests: list[Test] = []
     for label, prefix, fname in io.console.progress_iter(yaml_files):
-        process_static_yaml(label, prefix, fname)
+        tests += process_static_yaml(label, prefix, fname)
+    return tests
 
 
-def process_dyn_setup(label: str, prefix: str, file_name: str):
+def process_dyn_setup(label: str, prefix: str, file_name: str) -> list[Test]:
     io.console.info(f"Processing {prefix} dynamic script. ({label})")
-    base_src, cur_src, base_build, cur_build = testing.generate_local_variables(label, prefix)
+    base_src, cur_src, base_build, cur_build = testing.test.generate_local_variables(label, prefix)
     os.makedirs(cur_build, exist_ok=True)
     f = os.path.join(cur_src, file_name)
 
@@ -506,24 +523,27 @@ def process_dyn_setup(label: str, prefix: str, file_name: str):
 
     out = fdout.decode("utf-8")
     if not out:
-        return
+        return []
 
     # Now create the file handler
-    process_yaml(file_path=f, build_path=cur_build, label=label, prefix=prefix, content=out)
+    return process_yaml(file_path=f, build_path=cur_build, label=label, prefix=prefix, content=out)
 
 
-def process_static_yaml(label: str, prefix: str, file_name: str):
-    _, cur_src, _, cur_build = testing.generate_local_variables(label, prefix)
+def process_static_yaml(label: str, prefix: str, file_name: str) -> list[Test]:
+    _, cur_src, _, cur_build = testing.test.generate_local_variables(label, prefix)
     os.makedirs(cur_build, exist_ok=True)
     f = os.path.join(cur_src, file_name)
 
-    process_yaml(file_path=f, build_path=cur_build, label=label, prefix=prefix)
+    return process_yaml(file_path=f, build_path=cur_build, label=label, prefix=prefix)
 
 
-def process_yaml(file_path: str, build_path: str, label: str, prefix: str, content: str = None):
+def process_yaml(
+    file_path: str, build_path: str, label: str, prefix: str, content: str | None = None
+) -> list[Test]:
     """Process one yaml file and register it's test descriptor."""
     GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.TFILE_BEFORE)
 
+    tests: list[Test] = []
     try:
         test_file = TestFile(file_in=file_path, path_out=build_path, label=label, prefix=prefix)
 
@@ -534,19 +554,21 @@ def process_yaml(file_path: str, build_path: str, label: str, prefix: str, conte
             test_file.save_yaml()
 
         test_file.process()
+        tests = test_file.tests
         test_file.flush_sh_file()
         io.console.info(f"Adding {test_file.nb_tests} tests from {file_path}.")
     except Exception as e:
-        raise ValidationException.YamlError(file_path, test_file.raw_yaml) from e
+        raise ValidationException.YamlError(file_path, str(test_file.raw_yaml)) from e
         # io.console.error(
         #    f"In file: {file_path}\nFailed to parse the following invalid yaml:\n{test_file.raw_yaml}"
         # )
         # raise e
 
     GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.TFILE_AFTER)
+    return tests
 
 
-def anonymize_archive():
+def anonymize_archive() -> None:
     """
     Erase from results any undesired output from the generated archive.
 
@@ -574,7 +596,7 @@ def anonymize_archive():
                     )
 
 
-def terminate():
+def terminate() -> None:
     """Finalize a validation run.
 
     This include generating & anonymizing (if needed) the archive.
@@ -601,7 +623,7 @@ def terminate():
     build_man.finalize()
 
 
-def dup_another_build(build_dir, outdir):
+def dup_another_build(build_dir: str, outdir: str) -> MetaConfig:
     """Clone another build directory to start this validation upon it.
 
     It allows to save test-generation time if the validation is re-run under the

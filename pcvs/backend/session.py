@@ -3,9 +3,14 @@ import os
 from datetime import datetime
 from enum import IntEnum
 from multiprocessing import Process
+from typing import Any
+from typing import Callable
+from typing import Self
 
 from ruamel.yaml import YAML
+from ruamel.yaml.constructor import Constructor
 from ruamel.yaml.main import yaml_object
+from ruamel.yaml.representer import Representer
 
 from pcvs import io
 from pcvs import PATH_SESSION
@@ -13,13 +18,13 @@ from pcvs import PATH_SESSION
 yml = YAML()
 
 
-def session_file_hash(session_infos):
+def session_file_hash(session_infos: dict) -> str:
     return hashlib.sha1(
         "{}:{}".format(session_infos["path"], session_infos["started"]).encode()
     ).hexdigest()
 
 
-def store_session_to_file(c) -> int:
+def store_session_to_file(infos: dict) -> str:
     """Save a new session into the session file (in HOME dir).
 
     :param c: session infos to store
@@ -32,23 +37,23 @@ def store_session_to_file(c) -> int:
     if not os.path.exists(PATH_SESSION):
         os.makedirs(PATH_SESSION)
 
-    shash = session_file_hash(c)
+    shash = session_file_hash(infos)
     session_file = os.path.join(PATH_SESSION, "{}.yml".format(shash))
     try:
         with open(session_file, "x") as fh:
-            yml.dump(c, fh)
+            yml.dump(infos, fh)
     except Exception as e:
         raise e
     return shash
 
 
-def update_session_from_file(sid, update):
+def update_session_from_file(sid: str, update: dict) -> bool:
     """Update data from a running session from the global file.
 
     This only add/replace keys present in argument dict. Other keys remain.
 
     :param sid: the session id
-    :type sid: int
+    :type sid: str
     :param update: the keys to update. If already existing, content is replaced
     :type: dict
     """
@@ -58,7 +63,7 @@ def update_session_from_file(sid, update):
         os.makedirs(PATH_SESSION)
 
     for f in os.listdir(PATH_SESSION):
-        if f.startswith(sid):
+        if f.startswith(str(sid)):
             with open(os.path.join(PATH_SESSION, f), "r") as fh:
                 data = yml.load(fh)
 
@@ -73,22 +78,22 @@ def update_session_from_file(sid, update):
     return False
 
 
-def remove_session_from_file(sid):
+def remove_session_from_file(sid: str) -> bool:
     """clear a session from logs.
 
     :param sid: the session id to remove.
-    :type sid: int
+    :type sid: str
     """
     global yml
 
     for f in os.listdir(PATH_SESSION):
-        if f.startswith(sid):
+        if f.startswith(str(sid)):
             os.remove(os.path.join(PATH_SESSION, f))
             return True
     return False
 
 
-def list_alive_sessions():
+def list_alive_sessions() -> dict[str, dict]:
     """Load and return the complete dict from session.yml file
 
     :return: the session dict
@@ -111,13 +116,13 @@ def list_alive_sessions():
     return all_sessions
 
 
-def main_detached_session(sid, user_func, *args, **kwargs):
+def main_detached_session(sid: str, user_func: Callable, *args, **kwargs):  # type: ignore
     """Main function processed when running in detached mode.
 
     This function is called by Session.run_detached() and is launched from
     cloned process (same global env, new main function).
 
-    :raises Exception: any error occurring during the main process is re-raised.
+    :raises Exception: Any error occurring during the main process is re-raised.
 
     :param sid: the session id
     :param user_func: the Python function used as the new main()
@@ -161,7 +166,7 @@ class Session:
     :param _func: user function to be called once the session starts
     :type _func: Callable
     :param _sid: session id, automatically generated
-    :type _sid: int
+    :type _sid: str
     :param _session_infos: session infos dict
     :type _session_infos: dict
 
@@ -177,12 +182,12 @@ class Session:
         ERROR = 3
 
         @classmethod
-        def to_yaml(cls, representer, data):
+        def to_yaml(cls, representer: Representer, data: Self) -> Any:
             """Convert a Test.State to a valid YAML representation.
 
             A new tag is created: 'Session.State' as a scalar (str).
             :param representer: the YAML dumper object
-            :type representer: :class:`YAML().dumper`
+            :type representer: :class:`ruamel.yaml.representer.Representer`
             :param data: the object to represent
             :type data: class:`Session.State`
             :return: the YAML representation
@@ -191,12 +196,12 @@ class Session:
             return representer.represent_scalar("!State", "{}||{}".format(data.name, data.value))
 
         @classmethod
-        def from_yaml(cls, constructor, node):
+        def from_yaml(cls, constructor: Constructor, node: Any) -> Self:
             """Construct a :class:`Session.State` from its YAML representation.
 
             Relies on the fact the node contains a 'Session.State' tag.
             :param constructor: the YAML loader
-            :type constructor: :class:`yaml.FullLoader`
+            :type constructor: :class:`ruamel.yaml.constructor.Constructor`
             :param node: the YAML representation
             :type node: Any
             :return: The session State as an object
@@ -207,9 +212,9 @@ class Session:
             obj = Session.State(int(value))
             assert obj.name == name
 
-            return obj
+            return obj  # type: ignore
 
-        def __str__(self):
+        def __str__(self) -> str:
             """Stringify the state.
 
             :return: the enum name.
@@ -218,25 +223,27 @@ class Session:
             return self.name
 
     @property
-    def state(self):
+    def state(self) -> State:
         """Getter to session status.
 
         :return: session status
         :rtype: int
         """
-        return self._session_infos["state"]
+        state = self._session_infos["state"]
+        assert isinstance(state, Session.State)
+        return state
 
     @property
-    def id(self):
+    def id(self) -> str:
         """Getter to session id.
 
-        :return: session id
-        :rtype: int
+        :return: session hash
+        :rtype: str
         """
         return self._sid
 
     @property
-    def rc(self):
+    def rc(self) -> int:
         """Gett to final RC.
 
         :return: rc
@@ -245,7 +252,7 @@ class Session:
         return self._rc
 
     @property
-    def infos(self):
+    def infos(self) -> dict[str, Any]:
         """Getter to session infos.
 
         :return: session infos
@@ -253,7 +260,7 @@ class Session:
         """
         return self._session_infos
 
-    def property(self, kw):
+    def property(self, kw: str) -> Any:
         """Access specific data from the session stored info session.yml.
 
         :param kw: the information to retrieve. kw must be a valid key
@@ -264,7 +271,7 @@ class Session:
         assert kw in self._session_infos
         return self._session_infos[kw]
 
-    def __init__(self, date=None, path="."):
+    def __init__(self, date: datetime | None = None, path: str = "."):
         """constructor method.
 
         :param date: the start timestamp
@@ -272,9 +279,9 @@ class Session:
         :param path: the build directory
         :type path: str
         """
-        self._func = None
+        self._func: Callable | None = None
         self._rc = -1
-        self._sid = -1
+        self._sid = str(-1)
         # this dict is then flushed to the session.yml
         self._session_infos = {
             "path": path,
@@ -286,18 +293,18 @@ class Session:
             "ended": None,
         }
 
-    def load_from(self, sid, data):
+    def load_from(self, sid: str, data: dict[str, Any]) -> None:
         """Update the current object with session infos read from global file.
 
         :param sid: session id read from file
-        :type sid: int
+        :type sid: str
         :param data: session infos read from file
         :type data: dict
         """
         self._sid = sid
         self._session_infos = data
 
-    def register_callback(self, callback):
+    def register_callback(self, callback: Callable) -> None:
         """Register the callback used as main function once the session is
         started.
 
@@ -306,7 +313,7 @@ class Session:
         """
         self._func = callback
 
-    def run_detached(self, *args, **kwargs):
+    def run_detached(self, *args, **kwargs) -> str:  # type: ignore
         """Run the session is detached mode.
 
         Arguments are for user function only.
@@ -316,7 +323,7 @@ class Session:
         :type kwargs: tuple
 
         :return: the Session id created for this run.
-        :rtype: int
+        :rtype: str
         """
         io.detach_console()
         self._session_infos["io"] = io.console.outfile
@@ -341,7 +348,7 @@ class Session:
 
             return self._sid
 
-    def run(self, *args, **kwargs):
+    def run(self, *args, **kwargs) -> str:  # type: ignore
         """
         Run the session normally, without detaching the focus.
 
@@ -353,7 +360,7 @@ class Session:
         :param kwargs: user function keyword-based arguments.
         :type kwargs: tuple
         :return: the session ID for this run
-        :rtype: int
+        :rtype: str
         """
         if self._func is not None:
             # same as above, shifted starting time or not

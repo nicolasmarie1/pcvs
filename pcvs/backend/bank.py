@@ -1,8 +1,7 @@
 import os
 import tarfile
 import tempfile
-from typing import List
-from typing import Optional
+from typing import Any
 
 from ruamel.yaml import YAML
 
@@ -48,39 +47,39 @@ class Bank(dsl.Bank):
         :param token: name, path, project@name or project@path
         :type token: str
         """
-        self._dflt_proj: str = None
-        self._name: str = None
-        self._path: str = None
-
+        # Search for the Bank
         path_or_name: str = token
-        self._dflt_proj = "default"
-
+        dflt_proj: str = "default"
         # split name/path & default-proj from token
-        array: List[str] = token.split("@", 1)
+        array: list[str] = token.split("@", 1)
         if len(array) > 1:
-            self._dflt_proj = array[0]
+            dflt_proj = array[0]
             path_or_name = array[1]
 
         # by name
         banks = list_banks()
         if path_or_name in banks:
-            self._name = path_or_name
-            self._path = banks[path_or_name]
+            name = path_or_name
+            path = banks[path_or_name]
         # by paths
         elif path_or_name in banks.values():
             for k, v in banks.items():
                 if v == path_or_name:
-                    self._name = k
+                    name = k
                     break
-            self._path = path_or_name
+            path = path_or_name
         # by unregistered existing path
         elif os.path.isdir(path_or_name):
             io.console.warning(f"Loading unregistered Bank from: '{path_or_name}'")
-            self._path = path_or_name
-            self._name = os.path.basename(path_or_name)
+            path = path_or_name
+            name = os.path.basename(path_or_name)
         # We did not found the bank.
         else:
             raise BankException.NotFoundError(f"Unable to find bank: '{path_or_name}'")
+
+        self._dflt_proj: str = dflt_proj
+        self._name: str = name
+        self._path: str = path
 
         super().__init__(self._path, self._dflt_proj)
 
@@ -97,7 +96,7 @@ class Bank(dsl.Bank):
         return self._dflt_proj
 
     @property
-    def prefix(self) -> Optional[str]:
+    def prefix(self) -> str | None:
         """
         Get path to bank directory.
 
@@ -124,7 +123,7 @@ class Bank(dsl.Bank):
         """
         return str({self._name: self._path})
 
-    def show(self, stringify: bool = False) -> Optional[str]:
+    def show(self, stringify: bool = False) -> str | None:
         """Print the bank on stdout.
 
         .. note::
@@ -146,6 +145,7 @@ class Bank(dsl.Bank):
             return "\n".join(string)
         else:
             print("\n".join(string))
+            return None
 
     def __del__(self) -> None:
         """
@@ -154,7 +154,7 @@ class Bank(dsl.Bank):
         self.disconnect()
 
     def save_from_hdl(
-        self, target_project: str, hdl: BuildDirectoryManager, msg: Optional[str] = None
+        self, target_project: str | None, hdl: BuildDirectoryManager, msg: str | None = None
     ) -> None:
         """
         Create a new node into the bank for the given project, based on result handler.
@@ -173,7 +173,7 @@ class Bank(dsl.Bank):
             series = self.new_series(target_project)
 
         run = dsl.Run(from_series=series)
-        metadata = {"cnt": {}}
+        metadata: dict[str, Any] = {"cnt": {}}
 
         for job in hdl.results.browse_tests():
             metadata["cnt"].setdefault(str(job.state), 0)
@@ -196,7 +196,7 @@ class Bank(dsl.Bank):
             timestamp=int(hdl.config["validation"]["datetime"].timestamp()),
         )
 
-    def save_from_buildir(self, tag: str, buildpath: str, msg: Optional[str] = None) -> None:
+    def save_from_buildir(self, tag: str, buildpath: str, msg: str | None = None) -> None:
         """Extract results from the given build directory & store into the bank.
 
         :param tag: overridable default project (if different)
@@ -212,7 +212,7 @@ class Bank(dsl.Bank):
 
         self.save_from_hdl(tag, hdl, msg)
 
-    def save_from_archive(self, tag: str, archivepath: str, msg: Optional[str] = None) -> None:
+    def save_from_archive(self, tag: str, archivepath: str, msg: str | None = None) -> None:
         """Extract results from the archive, if used to export results.
 
         This is basically the same as :func:`BanK.save_from_buildir` except
@@ -234,7 +234,7 @@ class Bank(dsl.Bank):
             self.save_from_buildir(tag, os.path.join(tarpath, d[0]), msg=msg)
 
     def save_new_run_from_instance(
-        self, target_project: str, hdl: BuildDirectoryManager, msg: Optional[str] = None
+        self, target_project: str | None, hdl: BuildDirectoryManager, msg: str | None = None
     ) -> None:
         self.save_from_hdl(target_project, hdl, msg)
 
@@ -264,7 +264,7 @@ class Bank(dsl.Bank):
 
         self.save_new_run_from_instance(target_project, hdl)
 
-    def __repr__(self) -> dict:
+    def __repr__(self) -> str:
         """Bank representation.
 
         :return: a dict-based representation
@@ -272,7 +272,7 @@ class Bank(dsl.Bank):
         """
         return repr({"rootpath": self._path, "name": self._name})
 
-    def get_count(self):
+    def get_count(self) -> int:
         """
         Get the number of projects managed by this bank handle.
 
@@ -340,7 +340,7 @@ def list_banks() -> dict:
     return banks
 
 
-def write_banks(banks: dict[str, str]):
+def write_banks(banks: dict[str, str]) -> None:
     """Write banks."""
     try:
         prefix_file = os.path.dirname(PATH_BANK)
@@ -349,4 +349,4 @@ def write_banks(banks: dict[str, str]):
         with open(PATH_BANK, "w+", encoding="utf-8") as f:
             YAML(typ="safe").dump(banks, f)
     except IOError as e:
-        raise BankException.IOError(e)
+        raise BankException.IOError("Fail to write banks list to disk.") from e

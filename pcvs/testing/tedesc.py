@@ -3,6 +3,8 @@ import os
 import re
 import shutil
 import tempfile
+from typing import Any
+from typing import Iterable
 
 import pcvs
 from pcvs import io
@@ -13,6 +15,7 @@ from pcvs.helpers.criterion import Criterion
 from pcvs.helpers.criterion import Series
 from pcvs.helpers.exceptions import ProfileException
 from pcvs.helpers.exceptions import TestException
+from pcvs.helpers.pm import PManager
 from pcvs.testing.test import Test
 
 # now return the first valid language, according to settings
@@ -50,7 +53,7 @@ def detect_compiler(build_info: dict) -> list[str] | None:
     return None
 
 
-def extract_compilers_envs():
+def extract_compilers_envs() -> list[str]:
     """Extract compilers environment."""
     envs = []
     for _, compiler in GlobalConfig.root["compiler"]["compilers"].items():
@@ -58,7 +61,9 @@ def extract_compilers_envs():
     return envs
 
 
-def extract_compiler_config(compiler, variants):
+def extract_compiler_config(
+    compiler: str | None, variants: list[str]
+) -> tuple[str | None, list[str], list[str], bool]:
     """
     Build resource to compile based on language and variants involved.
 
@@ -69,7 +74,7 @@ def extract_compiler_config(compiler, variants):
     :return: the program, its args and env modifiers (in that order)
     :rtype: tuple
     """
-    if not compiler or compiler not in GlobalConfig.root["compiler"]["compilers"]:
+    if compiler is None or compiler not in GlobalConfig.root["compiler"]["compilers"]:
         raise ProfileException.IncompleteError(
             reason="Unknown compiler, not defined into Profile",
             dbg_info={"compiler": compiler, "list": GlobalConfig.root["compiler"]["compilers"]},
@@ -96,7 +101,7 @@ def extract_compiler_config(compiler, variants):
     )
 
 
-def build_job_deps(deps_node, pkg_label, pkg_prefix):
+def build_job_deps(deps_node: dict[str, list[str]], pkg_label: str, pkg_prefix: str) -> list:
     """
     Build the dependency list from a given dependency YAML node.
 
@@ -123,7 +128,7 @@ def build_job_deps(deps_node, pkg_label, pkg_prefix):
     return deps
 
 
-def build_pm_deps(deps_node):
+def build_pm_deps(deps_node: dict[str, dict]) -> list[PManager]:
     """Build the dependency list from a given YAML node.
 
     This only initialize package-manager oriented deps. For job deps, see
@@ -166,8 +171,11 @@ class TEDescriptor:
     :ivar others: used yaml node references.
     """
 
+    _sys_crit: dict[str, Criterion]
+    _base_it: str
+
     @classmethod
-    def init_system_wide(cls, base_criterion_name):
+    def init_system_wide(cls, base_criterion_name: str) -> None:
         """
         Initialize system-wide information (to shorten accesses).
 
@@ -177,14 +185,14 @@ class TEDescriptor:
         cls._sys_crit = GlobalConfig.root.get_internal("crit_obj")
         cls._base_it = base_criterion_name
 
-    def __init__(self, name, node, label, subprefix):
+    def __init__(self, name: str, nodecontent: dict, label: str, subprefix: str) -> None:
         """
         Constructor method.
 
         :param name: the TE name
         :type name: str
         :param node: the TE YAML content.
-        :type node: str
+        :type node: dict
         :param label: the user dir label.
         :type label: str
         :param subprefix: relative path between user dir & current TE testfile
@@ -192,34 +200,34 @@ class TEDescriptor:
 
         :raises TDFormatError: Unproper YAML TE format (sanity check)
         """
-        if not isinstance(node, dict):
-            raise TestException.TestExpressionError(node)
+        if not isinstance(nodecontent, dict):
+            raise TestException.TestExpressionError(nodecontent)
 
-        self._te_name = name
-        self._skipped = name.startswith(".")
-        self._te_label = label
-        self._te_subtree = subprefix
+        self._te_name: str = name
+        self._skipped: bool = name.startswith(".")
+        self._te_label: str = label
+        self._te_subtree: str = subprefix
 
-        _, self._srcdir, _, self._buildir = testing.generate_local_variables(label, subprefix)
+        _, self._srcdir, _, self._buildir = testing.test.generate_local_variables(label, subprefix)
         # before doing anything w/ node:
         # arregate the 'group' definitions with the TE
         # to get all the fields in their final form
-        if "group" in node and node["group"] in GlobalConfig.root["group"].keys():
-            tmp = GlobalConfig.root["group"][node["group"]]
-            tmp.update(node)
-            node = tmp
+        if "group" in nodecontent and nodecontent["group"] in GlobalConfig.root["group"].keys():
+            tmp = GlobalConfig.root["group"][nodecontent["group"]]
+            tmp.update(nodecontent)
+            nodecontent = tmp
         # load from descriptions
-        self._build = node.get("build", {})
-        self._run = node.get("run", {})
-        self._validation = node.get("validate", {})
-        self._build_validation = self._build.get("validate", {})
-        self._artifacts = node.get("artifact", {})
-        self._metrics = node.get("metrics", {})
-        self._attributes = node.get("attributes", {})
-        self._template = node.get("group", {})
-        self._debug = self._te_name + ":\n"
-        self._effective_cnt = 0
-        self._tags = node.get("tag", [])
+        self._build: dict = nodecontent.get("build", {})
+        self._run: dict = nodecontent.get("run", {})
+        self._validation: dict = nodecontent.get("validate", {})
+        self._build_validation: dict = self._build.get("validate", {})
+        self._artifacts: dict = nodecontent.get("artifact", {})
+        self._metrics: dict = nodecontent.get("metrics", {})
+        self._attributes: dict = nodecontent.get("attributes", {})
+        self._template: dict = nodecontent.get("group", {})
+        self._debug: str = self._te_name + ":\n"
+        self._effective_cnt: int = 0
+        self._tags: list[str] = nodecontent.get("tag", [])
 
         path_prefix = self._buildir
         if self.get_attr("path_resolution", True) is False:
@@ -244,9 +252,10 @@ class TEDescriptor:
         # compute local criterions relatively to system-wide's
         self._configure_criterions()
         # apply retro-compatibility w/ old syntax
-        self._compatibility_support(node.get("_compat", None))
+        # TODO: verify that we can remove this without breaking
+        # self._compatibility_support(nodecontent.get("_compat", None))
 
-    def get_binary_name(self):
+    def get_binary_name(self) -> str:
         """
         Get the binary name for the file at the output of the compiler.
 
@@ -255,23 +264,27 @@ class TEDescriptor:
         If none are defined, use the test name.
         """
         if "binary" in self._build.get("sources", {}):
-            return self._build["sources"]["binary"]
+            binary_name = self._build["sources"]["binary"]
+            assert isinstance(binary_name, str)
+            return binary_name
         if "program" in self._run:
-            return self._run["program"]
+            program_name = self._run["program"]
+            assert isinstance(program_name, str)
+            return program_name
         return self._te_name
 
-    def get_attr(self, name, dflt=None):
+    def get_attr(self, name: str, dflt: Any = None) -> Any:
         if name in self._attributes:
             return self._attributes[name]
         else:
             return dflt
 
-    def _compatibility_support(self, compat):
+    def _compatibility_support(self, compat: dict | None) -> None:
         """Convert tricky keywords from old syntax too complex to be handled
         by the automatic converter.
 
         :param compat: dict of complex keyword extracted from old syntax.
-        :param compat: dict or NoneType
+        :type compat: dict or NoneType
         """
         if compat is None:
             return
@@ -310,7 +323,7 @@ class TEDescriptor:
         if "vars" in self._build.get("cmake", {}):
             self._build["cmake"]["args"] = self._build["cmake"]["vars"]
 
-    def _configure_criterions(self):
+    def _configure_criterions(self) -> None:
         """Prepare the list of components this TE will be built against.
 
         It consists in intersecting system-wide criterions and their
@@ -353,7 +366,7 @@ class TEDescriptor:
             for _, elt in self._program_criterion.items():
                 elt.expand_values()
 
-    def __build_from_sources(self):
+    def __build_from_sources(self) -> tuple[str, list[str], int]:
         """How to create build tests from a collection of source files.
 
         :return: the command to be used.
@@ -388,7 +401,7 @@ class TEDescriptor:
         )
         return (command, envs, 1)
 
-    def __build_from_makefile(self):
+    def __build_from_makefile(self) -> tuple[str, list[str], int]:
         """How to create build tests from a Makefile.
 
         :return: the command to be used.
@@ -416,7 +429,7 @@ class TEDescriptor:
 
         return (" ".join(command), envs, jobs)
 
-    def __build_from_cmake(self):
+    def __build_from_cmake(self) -> tuple[str, list[str], int]:
         """How to create build tests from a CMake project.
 
         :return: the command to be used.
@@ -442,7 +455,7 @@ class TEDescriptor:
         envs += tmp[1]
         return (" && ".join([" ".join(command), next_command]), envs, tmp[2])
 
-    def __build_from_autotools(self):
+    def __build_from_autotools(self) -> tuple[str, list[str], int]:
         """How to create build tests from a Autotools-based project.
 
         :return: the command to be used.
@@ -474,10 +487,7 @@ class TEDescriptor:
         envs += tmp[1]
         return (" && ".join([" ".join(command), next_command]), envs, tmp[2])
 
-    def __build_from_user_script(self):
-        command = []
-        env = []
-
+    def __build_from_user_script(self) -> tuple[str, list[str], int]:
         command = self._build["custom"].get("program", "echo")
         # args not relevant as cflags/ldflags can be used instead
         env = self._build["custom"].get("envs", [])
@@ -491,7 +501,7 @@ class TEDescriptor:
         )
         return (full_cmd, env, 1)
 
-    def __build_exec_process(self):
+    def __build_exec_process(self) -> tuple[str, list[str], int]:
         """Drive compilation command generation based on TE format.
 
         :return: the command to be used.
@@ -507,7 +517,7 @@ class TEDescriptor:
             return self.__build_from_user_script()
         return self.__build_from_sources()
 
-    def __construct_compil_tests(self):
+    def __construct_compil_tests(self) -> Iterable[Test]:
         """Meta-function steering compilation tests."""
         job_deps = []
 
@@ -556,7 +566,7 @@ class TEDescriptor:
             validation=self._build_validation,
         )
 
-    def __construct_runtime_tests(self, series):
+    def __construct_runtime_tests(self, series: Series) -> Iterable[Test]:
         """Generate tests to be run by the runtime command."""
         te_job_deps = build_job_deps(self._run, self._te_label, self._te_subtree)
         te_mod_deps = build_pm_deps(self._run)
@@ -621,7 +631,7 @@ class TEDescriptor:
             )
 
     @io.capture_exception(Exception, doexit=True)
-    def construct_tests(self):
+    def construct_tests(self) -> Iterable[Test]:
         """Construct a collection of tests (build & run) from a given TE.
 
         This function will process a YAML node and, through a generator, will
@@ -650,7 +660,7 @@ class TEDescriptor:
                 series = Series({**self._criterion, **self._program_criterion})
             yield from self.__construct_runtime_tests(series)
 
-    def get_debug(self):
+    def get_debug(self) -> dict:
         """Build information debug for the current TE.
 
         :return: the debug info
@@ -660,7 +670,7 @@ class TEDescriptor:
         if self._skipped:
             return {}
 
-        debug_yaml = {}
+        debug_yaml: dict[str, list | dict[str, list]] = {}
 
         # count actual tests built
         if self._run:
@@ -669,14 +679,14 @@ class TEDescriptor:
                 debug_yaml[k] = list(v.values)
 
             # for program-level iterators, count number of possibilities
-            debug_yaml["program"] = dict()
+            debug_yaml["program"] = {}
             for k, v in self._program_criterion.items():
                 debug_yaml["program"][k] = list(v.values)
 
         return debug_yaml
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Getter to the current TE name.
 
         :return: te_name
@@ -684,7 +694,7 @@ class TEDescriptor:
         """
         return self._te_name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Internal TE representation, for auto-dumping.
 
         :return: the node representation.

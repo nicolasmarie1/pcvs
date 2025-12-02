@@ -2,9 +2,11 @@ from pcvs import io
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers.exceptions import OrchestratorException
 from pcvs.helpers.resource_tracker import ResourceTracker
+from pcvs.orchestration.publishers import ResultFileManager
 from pcvs.orchestration.set import Set
 from pcvs.plugins import Plugin
 from pcvs.testing.test import Test
+from pcvs.testing.teststate import TestState
 
 
 class Manager:
@@ -17,7 +19,7 @@ class Manager:
     results.
     """
 
-    def __init__(self, max_nodes=0, publisher=None):
+    def __init__(self, max_nodes: int = 0, publisher: ResultFileManager | None = None):
         """
         Initialize  a Job Manager.
 
@@ -32,17 +34,16 @@ class Manager:
 
         self._max_nodes = max_nodes
 
-        # jid to Job bindings
-        self.jobs = {}
+        # job_id to Job bindings
+        self.jobs: dict[str, Test] = {}
         # job dependency rules
-        self.dep_rules = {}
+        self.dep_rules: dict = {}
 
-        # self._dims = {n: [] for n in range(1, self._max_nodes + 1)}
         self._publisher = publisher
         self._count = {"total": 0, "executed": 0}
 
     @property
-    def nb_max_nodes(self):
+    def nb_max_nodes(self) -> int:
         """Get max number of nodes.
 
         :return: the max nb nodes
@@ -50,10 +51,14 @@ class Manager:
         """
         return self._max_nodes
 
-    def __add_job(self, job: Test):
+    @property
+    def get_jobs(self) -> dict[str, Test]:
+        return self.jobs
+
+    def __add_job(self, job: Test) -> None:
         self.jobs[job.jid] = job
 
-    def add_job(self, job):
+    def add_job(self, job: Test) -> None:
         """Store a new job to the Job Queue, the Manager table,
             save the test dependency rules and count it.
 
@@ -66,7 +71,7 @@ class Manager:
             self._count["total"] += 1
             self.save_dependency_rule(job.basename, job)
 
-    def save_dependency_rule(self, pattern, jobs):
+    def save_dependency_rule(self, pattern: str, jobs: Test | list[Test]) -> None:
         assert isinstance(pattern, str)
 
         if not isinstance(jobs, list):
@@ -75,7 +80,7 @@ class Manager:
         self.dep_rules.setdefault(pattern, [])
         self.dep_rules[pattern] += jobs
 
-    def get_count(self, tag="total"):
+    def get_count(self, tag: str = "total") -> int:
         """Access to a particular counter.
 
         :param tag: a specific counter to target, defaults to "total"
@@ -85,7 +90,7 @@ class Manager:
         """
         return self._count[tag] if tag in self._count else 0
 
-    def resolve_deps(self):
+    def resolve_deps(self) -> None:
         """Resolve the whole dependency graph.
 
         This function is meant to be called once and browse every single tests
@@ -94,20 +99,20 @@ class Manager:
         for _, job in self.jobs.items():
             self.resolve_single_job_deps(job, [])
 
-    def print_dep_graph(self, outfile=None):
+    def print_dep_graph(self, outfile_name: str | None = None) -> None:
         s = ["digraph D {"]
         for _, job in self.jobs.items():
             for d in job.get_dep_graph().keys():
                 s.append(f'"{job.name}"->"{d}";')
         s.append("}")
 
-        if not outfile:
+        if not outfile_name:
             print("\n".join(s))
         else:
-            with open(outfile, "w") as fh:
+            with open(outfile_name, "w") as fh:
                 fh.write("\n".join(s))
 
-    def resolve_single_job_deps(self, job, chain):
+    def resolve_single_job_deps(self, job: Test, seen_deps: list[str]) -> None:
         """Resolve the dependency graph for a single test.
 
         The 'chain' argument contains list of "already-seen" dependency, helping
@@ -121,7 +126,7 @@ class Manager:
         :param chain: list of already-seen jobs during this walkthrough
         :type chain: list
         """
-        chain.append(job.name)
+        seen_deps.append(job.name)
         for depname in job.job_depnames:
 
             hashed_dep = Test.get_jid_from_name(depname)
@@ -133,21 +138,21 @@ class Manager:
                 raise OrchestratorException.UndefDependencyError(depname)
 
             for job_dep in job_dep_list:
-                if job_dep.name in chain:
-                    raise OrchestratorException.CircularDependencyError(chain)
+                if job_dep.name in seen_deps:
+                    raise OrchestratorException.CircularDependencyError(str(seen_deps))
 
                 # without copying the chain, resolution of siblings deps will alter
                 # the same list --> a single dep may appear multiple time and raise
                 # a false CiprcularDep
                 # solution: resolve subdep path in their own chain :)
-                self.resolve_single_job_deps(job_dep, list(chain))
+                self.resolve_single_job_deps(job_dep, list(seen_deps))
                 job.resolve_a_dep(depname, job_dep)
 
-    def _transpose_dep_graph(self):
+    def _transpose_dep_graph(self) -> None:
         for _, job in self.jobs.items():
             job.transpose_deps()
 
-    def filter_tags(self):
+    def filter_tags(self) -> None:
         self._transpose_dep_graph()
         change: bool = True
         while change:
@@ -160,7 +165,7 @@ class Manager:
                     self._count["total"] -= 1
                     change = True
 
-    def get_leftjob_count(self):
+    def get_leftjob_count(self) -> int:
         """Return the number of jobs remaining to be executed.
 
         :return: a number of jobs
@@ -168,23 +173,28 @@ class Manager:
         """
         return self._count["total"] - self._count["executed"]
 
-    def publish_job(self, job, publish_args=None):
-        if publish_args:
-            job.save_final_result(**publish_args)
+    def publish_job(
+        self, job: Test, publish_args: tuple[int, float, bytes, TestState] | None = None
+    ) -> None:
+        if publish_args is not None:
+            job.save_final_result(
+                publish_args[0], publish_args[1], publish_args[2], publish_args[3]
+            )
 
         if self._comman:
             self._comman.send(job)
         self._count["executed"] += 1
         if job.state not in self._count:
-            self._count[job.state] = 0
-        self._count[job.state] += 1
+            self._count[str(job.state)] = 0
+        self._count[str(job.state)] += 1
+        assert self._publisher is not None
         self._publisher.save(job)
 
-    def prune_all_jobs_as_non_runnable(self):
+    def prune_all_jobs_as_non_runnable(self) -> None:
         for _, job in self.jobs.items():
-            self.publish_failed_to_run_job(job, Test.DISCARDED_STR, Test.State.ERR_OTHER)
+            self.publish_failed_to_run_job(job, Test.DISCARDED_STR, TestState.ERR_OTHER)
 
-    def create_subset(self, resources_tracker: ResourceTracker):
+    def create_subset(self, resources_tracker: ResourceTracker) -> Set | None:
         """Extract one or more jobs, ready to be run.
 
         :param resources_tracker: job resource tracker.
@@ -207,7 +217,7 @@ class Manager:
         self._plugin.invoke_plugins(Plugin.Step.SCHED_SET_AFTER)
         return the_set
 
-    def __get_next_job(self) -> Test:
+    def __get_next_job(self) -> Test | None:
         if len(self.jobs) <= 0:
             return None
         jid, job = sorted(
@@ -217,7 +227,7 @@ class Manager:
         self.jobs.pop(jid)
         return job
 
-    def __default_create_subset(self, resources_tracker: ResourceTracker):
+    def __default_create_subset(self, resources_tracker: ResourceTracker) -> Set | None:
         scheduled_set = None
 
         user_sched_job = self._plugin.has_enabled_step(Plugin.Step.SCHED_JOB_EVAL)
@@ -226,7 +236,7 @@ class Manager:
 
         while (job := self.__get_next_job()) is not None:
             # test not ready to be run
-            if job.state != Test.State.WAITING:
+            if job.state != TestState.WAITING:
                 continue
 
             # if the job has pending dependency,
@@ -248,7 +258,7 @@ class Manager:
             if job.has_failed_dep():
                 # Cannot be scheduled for dep purposes
                 # push it to publisher
-                self.publish_failed_to_run_job(job, Test.NOSTART_STR, Test.State.ERR_DEP)
+                self.publish_failed_to_run_job(job, Test.NOSTART_STR, TestState.ERR_DEP)
                 # Attempt to find another job to schedule
                 continue
 
@@ -268,7 +278,7 @@ class Manager:
                     io.console.sched_debug(f"Alloc pool (ALLOC RES) {res}: {resources_tracker}")
                     job.alloc_tracking = res
 
-            if job.state != Test.State.IN_PROGRESS and pick_job:
+            if job.state != TestState.IN_PROGRESS and pick_job:
                 job.pick()
                 if scheduled_set is None:
                     scheduled_set = Set(execmode=Set.ExecMode.LOCAL)
@@ -287,19 +297,19 @@ class Manager:
 
         return scheduled_set
 
-    def publish_failed_to_run_job(self, job, out, state):
-        publish_job_args = {"rc": -1, "time": 0.0, "out": out, "state": state}
+    def publish_failed_to_run_job(self, job: Test, out: bytes, state: TestState) -> None:
+        publish_job_args = (-1, 0.0, out, state)
         self.publish_job(job, publish_args=publish_job_args)
         job.display()
 
-    def merge_subset(self, subset):
+    def merge_subset(self, subset: Set) -> None:
         """After completion, process the Set to publish test results.
 
         :param set: the set handling jobs during the scheduling.
         :type set: :class:`Set`
         """
         for job in subset.content:
-            assert job.state == Test.State.EXECUTED
+            assert job.state == TestState.EXECUTED
 
             job.extract_metrics()
             job.save_artifacts()

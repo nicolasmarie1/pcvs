@@ -5,6 +5,8 @@ import signal
 import subprocess
 import threading
 import time
+from io import BufferedWriter
+from queue import Queue
 
 import pcvs
 from pcvs import io
@@ -12,20 +14,123 @@ from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers.exceptions import RunnerException
 from pcvs.orchestration.set import Set
 from pcvs.testing.test import Test
+from pcvs.testing.teststate import TestState
+
+
+class RemoteContext:
+
+    MAGIC_TOKEN = "PCVS-MAGIC"
+
+    def __init__(self, prefix: str, jobs: Set | None = None):
+        self._path = prefix
+        self._cnt = 0
+
+        if jobs:
+            self._path = os.path.join(self._path, str(jobs.id))
+        self._completed_file = os.path.join(prefix, ".completed")
+
+        if jobs:
+            self.save_input_to_disk(jobs)
+
+        # inputs are flushed atomically, no need for a file handler
+        # outputs are stored incrementally to avoid data losses
+        self._outfile: BufferedWriter | None = None
+
+    @property
+    def cnt(self) -> int:
+        return self._cnt
+
+    def save_input_to_disk(self, jobs: Set) -> None:
+        with open(os.path.join(self._path, "input.json"), "w") as f:
+            f.write(json.dumps(list(map(lambda x: x.to_minimal_json(), jobs.content))))
+
+    def check_input_avail(self) -> bool:
+        f = os.path.join(self._path, "input.json")
+        return os.path.isfile(f)
+
+    def check_output_avail(self) -> bool:
+        f = os.path.join(self._path, "output.bin")
+        return os.path.isfile(f)
+
+    def load_input_from_disk(self) -> Set:
+        assert os.path.isdir(os.path.join(self._path))
+        jobs = Set(execmode=Set.ExecMode.LOCAL)
+        with open(os.path.join(self._path, "input.json"), "r") as f:
+            data = json.load(f)
+            for job in data:
+                cur = Test()
+                cur.from_minimal_json(job)
+                jobs.add(cur)
+                self._cnt += 1
+        return jobs
+
+    def save_result_to_disk(self, job: Test) -> None:
+        if self._outfile is None:
+            self._outfile = open(os.path.join(self._path, "output.bin"), "wb")
+        assert self._outfile is not None
+        data = job.encoded_output
+        self._outfile.writelines(
+            [
+                "{}:{}:{}:{}:{}\n".format(
+                    self.MAGIC_TOKEN, job.jid, len(data), job.time, job.retcode
+                ).encode("utf-8"),
+                data,
+                "\n".encode("utf-8"),
+            ]
+        )
+
+    def load_result_from_disk(self, jobs: Set) -> None:
+        with open(os.path.join(self._path, "output.bin"), "rb") as fh:
+            lines = fh.readlines()
+            for lineum, linedata in enumerate(lines):
+                if lineum % 2 == 0:
+                    # metadata:
+                    magic, jobid, _datalen, _timexec, _retcode = linedata.decode("utf-8").split(":")
+                    assert magic == self.MAGIC_TOKEN
+                    datalen: int = int(_datalen)
+                    timexec: float = float(_timexec)
+                    retcode: int = int(_retcode)
+                    data = b""
+                    job: Test | None = jobs.find(jobid)
+                    assert job is not None
+                    if datalen > 0:
+                        data = lines[lineum + 1].strip()
+                        job.encoded_output = data
+                    job.save_raw_run(rc=retcode, time=timexec)
+                    job.save_status(TestState.EXECUTED)
+
+    def mark_as_completed(self) -> None:
+        if self._outfile:
+            self._outfile.close()
+        open(self._completed_file, "w").close()
+
+    def mark_as_not_completed(self) -> None:
+        if os.path.exists(self._completed_file):
+            os.remove(self._completed_file)
+
+    @property
+    def completed(self) -> bool:
+        return os.path.exists(self._completed_file)
 
 
 class RunnerAdapter(threading.Thread):
     sched_in_progress = True
 
-    def __init__(self, buildir, context=None, ready=None, complete=None, *args, **kwargs):
-        self._prefix = buildir
-        self._ctx = context
-        self._rq = ready
-        self._cq = complete
+    def __init__(
+        self,
+        buildir: str,
+        ready: Queue,
+        complete: Queue,
+        context: RemoteContext | None = None,
+    ):
+        self._prefix: str = buildir
+        self._ctx: RemoteContext | None = context
+        self._rq: Queue = ready
+        self._cq: Queue = complete
 
         super().__init__()
 
-    def run(self):
+    def run(self) -> None:
         while True:
             try:
                 if self.sched_in_progress:
@@ -39,13 +144,13 @@ class RunnerAdapter(threading.Thread):
             except Exception as e:
                 raise e
 
-    def execute_set(self, jobs):
+    def execute_set(self, jobs: Set) -> None:
         if jobs.execmode == Set.ExecMode.LOCAL:
-            return self.local_exec(jobs)
+            self.local_exec(jobs)
         else:
-            return self.remote_exec(jobs)
+            self.remote_exec(jobs)
 
-    def local_exec(self, jobs) -> None:
+    def local_exec(self, jobs: Set) -> None:
         """Execute the Set and jobs within it.
 
         :raises Exception: Something occurred while running a test"""
@@ -93,9 +198,9 @@ class RunnerAdapter(threading.Thread):
                     os.killpg(os.getpgid(p.pid), signal.SIGKILL)
                     return
 
-            job.save_status(job.State.EXECUTED)
+            job.save_status(TestState.EXECUTED)
             job.save_raw_run(time=run_time, rc=rc, out=stdout, hard_timeout=hard_timeout)
-        jobs.complete = True
+        jobs.completed = True
 
     def remote_exec(self, jobs: Set) -> None:
         jobman_cfg = {}
@@ -146,7 +251,7 @@ class RunnerAdapter(threading.Thread):
             ) from e
 
 
-def progress_jobs(q, ctx, ev):
+def progress_jobs(q: Queue, ctx: RemoteContext, ev: threading.Event) -> None:
     local_cnt = 0
     while local_cnt < ctx.cnt:
         try:
@@ -163,22 +268,22 @@ def progress_jobs(q, ctx, ev):
 
 class RunnerRemote:
 
-    def __init__(self, ctx_path):
-        self._ctx = None
-        self._set = None
-        self._ctx_path = ctx_path
+    def __init__(self, ctx_path: str):
+        self._ctx: RemoteContext | None = None
+        self._set: Set | None = None
+        self._ctx_path: str = ctx_path
 
-    def connect_to_context(self):
+    def connect_to_context(self) -> None:
         self._ctx = RemoteContext(self._ctx_path)
         self._set = self._ctx.load_input_from_disk()
 
-    def run(self, parallel=1):
-
+    def run(self, parallel: int = 1) -> None:
+        assert self._ctx is not None and self._set is not None
         self._ctx.mark_as_not_completed()
-        thr_list = []
-        rq = queue.Queue()
-        pq = queue.Queue()
-        ev = threading.Event()
+        thr_list: list = []
+        rq: Queue = Queue()
+        pq: Queue = Queue()
+        ev: threading.Event = threading.Event()
 
         progress = threading.Thread(target=progress_jobs, args=(pq, self._ctx, ev))
         progress.start()
@@ -200,98 +305,3 @@ class RunnerRemote:
         for thr in thr_list:
             thr.join()
         self._ctx.mark_as_completed()
-
-
-class RemoteContext:
-
-    MAGIC_TOKEN = "PCVS-MAGIC"
-
-    def __init__(self, prefix, jobs=None):
-        self._path = prefix
-        self._cnt = 0
-
-        if jobs:
-            self._path = os.path.join(self._path, str(jobs.id))
-        self._completed_file = os.path.join(prefix, ".completed")
-
-        if jobs:
-            self.save_input_to_disk(jobs)
-
-        # inputs are flushed atomically, no need for a file handler
-        # outputs are stored incrementally to avoid data losses
-        self._outfile = None
-
-    @property
-    def cnt(self):
-        return self._cnt
-
-    def save_input_to_disk(self, jobs):
-        with open(os.path.join(self._path, "input.json"), "w") as f:
-            f.write(json.dumps(list(map(lambda x: x.to_minimal_json(), jobs.content))))
-
-    def check_input_avail(self):
-        f = os.path.join(self._path, "input.json")
-        return os.path.isfile(f)
-
-    def check_output_avail(self):
-        f = os.path.join(self._path, "output.bin")
-        return os.path.isfile(f)
-
-    def load_input_from_disk(self):
-        assert os.path.isdir(os.path.join(self._path))
-        jobs = Set(execmode=Set.ExecMode.LOCAL)
-        with open(os.path.join(self._path, "input.json"), "r") as f:
-            data = json.load(f)
-            for job in data:
-                cur = Test()
-                cur.from_minimal_json(job)
-                jobs.add(cur)
-                self._cnt += 1
-        return jobs
-
-    def save_result_to_disk(self, job: Test):
-        if not self._outfile:
-            self._outfile = open(os.path.join(self._path, "output.bin"), "wb")
-        data = job.encoded_output
-        self._outfile.writelines(
-            [
-                "{}:{}:{}:{}:{}\n".format(
-                    self.MAGIC_TOKEN, job.jid, len(data), job.time, job.retcode
-                ).encode("utf-8"),
-                data,
-                "\n".encode("utf-8"),
-            ]
-        )
-
-    def load_result_from_disk(self, jobs):
-        with open(os.path.join(self._path, "output.bin"), "rb") as fh:
-            lines = fh.readlines()
-            for lineum, linedata in enumerate(lines):
-                if lineum % 2 == 0:
-                    # metadata:
-                    magic, jobid, datalen, timexec, retcode = linedata.decode("utf-8").split(":")
-                    assert magic == self.MAGIC_TOKEN
-                    datalen = int(datalen)
-                    timexec = float(timexec)
-                    retcode = int(retcode)
-                    data = b""
-                    job: Test = jobs.find(jobid)
-                    assert job
-                    if datalen > 0:
-                        data = lines[lineum + 1].strip()
-                        job.encoded_output = data
-                    job.save_raw_run(rc=retcode, time=timexec)
-                    job.save_status(job.State.EXECUTED)
-
-    def mark_as_completed(self):
-        if self._outfile:
-            self._outfile.close()
-        open(self._completed_file, "w").close()
-
-    def mark_as_not_completed(self):
-        if os.path.exists(self._completed_file):
-            os.remove(self._completed_file)
-
-    @property
-    def completed(self):
-        return os.path.exists(self._completed_file)

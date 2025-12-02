@@ -1,6 +1,3 @@
-from typing import Never
-
-
 class ResourceTracker:
 
     alloc_tracking_counter: int = 1
@@ -48,10 +45,9 @@ class ResourceTracker:
             for resource in self.resources:
                 resource.free(alloc_tracking_id)
             return False
-        Never.assert_never(allocation)
-        return False
+        assert False
 
-    def free(self, alloc_tracking_id: int):
+    def free(self, alloc_tracking_id: int) -> None:
         if self.dim == 0:
             if self.resource == alloc_tracking_id:
                 self.resource = 0
@@ -59,7 +55,7 @@ class ResourceTracker:
             for resource in self.resources:
                 resource.free(alloc_tracking_id)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.dim == 0:
             return str(self.resource)
         return repr(self.resources)

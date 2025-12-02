@@ -4,6 +4,8 @@ import os
 from abc import ABC
 from abc import abstractmethod
 from datetime import datetime
+from typing import Any
+from typing import Iterable
 
 import sh
 
@@ -16,22 +18,6 @@ try:
     has_pygit2 = True
 except ModuleNotFoundError:
     has_pygit2 = False
-
-
-def elect_handler(prefix=None):
-    """Select the proper repository handler based on python support
-
-    Python 3.10+-based PCVS installations come with pygit2, thanks to provided
-    wheels. Older versions are relying on regular Git commands (as wheels are
-    not provided for Python3.6 and older & building pygit2 requires specific
-    libgit2 version to be installed, hardening the installation process)
-    """
-    if has_pygit2:
-        git_handle = GitByAPI(prefix)
-    else:
-        git_handle = GitByCLI(prefix)
-
-    return git_handle
 
 
 class Reference:
@@ -50,24 +36,24 @@ class Reference:
 class Branch(Reference):
     """Maps to a regular Git branch."""
 
-    def __init__(self, repo, name="master"):
+    def __init__(self, repo, name: str = "master"):
         super().__init__(repo)
         self._name = name
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
 
 class Commit(Reference):
     """Maps to a regular Git commit"""
 
-    def __init__(self, repo, obj, metadata={}):
+    def __init__(self, repo, obj, metadata: dict[str, Any] = {}):
         super().__init__(repo)
         self.cid = obj
         self.meta = metadata
 
-    def get_info(self):
+    def get_info(self) -> dict[str, Any]:
         """Return commit metadata stored as a dict.
 
         It may contains extra infos compared to what a commit usually contains"""
@@ -88,11 +74,11 @@ class Tree(Reference):
         """Create a Tree and attach it with the git-specific handler (if any)
 
         :param repo: the repo handle
-        :type repo: any
+        :type repo: Any
         :param hdl: the git-specific root handle
-        :type hdl: any
-        :param children: any prebuild children for this root node
-        :type children: any
+        :type hdl: Any
+        :param children: Any prebuild children for this root node
+        :type children: Any
         :return: the created Tree object
         :rtype: Tree
         """
@@ -143,7 +129,7 @@ class GitByGeneric(ABC):
         self.set_identity(None, None, None, None)
 
     @abstractmethod
-    def open(self, bare=True):
+    def open(self, bare: bool = True) -> None:
         """Open the repo, with appropriate method.
 
         :param bare: true by default, manage or bare repo.
@@ -192,7 +178,7 @@ class GitByGeneric(ABC):
         """
         utils.is_locked(self._lockname)
 
-    def set_identity(self, authname, authmail, commname, commmail):
+    def set_identity(self, authname: str, authmail: str, commname: str, commmail: str) -> None:
         """Identities to be used if a commit is created.
 
         :param authname: author's name
@@ -209,7 +195,7 @@ class GitByGeneric(ABC):
         self._commname = commname if commname else get_current_username()
         self._commmail = commmail if commmail else get_current_usermail()
 
-    def get_head(self):
+    def get_head(self) -> Branch:
         """Get the current repo's HEAD (used when no default)
 
         :returns: a ref to the HEAD as a branch
@@ -217,12 +203,12 @@ class GitByGeneric(ABC):
         """
         return self._head
 
-    def set_head(self, new_head):
+    def set_head(self, branch_name: str) -> Branch:
         """Move the repo HEAD (used when no default ref is provided)"""
-        self._head = Branch(self, new_head)
+        self._head = Branch(self, branch_name)
 
     @abstractmethod
-    def branches(self):
+    def branches(self) -> list[Branch]:
         """
         Returns the list of available local branch names from this repo.
 
@@ -230,15 +216,33 @@ class GitByGeneric(ABC):
         """
 
     @abstractmethod
-    def is_open(self):
+    def new_branch(self, name: str, cid: Reference | None = None) -> Branch:
+        """
+        Create a new branch.
+        """
+
+    @abstractmethod
+    def get_branch_from_str(self, name: str) -> Branch | None:
+        """
+        Return the branch with name 'name'.
+        """
+
+    @abstractmethod
+    def set_branch(self, branch: Branch, commit: Reference) -> None:
+        """
+        Set branch.
+        """
+
+    @abstractmethod
+    def is_open(self) -> bool:
         """Is the directory currently open ?"""
 
     @abstractmethod
-    def close(self):
+    def close(self) -> None:
         """Unlock the repository."""
 
     @abstractmethod
-    def get_tree(self, tree, prefix):
+    def get_tree(self, tree: Reference | None = None, prefix: str = "") -> Blob | Tree | None:
         """Retrieve data associated with a given prefix. A tree can used
         to set which ref should be used.
 
@@ -247,7 +251,7 @@ class GitByGeneric(ABC):
         """
 
     @abstractmethod
-    def insert_tree(self, prefix, data):
+    def insert_tree(self, prefix: str, data: Any, root: Tree | None = None) -> Tree:
         """Create a new tree mapping a prefix filled with 'data'.
 
         :param[in] prefix: the prefix under Git tree.
@@ -255,19 +259,24 @@ class GitByGeneric(ABC):
         """
 
     @abstractmethod
-    def diff_tree(self, prefix, src_rev, dst_rev):
+    def diff_tree(self, prefix: str, src_rev: Reference, dst_rev: Reference):
         """
         Compare & return the list of patches
         """
 
     @abstractmethod
-    def list_commits(self, rev, since, until):
+    def list_commits(
+        self,
+        rev: Reference | None = None,
+        since: datetime | None = None,
+        until: datetime | None = None,
+    ) -> list[Commit]:
         """List past commits finishing with 'rev'.
 
         The list can be shrunk with a start & end
 
         :param rev: the revision to extract commit from
-        :type rev: any
+        :type rev: Any
         :param since: the oldest commit should be newer than this date
         :type since: date
         :param until: the newest commit should be older than this date
@@ -275,23 +284,30 @@ class GitByGeneric(ABC):
         """
 
     @abstractmethod
-    def commit(self, tree, msg="No data", timestamp=None, parent=None, orphan=False):
+    def do_commit(
+        self,
+        tree: Tree,
+        msg: str = "No data",
+        timestamp: int | None = None,
+        parent: Reference | None = None,
+        orphan: bool = False,
+    ) -> Commit:
         """Create a commit from changes.
 
         :param tree: the changes tree to store as a commit
-        :type tree: any
+        :type tree: Any
         :param msg: the commit msg
         :type msg: str
         :timestamp: a commit date (current if not provided)
         :type: int
         :param parent: the parent commit
-        :type parent: any
+        :type parent: Any
         :param orphan: flag to create a dangling commit (=no-parent)
         :type orphan: boolean
         """
 
     @abstractmethod
-    def revparse(self, rev):
+    def revparse(self, rev: Reference) -> Commit:
         """
         Convert a revision (tag, branch, commit) to a regular reference.
 
@@ -300,7 +316,7 @@ class GitByGeneric(ABC):
         """
 
     @abstractmethod
-    def iterate_over(self, ref):
+    def iterate_over(self, ref: Reference) -> Iterable[Commit]:
         """starting from the ref, iterate references backwards (from newest to
         oldest).
 
@@ -309,7 +325,7 @@ class GitByGeneric(ABC):
         """
 
     @abstractmethod
-    def list_files(self, rev):
+    def list_files(self, rev: Reference | None = None, prefix: str = "") -> list[str]:
         """For a given revision, list files (not only changed ones).
 
         :param rev: the revision
@@ -321,7 +337,7 @@ class GitByGeneric(ABC):
         """Run the garbage collector"""
 
     @abstractmethod
-    def get_parents(self, ref):
+    def get_parents(self, ref: Reference) -> list[Commit]:
         """Retrieve parents for a given ref.
 
         This method is not a part of a Reference object as the approach changes
@@ -352,7 +368,7 @@ class GitByAPI(GitByGeneric):
         super().__init__(prefix)
         self._repo = None
 
-    def open(self, bare=True):
+    def open(self, bare: bool = True) -> None:
         assert not os.path.isfile(self._path)
         if not os.path.isdir(self._path) or len(os.listdir(self._path)) == 0:
             if not self._is_locked():
@@ -371,16 +387,16 @@ class GitByAPI(GitByGeneric):
                 self._repo = pygit2.Repository(rep)
                 self._lock()
 
-    def get_branch_from_str(self, name):
+    def get_branch_from_str(self, name: str) -> Branch | None:
         for b in self.branches():
             if name == b.name:
                 return b
         return None
 
-    def is_open(self):
-        return self._repo is not None
+    def is_open(self) -> bool:
+        return self._is_locked()
 
-    def close(self):
+    def close(self) -> None:
         self._unlock()
 
     def __obj_to_commit(self, obj):
@@ -398,11 +414,11 @@ class GitByAPI(GitByGeneric):
             },
         )
 
-    def branches(self):
+    def branches(self) -> list[Branch]:
         assert self._repo
         return [Branch(self, e) for e in self._repo.branches.local]
 
-    def new_branch(self, name, cid=None):
+    def new_branch(self, name: str, cid: Reference | None = None) -> Branch:
         assert name is not None
         if not cid:
             cid = self.revparse(Branch(self, name="master")).cid
@@ -411,7 +427,7 @@ class GitByAPI(GitByGeneric):
         self._repo.branches.local.create(name, cid)
         return Branch(self, name=name)
 
-    def set_branch(self, branch, commit):
+    def set_branch(self, branch: Branch, commit: Reference) -> None:
         assert isinstance(commit, Reference)
         assert isinstance(branch, Branch)
 
@@ -421,7 +437,7 @@ class GitByAPI(GitByGeneric):
             self._repo.references.delete(branch.name)
         self._repo.references.create("refs/heads/{}".format(branch.name), pygit_obj)
 
-    def revparse(self, rev):
+    def revparse(self, rev: Reference) -> Commit:
         assert self._repo
         assert isinstance(rev, Reference)
 
@@ -431,7 +447,7 @@ class GitByAPI(GitByGeneric):
         o = self._repo.revparse_single(rev.name)
         return self.__obj_to_commit(o)
 
-    def get_tree(self, tree=None, prefix=""):
+    def get_tree(self, tree: Reference | None = None, prefix: str = "") -> Blob | Tree | None:
         assert not tree or isinstance(tree, Reference)
         rev = self._set_or_head(tree)
 
@@ -464,8 +480,8 @@ class GitByAPI(GitByGeneric):
             return None  # file you are looking for does not exist in this git
         return self._get_tree(chain[1:], subtree)
 
-    def iterate_over(self, ref=None):
-        assert not ref or isinstance(ref, Reference)
+    def iterate_over(self, ref: Reference) -> Iterable[Commit]:
+        assert isinstance(ref, Reference)
         rev = self._set_or_head(ref)
         rev = self.revparse(rev)
         assert isinstance(rev, Commit)
@@ -474,7 +490,7 @@ class GitByAPI(GitByGeneric):
         for o in self._repo.walk(pygit_obj.oid, pygit2.GIT_SORT_REVERSE):
             yield self.__obj_to_commit(o)
 
-    def list_files(self, rev=None, prefix=""):
+    def list_files(self, rev: Reference | None = None, prefix: str = "") -> list[str]:
         assert not rev or isinstance(rev, Reference)
         rev = self._set_or_head(rev)
         rev = self.revparse(rev)
@@ -496,7 +512,12 @@ class GitByAPI(GitByGeneric):
             dst_rev = self.revparse(dst_rev)
             assert isinstance(dst_rev, pygit2.Object)
 
-    def list_commits(self, rev=None, since=None, until=None):
+    def list_commits(
+        self,
+        rev: Reference | None = None,
+        since: datetime | None = None,
+        until: datetime | None = None,
+    ) -> list[Commit]:
         res = []
         assert not rev or isinstance(rev, Reference)
 
@@ -512,7 +533,14 @@ class GitByAPI(GitByGeneric):
                 res.append(self.__obj_to_commit(pygit_obj))
         return res
 
-    def commit(self, tree, msg="No data", timestamp=None, parent=None, orphan=False):
+    def do_commit(
+        self,
+        tree: Tree,
+        msg: str = "No data",
+        timestamp: int | None = None,
+        parent: Reference | None = None,
+        orphan: bool = False,
+    ) -> Commit:
         assert self._repo
         assert isinstance(tree, Tree)
         assert not parent or isinstance(parent, Reference)
@@ -544,7 +572,7 @@ class GitByAPI(GitByGeneric):
         ci = self._repo.get(coid)
         return self.__obj_to_commit(ci)
 
-    def insert_tree(self, prefix, data, root=None):
+    def insert_tree(self, prefix: str, data: Any, root: Tree | None = None) -> Tree:
         if not root:
             root = Tree.as_root(self._repo, self._repo.TreeBuilder())
 
@@ -554,7 +582,7 @@ class GitByAPI(GitByGeneric):
 
         return root
 
-    def __insert_path(self, treebuild, path, data: any):
+    def __insert_path(self, treebuild, path: list[str], data: Any):
         """Associate an object to a given tag (=path).
 
         The result is stored into the parent subtree (treebuild). The path is an
@@ -571,7 +599,7 @@ class GitByAPI(GitByGeneric):
         :param path: the subpath where to store the object
         :type path: list of str
         :param obj: the actual data to store
-        :type obj: any
+        :type obj: Any
         :return: the actual parent id
         :rtype: :class:`Pygit2.Oid`
         """
@@ -633,16 +661,16 @@ class GitByCLI(GitByGeneric):
         super().__init__(prefix)
         self._git = None
 
-    def branches(self):
+    def branches(self) -> list[Branch]:
         array = self._git("for-each-ref", "refs/heads/").strip().split("\n")
         return [Branch(self, elt.split("\t")[-1].replace("refs/heads/", "")) for elt in array]
 
-    def iterate_over(self, ref):
+    def iterate_over(self, ref: Reference) -> Iterable[Commit]:
         assert isinstance(ref, Reference)
         for elt in self._git("rev-list", "--reverse", ref).strip().split("\n"):
             yield Commit(repo=self, obj=elt)
 
-    def open(self, bare=True):
+    def open(self, bare: bool = True) -> None:
         if not os.path.isdir(self._path):
             os.makedirs(self._path)
 
@@ -652,14 +680,14 @@ class GitByCLI(GitByGeneric):
         if not os.path.isfile(os.path.join(self._path, "HEAD")):
             self._git.init("--bare")
 
-    def is_open(self):
+    def is_open(self) -> bool:
         return self._is_locked()
 
-    def close(self):
+    def close(self) -> None:
         self._git = None
         self._unlock()
 
-    def revparse(self, rev):
+    def revparse(self, rev: Reference) -> Commit:
         assert isinstance(rev, Reference)
         if isinstance(rev, Commit):
             return rev
@@ -699,7 +727,7 @@ class GitByCLI(GitByGeneric):
         oid = self._git.mktree(_in="\n".join(array)).strip()
         return (oid, "040000 tree {}\t{}".format(oid, name))
 
-    def insert_tree(self, prefix, data, root=None):
+    def insert_tree(self, prefix: str, data: Any, root: Tree | None = None) -> Tree:
         if not root:
             root = Tree.as_root(self, None)
 
@@ -708,7 +736,7 @@ class GitByCLI(GitByGeneric):
 
         # return root
 
-    def get_tree(self, tree=None, prefix=""):
+    def get_tree(self, tree: Reference | None = None, prefix: str = "") -> Blob | Tree | None:
         oid = None
         assert not tree or isinstance(tree, Reference)
         rev = self._set_or_head(tree)
@@ -738,7 +766,14 @@ class GitByCLI(GitByGeneric):
             },
         )
 
-    def commit(self, tree, msg="VOID", timestamp=None, parent=None, orphan=False):
+    def do_commit(
+        self,
+        tree: Tree,
+        msg: str = "No data",
+        timestamp: int | None = None,
+        parent: Reference | None = None,
+        orphan: bool = False,
+    ) -> Commit:
         assert not parent or isinstance(parent, Reference)
         assert isinstance(tree, Tree)
         # if this commit should have parents
@@ -761,28 +796,33 @@ class GitByCLI(GitByGeneric):
 
         return self.__obj_to_commit(commit_id)
 
-    def get_branch_from_str(self, name):
+    def get_branch_from_str(self, name: str) -> Branch | None:
         for b in self.branches():
             if name == b.name:
                 return b
         return None
 
-    def new_branch(self, name, cid=None):
+    def new_branch(self, name: str, cid: Reference | None = None) -> Branch:
         if not cid:
             cid = self.revparse(Branch(self, name="master")).cid
 
         self._git.push(".", "{}:refs/heads/{}".format(cid, name))
         return Branch(self, name=name)
 
-    def set_branch(self, branch, commit):
+    def set_branch(self, branch: Branch, commit: Reference) -> None:
         self._git.push("-f", ".", "{}:refs/heads/{}".format(commit.cid, branch.name))
 
-    def list_files(self, rev):
+    def list_files(self, rev: Reference | None = None, prefix: str = "") -> list[str]:
         if not rev:
             rev = ""
         return [self._git("ls-files", rev).strip().split("\n")]
 
-    def list_commits(self, rev=None, since="", until=""):
+    def list_commits(
+        self,
+        rev: Reference | None = None,
+        since: datetime | None = None,
+        until: datetime | None = None,
+    ) -> list[Commit]:
         rev = self._set_or_head(rev)
         if since:
             since = "--since={}".format(since)
@@ -815,6 +855,22 @@ class GitByCLI(GitByGeneric):
         for elt in self._git("cat-file", "-p", ref).strip().split("\n"):
             parents.append(self.__obj_to_commit(elt))
         return parents
+
+
+def elect_handler(prefix: str | None = None) -> GitByGeneric:
+    """Select the proper repository handler based on python support
+
+    Python 3.10+-based PCVS installations come with pygit2, thanks to provided
+    wheels. Older versions are relying on regular Git commands (as wheels are
+    not provided for Python3.6 and older & building pygit2 requires specific
+    libgit2 version to be installed, hardening the installation process)
+    """
+    if has_pygit2:
+        git_handle = GitByAPI(prefix)
+    else:
+        git_handle = GitByCLI(prefix)
+
+    return git_handle
 
 
 def request_git_attr(k) -> str:
@@ -874,7 +930,7 @@ def get_current_username() -> str:
     return u
 
 
-def get_current_usermail():
+def get_current_usermail() -> str:
     """Get the git user mail.
 
     :return: git user mail

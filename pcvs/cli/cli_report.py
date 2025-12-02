@@ -5,13 +5,14 @@ from pcvs import NAME_BUILDIR
 from pcvs.backend import report as pvReport
 from pcvs.helpers import utils
 from pcvs.ui.textual import textual_avail
+from pcvs.webview import start_server
 
 try:
     import rich_click as click
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
 
 
 @click.command(
@@ -25,13 +26,13 @@ except ImportError:
     type=click.Path(exists=True),
 )
 @click.pass_context
-def report(ctx, path_list):
+def report(ctx: click.Context, path_list: list[str]) -> int:
     """Start a webserver to browse result during or after execution.
 
     Listens by default to http://localhost:5000/"""
     if not path_list:
         path_list = [os.getcwd()]
-    inputs = list()
+    inputs = []
     for prefix in path_list:
         # if a dir is given BU does not point to a valid build dir,
         # attempt to resolve it.
@@ -62,4 +63,4 @@ def report(ctx, path_list):
             io.console.debug("Caught {}".format(e))
             raise e
     # create the app
-    pvReport.start_server(r)
+    return start_server(r)

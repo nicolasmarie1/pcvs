@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 from ruamel.yaml import YAML
 from ruamel.yaml import YAMLError
@@ -167,7 +168,7 @@ class MetaConfig(Config):
 
         self.bootstrap_validation(conf)
 
-    def bootstrap_validation(self, conf: Config) -> None:
+    def bootstrap_validation(self, conf: Config) -> Config:
         """
         Specific initialize for validation config.
 
@@ -213,7 +214,7 @@ class MetaConfig(Config):
 
         return conf
 
-    def set_internal(self, k, v):
+    def set_internal(self, k: str, v: Any) -> None:
         """
         Manipulate the internal MetaConfig() node to store unexportable data.
 
@@ -224,7 +225,7 @@ class MetaConfig(Config):
         """
         self.__internal_config[k] = v
 
-    def get_internal(self, k):
+    def get_internal(self, k: str) -> Any:
         """
         Manipulate the internal MetaConfig() node to load unexportable data.
 

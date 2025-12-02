@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import Any
 
 import jsonschema
 from ruamel.yaml import YAML
@@ -19,10 +19,10 @@ class ValidationScheme:
     streams belonging to the same model.
     """
 
-    avail_list = []
+    avail_list: list[str] = []
 
     @classmethod
-    def available_schemes(cls) -> List:
+    def available_schemes(cls) -> list:
         """
         Return list of currently supported formats to be validated.
 
@@ -46,18 +46,16 @@ class ValidationScheme:
         the YAML scheme file.
         """
         self.schema_name = schema_name
-        self.schema = None  # the content of the schema
+        self.schema: Any = None  # the content of the schema
 
         try:
             path = os.path.join(PATH_INSTDIR, f"schemes/generated/{self.schema_name}-scheme.yml")
             with open(path, "r", encoding="utf-8") as fh:
                 self.schema = YAML(typ="safe").load(fh)
         except (IOError, YAMLError) as er:
-            raise ValidationException.SchemeError(
-                f"Unable to load scheme {self.schema_name}"
-            ) from er
+            raise ValidationException.InvalidSchemeError(schema=self.schema_name) from er
 
-    def validate(self, content: dict, filepath: str):
+    def validate(self, content: dict, filepath: str) -> None:
         """
         Validate a given datastructure (dict) agasint the loaded scheme.
 
