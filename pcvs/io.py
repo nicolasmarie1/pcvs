@@ -111,18 +111,6 @@ class PCVSConsole:
     Any output from the application should be handled by this Console.
     """
 
-    # Should match ALL_STATES in pcvs.testing.test.Test
-    # Can't import that here as it would create circular dependency
-    # TODO: import TestState and replate bellow list
-    ALL_STATES = [
-        "SUCCESS",
-        "FAILURE",
-        "ERR_DEP",
-        "HARD_TIMEOUT",
-        "SOFT_TIMEOUT",
-        "ERR_OTHER",
-    ]
-
     def __init__(self, color: bool = True, verbose: int = 0):
         """
         Build a new Console:
@@ -367,8 +355,8 @@ class PCVSConsole:
         """Transform the job data table into a job view table."""
         table = Table(expand=True, box=box.SIMPLE)
         table.add_column("Name", justify="left", ratio=10)
-        for state in PCVSConsole.ALL_STATES:
-            table.add_column(state, justify="right")
+        for state in TestState.all_states():
+            table.add_column(str(state), justify="right")
         for label, lvalue in self.job_summary_data_table.items():
             for subtree, svalue in lvalue.items():
                 if sum(svalue.values()) == svalue.get("SUCCESS", 0):
@@ -390,7 +378,7 @@ class PCVSConsole:
         self.job_summary_data_table.setdefault(test_label, {})
         self.job_summary_data_table[test_label].setdefault(
             test_subtree,
-            {label: 0 for label in PCVSConsole.ALL_STATES},
+            {str(label): 0 for label in TestState.all_states()},
         )
         self.job_summary_data_table[test_label][test_subtree][str(state)] += 1
 
