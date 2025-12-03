@@ -136,4 +136,6 @@ def test_value_expansion(op):
 
 
 def test_series_init(crit_desc):  # pylint: disable=unused-argument,redefined-outer-name
+    for crit in crit_desc.values():
+        crit.expand_values()
     tested.Series(crit_desc)

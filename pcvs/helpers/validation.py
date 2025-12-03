@@ -26,12 +26,12 @@ class ValidationScheme:
         """
         Return list of currently supported formats to be validated.
 
-        The list is extracted from INSTALL/schemes/<model>-scheme.yml
+        The list is extracted from INSTALL/schemes/generated/<model>-scheme.yml
         :return: List of available schemes.
         """
         if not cls.avail_list:
             cls.avail_list = []
-            for f in os.listdir(os.path.join(PATH_INSTDIR, "schemes/")):
+            for f in os.listdir(os.path.join(PATH_INSTDIR, "schemes/generated/")):
                 cls.avail_list.append(f.replace("-scheme.yml", ""))
 
         return cls.avail_list

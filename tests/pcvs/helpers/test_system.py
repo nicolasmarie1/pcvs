@@ -103,7 +103,8 @@ def test_bootstrap_runtime():
 @pytest.fixture
 def kw_keys():
     return [
-        f.replace("-scheme.yml", "") for f in os.listdir(os.path.join(PATH_INSTDIR, "schemes/"))
+        f.replace("-scheme.yml", "")
+        for f in os.listdir(os.path.join(PATH_INSTDIR, "schemes/generated/"))
     ]
 
 

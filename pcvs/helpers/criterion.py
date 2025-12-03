@@ -176,8 +176,8 @@ class Criterion:
         :param numeric: True if the criterion is numeric, default to False
         :type: numeric: bool"""
         self._name = name
-        self._input_values: set[int | float | str] | list[int | float | str] | dict[str, Any] | None
-        self._values: set[int | float | str]
+        self._input_values: list[int | float | str | dict[str, Any]] | None
+        self._values: set[int | float | str] | None
 
         self._numeric: bool = description.get("numeric", numeric)
         self._prefix: str = description.get("option", "")
@@ -187,16 +187,17 @@ class Criterion:
         # this should be only set by per-TE criterion definition
         self._local: bool = description.get("local", local)
         self._subtitle: str = description.get("subtitle", name)
-        self._input_values = description.get("values", set())
-        if isinstance(self._input_values, set):
-            self._values = self._input_values
-        else:
-            self._values = set()
-        self._expanded: bool = False
         # Sanity check
-        self.sanitize_values()
+        self._input_values = self.__sanitize_values(description.get("values", []))
+        self._values = None
+        self._expanded: bool = False
 
-    def sanitize_values(self) -> None:
+    def __sanitize_values(
+        self,
+        input_values: (
+            list[int | float | str | dict[str, Any]] | dict[str, Any] | int | float | str | None
+        ),
+    ) -> list[int | float | str | dict[str, Any]] | None:
         """
         Check for any inconsistent values in the current Criterion.
 
@@ -204,17 +205,30 @@ class Criterion:
         Will raise an exception in case of inconsistency (Maybe this should be
         managed in another way through the error handling)
         """
-        if self.is_discarded():
-            return
-        if isinstance(self._input_values, (list, set)):
-            for v in self._input_values:
-                if not isinstance(v, (int, float, str)):
+        if input_values is None:
+            return None
+        if isinstance(input_values, (int, float, str, dict)):
+            input_values = [input_values]
+        if isinstance(input_values, list):
+            for v in input_values:
+                if not isinstance(v, (int, float, str, dict)):
                     raise CommonException.UnclassifiableError(
-                        reason="list elements should be scalar OR dict", dbg_info={"element": v}
+                        reason="Criterion: list elements should be an int, float, str or dict.",
+                        dbg_info={"element": v},
                     )
-        elif isinstance(self._input_values, dict):
-            for key in self._input_values.keys():
-                assert key in ["op", "of", "from", "to"]
+                if isinstance(v, dict):
+                    for key in v.keys():
+                        if key not in ["op", "of", "from", "to"]:
+                            raise CommonException.UnclassifiableError(
+                                reason="Criterion: invlide sequence operation.",
+                                dbg_info={"element": str(v)},
+                            )
+        else:
+            raise CommonException.UnclassifiableError(
+                reason="Criterion: should be, a int, float or string, a list (of int, float or str) or a dict.",
+                dbg_info={"element": input_values},
+            )
+        return input_values
 
     # only allow overriding values (for now)
 
@@ -223,13 +237,12 @@ class Criterion:
         Replace the value of the criterion using a descriptor containing the
         said value
 
-        :param desc: descriptor supposedly containing a ``value`` entry
-        :type desc: dict
+        :param desc: descriptor supposedly containing a ``values`` entry
         """
-        if "values" in desc:
-            self._input_values = desc["values"]
-            self._expanded = False
-            self.sanitize_values()
+        assert "values" in desc
+        self._input_values = self.__sanitize_values(desc["values"])
+        self._values = None
+        self._expanded = False
 
     def intersect(self, other: Self) -> None:
         """Update the calling Criterion with the intersection of the current
@@ -239,19 +252,22 @@ class Criterion:
         system-wide's"""
         assert isinstance(other, Criterion)
         assert self._name == other.name
+        assert self._expanded
+        assert other.expanded
 
         # None is special value meaning, discard this criterion because
         # irrelevant
         if self._values is None or other.values is None:
             self._values = None
         else:
-            self._values = set(self._values).intersection(other.values)
+            self._values = self._values.intersection(other.values)
 
     def is_empty(self) -> bool:
         """Is the current set of values empty
         May lead to errors, as it may indicates no common values has been
         found between user and system specifications"""
-        return self._values is not None and len(self._values) == 0
+        assert self._expanded
+        return self._values is None or len(self._values) == 0
 
     def is_discarded(self) -> bool:
         """Should this criterion be ignored from the current TE generaiton ?"""
@@ -272,6 +288,7 @@ class Criterion:
         :return: values of this criterion
         :rtype: list
         """
+        assert self._expanded
         assert isinstance(self._values, set)
         return self._values
 
@@ -281,6 +298,7 @@ class Criterion:
         :return: the value list count
         :rtype: int
         """
+        assert self._expanded
         assert self._values is not None
         return len(self._values)
 
@@ -345,13 +363,12 @@ class Criterion:
     @staticmethod
     def __convert_sequence_to_list(
         node: dict[str, str], s: int = -1, e: int = -1
-    ) -> list[int | float | str]:
+    ) -> list[int | float]:
         """converts a sequence (as a string) to a valid list of values
 
         :param dic: dictionary to take the values from
         :type dic: dict
-        :param s: start (can be overridden by ``from`` in ``dic``), defaults to
-            -1
+        :param s: start (can be overridden by ``from`` in ``dic``), defaults to -1
         :type s: int, optional
         :param e: end (can be overridden by ``to`` in ``dic``), defaults to -1
         :type e: int, optional
@@ -359,7 +376,7 @@ class Criterion:
         :rtype: list
         """
 
-        values: list[int | float | str] = []
+        values: list[int | float] = []
 
         # these must be integers
         def _convert_sequence_item_to_int(val: str | int) -> int | float:
@@ -420,13 +437,13 @@ class Criterion:
 
     @property
     def min_value(self) -> int | float | str:
-        assert self.expanded
+        assert self._expanded
         assert self._values is not None
         return min(self._values)
 
     @property
     def max_value(self) -> int | float | str:
-        assert self.expanded
+        assert self._expanded
         assert self._values is not None
         return max(self._values)
 
@@ -438,40 +455,45 @@ class Criterion:
 
         if self.expanded:
             return
-        if reference:
+        if self._input_values is None:
+            self._values = None
+            self._expanded = True
+            return
+        if reference is not None:
             assert isinstance(reference, Criterion)
             if not reference.expanded:
                 reference.expand_values()
 
-            ref_min = reference.min_value
-            ref_max = reference.max_value
+            if not reference.is_discarded():
+                ref_min = reference.min_value
+                ref_max = reference.max_value
 
-            assert isinstance(ref_min, int)
-            assert isinstance(ref_max, int)
+                assert isinstance(ref_min, int)
+                assert isinstance(ref_max, int)
 
-            start = ref_min
-            end = ref_max
+                start = ref_min
+                end = ref_max
 
         io.console.crit_debug("Expanding {self.name}: {self._input_values}")
+        values: set[int | float | str] = set()
         if self._numeric is True:
-            values: list[int | float | str] = []
-            if isinstance(self._input_values, dict):
-                values = self.__convert_sequence_to_list(self._input_values, s=start, e=end)
-            elif isinstance(self._input_values, (list, set)):
-                for v in self._input_values:
-                    values.append(v)
-            else:
-                raise TypeError(
-                    "Only accept int or sequence (as string) as values for numeric iterators"
-                )
-            self._values = set(values)
+            for v in self._input_values:
+                if isinstance(v, (int, float)):
+                    values.add(v)
+                elif isinstance(v, dict):
+                    for v in self.__convert_sequence_to_list(v, s=start, e=end):
+                        assert isinstance(v, (int, float))
+                        values.add(v)
+                else:
+                    raise TypeError(
+                        "Only accept int, float or sequence (as string) as values for numeric iterators"
+                    )
         else:
-            if isinstance(self._input_values, set):
-                self._values = self._input_values
-            if isinstance(self._input_values, list):
-                self._values = set(self._input_values)
+            for v in self._input_values:
+                assert isinstance(v, (int, float, str))
+                values.add(v)
 
-        # now ensure values are unique
+        self._values = values
         self._expanded = True
         io.console.crit_debug(f"EXPANDED {self.name}: {self._values}")
         # TODO: handle criterion dependency (ex: n_mpi: ['n_node * 2'])
