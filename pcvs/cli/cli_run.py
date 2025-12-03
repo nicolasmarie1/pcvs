@@ -91,6 +91,17 @@ def compl_list_dirs(
     return obj.shell_complete(ctx, param, incomplete)
 
 
+def compl_list_profiles(
+    ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
+) -> list[str]:
+    """All profiles name completion function."""
+    return [
+        elt.full_name
+        for elt in ConfigLocator().list_configs(kind=ConfigKind.PROFILE)
+        if incomplete in elt.full_name
+    ]
+
+
 def handle_build_lockfile(exc: Exception | None = None) -> None:
     """Remove the file lock in build dir if the application stops abruptly.
 
@@ -137,8 +148,7 @@ def parse_tags(filters: str) -> dict[str, bool]:
     "--profile",
     "profilename",
     default=None,
-    # TODO add shell completion
-    # shell_complete=cli_profile.compl_list_token,
+    shell_complete=compl_list_profiles,
     type=str,
     show_envvar=True,
     help="Existing and valid profile supporting this run",
