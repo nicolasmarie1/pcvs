@@ -19,8 +19,8 @@ import os
 from matplotlib import pyplot as plt
 
 from pcvs import io
+from pcvs.analysis import SimpleAnalysis
 from pcvs.dsl import Series
-from pcvs.dsl.analysis import SimpleAnalysis
 from pcvs.testing.teststate import TestState
 
 

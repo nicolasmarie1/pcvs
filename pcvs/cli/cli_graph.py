@@ -1,11 +1,11 @@
 import os
 import sys
 
-from pcvs import graph
+from pcvs import analysis
 from pcvs import io
+from pcvs.analysis import graph
 from pcvs.backend import bank as pvBank
 from pcvs.cli import cli_bank
-from pcvs.dsl import analysis
 
 try:
     import rich_click as click
