@@ -228,16 +228,15 @@ class ConfigLocator:
         user_token: str,
     ) -> tuple[ConfigScope | None, ConfigKind | None]:
         """Parse scope[:kind] token, raise on failure."""
-        desc, error = self.parse_scope_and_kind(user_token)
-        if desc is None:
-            assert error is not None
-            io.console.error(error)
-            raise click.BadArgumentUsage(error)
-        return desc
+        res = self.parse_scope_and_kind(user_token)
+        if isinstance(res, str):
+            io.console.error(res)
+            raise click.BadArgumentUsage(res)
+        return res
 
     def parse_scope_and_kind(
         self, user_token: str, default_kind: ConfigKind | None = None
-    ) -> tuple[tuple[ConfigScope | None, ConfigKind | None] | None, str | None]:
+    ) -> tuple[ConfigScope | None, ConfigKind | None] | str:
         """Parse scope[:kind] token, return None on failure."""
         token = user_token.split(":")
         if len(token) == 1:
@@ -246,36 +245,24 @@ class ConfigLocator:
                 scope, kind = None, ConfigKind.fromstr(token[0])
                 if kind is None:
                     return (
-                        None,
                         f"Invalid scope or kind, got '{user_token}', "
                         f"valid scope are: {ConfigScope.all_scopes()} "
-                        f"and valid kind are: '{ConfigKind.all_kinds()}'",
+                        f"and valid kind are: '{ConfigKind.all_kinds()}'"
                     )
                 if default_kind is not None and kind != default_kind:
-                    return (
-                        None,
-                        f"Invalude kind, '{kind}' specify, needs '{default_kind}', in '{user_token}'",
-                    )
-            return ((scope, kind), None)
+                    return f"Invalude kind, '{kind}' specify, needs '{default_kind}', in '{user_token}'"
+
+            return (scope, kind)
         if len(token) == 2:
             scope, kind = ConfigScope.fromstr(token[0]), ConfigKind.fromstr(token[1])
             if scope is None:
-                return (
-                    None,
-                    f"Invalid config scope, got '{token[0]}', valid scopes are: {ConfigScope.all_scopes()}",
-                )
+                return f"Invalid config scope, got '{token[0]}', valid scopes are: {ConfigScope.all_scopes()}"
             if kind is None:
-                return (
-                    None,
-                    f"Invalid config kind, got '{token[1]}', valid kinds are: {ConfigKind.all_kinds()}",
-                )
+                return f"Invalid config kind, got '{token[1]}', valid kinds are: {ConfigKind.all_kinds()}"
             if default_kind is not None and kind != default_kind:
-                return (
-                    None,
-                    f"Invalude kind, '{kind}' specify, needs '{default_kind}', in '{user_token}'",
-                )
-            return ((scope, kind), None)
-        return (None, f"Bad user token, token should be 'scope[:kind]', got '{user_token}'")
+                return f"Invalude kind, '{kind}' specify, needs '{default_kind}', in '{user_token}'"
+            return (scope, kind)
+        return f"Bad user token, token should be 'scope[:kind]', got '{user_token}'"
 
     def parse_full_raise(
         self,
@@ -284,16 +271,15 @@ class ConfigLocator:
         should_exist: bool | None = None,
     ) -> ConfigDesc:
         """Parse use token and return and associated config file."""
-        desc, error = self.parse_full(user_token, kind, should_exist)
-        if desc is None:
-            assert error is not None
-            io.console.error(error)
-            raise click.BadArgumentUsage(error)
-        return desc
+        res = self.parse_full(user_token, kind, should_exist)
+        if isinstance(res, str):
+            io.console.error(res)
+            raise click.BadArgumentUsage(res)
+        return res
 
     def parse_full(
         self, user_token: str, kind: ConfigKind | None, should_exist: bool | None
-    ) -> tuple[ConfigDesc | None, str | None]:  # Config description and error
+    ) -> ConfigDesc | str:  # Config description and error
         """Parse [scope:[kind:]]label token."""
         # check for config scope & config kind
         scope = None
@@ -302,31 +288,29 @@ class ConfigLocator:
             # config does not exist yet, but scope is not provided
             if should_exist is None or not should_exist:
                 return (
-                    None,
                     "For a configuration that may not exist, specifying a scope is mendatory, "
-                    f"error parsing: '{user_token}'",
+                    f"error parsing: '{user_token}'"
                 )
             # kind not provided, neither by token nor by function
             if kind is None:
-                return (None, f"Configuration kind not specify in user token: '{user_token}'.")
+                return f"Configuration kind not specify in user token: '{user_token}'."
             file_name = Path(user_token)
         elif len(token) == 2 or len(token) == 3:
-            desc, error = self.parse_scope_and_kind(":".join(token[:-1]), kind)
-            if desc is None:
-                return (None, error)
-            scope, kind = desc
+            res = self.parse_scope_and_kind(":".join(token[:-1]), kind)
+            if isinstance(res, str):
+                return res
+            scope, kind = res
             if scope is None:
                 if should_exist is None or not should_exist:
                     return (
-                        None,
                         "For a configuration that may not exist, specifying a scope is mendatory, "
-                        f"error parsing: '{user_token}'",
+                        f"error parsing: '{user_token}'"
                     )
             if kind is None:
-                return (None, f"Fail to parse kind from token '{user_token}'")
+                return f"Fail to parse kind from token '{user_token}'"
             file_name = Path(token[-1])
         else:
-            return (None, f"Fail to parse scope (and kind), too many ':' in path '{user_token}'")
+            return f"Fail to parse scope (and kind), too many ':' in path '{user_token}'"
 
         assert kind is not None
 
@@ -345,35 +329,35 @@ class ConfigLocator:
             assert scope is not None
             return self.__get_not_existing_config(file_name, kind, scope)
 
-        return (None, "Unreachable")
+        return "Unreachable"
 
     def __get_existing_config(
         self, file_name: Path, kind: ConfigKind, scope: ConfigScope | None
-    ) -> tuple[ConfigDesc | None, str | None]:
-        config: ConfigDesc | None = self.find_config(file_name, kind, scope)
-        if config is None:
-            return (None, f"Config '{kind}:{file_name}' does not exist !")
-        return (config, None)
+    ) -> ConfigDesc | str:
+        exist_config: ConfigDesc | None = self.find_config(file_name, kind, scope)
+        if exist_config is None:
+            return f"Config '{kind}:{file_name}' does not exist !"
+        return exist_config
 
     def __get_may_exist_config(
         self, file_name: Path, kind: ConfigKind, scope: ConfigScope
-    ) -> tuple[ConfigDesc | None, str | None]:
+    ) -> ConfigDesc | str:
         # search for config
         may_exist_config: ConfigDesc | None = self.find_config(file_name, kind, scope)
         if may_exist_config is not None:
-            return (may_exist_config, None)
+            return may_exist_config
         config_path: Path = self.get_storage_path(file_name, kind, scope)
         no_config: ConfigDesc = ConfigDesc(config_path.stem, config_path, kind, scope)
-        return (no_config, None)
+        return no_config
 
     def __get_not_existing_config(
         self, file_name: Path, kind: ConfigKind, scope: ConfigScope
-    ) -> tuple[ConfigDesc | None, str | None]:
+    ) -> ConfigDesc | str:
         config_path: Path = self.get_storage_path(file_name, kind, scope)
-        not_exist_config: ConfigDesc = ConfigDesc(config_path.stem, config_path, kind, scope)
-        if not_exist_config.exist:
-            return (None, f"Config, '{not_exist_config.full_name}' already exist !")
-        return (not_exist_config, None)
+        should_not_exist_config: ConfigDesc = ConfigDesc(config_path.stem, config_path, kind, scope)
+        if should_not_exist_config.exist:
+            return f"Config, '{should_not_exist_config.full_name}' already exist !"
+        return should_not_exist_config
 
     def get_storage_dir(self, scope: ConfigScope, kind: ConfigKind | None = None) -> Path:
         """Get config dir from config scope and config type."""

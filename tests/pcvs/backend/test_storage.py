@@ -49,7 +49,7 @@ def test_desc():
         assert test.exist
 
 
-def test_locator():
+def test_locator() -> None:
     """Test ConfigLocator class."""
     with dummy_fs_with_configlocator_patch() as (cl, scopes_to_paths):
         # extension
@@ -60,26 +60,23 @@ def test_locator():
 
         # scope and kind
         # # 1 token
-        assert cl.parse_scope_and_kind("local") == ((ConfigScope.LOCAL, None), None)
-        assert cl.parse_scope_and_kind("profile") == ((None, ConfigKind.PROFILE), None)
+        assert cl.parse_scope_and_kind("local") == (ConfigScope.LOCAL, None)
+        assert cl.parse_scope_and_kind("profile") == (None, ConfigKind.PROFILE)
         assert cl.parse_scope_and_kind("local", ConfigKind.PROFILE) == (
-            (ConfigScope.LOCAL, ConfigKind.PROFILE),
-            None,
+            ConfigScope.LOCAL,
+            ConfigKind.PROFILE,
         )
-        assert cl.parse_scope_and_kind("gibrish")[0] is None
-        assert cl.parse_scope_and_kind("profile", ConfigKind.PLUGIN)[0] is None
+        assert isinstance(cl.parse_scope_and_kind("gibrish"), str)
+        assert isinstance(cl.parse_scope_and_kind("profile", ConfigKind.PLUGIN), str)
         # # 2 tokens
-        assert cl.parse_scope_and_kind("local:profile") == (
-            (ConfigScope.LOCAL, ConfigKind.PROFILE),
-            None,
-        )
+        assert cl.parse_scope_and_kind("local:profile") == (ConfigScope.LOCAL, ConfigKind.PROFILE)
         assert cl.parse_scope_and_kind("local:profile", ConfigKind.PROFILE) == (
-            (ConfigScope.LOCAL, ConfigKind.PROFILE),
-            None,
+            ConfigScope.LOCAL,
+            ConfigKind.PROFILE,
         )
-        assert cl.parse_scope_and_kind("gibrish:profile")[0] is None
-        assert cl.parse_scope_and_kind("local:gibrish")[0] is None
-        assert cl.parse_scope_and_kind("local:profile", ConfigKind.PLUGIN)[0] is None
+        assert isinstance(cl.parse_scope_and_kind("gibrish:profile"), str)
+        assert isinstance(cl.parse_scope_and_kind("local:gibrish"), str)
+        assert isinstance(cl.parse_scope_and_kind("local:profile", ConfigKind.PLUGIN), str)
 
         # get_storage_dir
         assert cl.get_storage_dir(ConfigScope.LOCAL) == Path(scopes_to_paths[ConfigScope.LOCAL])
@@ -115,33 +112,33 @@ def test_locator():
         # parse_full
         # # 1 token
         # kind is passed as parameter and file exist so we can guess scope.
-        assert cl.parse_full("default", ConfigKind.PROFILE, True)[0] == default_lp
+        assert cl.parse_full("default", ConfigKind.PROFILE, True) == default_lp
         # kind is passed as parameter but file may not exist -> FAIL
-        assert cl.parse_full("default", ConfigKind.PROFILE, None)[0] is None
+        assert isinstance(cl.parse_full("default", ConfigKind.PROFILE, None), str)
         # kind is passed as parameter but file does not exist -> FAIL
-        assert cl.parse_full("default", ConfigKind.PROFILE, False)[0] is None
+        assert isinstance(cl.parse_full("default", ConfigKind.PROFILE, False), str)
         # kind is missing (not parameter nor token)
-        assert cl.parse_full("default", None, True)[0] is None
+        assert isinstance(cl.parse_full("default", None, True), str)
         # # 2 token
         # no scope provided on a conf that may/does not exist.
-        assert cl.parse_full("profile:default", None, None)[0] is None
-        assert cl.parse_full("profile:default", None, False)[0] is None
+        assert isinstance(cl.parse_full("profile:default", None, None), str)
+        assert isinstance(cl.parse_full("profile:default", None, False), str)
         # no kind specify
-        assert cl.parse_full("local:default", None, None)[0] is None
+        assert isinstance(cl.parse_full("local:default", None, None), str)
         # wrong number of args
-        assert cl.parse_full("test:local:profile:default", None, None)[0] is None
+        assert isinstance(cl.parse_full("test:local:profile:default", None, None), str)
         # does not exist but should
-        assert cl.parse_full("local:profile:test", None, True)[0] is None
+        assert isinstance(cl.parse_full("local:profile:test", None, True), str)
         # should exist and does
-        assert cl.parse_full("local:profile:default", None, True)[0] == default_lp
+        assert cl.parse_full("local:profile:default", None, True) == default_lp
         # may exist and does
-        assert cl.parse_full("local:profile:default", None, None)[0] == default_lp
+        assert cl.parse_full("local:profile:default", None, None) == default_lp
         # may exist and does not
-        assert cl.parse_full("local:profile:test", None, None)[0] == test_lp
+        assert cl.parse_full("local:profile:test", None, None) == test_lp
         # should not exist and does
-        assert cl.parse_full("local:profile:default", None, False)[0] is None
+        assert isinstance(cl.parse_full("local:profile:default", None, False), str)
         # should not exist and does no
-        assert cl.parse_full("local:profile:test", None, False)[0] == test_lp
+        assert cl.parse_full("local:profile:test", None, False) == test_lp
 
         # list_configs
         assert cl.list_configs(ConfigKind.PROFILE, ConfigScope.LOCAL) == [default_lp]
