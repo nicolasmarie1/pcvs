@@ -53,6 +53,22 @@ class TestState(IntEnum):
         return f"({self.name}, {self.value})"
 
     @classmethod
+    def from_str(cls, state: str) -> Self | None:
+        """Convert str to TestState."""
+        str_to_states = {
+            TestState.WAITING.name: TestState.WAITING,
+            TestState.IN_PROGRESS.name: TestState.IN_PROGRESS,
+            TestState.EXECUTED.name: TestState.EXECUTED,
+            TestState.SUCCESS.name: TestState.SUCCESS,
+            TestState.FAILURE.name: TestState.FAILURE,
+            TestState.SOFT_TIMEOUT.name: TestState.SOFT_TIMEOUT,
+            TestState.HARD_TIMEOUT.name: TestState.HARD_TIMEOUT,
+            TestState.ERR_DEP.name: TestState.ERR_DEP,
+            TestState.ERR_OTHER.name: TestState.ERR_OTHER,
+        }
+        return str_to_states.get(state.upper(), None)  # type: ignore
+
+    @classmethod
     def bad_states(cls) -> list[Self]:
         """State that represent a FAILED test."""
         bad_states = [

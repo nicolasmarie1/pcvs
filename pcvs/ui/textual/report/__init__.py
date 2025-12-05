@@ -5,16 +5,19 @@ from typing import Iterable
 
 from textual import on
 from textual.app import App
+from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Container
 from textual.containers import Grid
 from textual.containers import Horizontal
+from textual.containers import VerticalScroll
 from textual.message import Message
 from textual.reactive import reactive
 from textual.screen import ModalScreen
 from textual.screen import Screen
 from textual.widget import Widget
 from textual.widgets import Button
+from textual.widgets import Checkbox
 from textual.widgets import DataTable
 from textual.widgets import DirectoryTree
 from textual.widgets import Footer
@@ -26,8 +29,11 @@ from textual.widgets import RichLog
 from textual.widgets import Static
 from textual.widgets.option_list import Option
 
+from pcvs import io
 from pcvs import NAME_BUILDIR
 from pcvs.helpers.utils import check_is_build_or_archive
+from pcvs.testing.test import Test
+from pcvs.testing.teststate import TestState
 from pcvs.ui.textual.report.model import ReportModel
 
 
@@ -150,7 +156,7 @@ class SessionPickScreen(ModalScreen):
 class JobListViewer(Widget):
     name_colkey = None
     jobgroup = {}
-    table = reactive(DataTable())
+    table: reactive[DataTable] = reactive(DataTable())
     BINDINGS = [
         Binding("k", "cursor_up", "Cursor up", show=False),
         Binding("j", "cursor_down", "Cursor down", show=False),
@@ -166,17 +172,16 @@ class JobListViewer(Widget):
 
         yield Grid(self.table)
 
-    def update_table(self) -> None:
+    def update_table(self, states: list[TestState] | None = None) -> None:
         """TODO."""
         self.table.clear()
         for _, jobs in self.app.model.single_session_status(self.app.model.active_id).items():
             for jobid in jobs:
-                obj = self.app.model.single_session_map_id(self.app.model.active_id, jobid)
-
-                label, color, icon = obj.get_state_fancy()
-
-                self.table.add_row(obj.name, f"[{color}]{icon} {label}[/{color}]", obj.time)
-                self.jobgroup[obj.name] = obj
+                obj: Test = self.app.model.single_session_map_id(self.app.model.active_id, jobid)
+                if states is None or obj.state in states:
+                    label, color, icon = obj.get_state_fancy()
+                    self.table.add_row(obj.name, f"[{color}]{icon} {label}[/{color}]", obj.time)
+                    self.jobgroup[obj.name] = obj
         self.table.sort(self.name_colkey)
 
     def action_cursor_up(self) -> None:
@@ -270,6 +275,7 @@ class SessionInfoScreen(ModalScreen):
         #     "datetime": Static("Date of run:"),
         #     "pf_name": Static("Profile:"),
         # }
+
         config = self.app.model.active.config
         infolog = RichLog()
 
@@ -292,6 +298,37 @@ class SessionInfoScreen(ModalScreen):
         self.app.pop_screen()
 
 
+class FilterScreen(ModalScreen[list[TestState]]):
+
+    cbs: list[Checkbox] = []
+    include_states: list[TestState] = TestState.all_states()
+
+    def compose(self) -> ComposeResult:
+        """Radio selection for job filtering."""
+        with VerticalScroll(id="filter_screen"):
+            for t in TestState.all_states():
+                cb: Checkbox = Checkbox(str(t), value=True, id=str(t))
+                self.cbs.append(cb)
+                yield cb
+            yield Button("Done", id="done")
+
+    @on(Checkbox.Changed)
+    def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
+        state_str = event.checkbox.id
+        assert state_str is not None
+        state = TestState.from_str(state_str)
+        assert state is not None
+        if event.checkbox.value:
+            self.include_states.append(state)
+        else:
+            self.include_states.remove(state)
+
+    @on(Button.Pressed)
+    def press_done_button(self, event: Button.Pressed) -> None:
+        if event.button.id == "done":
+            self.dismiss(self.include_states)
+
+
 class ReportApplication(App):
     """
     Main Application handler.
@@ -304,12 +341,14 @@ class ReportApplication(App):
         "wait": PleaseWaitScreen,
         "session_list": SessionPickScreen,
         "session_infos": SessionInfoScreen,
+        "filter": FilterScreen,
     }
     BINDINGS = [
-        ("q", 'push_screen("exit")', "Exit"),
-        ("o", 'push_screen("session_list")', "Open"),
-        ("t", "toggle_dark", "Dark mode"),
-        ("c", "push_screen('session_infos')", "Infos"),
+        Binding("q", 'push_screen("exit")', "Exit"),
+        Binding("o", 'push_screen("session_list")', "Open"),
+        Binding("t", "toggle_dark", "Dark mode"),
+        Binding("c", "push_screen('session_infos')", "Infos"),
+        Binding("f", "do_filter", "Filter"),
     ]
     CSS_PATH = "main.css"
 
@@ -322,13 +361,19 @@ class ReportApplication(App):
 
         :param event: not significant here
         """
-        self.app.query_one(JobListViewer).update_table()
+        self.app.screen.query_one(JobListViewer).update_table()
 
     def on_mount(self) -> None:
         """
         First screen loaded.
         """
         self.push_screen("main")
+
+    def action_do_filter(self) -> None:
+        def on_filter(states: list[TestState]) -> None:
+            self.app.screen.query_one(JobListViewer).update_table(states)
+
+        self.push_screen("filter", callback=on_filter)
 
     def __init__(self, model: ReportModel | None = None):
         """
@@ -339,10 +384,13 @@ class ReportApplication(App):
         :param model: the model used to access resources
         :type model: ReportModel
         """
+        if io.console is None:
+            io.init(color=True, verbose=10)
         if model is None:
             path = os.path.abspath(os.path.join(os.getcwd(), NAME_BUILDIR))
             model = ReportModel([path])
         self.model: ReportModel = model
+        self.states_filter: list[TestState] = TestState.all_states()
         super().__init__()
 
 
