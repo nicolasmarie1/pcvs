@@ -57,7 +57,6 @@ patternProperties:
   "^[^\\.].*$":
     type: object
     properties:
-      _compat: {type: object}
       group:
         type: string
       tag:
@@ -201,7 +200,7 @@ patternProperties:
               program:
                 type: object
                 patternProperties:
-                  "^.*$":
+                  "^.*$": # criterion definition
                     type: object
                     properties:
                       option:
@@ -233,8 +232,10 @@ patternProperties:
                         type: string
                     additionalProperties: false
                 additionalProperties: false
-            patternProperties:
-              "^.*$":
+              # whitelist of criterions to inherite
+              inherite: { type: array, items: {type: string}}
+            patternProperties: # criterion values
+              "^(?!program|inherite).*$":
                 type: object
                 properties:
                   values:

@@ -59,8 +59,6 @@ patternProperties:
   ^[^\.].*$:
     type: object
     properties:
-      _compat:
-        type: object
       group:
         type: string
       tag:
@@ -303,8 +301,12 @@ patternProperties:
                         type: string
                     additionalProperties: false
                 additionalProperties: false
+              inherite:
+                type: array
+                items:
+                  type: string
             patternProperties:
-              ^.*$:
+              ^(?!program|inherite).*$:
                 type: object
                 properties:
                   values:

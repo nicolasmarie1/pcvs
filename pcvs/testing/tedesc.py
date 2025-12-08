@@ -216,6 +216,8 @@ class TEDescriptor:
             tmp = GlobalConfig.root["group"][nodecontent["group"]]
             tmp.update(nodecontent)
             nodecontent = tmp
+        # io.console.debug(f"test-descriptor: {nodecontent}")
+
         # load from descriptions
         self._build: dict = nodecontent.get("build", {})
         self._run: dict = nodecontent.get("run", {})
@@ -224,7 +226,6 @@ class TEDescriptor:
         self._artifacts: dict = nodecontent.get("artifact", {})
         self._metrics: dict = nodecontent.get("metrics", {})
         self._attributes: dict = nodecontent.get("attributes", {})
-        self._template: dict = nodecontent.get("group", {})
         self._debug: str = self._te_name + ":\n"
         self._effective_cnt: int = 0
         self._tags: list[str] = nodecontent.get("tag", [])
@@ -339,12 +340,18 @@ class TEDescriptor:
             self._criterion = self._sys_crit
         else:
             te_keys = self._run["iterate"].keys()
-            tmp = {}
+            test_crits = {}
             # browse declared criterions (system-wide)
             for k_sys, v_sys in self._sys_crit.items():
+                # if we do note inherite from this criterion, skip it
+                if (
+                    "inherite" in self._run["iterate"]
+                    and k_sys not in self._run["iterate"]["inherite"]
+                ):
+                    continue
                 # if key is overridden by the test
                 if k_sys in te_keys:
-                    cur_criterion = copy.deepcopy(v_sys)
+                    cur_criterion: Criterion = copy.deepcopy(v_sys)
                     cur_criterion.override(self._run["iterate"][k_sys])
 
                     if cur_criterion.is_discarded():
@@ -352,16 +359,18 @@ class TEDescriptor:
                     # merge manually some definitions made by
                     # runtime, as some may be required to expand values:
 
+                    # expand according to te-values or system values if not defined
                     cur_criterion.expand_values(v_sys)
+                    # limit redefinition of criterion values to system scope.
                     cur_criterion.intersect(v_sys)
                     if cur_criterion.is_empty():
                         self._skipped = True
                     else:
-                        tmp[k_sys] = cur_criterion
+                        test_crits[k_sys] = cur_criterion
                 else:  # key is not overridden
-                    tmp[k_sys] = v_sys
+                    test_crits[k_sys] = v_sys
 
-            self._criterion = tmp
+            self._criterion = test_crits
             # now build program iterators
             for _, elt in self._program_criterion.items():
                 elt.expand_values()

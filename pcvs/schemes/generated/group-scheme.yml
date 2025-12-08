@@ -1,3 +1,59 @@
+.validation:
+  type: object
+  properties:
+    expect_exit:
+      type: integer
+    time:
+      type: object
+      properties:
+        mean:
+          type: number
+          minimum: 0
+        tolerance:
+          type: number
+          minimum: 0
+        coef:
+          type: number
+          minimum: 0
+        soft_timeout:
+          type: number
+          minimum: 0
+        hard_timeout:
+          type: number
+          minimum: 0
+      additionalProperties: false
+    match:
+      type: object
+      patternProperties:
+        ^.*$:
+          type: object
+          properties:
+            expr:
+              type: string
+            expect:
+              type: boolean
+          additionalProperties: false
+      additionalProperties: false
+    analysis:
+      type: object
+      properties:
+        method:
+          type: string
+        args:
+          type: object
+          patternProperties:
+            ^.*$:
+              OneOf:
+                - type: string
+                - type: int
+                - type: float
+    script:
+      type: object
+      properties:
+        path:
+          type: string
+      additionalProperties: false
+  additionalProperties: false
 type: object
 patternProperties:
   ^[^\.].*$:
@@ -9,6 +65,17 @@ patternProperties:
         type: array
         items:
           type: string
+      attributes:
+        type: object
+        properties:
+          copy_input:
+            type: boolean
+          copy_output:
+            type: boolean
+          command_wrap:
+            type: boolean
+          path_resolution:
+            type: boolean
       build:
         type: object
         properties:
@@ -19,25 +86,21 @@ patternProperties:
                 items:
                   type: string
           depends_on:
+            type: array
+            items:
+              type: string
+          package_manager:
             type: object
-            patternProperties:
-              ^test$:
+            properties:
+              spack:
                 type: array
                 items:
                   type: string
-              ^spack$:
-                type: array
-                items:
-                  type: string
-              ^module$:
+              module:
                 type: array
                 items:
                   type: string
             additionalProperties: false
-          cflags:
-            type: string
-          ldflags:
-            type: string
           cwd:
             type: string
           variants:
@@ -49,12 +112,132 @@ patternProperties:
             properties:
               target:
                 type: string
+              jobs:
+                type: integer
+              args:
+                type: array
+                items:
+                  type: string
+              envs:
+                type: array
+                items:
+                  type: string
             additionalProperties: false
           sources:
             type: object
             properties:
               binary:
                 type: string
+              cflags:
+                type: string
+              ldflags:
+                type: string
+              lang:
+                OneOf:
+                  - type: string
+                  - type: array
+                    items:
+                      type: string
+            additionalProperties: false
+          cmake:
+            type: object
+            properties:
+              args:
+                type: array
+                items:
+                  type: string
+              envs:
+                type: array
+                items:
+                  type: string
+            additionalProperties: false
+          autotools:
+            type: object
+            properties:
+              autogen:
+                type: boolean
+              args:
+                type: array
+                items:
+                  type: string
+              envs:
+                type: array
+                items:
+                  type: string
+            additionalProperties: false
+          custom:
+            type: object
+            properties:
+              program:
+                type: string
+              args:
+                OneOf:
+                  - type: array
+                    items:
+                      type: string
+                  - type: string
+              envs:
+                OneOf:
+                  - type: array
+                    items:
+                      type: string
+                  - type: string
+            additionalProperties: false
+          validate:
+            type: object
+            properties:
+              expect_exit:
+                type: integer
+              time:
+                type: object
+                properties:
+                  mean:
+                    type: number
+                    minimum: 0
+                  tolerance:
+                    type: number
+                    minimum: 0
+                  coef:
+                    type: number
+                    minimum: 0
+                  soft_timeout:
+                    type: number
+                    minimum: 0
+                  hard_timeout:
+                    type: number
+                    minimum: 0
+                additionalProperties: false
+              match:
+                type: object
+                patternProperties:
+                  ^.*$:
+                    type: object
+                    properties:
+                      expr:
+                        type: string
+                      expect:
+                        type: boolean
+                    additionalProperties: false
+                additionalProperties: false
+              analysis:
+                type: object
+                properties:
+                  method:
+                    type: string
+                  args:
+                    type: object
+                    patternProperties:
+                      ^.*$:
+                        OneOf:
+                          - type: string
+                          - type: int
+                          - type: float
+              script:
+                type: object
+                properties:
+                  path:
+                    type: string
+                additionalProperties: false
             additionalProperties: false
         additionalProperties: false
       run:
@@ -65,21 +248,9 @@ patternProperties:
           cwd:
             type: string
           depends_on:
-            type: object
-            patternProperties:
-              ^test$:
-                type: array
-                items:
-                  type: string
-              ^spack$:
-                type: array
-                items:
-                  type: string
-              ^module$:
-                type: array
-                items:
-                  type: string
-            additionalProperties: false
+            type: array
+            items:
+              type: string
           package_manager:
             type: object
             properties:
@@ -110,6 +281,8 @@ patternProperties:
                         enum:
                           - argument
                           - environment
+                      local:
+                        type: boolean
                       position:
                         type: string
                         enum:
@@ -128,8 +301,12 @@ patternProperties:
                         type: string
                     additionalProperties: false
                 additionalProperties: false
+              inherite:
+                type: array
+                items:
+                  type: string
             patternProperties:
-              ^.*$:
+              ^(?!program|inherite).*$:
                 type: object
                 properties:
                   values:
@@ -149,10 +326,13 @@ patternProperties:
           time:
             type: object
             properties:
-              mean_time:
+              mean:
                 type: number
                 minimum: 0
               tolerance:
+                type: number
+                minimum: 0
+              coef:
                 type: number
                 minimum: 0
               soft_timeout:
@@ -174,6 +354,19 @@ patternProperties:
                     type: boolean
                 additionalProperties: false
             additionalProperties: false
+          analysis:
+            type: object
+            properties:
+              method:
+                type: string
+              args:
+                type: object
+                patternProperties:
+                  ^.*$:
+                    OneOf:
+                      - type: string
+                      - type: int
+                      - type: float
           script:
             type: object
             properties:
@@ -186,5 +379,20 @@ patternProperties:
         patternProperties:
           ^.*$:
             type: string
+      metric:
+        type: object
+        patternProperties:
+          ^.*$:
+            type: object
+            properties:
+              key:
+                type: string
+              attributes:
+                type: object
+                properties:
+                  unique:
+                    type: boolean
+              values:
+                type: array
       additionalProperties: false
     additionalProperties: false
