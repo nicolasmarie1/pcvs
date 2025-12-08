@@ -46,11 +46,11 @@ class ConfigScope(Enum):
     def fromstr(cls, scope: str) -> Self | None:
         """Get Scope from user str."""
         str_to_scope = {
-            "global": ConfigScope.GLOBAL,
-            "user": ConfigScope.USER,
-            "local": ConfigScope.LOCAL,
+            ConfigScope.GLOBAL.name: ConfigScope.GLOBAL,
+            ConfigScope.USER.name: ConfigScope.USER,
+            ConfigScope.LOCAL.name: ConfigScope.LOCAL,
         }
-        return str_to_scope.get(scope.lower(), None)  # type: ignore
+        return str_to_scope.get(scope.upper(), None)  # type: ignore
 
     @classmethod
     def all_scopes(cls) -> list[Self]:
@@ -90,15 +90,15 @@ class ConfigKind(Enum):
     def fromstr(cls, kind: str) -> Self:
         """Get Scope from user str."""
         str_to_kind = {
-            "profile": ConfigKind.PROFILE,
-            "compiler": ConfigKind.COMPILER,
-            "runtime": ConfigKind.RUNTIME,
-            "machine": ConfigKind.MACHINE,
-            "criterion": ConfigKind.CRITERION,
-            "group": ConfigKind.GROUP,
-            "plugin": ConfigKind.PLUGIN,
+            ConfigKind.PROFILE.name: ConfigKind.PROFILE,
+            ConfigKind.COMPILER.name: ConfigKind.COMPILER,
+            ConfigKind.RUNTIME.name: ConfigKind.RUNTIME,
+            ConfigKind.MACHINE.name: ConfigKind.MACHINE,
+            ConfigKind.CRITERION.name: ConfigKind.CRITERION,
+            ConfigKind.GROUP.name: ConfigKind.GROUP,
+            ConfigKind.PLUGIN.name: ConfigKind.PLUGIN,
         }
-        return str_to_kind.get(kind.lower(), None)  # type: ignore
+        return str_to_kind.get(kind.upper(), None)  # type: ignore
 
     @classmethod
     def all_kinds(cls) -> list[Self]:
