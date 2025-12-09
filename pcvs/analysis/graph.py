@@ -17,6 +17,7 @@ We create 2 types of graphs:
 import os
 
 from matplotlib import pyplot as plt
+from typeguard import typechecked
 
 from pcvs import io
 from pcvs.analysis import SimpleAnalysis
@@ -24,6 +25,7 @@ from pcvs.dsl import Series
 from pcvs.testing.teststate import TestState
 
 
+@typechecked
 def get_status_series(
     analysis: SimpleAnalysis, series: Series, path: str, show: bool, extension: str, limit: int
 ) -> None:
@@ -91,6 +93,7 @@ def get_status_series(
     plt.close()
 
 
+@typechecked
 def _get_time_series(
     jobs_base_name: str,
     # testname -> ([rundate -> index], [rundate -> duration])
@@ -125,6 +128,7 @@ def _get_time_series(
     plt.close()
 
 
+@typechecked
 def get_time_series(
     analysis: SimpleAnalysis, series: Series, path: str, show: bool, extension: str, limit: int
 ) -> None:

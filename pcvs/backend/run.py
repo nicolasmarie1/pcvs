@@ -7,6 +7,7 @@ import time
 from typing import Any
 
 from ruamel.yaml import YAML
+from typeguard import typechecked
 
 from pcvs import io
 from pcvs import NAME_BUILD_CACHEDIR
@@ -36,6 +37,7 @@ from pcvs.testing.test import Test
 from pcvs.testing.testfile import TestFile
 
 
+@typechecked
 def print_progbar_walker(elt: tuple[str, str | None]) -> str | None:
     """Walker used to pretty-print progress bar element within Click.
 
@@ -49,6 +51,7 @@ def print_progbar_walker(elt: tuple[str, str | None]) -> str | None:
     return "[" + elt[0] + "] " + (elt[1] if elt[1] else "")
 
 
+@typechecked
 def display_summary(the_session: Session) -> None:
     """Display a summary for this run, based on profile & CLI arguments.
 
@@ -96,6 +99,7 @@ def display_summary(the_session: Session) -> None:
         )
 
 
+@typechecked
 def stop_pending_jobs(exc: Exception | None = None) -> None:
     """
     Called when PCVS is going to stop upon external request, stop the scheduler
@@ -113,6 +117,7 @@ def stop_pending_jobs(exc: Exception | None = None) -> None:
 
 
 @io.capture_exception(Exception, stop_pending_jobs)
+@typechecked
 def process_main_workflow(the_session: Session) -> int:
     """Main run.py entry point, triggering a PCVS validation run.
 
@@ -125,9 +130,8 @@ def process_main_workflow(the_session: Session) -> int:
     :rtype: int
     """
     io.console.info("RUN: Session start")
-    global_config = GlobalConfig.root
+    global_config: MetaConfig = GlobalConfig.root
     valcfg = global_config["validation"]
-    rc = 0
 
     valcfg["sid"] = the_session.id
     build_manager = BuildDirectoryManager(build_dir=valcfg["output"])
@@ -191,8 +195,8 @@ def process_main_workflow(the_session: Session) -> int:
 
     io.console.print_header("Execution")
 
-    run_rc = global_config.get_internal("orchestrator").run(the_session)
-    rc += run_rc if isinstance(run_rc, int) else 1
+    rc = global_config.get_internal("orchestrator").run(the_session)
+    assert isinstance(rc, int)
 
     if io.console.verb_detailed:
         io.console.print_header("Execution Summary")
@@ -212,6 +216,7 @@ def process_main_workflow(the_session: Session) -> int:
     return rc
 
 
+@typechecked
 def check_defined_program_validity() -> None:
     """Ensure most programs defined in profiles & parameters are valid in the
     current environment.
@@ -244,6 +249,7 @@ def check_defined_program_validity() -> None:
     return
 
 
+@typechecked
 def prepare() -> None:
     """Prepare the environment for a validation run.
 
@@ -256,7 +262,7 @@ def prepare() -> None:
     utils.start_autokill(valcfg["timeout"])
 
     io.console.print_item("Check whether build directory is valid")
-    build_man.prepare(reuse=valcfg["reused_build"])
+    build_man.prepare(reuse=valcfg["reused_build"] is not None)
 
     per_file_max_sz = 0
     try:
@@ -296,6 +302,7 @@ def prepare() -> None:
     build_man.save_config(GlobalConfig.root)
 
 
+@typechecked
 def find_files_to_process(
     path_dict: dict[str, str],
 ) -> tuple[list[tuple[str, str, str]], list[tuple[str, str, str]]]:
@@ -344,6 +351,7 @@ def find_files_to_process(
 
 
 @io.capture_exception(Exception, doexit=True)
+@typechecked
 def process_files() -> list[Test]:
     """Process the test-suite generation.
 
@@ -368,6 +376,7 @@ def process_files() -> list[Test]:
     return tests
 
 
+@typechecked
 def prepare_runtime_env_file() -> None:
     io.console.info("Building env from config.")
     env_config = build_env_from_configuration(GlobalConfig.root)
@@ -381,6 +390,7 @@ def prepare_runtime_env_file() -> None:
         fh.close()
 
 
+@typechecked
 def process_spack() -> None:
     """
     Build job to schedule from Spack recipes.
@@ -404,6 +414,7 @@ def process_spack() -> None:
         pvSpack.generate_from_variants(spec, label, spec)
 
 
+@typechecked
 def build_env_from_configuration(config: dict) -> dict:
     """
     Export configuration as env variables.
@@ -470,6 +481,7 @@ def process_dyn_setup_scripts(setup_files: list[tuple[str, str, str]]) -> list[T
     return tests
 
 
+@typechecked
 def process_static_yaml_files(yaml_files: list[tuple[str, str, str]]) -> list[Test]:
     """
     Process 'pcvs.yml' files to construct the test base.
@@ -486,6 +498,7 @@ def process_static_yaml_files(yaml_files: list[tuple[str, str, str]]) -> list[Te
     return tests
 
 
+@typechecked
 def process_dyn_setup(label: str, prefix: str, file_name: str) -> list[Test]:
     io.console.info(f"Processing {prefix} dynamic script. ({label})")
     base_src, cur_src, base_build, cur_build = testing.test.generate_local_variables(label, prefix)
@@ -529,6 +542,7 @@ def process_dyn_setup(label: str, prefix: str, file_name: str) -> list[Test]:
     return process_yaml(file_path=f, build_path=cur_build, label=label, prefix=prefix, content=out)
 
 
+@typechecked
 def process_static_yaml(label: str, prefix: str, file_name: str) -> list[Test]:
     _, cur_src, _, cur_build = testing.test.generate_local_variables(label, prefix)
     os.makedirs(cur_build, exist_ok=True)
@@ -537,6 +551,7 @@ def process_static_yaml(label: str, prefix: str, file_name: str) -> list[Test]:
     return process_yaml(file_path=f, build_path=cur_build, label=label, prefix=prefix)
 
 
+@typechecked
 def process_yaml(
     file_path: str, build_path: str, label: str, prefix: str, content: str | None = None
 ) -> list[Test]:
@@ -568,6 +583,7 @@ def process_yaml(
     return tests
 
 
+@typechecked
 def anonymize_archive() -> None:
     """
     Erase from results any undesired output from the generated archive.
@@ -596,6 +612,7 @@ def anonymize_archive() -> None:
                     )
 
 
+@typechecked
 def terminate() -> None:
     """Finalize a validation run.
 
@@ -623,6 +640,7 @@ def terminate() -> None:
     build_man.finalize()
 
 
+@typechecked
 def dup_another_build(build_dir: str, outdir: str) -> MetaConfig:
     """Clone another build directory to start this validation upon it.
 

@@ -3,6 +3,7 @@ from typing import Any
 
 from ruamel.yaml import YAML
 from ruamel.yaml import YAMLError
+from typeguard import typechecked
 
 import pcvs
 from pcvs import NAME_BUILDIR
@@ -28,6 +29,7 @@ COMPILER_EXTENSION_CONFIG = {
 }
 
 
+@typechecked
 class MetaConfig(Config):
     """
     Root configuration object.
@@ -135,7 +137,7 @@ class MetaConfig(Config):
         if "package_manager" in conf:
             self.set_internal("rt_pm", pm.identify(conf["package_manager"]))
 
-    def bootstrap_validation_from_file(self, filepath: str) -> None:
+    def bootstrap_validation_from_file(self, filepath: str | None) -> None:
         """
         Specific initialize for validation config block.
 
@@ -237,6 +239,7 @@ class MetaConfig(Config):
         return None
 
 
+@typechecked
 class GlobalConfig:
     """
     A static class to store a Global version of Metaconfig.

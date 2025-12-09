@@ -1,6 +1,8 @@
 import queue
 from queue import Queue
 
+from typeguard import typechecked
+
 from pcvs import io
 from pcvs.backend import session
 from pcvs.backend.metaconfig import GlobalConfig
@@ -14,11 +16,13 @@ from pcvs.testing.test import Test
 from pcvs.testing.teststate import TestState
 
 
+@typechecked
 def global_stop(e: Exception) -> None:
     Orchestrator.stop()
     raise e
 
 
+@typechecked
 class Orchestrator:
     """The job orchestrator, managing test processing through the whole test base.
 
@@ -90,11 +94,11 @@ class Orchestrator:
     ) -> int:
         """Start the orchestrator.
 
-        :param the_session: container owning the run.
-        :type the_session: :class:`Session`
-        :param restart: whether the run is starting from scratch
-        :type restart: False for a brand new run.
+        :param the_session: The session owning the run.
+        :param restart: Whether the run is starting from scratch. (Unsupord)
+        :return: the return code for the run. (0 if no test fail otherwise 1)
         """
+        assert not restart  # restart is not supported yet !!
 
         GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.SCHED_BEFORE)
 
@@ -216,11 +220,11 @@ class Orchestrator:
         """Request runner threads to stop."""
         RunnerAdapter.sched_in_progress = False
 
-    def run(self, s: Session) -> None:
+    def run(self, s: Session) -> int:
         """Start the orchestrator.
 
         :param s: container owning the run.
         :type s: :class:`Session`
         """
         # pre-actions done only once
-        self.start_run(s, restart=False)  # type: ignore
+        return self.start_run(s, restart=False)  # type: ignore

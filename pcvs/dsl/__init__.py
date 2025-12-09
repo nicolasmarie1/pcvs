@@ -8,12 +8,15 @@ from typing import Any
 from typing import Generator
 from typing import Self
 
+from typeguard import typechecked
+
 from pcvs import io
 from pcvs.helpers import git
 from pcvs.testing.test import Test
 from pcvs.testing.teststate import TestState
 
 
+@typechecked
 class Job(Test):
     """Map a real job representation within a bank."""
 
@@ -47,6 +50,7 @@ class Job(Test):
         return self.to_json()
 
 
+@typechecked
 class Run:
     """Depict a given run -> Git commit"""
 
@@ -159,6 +163,7 @@ class Run:
         return json_dict
 
 
+@typechecked
 class Series:
     """TODO:"""
 
@@ -261,6 +266,7 @@ class Series:
         # self._repo.gc()
 
 
+@typechecked
 class Bank:
     """
     Bank view from Python API

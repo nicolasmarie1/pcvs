@@ -4,12 +4,14 @@ from typing import Any
 import jsonschema
 from ruamel.yaml import YAML
 from ruamel.yaml import YAMLError
+from typeguard import typechecked
 
 from pcvs import io
 from pcvs import PATH_INSTDIR
 from pcvs.helpers.exceptions import ValidationException
 
 
+@typechecked
 class ValidationScheme:
     """
     Object manipulating schemes (yaml) to enforce data formats.

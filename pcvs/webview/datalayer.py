@@ -1,7 +1,7 @@
 import random
 from typing import Any
 
-from pcvs.backend.session import Session
+from pcvs.backend.session import SessionState
 from pcvs.testing.test import Test
 from pcvs.testing.teststate import TestState
 
@@ -101,7 +101,7 @@ class DataRepresentation:
                 "tags": {"__metadata": {"count": {k: 0 for k in list(map(str, TestState))}}},
                 "iterators": {"__metadata": {"count": {k: 0 for k in list(map(str, TestState))}}},
                 "failures": {"__metadata": {"count": {k: 0 for k in list(map(str, TestState))}}},
-                "state": Session.State(session_data["state"]),
+                "state": SessionState(session_data["state"]),
                 "path": session_data["buildpath"],
             },
         )
@@ -248,7 +248,7 @@ class DataRepresentation:
         return [
             {
                 "path": v["path"],
-                "state": str(Session.State(v["state"])),
+                "state": str(SessionState(v["state"])),
                 "sid": k,
                 "count": v["fs-tree"]["__metadata"]["count"],
             }

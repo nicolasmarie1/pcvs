@@ -17,6 +17,7 @@ dependencies = [
   "pygit2<=1.14.1",
   "textual>=0.29.0",
   "matplotlib",
+  "typeguard",
 ]
 requires-python = ">=3.11"
 authors = [

@@ -4,6 +4,7 @@ import tempfile
 from typing import Any
 
 from ruamel.yaml import YAML
+from typeguard import typechecked
 
 from pcvs import dsl
 from pcvs import io
@@ -15,6 +16,7 @@ from pcvs.helpers.exceptions import CommonException
 from pcvs.orchestration.publishers import BuildDirectoryManager
 
 
+@typechecked
 class Bank(dsl.Bank):
     """Representation of a PCVS result datastore.
 
@@ -196,7 +198,7 @@ class Bank(dsl.Bank):
             timestamp=int(hdl.config["validation"]["datetime"].timestamp()),
         )
 
-    def save_from_buildir(self, tag: str, buildpath: str, msg: str | None = None) -> None:
+    def save_from_buildir(self, tag: str | None, buildpath: str, msg: str | None = None) -> None:
         """Extract results from the given build directory & store into the bank.
 
         :param tag: overridable default project (if different)
@@ -282,6 +284,7 @@ class Bank(dsl.Bank):
         return len(self.list_projects())
 
 
+@typechecked
 def init_banklink(name: str, path: str) -> bool:
     """
     Create a new bank and store it to the global system.
@@ -319,15 +322,19 @@ def init_banklink(name: str, path: str) -> bool:
     return True
 
 
+@typechecked
 def rm_banklink(name: str) -> None:
     """Remove a bank from the global management system.
 
     :param name: bank name
     :type name: str
     """
-    write_banks(list_banks().pop(name))
+    banks = list_banks()
+    banks.pop(name)
+    write_banks(banks)
 
 
+@typechecked
 def list_banks() -> dict:
     """Read Banks."""
     banks = {}
@@ -340,6 +347,7 @@ def list_banks() -> dict:
     return banks
 
 
+@typechecked
 def write_banks(banks: dict[str, str]) -> None:
     """Write banks."""
     try:

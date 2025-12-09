@@ -6,6 +6,8 @@ from typing import ItemsView
 from typing import Iterable
 from typing import Self
 
+from typeguard import typechecked
+
 from pcvs import io
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers.exceptions import CommonException
@@ -13,6 +15,7 @@ from pcvs.plugins import Collection
 from pcvs.plugins import Plugin
 
 
+@typechecked
 class Combination:
     """A combination maps the actual concretization from multiple criterion.
 
@@ -86,7 +89,7 @@ class Combination:
             c = self._criterions[k_elt]
             # concretize_value() gathers both criterion label & value according
             # to specs (before, after, aliasing...)
-            value = c.concretize_value(v_elt)
+            value = c.concretize_value(str(v_elt))
 
             if c.is_env():
                 envs.append(value)
@@ -115,6 +118,7 @@ class Combination:
         return self.__dict__.items()
 
 
+@typechecked
 class Series:
     """A series ties a test expression (TEDescriptor) to the possible values
     which can be taken for each criterion to build test sets.
@@ -158,6 +162,7 @@ class Series:
         return self.__dict__.items()
 
 
+@typechecked
 class Criterion:
     """A Criterion is the representation of a component each program
     (i.e. test binary) should be run against. A criterion comes with a range of
@@ -182,7 +187,7 @@ class Criterion:
         self._numeric: bool = description.get("numeric", numeric)
         self._prefix: str = description.get("option", "")
         self._after: bool = description.get("position", "after") == "after"
-        self._alias: dict = description.get("aliases", {})
+        self._alias: dict[str, str] = description.get("aliases", {})
         self._is_env: bool = description.get("type", "argument") == "environment"
         # this should be only set by per-TE criterion definition
         self._local: bool = description.get("local", local)
@@ -362,7 +367,7 @@ class Criterion:
 
     @staticmethod
     def __convert_sequence_to_list(
-        node: dict[str, str], s: int = -1, e: int = -1
+        node: dict[str, str | int | float], s: int = -1, e: int = -1
     ) -> list[int | float]:
         """converts a sequence (as a string) to a valid list of values
 
@@ -379,7 +384,7 @@ class Criterion:
         values: list[int | float] = []
 
         # these must be integers
-        def _convert_sequence_item_to_int(val: str | int) -> int | float:
+        def _convert_sequence_item_to_int(val: str | int | float) -> int | float:
             """helper to convert a string-formatted number to a valid repr.
 
             :param val: the string-based number to convert
@@ -404,7 +409,7 @@ class Criterion:
         end = _convert_sequence_item_to_int(node.get("to", e))
         of = _convert_sequence_item_to_int(node.get("of", 1))
 
-        op = node.get("op", "seq").lower()
+        op = str(node.get("op", "seq")).lower()
 
         if op in ["seq", "arithmetic", "ari"]:
             assert isinstance(start, int) and isinstance(end, int) and isinstance(of, int)
@@ -505,6 +510,7 @@ class Criterion:
         return self.__dict__.items()
 
 
+@typechecked
 def initialize_from_system() -> None:
     """Initialise system-wide criterions
 
@@ -559,6 +565,7 @@ def initialize_from_system() -> None:
 first = True
 
 
+@typechecked
 def load_plugin() -> None:
     rt = GlobalConfig.root["runtime"]
     val = GlobalConfig.root["validation"]
@@ -594,6 +601,7 @@ def load_plugin() -> None:
         pCollection.activate_plugin(rt["defaultplugin"])
 
 
+@typechecked
 def get_plugin() -> Collection:
     """Get the current validation plugin for the run."""
     global first
@@ -608,6 +616,7 @@ def get_plugin() -> Collection:
     return plugin
 
 
+@typechecked
 def valid_combination(dic: dict[str, int | float | str]) -> bool:
     """Check if dict is a valid criterion combination .
 
@@ -627,6 +636,7 @@ def valid_combination(dic: dict[str, int | float | str]) -> bool:
     return ret
 
 
+@typechecked
 def get_resources(dic: dict[str, int | float | str]) -> list[int] | None:
     """Get the resources needed for a job."""
     res = get_plugin().try_invoke_plugins(

@@ -9,6 +9,8 @@ from typing import Any
 from typing import Iterable
 from typing import Self
 
+from typeguard import typechecked
+
 from pcvs import io
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers.criterion import Combination
@@ -17,6 +19,7 @@ from pcvs.plugins import Plugin
 from pcvs.testing.teststate import TestState
 
 
+@typechecked
 class Test:
     r"""
     Smallest component of a validation process.
@@ -831,6 +834,7 @@ class Test:
         return self.__dict__.items()
 
 
+@typechecked
 def generate_local_variables(label: str, subprefix: str) -> tuple[str, str, str, str]:
     """
     Return directories from PCVS working tree.

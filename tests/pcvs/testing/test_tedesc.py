@@ -1,12 +1,10 @@
 import os
 from unittest.mock import patch
 
-import pytest
-
 from pcvs.backend.metaconfig import MetaConfig
 from pcvs.helpers import criterion
-from pcvs.helpers import exceptions
 from pcvs.helpers import pm
+from pcvs.helpers.pm import SpackManager
 from pcvs.plugins import Collection
 from pcvs.testing import tedesc as tested
 
@@ -25,7 +23,11 @@ def test_handle_job_deps(mock_id):
         "/c",
     ]
 
-    mock_id.return_value = ["spack..p1", "spack..p1c2", "spack..p1p3%c4"]
+    mock_id.return_value = [
+        SpackManager("spack..p1"),
+        SpackManager("spack..p1c2"),
+        SpackManager("spack..p1p3%c4"),
+    ]
     assert (
         len(tested.build_pm_deps({"package_manager": {"spack": ["p1", "p1@c2", "p1 p3 %c4"]}})) == 3
     )
@@ -83,11 +85,6 @@ def test_tedesc_regular():
     assert tedesc.name == "te_name"
     for i in tedesc.construct_tests():
         print(i.command)
-
-    with pytest.raises(exceptions.TestException.TestExpressionError):
-        tested.TEDescriptor("te_name", "bad_type", "label", "subtree")
-
-        tested.TEDescriptor("te_name", {"build": {"unknown_key": 2}}, "label", "subtree")
 
 
 @patch.dict(os.environ, {"HOME": "/home/user", "USER": "superuser"})

@@ -2,14 +2,17 @@ import random
 from typing import Any
 from typing import Iterable
 
+from typeguard import typechecked
+
 from pcvs.backend.session import list_alive_sessions
-from pcvs.backend.session import Session
+from pcvs.backend.session import SessionState
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import CommonException
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.testing.test import Test
 
 
+@typechecked
 class Report:
     """
     Map a Report interface, to handle request from frontends.
@@ -117,7 +120,7 @@ class Report:
             state = (
                 self._alive_session_infos[sid]["state"]
                 if sid in self._alive_session_infos
-                else Session.State.COMPLETED
+                else SessionState.COMPLETED
             )
             yield {
                 "sid": sid,
@@ -286,6 +289,7 @@ class Report:
         return self.__dict__.items()
 
 
+@typechecked
 def upload_buildir_results(
     data_manager: Report, buildir: str  # pylint: disable=unused-argument
 ) -> None:

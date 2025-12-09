@@ -3,6 +3,7 @@ from datetime import datetime
 from datetime import timedelta
 
 from rich.table import Table
+from typeguard import typechecked
 
 from pcvs import io
 from pcvs import NAME_BUILDFILE
@@ -19,6 +20,7 @@ except ImportError:
 from click.shell_completion import CompletionItem
 
 
+@typechecked
 def compl_session_token(
     ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
 ) -> list:
@@ -36,12 +38,13 @@ def compl_session_token(
     if sessions is None:
         return []
     return [
-        CompletionItem(k, help=str(pvSession.Session.State(v["state"])))
+        CompletionItem(k, help=str(pvSession.SessionState(v["state"])))
         for k, v in sessions.items()
         if incomplete in str(k)
     ]
 
 
+@typechecked
 def print_sessions(sessions: dict[str, dict]) -> None:
     """List detached sessions."""
     if len(sessions) <= 0:
@@ -60,15 +63,15 @@ def print_sessions(sessions: dict[str, dict]) -> None:
         status = "Broken"
         duration = timedelta()
         line_style = "default"
-        if s.state == pvSession.Session.State.IN_PROGRESS:
+        if s.state == pvSession.SessionState.IN_PROGRESS:
             duration = datetime.now() - s.property("started")
             status = "{:3.2f} %".format(s.property("progress"))
             line_style = "yellow"
-        elif s.state == pvSession.Session.State.COMPLETED:
+        elif s.state == pvSession.SessionState.COMPLETED:
             duration = s.property("ended") - s.property("started")
             status = "100.00 %"
             line_style = "green bold"
-        elif s.state == pvSession.Session.State.WAITING:
+        elif s.state == pvSession.SessionState.WAITING:
             duration = datetime.now() - s.property("started")
             status = "Waiting"
             line_style = "yellow"
@@ -111,6 +114,7 @@ def print_sessions(sessions: dict[str, dict]) -> None:
     help="List detached sessions",
 )
 @click.pass_context
+@typechecked
 def session(
     ctx: click.Context,  # pylint: disable=unused-argument
     ack: str,
@@ -124,7 +128,7 @@ def session(
 
     if ack_all is True:
         for session_id in sessions.keys():
-            if sessions[session_id]["state"] != pvSession.Session.State.IN_PROGRESS:
+            if sessions[session_id]["state"] != pvSession.SessionState.IN_PROGRESS:
                 pvSession.remove_session_from_file(session_id)
                 lockfile = os.path.join(sessions[session_id]["path"], NAME_BUILDFILE)
                 utils.unlock_file(lockfile)
@@ -132,8 +136,8 @@ def session(
         if ack not in sessions.keys():
             raise click.BadOptionUsage("--ack", "No such Session id (see pcvs session)")
         elif sessions[ack]["state"] not in [
-            pvSession.Session.State.ERROR,
-            pvSession.Session.State.COMPLETED,
+            pvSession.SessionState.ERROR,
+            pvSession.SessionState.COMPLETED,
         ]:
             raise click.BadOptionUsage("--ack", "This session is not completed yet")
 

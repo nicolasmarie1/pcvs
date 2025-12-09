@@ -1,5 +1,7 @@
 import os
 
+from typeguard import typechecked
+
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.orchestration.runner import RunnerRemote
 
@@ -40,6 +42,7 @@ except ImportError:
     help="Run jobs concurrently",
 )
 @click.pass_context
+@typechecked
 def remote_run(
     ctx: click.Context,  # pylint: disable=unused-argument
     buildir: str,

@@ -1,3 +1,5 @@
+from typeguard import typechecked
+
 from pcvs import io
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers.exceptions import OrchestratorException
@@ -9,6 +11,7 @@ from pcvs.testing.test import Test
 from pcvs.testing.teststate import TestState
 
 
+@typechecked
 class Manager:
     """Gather and manipulate Jobs under a hiararchical architecture.
 

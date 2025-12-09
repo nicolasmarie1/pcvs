@@ -5,6 +5,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Self
 
+from typeguard import typechecked
+
 from pcvs import io
 from pcvs import NAME_CONFIGDIR
 from pcvs import PATH_HOMEDIR
@@ -18,6 +20,7 @@ except ImportError:
     import click  # type: ignore
 
 
+@typechecked
 class ConfigScope(Enum):
     """
     Storage Scope Enumeration.
@@ -63,6 +66,7 @@ class ConfigScope(Enum):
         return all_scopes  # type: ignore
 
 
+@typechecked
 class ConfigKind(Enum):
     """
     Configuration types.
@@ -87,7 +91,7 @@ class ConfigKind(Enum):
         return self.name
 
     @classmethod
-    def fromstr(cls, kind: str) -> Self:
+    def fromstr(cls, kind: str) -> Self | None:
         """Get Scope from user str."""
         str_to_kind = {
             ConfigKind.PROFILE.name: ConfigKind.PROFILE,
@@ -129,6 +133,7 @@ class ConfigKind(Enum):
         return config_extensions[ck]
 
 
+@typechecked
 class ConfigDesc:
     """An object to describe a config file."""
 
@@ -185,14 +190,17 @@ class ConfigDesc:
         return repr({"name": self.name, "path": self.path, "kind": self.kind, "scope": self.scope})
 
 
+@typechecked
 class ConfigLocator:
     """Helper to find and list config."""
 
-    EXEC_PATH: str = None  # type: ignore
+    EXEC_PATH: str | None = None
 
     def __init__(self) -> None:
         """Init a Config Locator."""
-        rel_exec_path = os.path.abspath(self.EXEC_PATH if self.EXEC_PATH else os.getcwd())
+        rel_exec_path = os.path.abspath(
+            self.EXEC_PATH if self.EXEC_PATH is not None else os.getcwd()
+        )
         self._storage_scope_paths: dict[ConfigScope, Path] = {
             ConfigScope.GLOBAL: Path(PATH_INSTDIR).joinpath("config"),
             ConfigScope.USER: Path(PATH_HOMEDIR),
@@ -417,6 +425,7 @@ class ConfigLocator:
         return configs
 
 
+@typechecked
 def set_exec_path(exec_path: str) -> None:
     """Set EXEC_PATH."""
     ConfigLocator.EXEC_PATH = exec_path

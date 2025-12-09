@@ -8,10 +8,13 @@ from abc import abstractmethod
 from types import ModuleType
 from typing import Any
 
+from typeguard import typechecked
+
 from pcvs import io
 from pcvs.helpers.exceptions import PluginException
 
 
+@typechecked
 class Plugin:
     """
     Base class to inherit from when implementing a plugin.
@@ -75,6 +78,7 @@ class Plugin:
         raise PluginException.NotImplementedError(str(type(self)))
 
 
+@typechecked
 class Collection:
     """The Plugin Manager.
 

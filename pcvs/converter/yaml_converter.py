@@ -254,7 +254,7 @@ def convert(input_file, kind, template, scheme, out, stdout, skip_unknown, in_pl
         desc_dict["first"] = replace_placeholder(tmp["__modifiers"], tmp["__tokens"])
     desc_dict["second"] = replace_placeholder(tmp, tmp["__tokens"])
 
-    io.console.info(["Conversion list {old_key -> new_key):", f"{tmp}"])
+    io.console.info("Conversion list {old_key -> new_key):\n{tmp}")
 
     # first, "flattening" the original array: {(1, 2, 3): "val"}
     data_to_convert = flatten(data_to_convert, kind)
@@ -275,12 +275,12 @@ def convert(input_file, kind, template, scheme, out, stdout, skip_unknown, in_pl
     # remove template key from the output to avoid polluting the caller
     io.console.print_item("Pruning templates from the final data")
     invalid_nodes = [k for k in final_data.keys() if k.startswith("pcvst_")]
-    io.console.info(["Prune the following:", "{}".format(pprint.pformat(invalid_nodes))])
+    io.console.info("Prune the following:\n{}".format(pprint.pformat(invalid_nodes)))
 
     for x in invalid_nodes + ["pcvs_missing"]:
         final_data.pop(x, None)
 
-    io.console.info(["Final layout:", "{}".format(pprint.pformat(final_data))])
+    io.console.info("Final layout:\n{}".format(pprint.pformat(final_data)))
 
     if stdout:
         f = sys.stdout

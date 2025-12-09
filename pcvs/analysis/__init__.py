@@ -1,17 +1,21 @@
 from abc import ABC
 from typing import Any
 
+from typeguard import typechecked
+
 from pcvs.dsl import Bank
 from pcvs.dsl import Series
 from pcvs.testing.teststate import TestState
 
 
+@typechecked
 class BaseAnalysis(ABC):
 
     def __init__(self, bank: Bank):
         self._bank = bank
 
 
+@typechecked
 class SimpleAnalysis(BaseAnalysis):
 
     def generate_series_trend(self, series: Series, limit: int) -> list[dict[str, Any]]:
@@ -39,6 +43,7 @@ class SimpleAnalysis(BaseAnalysis):
         return stats
 
 
+@typechecked
 class ResolverAnalysis(BaseAnalysis):
 
     def __init__(self, bank: Bank):

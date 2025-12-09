@@ -1,10 +1,13 @@
 import subprocess
 from typing import Any
 
+from typeguard import typechecked
+
 from pcvs import testing
 from pcvs.testing.testfile import TestFile
 
 
+@typechecked
 def parse_spec_variants(specname: str) -> dict[str, dict[str, Any]]:
     """
     From a given Spack spec, build the list of values for any declared variant.
@@ -36,6 +39,7 @@ def parse_spec_variants(specname: str) -> dict[str, dict[str, Any]]:
     return d
 
 
+@typechecked
 def generate_from_variants(package: str, label: str, prefix: str) -> None:
     """
     Build job to be scheduled from a given Spack package.

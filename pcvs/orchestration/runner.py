@@ -8,6 +8,8 @@ import time
 from io import BufferedWriter
 from queue import Queue
 
+from typeguard import typechecked
+
 import pcvs
 from pcvs import io
 from pcvs.backend.metaconfig import GlobalConfig
@@ -17,6 +19,7 @@ from pcvs.testing.test import Test
 from pcvs.testing.teststate import TestState
 
 
+@typechecked
 class RemoteContext:
 
     MAGIC_TOKEN = "PCVS-MAGIC"
@@ -111,6 +114,7 @@ class RemoteContext:
         return os.path.exists(self._completed_file)
 
 
+@typechecked
 class RunnerAdapter(threading.Thread):
     sched_in_progress = True
 
@@ -252,6 +256,7 @@ class RunnerAdapter(threading.Thread):
             ) from e
 
 
+@typechecked
 def progress_jobs(q: Queue, ctx: RemoteContext, ev: threading.Event) -> None:
     local_cnt = 0
     while local_cnt < ctx.cnt:
@@ -267,6 +272,7 @@ def progress_jobs(q: Queue, ctx: RemoteContext, ev: threading.Event) -> None:
     ev.set()
 
 
+@typechecked
 class RunnerRemote:
 
     def __init__(self, ctx_path: str):

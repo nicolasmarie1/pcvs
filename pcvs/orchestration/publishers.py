@@ -12,6 +12,7 @@ from typing import Optional
 from typing import Self
 
 from ruamel.yaml import YAML
+from typeguard import typechecked
 
 import pcvs
 from pcvs import io
@@ -24,6 +25,7 @@ from pcvs.testing.test import Test
 from pcvs.testing.teststate import TestState
 
 
+@typechecked
 class ResultFile:
     """
     A instance manages a pair of file dedicated to load/store PCVS job results
@@ -262,6 +264,7 @@ class ResultFile:
         return self.__dict__.items()
 
 
+@typechecked
 class ResultFileManager:
     """
     Manages multiple class:`ResultFile`. Main purpose is to manage files to
@@ -706,6 +709,7 @@ class ResultFileManager:
         return self.__dict__.items()
 
 
+@typechecked
 class BuildDirectoryManager:
     """
     This class is intended to serve a build directory from a single entry

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from importlib.metadata import version
 
+from typeguard import typechecked
+
 from pcvs import io
 from pcvs.cli import cli_bank
 from pcvs.cli import cli_config
@@ -35,6 +37,7 @@ CONTEXT_SETTINGS = dict(
 )
 
 
+@typechecked
 def print_version(
     ctx: click.Context, param: click.Parameter, value: bool  # pylint: disable=unused-argument
 ) -> None:
@@ -134,14 +137,15 @@ def print_version(
 @click.pass_context
 @io.capture_exception(PluginException.NotFoundError)
 @io.capture_exception(PluginException.LoadError)
+@typechecked
 def cli(
     ctx: click.Context,
     verbose: int,
     color: bool,
     encoding: bool,
-    exec_path: str,
-    plugin_path: list[str],
-    select_plugins: list[str],
+    exec_path: str | None,
+    plugin_path: tuple[str, ...],
+    select_plugins: tuple[str, ...],
     tui: bool,
     debug: bool,
 ) -> None:
@@ -157,7 +161,8 @@ def cli(
 
     io.init(color=color, verbose=verbose)
 
-    storage.set_exec_path(exec_path)
+    if exec_path is not None:
+        storage.set_exec_path(exec_path)
 
     utils.create_home_dir()
 

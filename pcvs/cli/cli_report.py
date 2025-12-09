@@ -1,5 +1,7 @@
 import os
 
+from typeguard import typechecked
+
 from pcvs import io
 from pcvs import NAME_BUILDIR
 from pcvs.backend import report as pvReport
@@ -26,6 +28,7 @@ except ImportError:
     type=click.Path(exists=True),
 )
 @click.pass_context
+@typechecked
 def report(ctx: click.Context, path_list: list[str]) -> int:
     """Start a webserver to browse result during or after execution.
 

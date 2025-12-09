@@ -11,6 +11,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml.constructor import Constructor
 from ruamel.yaml.main import yaml_object
 from ruamel.yaml.representer import Representer
+from typeguard import typechecked
 
 from pcvs import io
 from pcvs import PATH_SESSION
@@ -18,12 +19,14 @@ from pcvs import PATH_SESSION
 yml = YAML()
 
 
+@typechecked
 def session_file_hash(session_infos: dict) -> str:
     return hashlib.sha1(
         "{}:{}".format(session_infos["path"], session_infos["started"]).encode()
     ).hexdigest()
 
 
+@typechecked
 def store_session_to_file(infos: dict) -> str:
     """Save a new session into the session file (in HOME dir).
 
@@ -47,15 +50,15 @@ def store_session_to_file(infos: dict) -> str:
     return shash
 
 
+@typechecked
 def update_session_from_file(sid: str, update: dict) -> bool:
     """Update data from a running session from the global file.
 
     This only add/replace keys present in argument dict. Other keys remain.
 
     :param sid: the session id
-    :type sid: str
     :param update: the keys to update. If already existing, content is replaced
-    :type: dict
+    :return: if a session file was successfully modify (== if the session exist)
     """
     global yml
 
@@ -78,11 +81,12 @@ def update_session_from_file(sid: str, update: dict) -> bool:
     return False
 
 
+@typechecked
 def remove_session_from_file(sid: str) -> bool:
     """clear a session from logs.
 
     :param sid: the session id to remove.
-    :type sid: str
+    :return: if the session was successfully removed. (== if the session exist)
     """
     global yml
 
@@ -93,6 +97,7 @@ def remove_session_from_file(sid: str) -> bool:
     return False
 
 
+@typechecked
 def list_alive_sessions() -> dict[str, dict]:
     """Load and return the complete dict from session.yml file
 
@@ -116,6 +121,7 @@ def list_alive_sessions() -> dict[str, dict]:
     return all_sessions
 
 
+@typechecked
 def main_detached_session(sid: str, user_func: Callable, *args, **kwargs):  # type: ignore
     """Main function processed when running in detached mode.
 
@@ -149,14 +155,61 @@ def main_detached_session(sid: str, user_func: Callable, *args, **kwargs):  # ty
         # beware: this function should only raises exception to stop.
         # a sys.exit() will bypass the rest here.
         ret = user_func(*args, **kwargs)
-        update_session_from_file(sid, {"state": Session.State.COMPLETED, "ended": datetime.now()})
+        update_session_from_file(sid, {"state": SessionState.COMPLETED, "ended": datetime.now()})
     except Exception as e:
-        update_session_from_file(sid, {"state": Session.State.ERROR, "ended": datetime.now()})
+        update_session_from_file(sid, {"state": SessionState.ERROR, "ended": datetime.now()})
         raise e
 
     return ret
 
 
+@typechecked
+@yaml_object(yml)
+class SessionState(IntEnum):
+    """Enum of possible Session states."""
+
+    WAITING = 0
+    IN_PROGRESS = 1
+    COMPLETED = 2
+    ERROR = 3
+
+    @classmethod
+    def to_yaml(cls, representer: Representer, data: Self) -> Any:
+        """Convert a Test.State to a valid YAML representation.
+
+        A new tag is created: 'Session.State' as a scalar (str).
+        :param representer: the YAML dumper object
+        :param data: the object to represent
+        :return: the YAML representation
+        """
+        return representer.represent_scalar("!State", "{}||{}".format(data.name, data.value))
+
+    @classmethod
+    def from_yaml(cls, constructor: Constructor, node: Any) -> Self:
+        """Construct a :class:`Session.State` from its YAML representation.
+
+        Relies on the fact the node contains a 'Session.State' tag.
+        :param constructor: the YAML loader
+        :param node: the YAML representation
+        :return: The session State as an object
+        """
+        s = constructor.construct_scalar(node)
+        name, value = s.split("||")
+        obj = SessionState(int(value))
+        assert obj.name == name
+
+        return obj  # type: ignore
+
+    def __str__(self) -> str:
+        """Stringify the state.
+
+        :return: the enum name.
+        :rtype: str
+        """
+        return self.name
+
+
+@typechecked
 class Session:
     """Object representing a running validation (detached or not).
 
@@ -172,65 +225,15 @@ class Session:
 
     """
 
-    @yaml_object(yml)
-    class State(IntEnum):
-        """Enum of possible Session states."""
-
-        WAITING = 0
-        IN_PROGRESS = 1
-        COMPLETED = 2
-        ERROR = 3
-
-        @classmethod
-        def to_yaml(cls, representer: Representer, data: Self) -> Any:
-            """Convert a Test.State to a valid YAML representation.
-
-            A new tag is created: 'Session.State' as a scalar (str).
-            :param representer: the YAML dumper object
-            :type representer: :class:`ruamel.yaml.representer.Representer`
-            :param data: the object to represent
-            :type data: class:`Session.State`
-            :return: the YAML representation
-            :rtype: Any
-            """
-            return representer.represent_scalar("!State", "{}||{}".format(data.name, data.value))
-
-        @classmethod
-        def from_yaml(cls, constructor: Constructor, node: Any) -> Self:
-            """Construct a :class:`Session.State` from its YAML representation.
-
-            Relies on the fact the node contains a 'Session.State' tag.
-            :param constructor: the YAML loader
-            :type constructor: :class:`ruamel.yaml.constructor.Constructor`
-            :param node: the YAML representation
-            :type node: Any
-            :return: The session State as an object
-            :rtype: :class:`Session.State`
-            """
-            s = constructor.construct_scalar(node)
-            name, value = s.split("||")
-            obj = Session.State(int(value))
-            assert obj.name == name
-
-            return obj  # type: ignore
-
-        def __str__(self) -> str:
-            """Stringify the state.
-
-            :return: the enum name.
-            :rtype: str
-            """
-            return self.name
-
     @property
-    def state(self) -> State:
+    def state(self) -> SessionState:
         """Getter to session status.
 
         :return: session status
         :rtype: int
         """
         state = self._session_infos["state"]
-        assert isinstance(state, Session.State)
+        assert isinstance(state, SessionState)
         return state
 
     @property
@@ -247,7 +250,6 @@ class Session:
         """Gett to final RC.
 
         :return: rc
-        :rtype: int
         """
         return self._rc
 
@@ -279,7 +281,7 @@ class Session:
         :param path: the build directory
         :type path: str
         """
-        self._func: Callable | None = None
+        self._func: Callable[..., int] | None = None
         self._rc = -1
         self._sid = str(-1)
         # this dict is then flushed to the session.yml
@@ -288,7 +290,7 @@ class Session:
             "log": io.console.logfile,
             "io": io.console.outfile,
             "progress": 0,
-            "state": Session.State.WAITING,
+            "state": SessionState.WAITING,
             "started": date,
             "ended": None,
         }
@@ -304,7 +306,7 @@ class Session:
         self._sid = sid
         self._session_infos = data
 
-    def register_callback(self, callback: Callable) -> None:
+    def register_callback(self, callback: Callable[..., int]) -> None:
         """Register the callback used as main function once the session is
         started.
 
@@ -336,7 +338,7 @@ class Session:
                 self._session_infos["started"] = datetime.now()
 
             # flag it as running & make the info public
-            self._session_infos["state"] = self.State.IN_PROGRESS
+            self._session_infos["state"] = SessionState.IN_PROGRESS
             self._sid = store_session_to_file(self._session_infos)
 
             # run the new process
@@ -367,7 +369,7 @@ class Session:
             if self.property("started") is None:
                 self._session_infos["started"] = datetime.now()
 
-            self._session_infos["state"] = self.State.IN_PROGRESS
+            self._session_infos["state"] = SessionState.IN_PROGRESS
             self._sid = store_session_to_file(self._session_infos)
 
             # run the code

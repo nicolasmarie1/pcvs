@@ -6,6 +6,8 @@ import tempfile
 from typing import Any
 from typing import Iterable
 
+from typeguard import typechecked
+
 import pcvs
 from pcvs import io
 from pcvs import testing
@@ -23,6 +25,7 @@ from pcvs.testing.test import Test
 # appearing in this list will be considered as the main language
 
 
+@typechecked
 def detect_compiler(build_info: dict) -> list[str] | None:
     """
     Determine compilers to use for a target file (or list of files).
@@ -53,6 +56,7 @@ def detect_compiler(build_info: dict) -> list[str] | None:
     return None
 
 
+@typechecked
 def extract_compilers_envs() -> list[str]:
     """Extract compilers environment."""
     envs = []
@@ -61,6 +65,7 @@ def extract_compilers_envs() -> list[str]:
     return envs
 
 
+@typechecked
 def extract_compiler_config(
     compiler: str | None, variants: list[str]
 ) -> tuple[str | None, list[str], list[str], bool]:
@@ -101,7 +106,8 @@ def extract_compiler_config(
     )
 
 
-def build_job_deps(deps_node: dict[str, list[str]], pkg_label: str, pkg_prefix: str) -> list:
+@typechecked
+def build_job_deps(deps_node: dict[str, Any], pkg_label: str, pkg_prefix: str) -> list:
     """
     Build the dependency list from a given dependency YAML node.
 
@@ -128,7 +134,8 @@ def build_job_deps(deps_node: dict[str, list[str]], pkg_label: str, pkg_prefix: 
     return deps
 
 
-def build_pm_deps(deps_node: dict[str, dict]) -> list[PManager]:
+@typechecked
+def build_pm_deps(deps_node: dict[str, Any]) -> list[PManager]:
     """Build the dependency list from a given YAML node.
 
     This only initialize package-manager oriented deps. For job deps, see
@@ -142,6 +149,7 @@ def build_pm_deps(deps_node: dict[str, dict]) -> list[PManager]:
     return pm.identify(deps_node.get("package_manager", {}))
 
 
+@typechecked
 class TEDescriptor:
     """A Test Descriptor (named TD, TE or TED), maps a test program
     representation, as defined by a root node in a single test files.
@@ -200,9 +208,6 @@ class TEDescriptor:
 
         :raises TDFormatError: Unproper YAML TE format (sanity check)
         """
-        if not isinstance(nodecontent, dict):
-            raise TestException.TestExpressionError(nodecontent)
-
         self._te_name: str = name
         self._skipped: bool = name.startswith(".")
         self._te_label: str = label
@@ -389,7 +394,7 @@ class TEDescriptor:
 
         compiler = compilers[0]
 
-        compiler_config = extract_compiler_config(compiler, self._build.get("variants", {}))
+        compiler_config = extract_compiler_config(compiler, self._build.get("variants", []))
         program, args, envs, valid = compiler_config
         if not valid:
             io.console.warn(f"Compiler program '{program}' not found for test '{self.name}'")

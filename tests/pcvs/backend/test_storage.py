@@ -85,9 +85,9 @@ def test_locator() -> None:
         ).joinpath("profile")
 
         # get_storage_path
-        assert cl.get_storage_path("default.yml", ConfigKind.PROFILE, ConfigScope.LOCAL) == Path(
-            scopes_to_paths[ConfigScope.LOCAL]
-        ).joinpath("profile").joinpath("default.yml")
+        assert cl.get_storage_path(
+            Path("default.yml"), ConfigKind.PROFILE, ConfigScope.LOCAL
+        ) == Path(scopes_to_paths[ConfigScope.LOCAL]).joinpath("profile").joinpath("default.yml")
 
         # default local profile ConfigDesc
         default_lp = ConfigDesc(
@@ -104,10 +104,10 @@ def test_locator() -> None:
         )
 
         # find_config
-        assert cl.find_config("default", ConfigKind.PROFILE) == default_lp
-        assert cl.find_config("default.yml", ConfigKind.PROFILE) == default_lp
-        assert cl.find_config("default", ConfigKind.PROFILE, ConfigScope.LOCAL) == default_lp
-        assert cl.find_config("test", ConfigKind.PROFILE) is None
+        assert cl.find_config(Path("default"), ConfigKind.PROFILE) == default_lp
+        assert cl.find_config(Path("default.yml"), ConfigKind.PROFILE) == default_lp
+        assert cl.find_config(Path("default"), ConfigKind.PROFILE, ConfigScope.LOCAL) == default_lp
+        assert cl.find_config(Path("test"), ConfigKind.PROFILE) is None
 
         # parse_full
         # # 1 token

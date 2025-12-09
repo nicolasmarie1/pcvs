@@ -7,6 +7,7 @@ from datetime import datetime
 
 from rich.panel import Panel
 from rich.table import Table
+from typeguard import typechecked
 
 from pcvs import io
 from pcvs import NAME_BUILD_ARCHIVE_DIR
@@ -92,6 +93,7 @@ except ImportError:
     required=False,
 )
 @click.pass_context
+@typechecked
 def exec_cli(
     ctx: click.Context,
     output: str,
@@ -209,9 +211,10 @@ def exec_cli(
     help="Custom profile to use when checking pcvs.setup scripts",
 )
 @click.pass_context
+@typechecked
 def check(
     ctx: click.Context,  # pylint: disable=unused-argument
-    directory: str,
+    directory: str | None,
     encoding: bool,
     color: bool,
     configs: bool,
@@ -318,6 +321,7 @@ def check(
     nargs=-1,
 )
 @click.pass_context
+@typechecked
 def clean(
     ctx: click.Context,  # pylint: disable=unused-argument
     force: bool,
@@ -407,6 +411,7 @@ def clean(
     default=False,
 )
 @click.pass_context
+@typechecked
 def discover(
     ctx: click.Context, path: str, create: bool, force: bool  # pylint: disable=unused-argument
 ) -> None:

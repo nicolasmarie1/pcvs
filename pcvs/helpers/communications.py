@@ -2,14 +2,16 @@ from abc import abstractmethod
 from typing import Any
 
 import requests
+from typeguard import typechecked
 
 from pcvs.backend.metaconfig import GlobalConfig
-from pcvs.backend.session import Session
+from pcvs.backend.session import SessionState
 from pcvs.testing.test import Test
 
 sendData = False
 
 
+@typechecked
 class GenericServer:
 
     def __init__(self, session_id: str) -> None:
@@ -29,6 +31,7 @@ class GenericServer:
         pass
 
 
+@typechecked
 class EmbeddedServer(GenericServer):
 
     def send(self, data: Any) -> None:
@@ -38,6 +41,7 @@ class EmbeddedServer(GenericServer):
         pass
 
 
+@typechecked
 class RemoteServer(GenericServer):
 
     DEFAULT_SRV_ADDR = "http://localhost:5000"
@@ -59,7 +63,7 @@ class RemoteServer(GenericServer):
             "/submit/session_init",
             {
                 "sid": self._metadata["sid"],
-                "state": Session.State.IN_PROGRESS,
+                "state": SessionState.IN_PROGRESS,
                 "buildpath": GlobalConfig.root["validation"]["output"],
                 "dirs": GlobalConfig.root["validation"]["dirs"],
             },
@@ -67,7 +71,7 @@ class RemoteServer(GenericServer):
 
     def close_connection(self) -> None:
         self._json_send(
-            "/submit/session_fini", {"sid": self._metadata["sid"], "state": Session.State.COMPLETED}
+            "/submit/session_fini", {"sid": self._metadata["sid"], "state": SessionState.COMPLETED}
         )
 
     @property

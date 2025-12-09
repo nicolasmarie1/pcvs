@@ -8,9 +8,9 @@ from ..conftest import click_call
 from ..conftest import dummy_profile_fs
 
 
-@patch("pcvs.backend.session.store_session_to_file", return_value={})
-@patch("pcvs.backend.session.update_session_from_file", return_value={})
-@patch("pcvs.backend.session.remove_session_from_file", return_value={})
+@patch("pcvs.backend.session.store_session_to_file", return_value=str(-1))
+@patch("pcvs.backend.session.update_session_from_file", return_value=True)
+@patch("pcvs.backend.session.remove_session_from_file", return_value=True)
 def test_big_integration(rs, us, ss, caplog):  # pylint: disable=unused-argument
     caplog.set_level(logging.DEBUG)
     with dummy_profile_fs():

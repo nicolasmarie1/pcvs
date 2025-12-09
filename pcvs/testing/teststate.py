@@ -1,7 +1,10 @@
 from enum import IntEnum
 from typing import Self
 
+from typeguard import typechecked
 
+
+@typechecked
 class TestState(IntEnum):
     """Provide Status management, specifically for tests/jobs.
 

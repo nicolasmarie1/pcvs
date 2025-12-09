@@ -25,7 +25,7 @@ from pcvs.testing.test import TestState
 def test_test():
     test = tested.Test(
         label="label",
-        tags=None,
+        tags=[],
         artifacts={},
         command="testcommand",
         te_name="testte_name",

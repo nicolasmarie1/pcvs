@@ -1,6 +1,8 @@
 import os
 import sys
 
+from typeguard import typechecked
+
 from pcvs import analysis
 from pcvs import io
 from pcvs.analysis import graph
@@ -74,6 +76,7 @@ except ImportError:
     help="Maximum number of runs to look back in the banks.",
 )
 @click.pass_context
+@typechecked
 def cli_graph(
     ctx: click.Context,  # pylint: disable=unused-argument
     bank_name: str,

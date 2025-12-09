@@ -2,6 +2,8 @@ import os
 import sys
 from datetime import datetime
 
+from typeguard import typechecked
+
 from pcvs import io
 from pcvs import NAME_BUILDFILE
 from pcvs import NAME_RUN_CONFIG_FILE
@@ -28,8 +30,11 @@ except ImportError:
 from click.shell_completion import CompletionItem
 
 
+@typechecked
 def iterate_dirs(
-    ctx: click.Context, param: click.Parameter, value: str  # pylint: disable=unused-argument
+    ctx: click.Context,  # pylint: disable=unused-argument
+    param: click.Parameter,  # pylint: disable=unused-argument
+    value: tuple[str, ...],
 ) -> dict[str, str] | None:
     """Validate directories provided by users & format them correctly.
 
@@ -37,13 +42,9 @@ def iterate_dirs(
     directories if none was provided.
 
     :param ctx: Click Context
-    :type ctx: :class:`Click.Context`
-    :param param: The arg targeting the function
-    :type param: str
+    :param param: The param targeting the function
     :param value: The value given by the user:
-    :type value: List[str] or str
     :return: properly formatted dict of user directories, keys are labels.
-    :rtype: dict
     """
     dirs: dict[str, str] = {}
     if value is None:  # if not specified
@@ -75,6 +76,7 @@ def iterate_dirs(
     return dirs
 
 
+@typechecked
 def compl_list_dirs(
     ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
 ) -> list[CompletionItem]:
@@ -91,6 +93,7 @@ def compl_list_dirs(
     return obj.shell_complete(ctx, param, incomplete)
 
 
+@typechecked
 def compl_list_profiles(
     ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
 ) -> list[str]:
@@ -102,6 +105,7 @@ def compl_list_profiles(
     ]
 
 
+@typechecked
 def handle_build_lockfile(exc: Exception | None = None) -> None:
     """Remove the file lock in build dir if the application stops abruptly.
 
@@ -126,6 +130,7 @@ def handle_build_lockfile(exc: Exception | None = None) -> None:
         raise exc
 
 
+@typechecked
 def parse_tags(filters: str) -> dict[str, bool]:
     """Parse input to generate tags set."""
     tags = {}
@@ -273,6 +278,7 @@ def parse_tags(filters: str) -> dict[str, bool]:
     "--spack-recipe",
     "spack_recipe",
     type=str,
+    default=None,
     multiple=True,
     help="Build test-suites based on Spack recipes",
 )
@@ -310,25 +316,26 @@ def parse_tags(filters: str) -> dict[str, bool]:
 @io.capture_exception(Exception)
 @io.capture_exception(Exception, handle_build_lockfile)
 @io.capture_exception(KeyboardInterrupt, handle_build_lockfile)
+@typechecked
 def run(
     ctx: click.Context,
-    profilename: str,
-    output: str,
-    settings_file: str,
+    profilename: str | None,
+    output: str | None,
+    settings_file: str | None,
     detach: bool,
     override: bool,
     simulated: bool,
     anon: bool,
-    bank: str,
-    msg: str,
-    dup: str,
+    bank: str | None,
+    msg: str | None,
+    dup: str | None,
     enable_report: bool,
-    report_addr: str,
+    report_addr: str | None,
     generate_only: bool,
-    timeout: int,
+    timeout: int | None,
     only_success: bool,
-    spack_recipe: str,
-    print_policy: str,
+    spack_recipe: tuple[str, ...] | None,
+    print_policy: str | None,
     print_filter: str,
     run_filter: str,
     dirs: dict[str, str],  # see callback function for type infos
@@ -452,7 +459,6 @@ def run(
     if val_cfg["background"]:
         sid = the_session.run_detached(the_session)
         print("Session successfully started, ID {}".format(sid))
-
     else:
         sid = the_session.run(the_session)
         utils.unlock_file(buildfile)
