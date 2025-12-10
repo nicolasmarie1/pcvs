@@ -69,7 +69,7 @@ class DataRepresentation:
         # if targeted node is reached, insert the test
         if len(depth) == 0:
             if "__elems" not in node:
-                node["__elems"] = list()
+                node["__elems"] = []
             node["__elems"].append(test)
         else:
             # create default for the first access + init counters to zero
@@ -89,8 +89,8 @@ class DataRepresentation:
         """
 
         # if the SID already exist, a dummy one is generated.
-        if sid in self.rootree.keys():
-            while sid in self.rootree.keys():
+        if sid in self.rootree:
+            while sid in self.rootree:
                 sid = str(random.randint(0, 10000))
 
         # initialize the subtree for this session
@@ -114,7 +114,7 @@ class DataRepresentation:
         :param session_data: session infos (state)
         :type session_data: dict
         """
-        assert sid in self.rootree.keys()
+        assert sid in self.rootree
         self.rootree[sid]["state"] = session_data["state"]
 
     def insert_test(self, sid: str, test: Test) -> bool:

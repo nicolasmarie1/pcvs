@@ -582,7 +582,7 @@ def capture_exception(
                 return func(*args, **kwargs)
             except e_type as e:
                 if user_func is None:
-                    assert console
+                    assert console is not None
                     console.exception(e)
                     console.error(f"[red bold]Exception: {e}[/]")
                     console.error(
@@ -592,7 +592,8 @@ def capture_exception(
                     if doexit:
                         sys.exit(1)
                 else:
-                    user_func(e)
+                    return user_func(e)
+            return None
 
         return wrapper
 

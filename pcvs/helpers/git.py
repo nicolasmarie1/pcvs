@@ -15,9 +15,9 @@ from pcvs.helpers.exceptions import GitException
 try:
     import pygit2
 
-    has_pygit2 = True
+    HAS_PYGIT2 = True
 except ModuleNotFoundError:
-    has_pygit2 = False
+    HAS_PYGIT2 = False
 
 
 class Reference:
@@ -708,13 +708,14 @@ class GitByCLI(GitByGeneric):
     def _insert_path(self, treebuild, path, data):
         assert isinstance(treebuild, Tree)
 
-        if len(path) == 1:
-            data_hash = generate_data_hash(str(data))
-            if not self.__valid_object(data_hash):
-                check = self._create_blob(path, data)
-                assert check == data_hash
-            treebuild.children.append(data_hash)
-            return data_hash
+        assert len(path) == 1
+
+        data_hash = generate_data_hash(str(data))
+        if not self.__valid_object(data_hash):
+            check = self._create_blob(path, data)
+            assert check == data_hash
+        treebuild.children.append(data_hash)
+        return data_hash
 
     def _create_tree(self, name, children):
         array = []
@@ -865,7 +866,7 @@ def elect_handler(prefix: str | None = None) -> GitByGeneric:
     not provided for Python3.6 and older & building pygit2 requires specific
     libgit2 version to be installed, hardening the installation process)
     """
-    if has_pygit2:
+    if HAS_PYGIT2:
         git_handle = GitByAPI(prefix)
     else:
         git_handle = GitByCLI(prefix)
@@ -882,9 +883,9 @@ def request_git_attr(k) -> str:
     :rtype: str
     """
     try:
-        git_conf = dict()
+        git_conf = {}
         # TODO: not only look for user config
-        if has_pygit2:
+        if HAS_PYGIT2:
             git_conf = pygit2.Config.get_global_config()
         else:
             git_conf[k] = sh.git.config("--get", k).strip()

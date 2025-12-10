@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/profile-scheme.yml
 ---
 compiler: "mpi"
-criterion: "mpi-omp"
+criterion: "mpi_omp"
 group: "common"
 machine: "default"
-runtime: "mpi-omp"
+runtime: "mpi_omp"

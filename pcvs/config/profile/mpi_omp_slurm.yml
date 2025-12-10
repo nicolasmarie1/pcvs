@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/profile-scheme.yml
 ---
 compiler: "mpi"
-criterion: "mpi-omp-slurm"
+criterion: "mpi_omp_slurm"
 group: "common"
 machine: "default"
-runtime: "mpi-omp-slurm"
+runtime: "mpi_omp_slurm"

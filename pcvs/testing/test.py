@@ -256,7 +256,7 @@ class Test:
         return self._mod_deps
 
     @classmethod
-    def get_jid_from_name(self, name: str) -> str:
+    def get_jid_from_name(cls, name: str) -> str:
         namebytes = name.encode("utf-8")
         return hashlib.md5(namebytes).hexdigest()
 
@@ -809,7 +809,7 @@ class Test:
 
     @classmethod
     def compute_fq_name(
-        self,
+        cls,
         label: str,
         subtree: str,
         name: str,

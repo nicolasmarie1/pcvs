@@ -6,7 +6,7 @@ from pcvs import io
 from pcvs import NAME_BUILDIR
 from pcvs.backend import report as pvReport
 from pcvs.helpers import utils
-from pcvs.ui.textual import textual_avail
+from pcvs.ui.textual import TEXTUAL_AVAIL
 from pcvs.webview import start_server
 
 try:
@@ -49,7 +49,7 @@ def report(ctx: click.Context, path_list: list[str]) -> int:
             raise click.BadArgumentUsage("{} is not a build directory.".format(prefix))
 
     if ctx.obj["tui"]:
-        if not textual_avail:
+        if not TEXTUAL_AVAIL:
             raise click.BadOptionUsage("--tui", "Textual is not available.")
 
         from pcvs.ui.textual import report as gui

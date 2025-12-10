@@ -1,12 +1,12 @@
 from pcvs.plugins import Plugin
 from pcvs.testing.teststate import TestState
 
-LOAD_FAILED = False
+load_failed = False
 try:
     from junit_xml import TestCase
     from junit_xml import TestSuite
 except ImportError:
-    LOAD_FAILED = True
+    load_failed = True
 
 
 class JUnit(Plugin):
@@ -14,7 +14,7 @@ class JUnit(Plugin):
     step = Plugin.Step.SCHED_PUBLISH_WRITE
 
     def run(self, *args, **kwargs):  # type: ignore
-        if LOAD_FAILED:
+        if load_failed:
             raise ImportError("Fail to load junit_xml.")
         data = kwargs.get("data", {})
         out_prefix = kwargs.get("outfile", "./testfile") + ".xml"

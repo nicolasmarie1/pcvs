@@ -53,7 +53,7 @@ class SpackManager(PManager):
         :return: command to install/load the package
         :rtype: str
         """
-        s = list()
+        s = []
         if install:
             s.append("spack location -i {} > /dev/null 2>&1".format(self.spec))
             s.append('test "$?" != "0" && spack install {}'.format(self.spec))

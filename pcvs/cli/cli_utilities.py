@@ -243,7 +243,7 @@ def check(
         t = Table("Alias", "Symbol", "Fallback", title="UTF Support")
         w = io.SpecialChar(utf_support=True)
         wo = io.SpecialChar(utf_support=False)
-        for k in io.SpecialChar.__dict__.keys():
+        for k in io.SpecialChar.__dict__:
             if k.startswith("_"):
                 continue
             t.add_row(k, str(getattr(w, k)), str(getattr(wo, k)))
@@ -356,7 +356,7 @@ def clean(
             io.console.print_section("Found build: {}".format(root))
 
             archive_dir = os.path.join(root, NAME_BUILD_ARCHIVE_DIR)
-            archives = sorted([x for x in os.listdir(archive_dir)])
+            archives = sorted(os.listdir(archive_dir))
 
             if len(archives) == 0 and fake:
                 io.console.print_item("No archive found.")

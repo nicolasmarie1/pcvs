@@ -5,8 +5,8 @@ NB_TES = 100000
 DIR = os.path.join(os.getcwd(), "generated_tree")
 
 TE_PER_FILE = int(NB_TES / NB_FILES)
-TREE_MATRIX = []
-TREE_IDX = 0
+TREE_MATRIX: list = []
+tree_idx = 0
 
 
 if __name__ == "__main__":
@@ -14,7 +14,7 @@ if __name__ == "__main__":
     for d in range(1, NB_FILES + 1):
 
         subdirectory = os.path.join(DIR, "d{}".format(d % NB_FILES))
-        TREE_IDX += 1
+        tree_idx += 1
 
         if not os.path.isdir(subdirectory):
             os.makedirs(subdirectory)

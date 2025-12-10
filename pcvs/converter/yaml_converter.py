@@ -11,7 +11,7 @@ import pcvs
 from pcvs import io
 from pcvs.helpers.exceptions import CommonException
 
-desc_dict = dict()
+desc_dict = {}
 
 
 def separate_key_and_value(s: str, c: str) -> tuple:
@@ -44,7 +44,7 @@ def set_with(data, klist, val, append=False):
     if append:
         # if the key doe not exist, create the list
         if klist[-1] not in data:
-            data[klist[-1]] = list()
+            data[klist[-1]] = []
         # if it exists and is not a list ==> complain!
         elif not isinstance(data[klist[-1]], list):
             raise TypeError("fail")
@@ -114,7 +114,7 @@ def check_if_key_matches(key, ref_array) -> tuple:
 
 def process(data, ref_array=None, warn_if_missing=True) -> dict:
     """Process YAML dict 'data' and return a transformed dict"""
-    output = dict()
+    output = {}
 
     # desc_dict['second'] is set to contain all keys
     # by opposition to desc_dict['first'] containing modifiers
@@ -171,7 +171,7 @@ def process(data, ref_array=None, warn_if_missing=True) -> dict:
 def process_modifiers(data):
     """applies rules in-place for the data dict.
     Rules are present in the desc_dict['first'] sub-dict."""
-    if "first" in desc_dict.keys():
+    if "first" in desc_dict:
         # do not warn for missing keys in that case (incomplete)
         return process(data, desc_dict["first"], warn_if_missing=False)
     else:
@@ -184,7 +184,7 @@ def replace_placeholder(tmp, refs) -> dict:
     with "<>". Each placeholder will be replaced (i.e. key will be changed) by
     the associated value in refs."""
 
-    final = dict()
+    final = {}
     for old, new in tmp.items():
         if old.startswith("__"):
             continue

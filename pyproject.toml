@@ -9,6 +9,7 @@ dependencies = [
   "ruamel.yaml",
   "Click>=8.0",
   "requests",
+  "types-requests",
   "jsonschema>=3.0.0",
   "flask",
   "sh",
@@ -120,9 +121,6 @@ ignore_errors = true
 commands = [
   [
     'pre-commit', 'run', '--all-files',
-  ],
-  [
-    'mypy', '--config-file', './mypy.ini', './pcvs',
   ],
 ]
 

@@ -8,7 +8,7 @@ from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.backend.session import SessionState
 from pcvs.testing.test import Test
 
-sendData = False
+SEND_DATA = False
 
 
 @typechecked

@@ -56,7 +56,7 @@ def iterate_dirs(
         label = os.path.basename(testpath)
 
         # if label already used for a different path
-        if label in dirs.keys() and testpath != dirs[label]:
+        if label in dirs and testpath != dirs[label]:
             err_msg += "- '{}': Used more than once\n".format(label.upper())
         elif not os.path.isdir(testpath):
             err_msg += "- '{}': No such directory\n".format(testpath)

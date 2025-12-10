@@ -122,7 +122,7 @@ class ResultFile:
 
         data["result"]["output"] = insert
 
-        assert job_id not in self._data.keys()
+        assert job_id not in self._data
         self._data[job_id] = data
         self._cnt += 1
         self._sz = max(start + length, self._sz + len(json.dumps(data)))
@@ -998,7 +998,7 @@ class BuildDirectoryManager:
         __relative_add(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN))
         __relative_add(os.path.join(self._path, pcvs.NAME_DEBUG_FILE))
 
-        not_found_files = list()
+        not_found_files = []
         for p in self._extras:
             if not os.path.exists(p):
                 not_found_files.append(p)

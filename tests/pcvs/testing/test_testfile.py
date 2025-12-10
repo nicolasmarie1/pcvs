@@ -115,7 +115,7 @@ def isolated_yml_test():
 )
 @patch.dict(os.environ, {"HOME": "/home/user", "USER": "superuser"})
 # @patch("pcvs.testing.tedesc.TEDescriptor", autospec=True)
-def test_TestFile(isolated_yml_test):  # pylint: disable=redefined-outer-name
+def test_testfile(isolated_yml_test):  # pylint: disable=redefined-outer-name
     # orcherstrator use global config to setup, so it need to be added at runtime
     # after GlobalConfig have already been initialize.
     with isolated_fs():

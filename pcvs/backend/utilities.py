@@ -35,7 +35,7 @@ def locate_scriptpaths(output: str | None = None) -> list[str]:
     """
     if output is None:
         output = os.getcwd()
-    scripts = list()
+    scripts = []
     for root, _, files in os.walk(output):
         for f in files:
             if f == "list_of_tests.sh":

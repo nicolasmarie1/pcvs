@@ -569,7 +569,7 @@ first = True
 def load_plugin() -> None:
     rt = GlobalConfig.root["runtime"]
     val = GlobalConfig.root["validation"]
-    pCollection = GlobalConfig.root.get_internal("pColl")
+    p_collection = GlobalConfig.root.get_internal("pColl")
 
     if "plugin" in rt:
         # Temporary, for compatibility with older buold base64 encoded profile. -- start
@@ -589,7 +589,7 @@ def load_plugin() -> None:
         with open(rt["pluginfile"], "w", encoding="utf-8") as fh:
             fh.write(plugin_code)
         try:
-            pCollection.register_plugin_by_file(rt["pluginfile"], activate=True)
+            p_collection.register_plugin_by_file(rt["pluginfile"], activate=True)
         except SyntaxError:
             io.console.critical(
                 "Profile plugin encoded in base64, "
@@ -598,7 +598,7 @@ def load_plugin() -> None:
                 "or by using `pcvs edit -p`"
             )
     elif "defaultplugin" in rt:
-        pCollection.activate_plugin(rt["defaultplugin"])
+        p_collection.activate_plugin(rt["defaultplugin"])
 
 
 @typechecked

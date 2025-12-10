@@ -58,36 +58,6 @@ repos:
         require_serial: true
         minimum_pre_commit_version: '2.9.2'
 
-      - id: 'pylint'
-        name: 'pylint'
-        stages: ['pre-commit', 'pre-merge-commit', 'pre-push']
-        entry: 'pylint'
-        args:
-          - --fail-under=10
-          - --extension-pkg-whitelist=pygit2
-        # TODO: replace pylint --disable=R,C with the following
-        # - '--disable=line-too-long,too-many-lines'
-        # - '--disable=missing-module-docstring,missing-class-docstring,missing-function-docstring'
-        # - '--disable=too-many-instance-attributes,too-few-public-methods'
-        # - '--disable=too-many-arguments,too-many-positional-arguments'
-        # - '--disable=too-many-nested-blocks,too-many-branches,too-many-locals'
-        # - '--disable=consider-using-f-string'
-          - --disable=R,C
-          - --disable=unspecified-encoding
-          - --disable=keyword-arg-before-vararg,dangerous-default-value
-          - --disable=global-variable-not-assigned,global-statement
-          - --disable=broad-exception-caught
-          - --disable=fixme
-
-        language: 'system'
-        types: ['python']
-        require_serial: true
-        exclude: |-
-          (?x)
-            .tox|
-            examples|
-            build
-
       - id: 'flake8'
         name: 'flake8'
         description: '`flake8` is a command-line utility for enforcing style consistency across Python projects'
@@ -101,6 +71,67 @@ repos:
           (?x)
             .tox|
             build
+
+      - id: 'mypy'
+        name: 'mypy'
+        description: '`mypy` is a static type checker for python'
+        stages: ['pre-commit', 'pre-merge-commit', 'pre-push']
+        entry: 'mypy'
+        args: ['--config-file', 'mypy.ini']
+        language: 'python'
+        types: ['python']
+        require_serial: true
+        # include only pcvs, not the tests / utils / examples
+        # disable types check for git.py as there are no stable type stub pygit2
+        # disable yaml_converter as it is a pain and convertor does not work anyway
+        # disable cli report as textual does not fully support typing
+        exclude: |-
+          (?x)
+            .tox|
+            build|
+            examples|
+            tests|
+            utils|
+            docs|
+            git\.py|
+            yaml_converter\.py|
+            ui/textual/report/__init__\.py
+
+      # pylint is last as it is very slow
+      - id: 'pylint'
+        name: 'pylint'
+        stages: ['pre-commit', 'pre-merge-commit', 'pre-push']
+        entry: 'pylint'
+        args:
+          - --fail-under=10
+          - --extension-pkg-whitelist=pygit2
+          - --disable=line-too-long,too-many-lines
+          - --disable=missing-module-docstring,missing-class-docstring,missing-function-docstring # TODO: write doc strings and remove this line
+          - --disable=too-many-ancestors # class declaration issues
+          - --disable=too-many-instance-attributes,too-few-public-methods,too-many-public-methods # class methods issues
+          - --disable=too-many-arguments,too-many-positional-arguments # function arguments issues
+          - --disable=too-many-nested-blocks,too-many-branches,too-many-locals,too-many-statements,too-many-return-statements # function code issues
+          - --disable=no-else-return,no-else-raise,no-else-continue # this just prevent writing easy to understand code
+          - --disable=consider-using-f-string,consider-using-with # not always possible
+          - --disable=import-outside-toplevel,wrong-import-order # needed because of rich_click import
+          - --disable=duplicate-code # false positive in plugins examples
+          - --disable=unidiomatic-typecheck # `type() is Type` is more strict that `isinstance`, bad check
+          - --disable=unspecified-encoding
+          - --disable=keyword-arg-before-vararg,dangerous-default-value
+          - --disable=global-variable-not-assigned,global-statement
+          - --disable=broad-exception-caught
+          - --disable=fixme
+
+        language: 'system'
+        types: ['python']
+        require_serial: true
+        exclude: |-
+          (?x)
+            .tox|
+            examples|
+            build|
+            docs/source/conf\.py
+
 exclude: |
   (?x)
     ^.*\.min\.js$|

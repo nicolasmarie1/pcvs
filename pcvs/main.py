@@ -29,12 +29,12 @@ try:
 except ImportError:
     import click  # type: ignore
 
-CONTEXT_SETTINGS = dict(
-    help_option_names=["-h", "--help", "-help"],
-    ignore_unknown_options=True,
-    allow_interspersed_args=False,
-    auto_envvar_prefix="PCVS",
-)
+CONTEXT_SETTINGS = {
+    "help_option_names": ["-h", "--help", "-help"],
+    "ignore_unknown_options": True,
+    "allow_interspersed_args": False,
+    "auto_envvar_prefix": "PCVS",
+}
 
 
 @typechecked

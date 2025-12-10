@@ -17,7 +17,7 @@ def parse_spec_variants(specname: str) -> dict[str, dict[str, Any]]:
     :return: the dict of possible values for each variants
     :rtype: Dict[str, Any]
     """
-    d = dict()
+    d = {}
     cmd = (
         'spack python -c \'import spack.repo; print("\\n".join(["{}:{}".format(v.name, v.allowed_values) for v in spack.repo.get("'
         + specname

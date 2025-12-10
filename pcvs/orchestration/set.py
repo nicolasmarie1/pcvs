@@ -154,8 +154,7 @@ class Set:
     @property
     def content(self) -> Iterable[Test]:
         """Iterable iterating over the job list."""
-        for j in self._map.values():
-            yield j
+        yield from self._map.values()
 
     @property
     def completed(self) -> bool:

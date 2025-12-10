@@ -7,7 +7,7 @@ from rich.progress import track
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.testing.test import Test
 
-test_count = 10000
+TEST_COUNT = 10000
 prefix = os.path.join(os.getcwd(), "fake_build")
 labels = ["proj" + str(i) for i in range(0, 20 + 1)]
 tagset1 = ["MPI", "OpenMP", "reproducers", "Threads"]
@@ -24,7 +24,7 @@ err_threshold = random.randint(50, 100 + 1)
 manager.init_results(per_file_max_sz=10 * 1024 * 1024)
 manager.results.register_view_item(view="tags", item="MPI")
 
-for t in track(range(1, test_count)):
+for t in track(range(1, TEST_COUNT)):
     label = labels[random.randrange(0, len(labels))]
     tags = [tagset1[random.randrange(0, len(tagset1))]]
     tags += [tagset2[random.randrange(0, len(tagset2))]]
@@ -36,7 +36,7 @@ for t in track(range(1, test_count)):
     status = random.randint(0, 100)
     if status < warn_threshold:
         status = 1
-    elif warn_threshold < status and status < err_threshold:
+    elif warn_threshold < status < err_threshold:
         status = 3
     else:
         status = 2

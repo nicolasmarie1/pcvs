@@ -12,5 +12,15 @@ criterions:
     numeric: true
     position: "after"
     type: "environment"
+  n_node:
+    option: "-N"
+    numeric: true
+    position: "after"
+    type: "argument"
+  n_core:
+    option: "-c"
+    numeric: true
+    position: "after"
+    type: "argument"
 
-plugin: "mpi-omp"
+plugin: "mpi_omp"

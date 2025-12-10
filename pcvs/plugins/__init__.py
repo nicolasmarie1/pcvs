@@ -161,9 +161,10 @@ class Collection:
             return False
         return True
 
-    def try_invoke_plugins(self, step: Plugin.Step, method: str = "run", *args, **kwargs):  # type: ignore
+    def try_invoke_plugins(self, step: Plugin.Step, method: str = "run", *args, **kwargs) -> Any:  # type: ignore
         if self.has_enabled_step(step, method):
             return self.invoke_plugins(step, method, *args, **kwargs)
+        return None
 
     def nb_plugins_for(self, step: Plugin.Step) -> int:
         """Count the number of possible plugins for a given step.

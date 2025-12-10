@@ -122,7 +122,7 @@ def list_alive_sessions() -> dict[str, dict]:
 
 
 @typechecked
-def main_detached_session(sid: str, user_func: Callable, *args, **kwargs):  # type: ignore
+def main_detached_session(sid: str, user_func: Callable, *args, **kwargs) -> int:  # type: ignore
     """Main function processed when running in detached mode.
 
     This function is called by Session.run_detached() and is launched from
@@ -146,7 +146,7 @@ def main_detached_session(sid: str, user_func: Callable, *args, **kwargs):  # ty
     # a child (child2). When the process is run, the first child completes
     # immediately, releasing the parent.
     if os.fork() != 0:
-        return
+        return 0
 
     ret = 0
 
@@ -155,6 +155,7 @@ def main_detached_session(sid: str, user_func: Callable, *args, **kwargs):  # ty
         # beware: this function should only raises exception to stop.
         # a sys.exit() will bypass the rest here.
         ret = user_func(*args, **kwargs)
+        assert isinstance(ret, int)
         update_session_from_file(sid, {"state": SessionState.COMPLETED, "ended": datetime.now()})
     except Exception as e:
         update_session_from_file(sid, {"state": SessionState.ERROR, "ended": datetime.now()})
@@ -330,25 +331,26 @@ class Session:
         io.detach_console()
         self._session_infos["io"] = io.console.outfile
 
-        if self._func is not None:
-            # some sessions can have their starting time set directly when
-            # initializing the object.
-            # for instance for runs, elapsed time not session time but wall time"""
-            if self.property("started") is None:
-                self._session_infos["started"] = datetime.now()
+        assert self._func is not None
 
-            # flag it as running & make the info public
-            self._session_infos["state"] = SessionState.IN_PROGRESS
-            self._sid = store_session_to_file(self._session_infos)
+        # some sessions can have their starting time set directly when
+        # initializing the object.
+        # for instance for runs, elapsed time not session time but wall time"""
+        if self.property("started") is None:
+            self._session_infos["started"] = datetime.now()
 
-            # run the new process
-            child = Process(
-                target=main_detached_session, args=(self._sid, self._func, *args), kwargs=kwargs
-            )
+        # flag it as running & make the info public
+        self._session_infos["state"] = SessionState.IN_PROGRESS
+        self._sid = store_session_to_file(self._session_infos)
 
-            child.start()
+        # run the new process
+        child = Process(
+            target=main_detached_session, args=(self._sid, self._func, *args), kwargs=kwargs
+        )
 
-            return self._sid
+        child.start()
+
+        return self._sid
 
     def run(self, *args, **kwargs) -> str:  # type: ignore
         """

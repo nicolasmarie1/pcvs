@@ -30,7 +30,7 @@ def compl_list_banks(
     :param incomplete: the user input
     :type incomplete: str
     """
-    array = list()
+    array = []
     for k, v in pvBank.list_banks().items():
         array.append((k, v))
     return [CompletionItem(elt[0], help=elt[1]) for elt in array if incomplete in elt[0]]

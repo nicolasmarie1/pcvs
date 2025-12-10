@@ -124,16 +124,16 @@ def session(
     """Manage sessions by listing or acknowledging their completion."""
     sessions = pvSession.list_alive_sessions()
     if sessions is None:
-        sessions = dict()
+        sessions = {}
 
     if ack_all is True:
-        for session_id in sessions.keys():
-            if sessions[session_id]["state"] != pvSession.SessionState.IN_PROGRESS:
+        for session_id, session_obj in sessions.items():
+            if session_obj["state"] != pvSession.SessionState.IN_PROGRESS:
                 pvSession.remove_session_from_file(session_id)
-                lockfile = os.path.join(sessions[session_id]["path"], NAME_BUILDFILE)
+                lockfile = os.path.join(session_obj["path"], NAME_BUILDFILE)
                 utils.unlock_file(lockfile)
     elif ack is not None:
-        if ack not in sessions.keys():
+        if ack not in sessions:
             raise click.BadOptionUsage("--ack", "No such Session id (see pcvs session)")
         elif sessions[ack]["state"] not in [
             pvSession.SessionState.ERROR,

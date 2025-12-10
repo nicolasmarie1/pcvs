@@ -246,7 +246,6 @@ def check_defined_program_validity() -> None:
 
     # TODO: need to handle package_manager commands to process below
     # maybe a dummy testfile should be used
-    return
 
 
 @typechecked
@@ -345,7 +344,7 @@ def find_files_to_process(
                 subtree = os.path.relpath(root, path)
                 if "pcvs.setup" == f:
                     setup_files.append((label, subtree, f))
-                elif "pcvs.yml" == f or "pcvs.yml.in" == f:
+                elif f in ("pcvs.yml", "pcvs.yml.in"):
                     yaml_files.append((label, subtree, f))
     return (setup_files, yaml_files)
 
