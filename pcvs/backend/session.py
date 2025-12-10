@@ -5,13 +5,13 @@ from enum import IntEnum
 from multiprocessing import Process
 from typing import Any
 from typing import Callable
-from typing import Self
 
 from ruamel.yaml import YAML
 from ruamel.yaml.constructor import Constructor
 from ruamel.yaml.main import yaml_object
 from ruamel.yaml.representer import Representer
 from typeguard import typechecked
+from typing_extensions import Self
 
 from pcvs import io
 from pcvs import PATH_SESSION

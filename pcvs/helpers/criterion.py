@@ -4,9 +4,9 @@ import os
 from typing import Any
 from typing import ItemsView
 from typing import Iterable
-from typing import Self
 
 from typeguard import typechecked
+from typing_extensions import Self
 
 from pcvs import io
 from pcvs.backend.metaconfig import GlobalConfig
@@ -562,7 +562,8 @@ def initialize_from_system() -> None:
     GlobalConfig.root.set_internal("comb_cnt", comb_cnt)
 
 
-first = True
+# pylint for python3.10 and pylint for python3.12 does not agree on if this should be snake case or upper case ...
+first = True  # pylint: disable=invalid-name
 
 
 @typechecked

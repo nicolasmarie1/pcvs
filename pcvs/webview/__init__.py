@@ -10,7 +10,7 @@ from pcvs import PATH_INSTDIR
 from pcvs.backend.report import Report
 from pcvs.testing.test import Test
 
-data_manager = None
+DATA_MANAGER = None
 
 
 def create_app(report: Report) -> Flask:
@@ -19,8 +19,8 @@ def create_app(report: Report) -> Flask:
     :return: the application
     :rtype: :class:`Flask`
     """
-    global data_manager
-    data_manager = report
+    global DATA_MANAGER
+    DATA_MANAGER = report
 
     app = Flask(__name__, template_folder=os.path.join(PATH_INSTDIR, "webview/templates"))
 
@@ -53,7 +53,7 @@ def create_app(report: Report) -> Flask:
         :rtype: str
         """
         if "json" in request.args.get("render", []):
-            return jsonify(list(data_manager.session_infos()))  # type: ignore
+            return jsonify(list(DATA_MANAGER.session_infos()))  # type: ignore
         return render_template("main.html")
 
     @app.route("/run/<sid>")
@@ -65,12 +65,12 @@ def create_app(report: Report) -> Flask:
         :return: page content
         :rtype: str
         """
-        if sid not in data_manager.session_ids:
+        if sid not in DATA_MANAGER.session_ids:
             abort(404)
 
-        labels = data_manager.single_session_labels(sid)
-        tags = data_manager.single_session_tags(sid)
-        jobs_cnt = data_manager.single_session_job_cnt(sid)
+        labels = DATA_MANAGER.single_session_labels(sid)
+        tags = DATA_MANAGER.single_session_tags(sid)
+        jobs_cnt = DATA_MANAGER.single_session_job_cnt(sid)
 
         if "json" in request.args.get("render", []):
             return jsonify(  # type: ignore
@@ -78,13 +78,13 @@ def create_app(report: Report) -> Flask:
                     "tag": len(tags),
                     "label": len(labels),
                     "test": jobs_cnt,
-                    "config": data_manager.single_session_config(sid),
+                    "config": DATA_MANAGER.single_session_config(sid),
                 }
             )
         return render_template(
             "session_main.html",
             sid=sid,
-            rootdir=data_manager.single_session_build_path(sid),
+            rootdir=DATA_MANAGER.single_session_build_path(sid),
             nb_tests=jobs_cnt,
             nb_labels=len(labels),
             nb_tags=len(tags),
@@ -117,7 +117,7 @@ def create_app(report: Report) -> Flask:
         """
         if "json" in request.args.get("render", []):
             out = []
-            infos = data_manager.single_session_get_view(sid, selection, summary=True)
+            infos = DATA_MANAGER.single_session_get_view(sid, selection, summary=True)
             assert infos is not None
             for k, v in infos.items():
                 out.append({"name": k, "count": v})
@@ -147,9 +147,9 @@ def create_app(report: Report) -> Flask:
         if "json" in request.args.get("render", []):
             # special case
             if selection == "status":
-                job_list = data_manager.single_session_status(sid, status_filter=request_item)
+                job_list = DATA_MANAGER.single_session_status(sid, status_filter=request_item)
             else:
-                struct = data_manager.single_session_get_view(
+                struct = DATA_MANAGER.single_session_get_view(
                     sid, selection, subset=request_item, summary=False
                 )
                 # jobs are returned split into 3 lists, depending on their status
@@ -161,7 +161,7 @@ def create_app(report: Report) -> Flask:
                     for _, s in m.items():
                         job_list += s
             for elt in job_list:
-                cur: Test | None = data_manager.single_session_map_id(sid, elt)
+                cur: Test | None = DATA_MANAGER.single_session_map_id(sid, elt)
                 if cur is not None:
                     out.append(cur.to_json(strstate=True))
 
@@ -183,7 +183,7 @@ def create_app(report: Report) -> Flask:
         """
         json_session = request.get_json()
         sid = json_session["sid"]
-        data_manager.add_session(sid)
+        DATA_MANAGER.add_session(sid)
 
         return "OK!", 200
 

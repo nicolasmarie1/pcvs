@@ -24,7 +24,8 @@ from pcvs.plugins import Plugin
 from pcvs.testing import tedesc
 from pcvs.testing.test import Test
 
-constant_tokens: dict | None = None
+# pylint for python3.10 and pylint for python3.12 does not agree on if this should be snake case or upper case ...
+constant_tokens: dict | None = None  # pylint: disable=invalid-name
 
 
 @typechecked

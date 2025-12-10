@@ -530,7 +530,7 @@ class PCVSConsole:
         self._stdout.print(f"Parallel Computing Validation System (pcvs) -- version {pcvs_version}")
 
 
-console: PCVSConsole = None  # type: ignore
+console: PCVSConsole = None  # type: ignore  # pylint: disable=invalid-name
 
 
 def init(color: bool = True, verbose: int = 0) -> None:
@@ -548,14 +548,12 @@ def detach_console() -> None:
 def capture_exception(
     e_type: Any, user_func: Optional[Callable[[Exception], None]] = None, doexit: bool = True
 ) -> Callable[[Callable], Callable[[Any], Any]]:
-    """wraps functions to capture unhandled exceptions for high-level
-    function not to crash.
+    """
+    Wraps functions to capture unhandled exceptions for high-level function not to crash.
+
     :param e_type: errors to be caught
-    :type: e_type: Exception
     :param user_func: Optional, a function to call to manage the exception
-    :type: a function pointer
     :return: function handler to manage exception
-    :rtype: function pointer
     """
 
     def inner_function(func: Callable[[Any], Any]) -> Callable[[Any], Any]:

@@ -7,9 +7,9 @@ import shlex
 import subprocess
 from typing import Any
 from typing import Iterable
-from typing import Self
 
 from typeguard import typechecked
+from typing_extensions import Self
 
 from pcvs import io
 from pcvs.backend.metaconfig import GlobalConfig

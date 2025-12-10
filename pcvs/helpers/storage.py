@@ -3,9 +3,9 @@
 import os
 from enum import Enum
 from pathlib import Path
-from typing import Self
 
 from typeguard import typechecked
+from typing_extensions import Self
 
 from pcvs import io
 from pcvs import NAME_CONFIGDIR

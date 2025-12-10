@@ -9,10 +9,10 @@ from bz2 import BZ2File
 from typing import Any
 from typing import Iterable
 from typing import Optional
-from typing import Self
 
 from ruamel.yaml import YAML
 from typeguard import typechecked
+from typing_extensions import Self
 
 import pcvs
 from pcvs import io

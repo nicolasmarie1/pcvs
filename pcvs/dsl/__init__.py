@@ -6,9 +6,9 @@ from datetime import datetime
 from enum import IntEnum
 from typing import Any
 from typing import Generator
-from typing import Self
 
 from typeguard import typechecked
+from typing_extensions import Self
 
 from pcvs import io
 from pcvs.helpers import git

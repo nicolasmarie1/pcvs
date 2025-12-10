@@ -18,9 +18,10 @@ dependencies = [
   "pygit2<=1.14.1",
   "textual>=0.29.0",
   "matplotlib",
+  "typing-extensions", # needed for backward compat with python10 and python11
   "typeguard",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 authors = [
   {name = "Julien Adam", email = "adamj@paratools.com"},
   {name = "Paul Canat", email = "pcanat@paratools.com"},
@@ -65,7 +66,8 @@ dev = [
   "isort",
   "black",
   "mypy",
-  "sphinx",
+  "sphinx<7", #>=8.2 for sphinx api doc. also sphinx <7.0 is needed for rtd-themes with exactly python 3.11 (3.10 and 3.12 are fine) we can remove this constrain when we drop support for python11
+  "sphinxcontrib-apidoc", # can be removed when we end support for python11, api.doc standard module is added with sphinx8.2 in python 10 but rtd-themes versions for python11 are incompatible with sphinx>=7, so we need python11
   "sphinx-autodoc-typehints",
   "sphinx-rtd-theme",
   "textual-dev",
@@ -87,7 +89,8 @@ include = ["pcvs*"]
 #
 
 [tool.tox]
-env_list = ["3.12.3"]
+# env_list = ["3.12.3"] # main dev env
+# env_list = ["3.10.19", "3.11.14", "3.12.12", "3.13.8", "3.14.0"] # spack dev envs
 skipsdist = true
 skip_missing_interpreters = true
 
