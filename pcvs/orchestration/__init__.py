@@ -111,6 +111,7 @@ class Orchestrator:
 
         last_progress = 0.0
         io.console.info("ORCH: start job scheduling")
+        self._manager.create_job_cache()
         # While some jobs are available to run
         with io.console.table_container(self._manager.get_count()):
             while self._manager.get_leftjob_count() > 0:

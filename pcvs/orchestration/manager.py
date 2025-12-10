@@ -1,3 +1,5 @@
+import time
+
 from typeguard import typechecked
 
 from pcvs import io
@@ -45,6 +47,8 @@ class Manager:
 
         self._publisher = publisher
         self._count = {"total": 0, "executed": 0}
+
+        self._jobs_cache: list[tuple[str, Test]] | None = None
 
     @property
     def nb_max_nodes(self) -> int:
@@ -209,6 +213,7 @@ class Manager:
         the_set = None
         self._plugin.invoke_plugins(Plugin.Step.SCHED_SET_BEFORE)
 
+        start = time.time()
         if self._plugin.has_enabled_step(Plugin.Step.SCHED_SET_EVAL):
             the_set = self._plugin.invoke_plugins(
                 Plugin.Step.SCHED_SET_EVAL,
@@ -217,64 +222,52 @@ class Manager:
             )
         else:
             the_set = self.__default_create_subset(resources_tracker)
+        end = time.time()
+        duration = end - start
+        if duration > 0.1:
+            io.console.debug(f"Warning: scheduling took {duration}s.")
 
         self._plugin.invoke_plugins(Plugin.Step.SCHED_SET_AFTER)
         return the_set
 
-    def __get_next_job(self) -> Test | None:
-        if len(self.jobs) <= 0:
-            return None
-        jid, job = sorted(
-            self.jobs.items(), key=lambda entry: entry[1].get_nb_nodes(), reverse=True
-        )[0]
-        assert job is not None
-        self.jobs.pop(jid)
-        return job
+    def create_job_cache(self) -> None:
+        """Create a job cache for faster execution time. Need to be run before first call to create_subset."""
+        self._jobs_cache = sorted(
+            self.jobs.items(),
+            key=lambda entry: 0 if entry[1].has_completed_deps() else entry[1].get_nb_nodes(),
+        )
 
     def __default_create_subset(self, resources_tracker: ResourceTracker) -> Set | None:
         scheduled_set = None
 
         user_sched_job = self._plugin.has_enabled_step(Plugin.Step.SCHED_JOB_EVAL)
 
-        to_resched_jobs = []
-
-        while (job := self.__get_next_job()) is not None:
+        assert self._jobs_cache is not None  # self.create_job_cache should be run.
+        for index, (_, job) in enumerate(self._jobs_cache):
             # test not ready to be run
             if job.state != TestState.WAITING:
+                io.console.warning("Job with wrong state in scheduler, ignoring!")
                 continue
 
-            # if the job has pending dependency,
-            # schedule the pending dependency instead of the job itself.
             if not job.has_completed_deps():
-                to_resched_jobs.append(job)
-                # pick up a dep
-                dep_job = job.first_incomplete_dep()
-                while dep_job and not dep_job.has_completed_deps():
-                    dep_job = dep_job.first_incomplete_dep()
-                if dep_job:
-                    job = dep_job
-                else:
-                    # if the dep is already being executed
-                    continue
+                # job has missing dependency
+                continue
 
-            # from here, it can be the original job or one of its
-            # dep tree. But we are sure this job can be processed
             if job.has_failed_dep():
-                # Cannot be scheduled for dep purposes
-                # push it to publisher
+                # Cannot be scheduled for dep purposes push it to publisher
                 self.publish_failed_to_run_job(job, Test.NOSTART_STR, TestState.ERR_DEP)
                 # Attempt to find another job to schedule
                 continue
 
-            # Reached IF Job hasn't be run yet
-            # Job has completed its dep scheme
-            # all deps are successful
+            # Job has completed its dep scheme all deps are successful
             # => SCHEDULE
             if user_sched_job:
+                # manual schedule with plugin
                 pick_job = self._plugin.invoke_plugins(
                     Plugin.Step.SCHED_JOB_EVAL, job=job, set=scheduled_set
                 )
             else:
+                # pcvs scheduler
                 io.console.sched_debug(f"Alloc pool (ALLOC TRY): {job.needed_resources}")
                 res = resources_tracker.alloc(job.needed_resources)
                 pick_job = res > 0
@@ -282,22 +275,20 @@ class Manager:
                     io.console.sched_debug(f"Alloc pool (ALLOC RES) {res}: {resources_tracker}")
                     job.alloc_tracking = res
 
+            # if job have been selected for schedule (== have passed resources allocation)
             if job.state != TestState.IN_PROGRESS and pick_job:
                 job.pick()
                 if scheduled_set is None:
                     scheduled_set = Set(execmode=ExecMode.LOCAL)
                 scheduled_set.add(job)
+                self._jobs_cache.pop(index)
                 # Schedule set should only be of size one to avoid
                 # issue with multiples runner scheduling as multiples
                 # jobs in the same set cannot be scheduled at the same time.
                 break
 
-            to_resched_jobs.append(job)
+            # Resources exhausted
             break
-
-        # readd jobs that can't run but should be rescheduled
-        for j in to_resched_jobs:
-            self.__add_job(j)
 
         return scheduled_set
 
