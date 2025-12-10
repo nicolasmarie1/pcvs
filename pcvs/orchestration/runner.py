@@ -14,6 +14,7 @@ import pcvs
 from pcvs import io
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers.exceptions import RunnerException
+from pcvs.orchestration.set import ExecMode
 from pcvs.orchestration.set import Set
 from pcvs.testing.test import Test
 from pcvs.testing.teststate import TestState
@@ -57,7 +58,7 @@ class RemoteContext:
 
     def load_input_from_disk(self) -> Set:
         assert os.path.isdir(os.path.join(self._path))
-        jobs = Set(execmode=Set.ExecMode.LOCAL)
+        jobs = Set(execmode=ExecMode.LOCAL)
         with open(os.path.join(self._path, "input.json"), "r") as f:
             data = json.load(f)
             for job in data:
@@ -147,7 +148,7 @@ class RunnerAdapter(threading.Thread):
                 raise e
 
     def execute_set(self, jobs: Set) -> None:
-        if jobs.execmode == Set.ExecMode.LOCAL:
+        if jobs.execmode == ExecMode.LOCAL:
             self.local_exec(jobs)
         else:
             self.remote_exec(jobs)
@@ -209,11 +210,11 @@ class RunnerAdapter(threading.Thread):
 
     def remote_exec(self, jobs: Set) -> None:
         jobman_cfg = {}
-        if jobs.execmode == Set.ExecMode.ALLOC:
+        if jobs.execmode == ExecMode.ALLOC:
             jobman_cfg = GlobalConfig.root["machine"]["job_manager"]["allocate"]
-        elif jobs.execmode == Set.ExecMode.REMOTE:
+        elif jobs.execmode == ExecMode.REMOTE:
             jobman_cfg = GlobalConfig.root["machine"]["job_manager"]["remote"]
-        elif jobs.execmode == Set.ExecMode.BATCH:
+        elif jobs.execmode == ExecMode.BATCH:
             jobman_cfg = GlobalConfig.root["machine"]["job_manager"]["batch"]
 
         parallel = GlobalConfig.root["validation"]["scheduling"].get("parallel", 1)
@@ -301,7 +302,7 @@ class RunnerRemote:
             thr_list.append(thr)
 
         for job in self._set.content:
-            s = Set(execmode=Set.ExecMode.LOCAL)
+            s = Set(execmode=ExecMode.LOCAL)
             s.add(job)
             rq.put(s)
 

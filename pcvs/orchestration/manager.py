@@ -5,6 +5,7 @@ from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers.exceptions import OrchestratorException
 from pcvs.helpers.resource_tracker import ResourceTracker
 from pcvs.orchestration.publishers import ResultFileManager
+from pcvs.orchestration.set import ExecMode
 from pcvs.orchestration.set import Set
 from pcvs.plugins import Plugin
 from pcvs.testing.test import Test
@@ -284,7 +285,7 @@ class Manager:
             if job.state != TestState.IN_PROGRESS and pick_job:
                 job.pick()
                 if scheduled_set is None:
-                    scheduled_set = Set(execmode=Set.ExecMode.LOCAL)
+                    scheduled_set = Set(execmode=ExecMode.LOCAL)
                 scheduled_set.add(job)
                 # Schedule set should only be of size one to avoid
                 # issue with multiples runner scheduling as multiples

@@ -9,6 +9,35 @@ from pcvs.helpers import communications
 from pcvs.testing.test import Test
 
 
+class ExecMode(enum.IntEnum):
+    """
+    Map the current execution mode of a set.
+
+    - LOCAL: Sets are run by local runners. Runners are threads collocated in
+             the same process.
+    - ALLOC: Script is provided to user-defined wrapper, intended to prepare
+             resource for job scheduling. Runners are processed and the launch
+             command is provided as script's arguments. The 'ALLOC' mode
+             supposes runners are not actually running on compute resources.
+    - REMOTE: Script is provided to user-defined wrapper, intended to prepare
+             resource for job scheduling. Runners are processed and the launch
+             command is provided as script's arguments. The 'REMOTE' mode
+             supposes runners *are* actually running on compute resources
+             alongside jobs.
+    - BATCH: Script is provided to user-defined wrapper, intended to prepare
+             resource for job scheduling. Runners are processed and the launch
+             command is provided as script's arguments. The 'BATCH' mode
+             supposes the user script to return before completion. An ACK
+             method will be required to ensure Runners have properly been
+             executed.
+    """
+
+    LOCAL = enum.auto()
+    ALLOC = enum.auto()
+    REMOTE = enum.auto()
+    BATCH = enum.auto()
+
+
 @typechecked
 class Set:
     """Gather multiple jobs to be scheduled.
@@ -30,41 +59,13 @@ class Set:
     global_increment = 0
     comman: communications.GenericServer | None = None
 
-    class ExecMode(enum.IntEnum):
-        """
-        Map the current execution mode of a set.
-
-        - LOCAL: Sets are run by local runners. Runners are threads collocated in
-                 the same process.
-        - ALLOC: Script is provided to user-defined wrapper, intended to prepare
-                 resource for job scheduling. Runners are processed and the launch
-                 command is provided as script's arguments. The 'ALLOC' mode
-                 supposes runners are not actually running on compute resources.
-        - REMOTE: Script is provided to user-defined wrapper, intended to prepare
-                 resource for job scheduling. Runners are processed and the launch
-                 command is provided as script's arguments. The 'REMOTE' mode
-                 supposes runners *are* actually running on compute resources
-                 alongside jobs.
-        - BATCH: Script is provided to user-defined wrapper, intended to prepare
-                 resource for job scheduling. Runners are processed and the launch
-                 command is provided as script's arguments. The 'BATCH' mode
-                 supposes the user script to return before completion. An ACK
-                 method will be required to ensure Runners have properly been
-                 executed.
-        """
-
-        LOCAL = enum.auto()
-        ALLOC = enum.auto()
-        REMOTE = enum.auto()
-        BATCH = enum.auto()
-
     def __init__(self, execmode: ExecMode = ExecMode.LOCAL):
         """constructor method."""
         self._id: int = Set.global_increment
         Set.global_increment += 1
         self._size: int = 0
         self._completed: bool = False
-        self._execmode: Set.ExecMode = execmode
+        self._execmode: ExecMode = execmode
         self._map: dict[str, Test] = {}
         self.comman: dict[str, Any] | None
 

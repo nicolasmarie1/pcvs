@@ -1,4 +1,5 @@
 from pcvs.orchestration.manager import Manager
+from pcvs.orchestration.set import ExecMode
 from pcvs.orchestration.set import Set
 from pcvs.plugins import Plugin
 
@@ -13,7 +14,7 @@ class SchedMultiJobs(Plugin):
         for job_id, job in jobman.jobs.items():
             if "compilation" in job.tags:
                 if not the_set:
-                    the_set = Set(execmode=Set.ExecMode.REMOTE)
+                    the_set = Set(execmode=ExecMode.REMOTE)
                 the_set.add(job)
                 jobman.jobs.pop(job_id)
                 job.pick()
@@ -31,7 +32,7 @@ class SchedMultiJobs(Plugin):
         for job_id, job in jobman.jobs.items():
             if job.has_completed_deps():
                 if not the_set:
-                    the_set = Set(execmode=Set.ExecMode.ALLOC)
+                    the_set = Set(execmode=ExecMode.ALLOC)
                 the_set.add(job)
                 jobman.jobs.pop(job_id)
                 job.pick()
