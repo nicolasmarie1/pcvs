@@ -66,10 +66,9 @@ dev = [
   "isort",
   "black",
   "mypy",
-  "sphinx<7", #>=8.2 for sphinx api doc. also sphinx <7.0 is needed for rtd-themes with exactly python 3.11 (3.10 and 3.12 are fine) we can remove this constrain when we drop support for python11
-  "sphinxcontrib-apidoc", # can be removed when we end support for python11, api.doc standard module is added with sphinx8.2 in python 10 but rtd-themes versions for python11 are incompatible with sphinx>=7, so we need python11
+  "sphinx",
   "sphinx-autodoc-typehints",
-  "sphinx-rtd-theme",
+  "sphinx-rtd-theme>=3",
   "textual-dev",
   "python-lsp-server",
   "pylsp-mypy",
@@ -150,6 +149,7 @@ commands = [
 ]
 
 # Documentation builder
+# Need python>=12
 [tool.tox.env.doc]
 allowlist_externals = ['make']
 changedir = 'docs'
