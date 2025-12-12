@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 from importlib.metadata import version
 
-from typeguard import typechecked
-
 from pcvs import io
 from pcvs.cli import cli_bank
 from pcvs.cli import cli_config
@@ -18,6 +16,11 @@ from pcvs.helpers import utils
 from pcvs.helpers.exceptions import PluginException
 from pcvs.plugins import Collection
 from pcvs.plugins import Plugin
+
+# from typeguard import typechecked
+# cli.add_command is badly typed in some click version used in python@3.11
+# when installing pcvs with spack. Do not type main until resolved.
+
 
 try:
     import rich_click as click
@@ -37,7 +40,6 @@ CONTEXT_SETTINGS = {
 }
 
 
-@typechecked
 def print_version(
     ctx: click.Context, param: click.Parameter, value: bool  # pylint: disable=unused-argument
 ) -> None:
@@ -137,7 +139,6 @@ def print_version(
 @click.pass_context
 @io.capture_exception(PluginException.NotFoundError)
 @io.capture_exception(PluginException.LoadError)
-@typechecked
 def cli(
     ctx: click.Context,
     verbose: int,

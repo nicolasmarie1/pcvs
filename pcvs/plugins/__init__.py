@@ -224,9 +224,9 @@ class Collection:
         for _, the_class in inspect.getmembers(mod, inspect.isclass):
             if issubclass(the_class, Plugin) and the_class is not Plugin:
                 step_str = str(the_class.step)
+                io.console.debug(f"Registering plugin '{name}' by module '{mod}' ({step_str})")
                 if self.exist_plugin(name):
                     io.console.critical(f"A plugin with the name {name} is already register.")
-                io.console.debug(f"Registering plugin '{name}' by module '{mod}' ({step_str})")
                 self._plugins[the_class.step][name] = the_class()
                 if activate:
                     self.activate_plugin(name)
