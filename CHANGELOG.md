@@ -5,6 +5,45 @@ track what changed from each release.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 
+## [1.0.0] -- TODO: add date on release
+
+### Added
+
+- **Report**
+  - Main jobs list in report TUI can now be filtered based on their success status.
+- **Config**
+  - Add a '<test_name>.run.iterate.inherite' entry to test / group configuration.
+    If present only criterion with the name specify in the list will be used.
+  - Add a 'compilers.<name>.type' entry to compiler to defined their types.
+    This can be done in place of specifying file extension.
+    Currently, default types are: 'cc, cxx, fortran, cuda, hip'.
+
+### Changed
+
+- **Config**
+  - Profiles should now be split in theirs respectives configs files.
+    A profile is now just a list of the diferents configs to use. (**Breaking change**)
+  - Remove profile command, profiles are now a type of configs.(**Breaking change**)
+  - Update defaults configs and defaults profiles.
+
+- **CLI**
+  - change run-filter and print-filter behaviour. There are now order dependants.
+
+## Fixed
+
+- **Bank**
+  - Fix logic error in bank initialization.
+- **CLI**
+  - Fix shell completion.
+- **Check**
+  - Fix pcvs check encoding errors.
+  - Fix pcvs check missing bad configurations.
+- **Session**
+  - Fix log file overriding each others when multiples instances of pcvs are run in the same directory.
+- **Orchestator**
+  - Rework scheduler algorithm to fix bad performances issues.
+
+
 ## [0.8.0] -- 2025-11-3
 
 ### Added
