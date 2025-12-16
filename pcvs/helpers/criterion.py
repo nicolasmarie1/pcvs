@@ -35,154 +35,6 @@ from pcvs.plugins import Plugin
 
 
 @typechecked
-class Combination:
-    """
-    A combination maps the actual concretization from multiple criterion.
-
-    For a given set of criterion, a Combination carries, for each kind, its
-    associated value in order to generate the appropriate test
-    """
-
-    def __init__(self, crit_desc: dict[str, Any], comb: dict, resources: list[int] | None):
-        """
-        Build a combination from two components:
-        - the actual combination dict
-        - the dict of criterions
-
-        :param crit_desc: dict of criterions (=their full description)
-            represented in the current combination.
-        :param dict_comb: actual combination dict (k=criterion name, v=actual value)
-        """
-        self._criterions = crit_desc
-        self._combination = comb
-        self._resources = resources
-
-    def get(self, k: str, dflt: Any = None) -> Any:
-        """Retrieve the actual value for a given combination element
-        :param k: value to retrieve
-        :type k: str
-        :param dflt: default value if k is not a valid key
-        :type: object
-        """
-        if k not in self._combination:
-            return dflt
-        return self._combination[k]
-
-    def items(self) -> ItemsView:
-        """Get the combination dict.
-
-        :return: the whole combination dict.
-        :rtype: dict
-        """
-        return self._combination.items()
-
-    def translate_to_str(self) -> str:
-        """Translate the actual combination in a pretty-format string.
-        This is mainly used to generate actual test names
-        """
-        c = self._criterions
-        string = []
-        # each combination is built following: 'defined-prefix+value'
-        for n in sorted(self._combination.keys()):
-            subtitle = c[n].subtitle
-            string.append(subtitle + str(self._combination[n]).replace(" ", "-"))
-        return "_".join(string)
-
-    def translate_to_command(self) -> tuple[list[str], list[str], list[str]]:
-        """Translate the actual combination is tuple of three elements, based
-        on the representation of each criterion in the test semantic. It builds
-        tokens to provide to properly build the test command. It can
-        either be:
-
-        1. an environment variable to export before the test to run (gathering
-           system-scope and program-scope elements)
-        2. a runtime argument
-        3. a program-level argument (through custom-made iterators)
-        """
-        args = []
-        envs = []
-        params = []
-        # for each elt, where k is the criterion name, v is the actual value
-        for k_elt, v_elt in self._combination.items():
-            c = self._criterions[k_elt]
-            # concretize_value() gathers both criterion label & value according
-            # to specs (before, after, aliasing...)
-            value = c.concretize_value(str(v_elt))
-
-            if c.is_env():
-                envs.append(value)
-            elif c.is_local():
-                params.append(value)
-            else:
-                args.append(value)
-        return (envs, args, params)
-
-    def get_combinations(self) -> dict[str, Any]:
-        """Translate the combination into a dictionary.
-
-        :return: configuration in the shape of a python dict
-        :rtype: dict
-        """
-        return self._combination
-
-    @property
-    def resources(self) -> list[int] | None:
-        return self._resources
-
-    def __repr__(self) -> str:
-        return repr(self.__dict__)
-
-    def __rich_repr__(self) -> Iterable[tuple[Any, Any]]:
-        return self.__dict__.items()
-
-
-@typechecked
-class Series:
-    """
-    A series ties a test expression (TEDescriptor) to the possible values
-    which can be taken for each criterion to build test sets.
-    A series can be seen as the Combination generator for a given TEDescriptor
-    """
-
-    # TODO: delete if unused
-    # @classmethod
-    # def register_sys_criterion(cls, system_criterion):
-    #    """copy/inherit the system-defined criterion (shortcut to global config)"""
-    #    cls.sys_iterators = system_criterion
-
-    def __init__(self, dict_of_criterion: dict[str, Self]):
-        """
-        Build a series, by extracting the list of values.
-        Note that here, the dict also contains program-based criterions.
-        :param dict_of_criterion: values to build the series with
-        """
-        self._values: list[set[int | float | str]] = []
-        self._keys: list[str] = []
-        # this has to be saved, need to be forwarded to each combination
-        self._dict: dict[str, Criterion] = dict_of_criterion  # type: ignore
-        for name, node in dict_of_criterion.items():
-            assert isinstance(node, Criterion)
-            assert name == node.name
-            self._values.append(node.values)
-            self._keys.append(node.name)
-
-    def generate(self) -> Iterable[Combination]:
-        """Generator to build each combination"""
-        for combination in itertools.product(*self._values):
-            d = {self._keys[i]: val for i, val in enumerate(combination)}
-            if not valid_combination(d):
-                continue
-            resources: list[int] | None = get_resources(d)
-            yield Combination(self._dict, d, resources)
-
-    def __repr__(self) -> str:
-        return repr(self.__dict__)
-
-    def __rich_repr__(self) -> Iterable[tuple[Any, Any]]:
-        return self.__dict__.items()
-
-
-@typechecked
 class Criterion:
     """A Criterion is the representation of a component each program
     (i.e. test binary) should be run against. A criterion comes with a range of
@@ -521,6 +373,154 @@ class Criterion:
         return repr(self.__dict__)
 
     def __rich_repr__(self) -> Iterable[tuple[str, Any]]:
+        return self.__dict__.items()
+
+
+@typechecked
+class Combination:
+    """
+    A combination maps the actual concretization from multiple criterion.
+
+    For a given set of criterion, a Combination carries, for each kind, its
+    associated value in order to generate the appropriate test
+    """
+
+    def __init__(self, crit_desc: dict[str, Criterion], comb: dict, resources: list[int] | None):
+        """
+        Build a combination from two components:
+        - the actual combination dict
+        - the dict of criterions
+
+        :param crit_desc: dict of criterions (=their full description)
+            represented in the current combination.
+        :param dict_comb: actual combination dict (k=criterion name, v=actual value)
+        """
+        self._criterions = crit_desc
+        self._combination = comb
+        self._resources = resources
+
+    def get(self, k: str, dflt: Any = None) -> Any:
+        """Retrieve the actual value for a given combination element
+        :param k: value to retrieve
+        :type k: str
+        :param dflt: default value if k is not a valid key
+        :type: object
+        """
+        if k not in self._combination:
+            return dflt
+        return self._combination[k]
+
+    def items(self) -> ItemsView:
+        """Get the combination dict.
+
+        :return: the whole combination dict.
+        :rtype: dict
+        """
+        return self._combination.items()
+
+    def translate_to_str(self) -> str:
+        """Translate the actual combination in a pretty-format string.
+        This is mainly used to generate actual test names
+        """
+        c = self._criterions
+        string = []
+        # each combination is built following: 'defined-prefix+value'
+        for n in sorted(self._combination.keys()):
+            subtitle = c[n].subtitle
+            string.append(subtitle + str(self._combination[n]).replace(" ", "-"))
+        return "_".join(string)
+
+    def translate_to_command(self) -> tuple[list[str], list[str], list[str]]:
+        """Translate the actual combination is tuple of three elements, based
+        on the representation of each criterion in the test semantic. It builds
+        tokens to provide to properly build the test command. It can
+        either be:
+
+        1. an environment variable to export before the test to run (gathering
+           system-scope and program-scope elements)
+        2. a runtime argument
+        3. a program-level argument (through custom-made iterators)
+        """
+        args = []
+        envs = []
+        params = []
+        # for each elt, where k is the criterion name, v is the actual value
+        for k_elt, v_elt in self._combination.items():
+            c = self._criterions[k_elt]
+            # concretize_value() gathers both criterion label & value according
+            # to specs (before, after, aliasing...)
+            value = c.concretize_value(str(v_elt))
+
+            if c.is_env():
+                envs.append(value)
+            elif c.is_local():
+                params.append(value)
+            else:
+                args.append(value)
+        return (envs, args, params)
+
+    def get_combinations(self) -> dict[str, Any]:
+        """Translate the combination into a dictionary.
+
+        :return: configuration in the shape of a python dict
+        :rtype: dict
+        """
+        return self._combination
+
+    @property
+    def resources(self) -> list[int] | None:
+        return self._resources
+
+    def __repr__(self) -> str:
+        return repr(self.__dict__)
+
+    def __rich_repr__(self) -> Iterable[tuple[Any, Any]]:
+        return self.__dict__.items()
+
+
+@typechecked
+class Series:
+    """
+    A series ties a test expression (TEDescriptor) to the possible values
+    which can be taken for each criterion to build test sets.
+    A series can be seen as the Combination generator for a given TEDescriptor
+    """
+
+    # TODO: delete if unused
+    # @classmethod
+    # def register_sys_criterion(cls, system_criterion):
+    #    """copy/inherit the system-defined criterion (shortcut to global config)"""
+    #    cls.sys_iterators = system_criterion
+
+    def __init__(self, dict_of_criterion: dict[str, Self]):
+        """
+        Build a series, by extracting the list of values.
+        Note that here, the dict also contains program-based criterions.
+        :param dict_of_criterion: values to build the series with
+        """
+        self._values: list[set[int | float | str]] = []
+        self._keys: list[str] = []
+        # this has to be saved, need to be forwarded to each combination
+        self._dict: dict[str, Criterion] = dict_of_criterion  # type: ignore
+        for name, node in dict_of_criterion.items():
+            assert isinstance(node, Criterion)
+            assert name == node.name
+            self._values.append(node.values)
+            self._keys.append(node.name)
+
+    def generate(self) -> Iterable[Combination]:
+        """Generator to build each combination"""
+        for combination in itertools.product(*self._values):
+            d = {self._keys[i]: val for i, val in enumerate(combination)}
+            if not valid_combination(d):
+                continue
+            resources: list[int] | None = get_resources(d)
+            yield Combination(self._dict, d, resources)
+
+    def __repr__(self) -> str:
+        return repr(self.__dict__)
+
+    def __rich_repr__(self) -> Iterable[tuple[Any, Any]]:
         return self.__dict__.items()
 
 
