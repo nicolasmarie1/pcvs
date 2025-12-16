@@ -28,24 +28,32 @@ class Job(Test):
     def __init__(
         self, json_content: dict[str, Any] | None = None, filepath: str | None = None
     ) -> None:
+        """
+        Init a Job object from json.
+
+        :param json_content: the content of the test.
+        :param filepath: optinnal, where does the above json comme from,
+            this will be used in error messages given to the user if the test json is not valid.
+        """
         super().__init__()
         if json_content is not None:
             assert filepath is not None
             self.from_json(json_content, filepath)
 
     def load(self, test_json: dict[str, Any], filepath: str) -> None:
-        """Populate the job with given data.
+        """
+        Populate the job with given data.
 
-        :param s: A Job's data dict representation
-        :type s: str
+        :param test_json: A Job's data dict representation
+        :param filepath: optinnal, path of the json source, same as for init.
         """
         self.from_json(test_json, filepath)
 
-    def dump(self) -> dict:
-        """Return serialied job data.
+    def dump(self) -> dict[str, Any]:
+        """
+        Return serialied job data.
 
         :return: the mapped representation
-        :rtype: dict
         """
         return self.to_json()
 
@@ -61,10 +69,13 @@ class Run:
         cid: git.Commit | None = None,
         from_series: Series | None = None,
     ):
-        """Create a new run.
+        """
+        Create a new run.
 
         :param repo: the associated repo this run is coming from
-        :type repo: Bank
+        :param cid: optinnal, git commit object to select that represent the selected run in the series.
+        :param from_series: initialise the underlying repo of the run from the Series object,
+            override the repo parameter.
         """
         # this attribute prevails
         if isinstance(from_series, Series):
@@ -80,6 +91,11 @@ class Run:
             # self.load()
 
     def load(self, cid: git.Commit) -> None:
+        """
+        Set the run to represent the given commit.
+
+        :param cid: git commit
+        """
         self._cid = cid
 
     @property
@@ -88,6 +104,10 @@ class Run:
 
     @property
     def previous(self) -> Self | None:
+        """
+        Get the previous run from the Series (the first commit of the branch),
+            or None of the is the first run of the Series.
+        """
         assert self._repo is not None and self._cid is not None
         runs = self._repo.get_parents(self._cid)
         if len(runs) <= 0 or runs[0].get_info()["message"] == "INIT":
@@ -96,13 +116,14 @@ class Run:
 
     @property
     def oneline(self) -> str:
-        """TODO:"""
+        """Get commit metadata."""
         assert isinstance(self._cid, git.Commit)
         d = self._cid.get_info()
         return "{}".format(d)
 
     @property
     def jobs(self) -> Generator[Job]:
+        """Iterate over jobs present in the Run."""
         assert self._repo is not None
         for file in self._repo.list_files(rev=self._cid):
             if file in ["README", ".pcvs-cache/conf.json"]:
@@ -114,10 +135,16 @@ class Run:
 
     @property
     def get_full_data(self) -> str:
+        """Get a list of the json of all the runs."""
         root = [j.to_json() for j in self.jobs]
         return json.dumps(root)
 
     def get_data(self, jobname: str) -> Job | None:
+        """
+        Get the job object corresponding to jobname.
+
+        :param jobname: the name of the job to retrieve from the run.
+        """
         res = Job()
         assert self._repo is not None
         data = self._repo.get_tree(tree=self._cid, prefix=jobname)
@@ -129,6 +156,12 @@ class Run:
         return None
 
     def update(self, prefix: str, data: Job | dict[str, Any] | str) -> None:
+        """
+        Update the data of a Job/Test.
+
+        :param prefix: Job name in git, most likely job.name.
+        :param data: a Job object or a dict representing the json of a job/test to store.
+        """
         if isinstance(data, Job):
             data = data.to_json()
         if isinstance(data, dict):
@@ -137,6 +170,11 @@ class Run:
         self._stage[prefix] = data
 
     def update_flatdict(self, updates: dict[str, Job | dict[str, Any] | str]) -> None:
+        """
+        Same as the update function, but for all the items in updates.
+
+        :param updates: a list of Jobs to updates.
+        """
         for k, v in updates.items():
             self.update(k, v)
 
@@ -151,6 +189,7 @@ class Run:
         self.__handle_subtree("", updates)
 
     def get_info(self) -> dict[str, Any]:
+        """Get run commit Metadata."""
         assert self._cid is not None
         return self._cid.get_info()
 
@@ -268,9 +307,7 @@ class Series:
 
 @typechecked
 class Bank:
-    """
-    Bank view from Python API
-    """
+    """Bank view from Python API"""
 
     def __init__(self, path: str = "", head: str | None = None):
         self._path: str = path

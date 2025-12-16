@@ -5,7 +5,7 @@ track what changed from each release.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 
-## [1.0.0] -- TODO: add date on release
+## [1.0.0] -- TODO: add date when release
 
 ### Added
 

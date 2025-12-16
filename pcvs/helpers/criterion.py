@@ -1,3 +1,22 @@
+"""
+Criterion Modules:
+
+- Criterion:
+    A criterion represent a test parameter (command line argument or environment variables)
+    and the different values that the parameter will takes when running the test. (-n=1, -n=2, ...)
+    Their can be multiples criterions per tests. (-n=[1, 8], -N=[1, 8])
+
+- Combinations:
+    One or multiples criterions are expanded into combinations.
+    One combination contain one value for each criterion such as (-n=1, -N=2, ...).
+    For each combination their will be a run of the test with the argument at the value of the combination.
+    A Combination may be valid or invalid. (-n=1 & -N=2 is an invalid combination).
+    Combination are vallidated by plugins.
+
+- Series:
+    A Series (of combination), represent all the valid Combinations that the test will be run with.
+"""
+
 import itertools
 import math
 import os
@@ -17,23 +36,22 @@ from pcvs.plugins import Plugin
 
 @typechecked
 class Combination:
-    """A combination maps the actual concretization from multiple criterion.
+    """
+    A combination maps the actual concretization from multiple criterion.
 
     For a given set of criterion, a Combination carries, for each kind, its
     associated value in order to generate the appropriate test
     """
 
-    def __init__(self, crit_desc: dict, comb: dict, resources: list[int] | None):
-        """Build a combination from two components:
+    def __init__(self, crit_desc: dict[str, Any], comb: dict, resources: list[int] | None):
+        """
+        Build a combination from two components:
         - the actual combination dict
         - the dict of criterions
 
         :param crit_desc: dict of criterions (=their full description)
             represented in the current combination.
-        :type crit_desc: dict
-        :param dict_comb: actual combination dict (k=criterion name, v=actual
-            value)
-        :type dict_comb: dict
+        :param dict_comb: actual combination dict (k=criterion name, v=actual value)
         """
         self._criterions = crit_desc
         self._combination = comb
@@ -120,7 +138,8 @@ class Combination:
 
 @typechecked
 class Series:
-    """A series ties a test expression (TEDescriptor) to the possible values
+    """
+    A series ties a test expression (TEDescriptor) to the possible values
     which can be taken for each criterion to build test sets.
     A series can be seen as the Combination generator for a given TEDescriptor
     """
@@ -131,15 +150,16 @@ class Series:
     #    """copy/inherit the system-defined criterion (shortcut to global config)"""
     #    cls.sys_iterators = system_criterion
 
-    def __init__(self, dict_of_criterion: dict):
-        """Build a series, by extracting the list of values.
-        Note that here, the dict also contains program-based criterions
+    def __init__(self, dict_of_criterion: dict[str, Self]):
+        """
+        Build a series, by extracting the list of values.
+        Note that here, the dict also contains program-based criterions.
         :param dict_of_criterion: values to build the series with
-        :type dict_of_criterion: dict"""
-        self._values = []
-        self._keys = []
+        """
+        self._values: list[set[int | float | str]] = []
+        self._keys: list[str] = []
         # this has to be saved, need to be forwarded to each combination
-        self._dict = dict_of_criterion
+        self._dict: dict[str, Criterion] = dict_of_criterion  # type: ignore
         for name, node in dict_of_criterion.items():
             assert isinstance(node, Criterion)
             assert name == node.name
@@ -171,15 +191,14 @@ class Criterion:
     def __init__(
         self, name: str, description: dict[str, Any], local: bool = False, numeric: bool = False
     ):
-        """Initialize a criterion from its YAML/dict description
+        """
+        Initialize a criterion from its YAML/dict description
+
         :param name: name of the criterion
-        :type name: str
         :param description: description of the criterion
-        :type description: dict[str, Any]
         :param local: True if the criterion is local, default to False
-        :type local: bool
         :param numeric: True if the criterion is numeric, default to False
-        :type: numeric: bool"""
+        """
         self._name = name
         self._input_values: list[int | float | str | dict[str, Any]] | None
         self._values: set[int | float | str] | None
@@ -250,11 +269,13 @@ class Criterion:
         self._expanded = False
 
     def intersect(self, other: Self) -> None:
-        """Update the calling Criterion with the intersection of the current
+        """
+        Update the calling Criterion with the intersection of the current
         range of possible values with the one given as a parameters.
 
         This is used to refine overridden per-TE criterion according to
-        system-wide's"""
+        system-wide's
+        """
         assert isinstance(other, Criterion)
         assert self._name == other.name
         assert self._expanded
@@ -268,9 +289,11 @@ class Criterion:
             self._values = self._values.intersection(other.values)
 
     def is_empty(self) -> bool:
-        """Is the current set of values empty
+        """
+        Is the current set of values empty
         May lead to errors, as it may indicates no common values has been
-        found between user and system specifications"""
+        found between user and system specifications
+        """
         assert self._expanded
         return self._values is None or len(self._values) == 0
 
@@ -312,7 +335,6 @@ class Criterion:
         """Get the ``name`` attribute of this criterion.
 
         :return: name of this criterion
-        :rtype: str
         """
         return self._name
 
@@ -321,7 +343,6 @@ class Criterion:
         """Get the ``subtitle`` attribute of this criterion.
 
         :return: subtitle of this criterion
-        :rtype: str
         """
         return self._subtitle
 
@@ -331,7 +352,6 @@ class Criterion:
         Return if this criterion a numeric criterion (or a string iterator).
 
         :return: numeric of this criterion
-        :rtype: bool
         """
         return self._numeric
 
@@ -339,10 +359,10 @@ class Criterion:
         """Return the exact string mapping this criterion, according to the
         specification. (is it aliased ? should the option be put before/after
         the value?...)
+
         :param val: value to add with prefix
-        :type val: str
         :return: values with aliases replaced
-        :rtype: str"""
+        """
         # replace value with alias (if defined)
         val = str(self.aliased_value(val))
         # put value before of after the defined prefix
@@ -372,13 +392,9 @@ class Criterion:
         """converts a sequence (as a string) to a valid list of values
 
         :param dic: dictionary to take the values from
-        :type dic: dict
         :param s: start (can be overridden by ``from`` in ``dic``), defaults to -1
-        :type s: int, optional
         :param e: end (can be overridden by ``to`` in ``dic``), defaults to -1
-        :type e: int, optional
         :return: list of values
-        :rtype: list
         """
 
         values: list[int | float] = []
@@ -388,10 +404,8 @@ class Criterion:
             """helper to convert a string-formatted number to a valid repr.
 
             :param val: the string-based number to convert
-            :type val: str | int
             :raises CommonException.BadTokenError: val is not a number
             :return: the number
-            :rtype: int | float
             """
             if not isinstance(val, int) or not isinstance(val, float):
                 try:
@@ -622,9 +636,7 @@ def valid_combination(dic: dict[str, int | float | str]) -> bool:
     """Check if dict is a valid criterion combination .
 
     :param dic: dict to check
-    :type dic: dict
     :return: True if dic is a valid combination
-    :rtype: bool
     """
     ret: bool | None = get_plugin().invoke_plugins(
         Plugin.Step.TEST_EVAL, config=GlobalConfig.root, combination=dic

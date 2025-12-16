@@ -1,7 +1,7 @@
 """
 Graph module.
 
-Use dsl.analysis to query data from bank and use theme to create
+Use analysis to query data from bank and use theme to create
 mathplotlib graphs.
 Used by cli.cli_graph to draw graph from the command line.
 
@@ -37,7 +37,7 @@ def get_status_series(
     :param path: the path to save the enerated graphs.
     :param show: do we try to show the graphs to the user directly, (need PyQt5).
     :param extension: format/file extension to use when saving the graphs.
-    :param limit: nb max of run in the series to query (use sys.maxsize for not
+    :param limit: nb max of run in the series to query (use sys.maxsize for no
         limit).
     """
     status_data = analysis.generate_series_trend(series, limit)

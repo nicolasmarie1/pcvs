@@ -1,3 +1,9 @@
+"""
+Analysis Package.
+
+Used to query information for Analysis from a finished pcvs run through the dsl layer.
+"""
+
 from abc import ABC
 from typing import Any
 
