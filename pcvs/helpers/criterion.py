@@ -36,19 +36,33 @@ from pcvs.plugins import Plugin
 
 @typechecked
 class Criterion:
-    """A Criterion is the representation of a component each program
-    (i.e. test binary) should be run against. A criterion comes with a range of
-    possible values, each leading to a different test"""
+    """
+    A Criterion is the representation of a component (i.e. parameter)
+    each program (i.e. test binary) should be run against.
+    A criterion comes with a range of possible values, each leading to a different test.
+    """
 
     def __init__(
         self, name: str, description: dict[str, Any], local: bool = False, numeric: bool = False
     ):
         """
-        Initialize a criterion from its YAML/dict description
+        Initialize a criterion from its YAML/dict description.
 
-        :param name: name of the criterion
-        :param description: description of the criterion
-        :param local: True if the criterion is local, default to False
+        :param name: name of the criterion (eg: n_mpi)
+        :param description: description of the criterion from configuration, include:
+
+            - numeric: :py:obj:`bool`, is the criterion numeric
+            - option: :py:obj:`str`, what is the option of the criterion (eg: -N)
+            - position: :py:obj:`str`, 'after' or 'before' is the criterion option before or after it's value
+            - aliases: :py:obj:`list[str]`, aliases names for the criterion
+            - type: :py:obj:`str`, 'argument' or 'environment'
+            - local: :py:obj:`bool`, if the criterion a parameter,
+                should the criterion be a parameter of the test or a parameter of the wrapper
+            - subtitle: :py:obj:`str`, the str that will be used with the current value to name the test
+
+        :param local: True if the criterion is a parameter on the test binary,
+                      False if it is a parameter to the wrapper,
+                      default to False, is override by local in description.
         :param numeric: True if the criterion is numeric, default to False
         """
         self._name = name
@@ -163,20 +177,20 @@ class Criterion:
 
     @property
     def values(self) -> set[int | float | str]:
-        """Get the ``value`` attribute of this criterion.
+        """
+        Get the ``value`` attribute of this criterion.
 
         :return: values of this criterion
-        :rtype: list
         """
         assert self._expanded
         assert isinstance(self._values, set)
         return self._values
 
     def __len__(self) -> int:
-        """Return the number of values this criterion holds.
+        """
+        Return the number of values this criterion holds.
 
         :return: the value list count
-        :rtype: int
         """
         assert self._expanded
         assert self._values is not None
@@ -184,7 +198,8 @@ class Criterion:
 
     @property
     def name(self) -> str:
-        """Get the ``name`` attribute of this criterion.
+        """
+        Get the ``name`` attribute of this criterion.
 
         :return: name of this criterion
         """
@@ -192,7 +207,8 @@ class Criterion:
 
     @property
     def subtitle(self) -> str:
-        """Get the ``subtitle`` attribute of this criterion.
+        """
+        Get the ``subtitle`` attribute of this criterion.
 
         :return: subtitle of this criterion
         """
@@ -208,9 +224,9 @@ class Criterion:
         return self._numeric
 
     def concretize_value(self, val: str = "") -> str:
-        """Return the exact string mapping this criterion, according to the
-        specification. (is it aliased ? should the option be put before/after
-        the value?...)
+        """
+        Return the exact string mapping this criterion, according to the specification.
+        (is it aliased ? should the option be put before/after the value?...)
 
         :param val: value to add with prefix
         :return: values with aliases replaced
@@ -225,7 +241,8 @@ class Criterion:
         return elt
 
     def aliased_value(self, val: str) -> str:
-        """Check if the given value has an alias for the current criterion.
+        """
+        Check if the given value has an alias for the current criterion.
         An alias is the value replacement to use instead of the one defined by
         test configuration. This allows to split test logic from runtime
         semantics.
@@ -234,14 +251,16 @@ class Criterion:
         network layer. But once the test has to be built, the term will change
         depending on the runtime carrying it, the value may be different from
         a runtime to another
-        :param val: string with aliases to be replaced"""
+        :param val: string with aliases to be replaced
+        """
         return self._alias[val] if val in self._alias else val
 
     @staticmethod
     def __convert_sequence_to_list(
         node: dict[str, str | int | float], s: int = -1, e: int = -1
     ) -> list[int | float]:
-        """converts a sequence (as a string) to a valid list of values
+        """
+        Converts a sequence (as a string) to a valid list of values.
 
         :param dic: dictionary to take the values from
         :param s: start (can be overridden by ``from`` in ``dic``), defaults to -1
@@ -253,7 +272,8 @@ class Criterion:
 
         # these must be integers
         def _convert_sequence_item_to_int(val: str | int | float) -> int | float:
-            """helper to convert a string-formatted number to a valid repr.
+            """
+            Helper to convert a string-formatted number to a valid repr.
 
             :param val: the string-based number to convert
             :raises CommonException.BadTokenError: val is not a number
@@ -319,8 +339,7 @@ class Criterion:
         return max(self._values)
 
     def expand_values(self, reference: Self | None = None) -> None:
-        """Browse values for the current criterion and make it ready to
-        generate combinations"""
+        """Browse values for the current criterion and make it ready to generate combinations."""
         start = 0
         end = 100
 
@@ -400,26 +419,28 @@ class Combination:
         self._resources = resources
 
     def get(self, k: str, dflt: Any = None) -> Any:
-        """Retrieve the actual value for a given combination element
+        """
+        Retrieve the actual value for a given combination element.
+
         :param k: value to retrieve
-        :type k: str
         :param dflt: default value if k is not a valid key
-        :type: object
         """
         if k not in self._combination:
             return dflt
         return self._combination[k]
 
     def items(self) -> ItemsView:
-        """Get the combination dict.
+        """
+        Get the combination dict.
 
         :return: the whole combination dict.
-        :rtype: dict
         """
         return self._combination.items()
 
     def translate_to_str(self) -> str:
-        """Translate the actual combination in a pretty-format string.
+        """
+        Translate the actual combination in a pretty-format string.
+
         This is mainly used to generate actual test names
         """
         c = self._criterions
@@ -431,7 +452,8 @@ class Combination:
         return "_".join(string)
 
     def translate_to_command(self) -> tuple[list[str], list[str], list[str]]:
-        """Translate the actual combination is tuple of three elements, based
+        """
+        Translate the actual combination is tuple of three elements, based
         on the representation of each criterion in the test semantic. It builds
         tokens to provide to properly build the test command. It can
         either be:
@@ -460,10 +482,10 @@ class Combination:
         return (envs, args, params)
 
     def get_combinations(self) -> dict[str, Any]:
-        """Translate the combination into a dictionary.
+        """
+        Translate the combination into a dictionary.
 
         :return: configuration in the shape of a python dict
-        :rtype: dict
         """
         return self._combination
 
@@ -481,9 +503,9 @@ class Combination:
 @typechecked
 class Series:
     """
-    A series ties a test expression (TEDescriptor) to the possible values
+    A series ties a test expression (:class:`TEDescriptor`) to the possible values
     which can be taken for each criterion to build test sets.
-    A series can be seen as the Combination generator for a given TEDescriptor
+    A series can be seen as the Combination generator for a given :class:`TEDescriptor`
     """
 
     # TODO: delete if unused
@@ -492,7 +514,7 @@ class Series:
     #    """copy/inherit the system-defined criterion (shortcut to global config)"""
     #    cls.sys_iterators = system_criterion
 
-    def __init__(self, dict_of_criterion: dict[str, Self]):
+    def __init__(self, dict_of_criterion: dict[str, Criterion]):
         """
         Build a series, by extracting the list of values.
         Note that here, the dict also contains program-based criterions.
@@ -633,7 +655,8 @@ def get_plugin() -> Collection:
 
 @typechecked
 def valid_combination(dic: dict[str, int | float | str]) -> bool:
-    """Check if dict is a valid criterion combination .
+    """
+    Check if dict is a valid criterion combination.
 
     :param dic: dict to check
     :return: True if dic is a valid combination
