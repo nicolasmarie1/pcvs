@@ -13,9 +13,12 @@ class PCVSException(Exception):
         help_msg: str | None = None,
         dbg_info: dict[str, str | None] = {},
     ):
-        """Constructor for generic errors.
-        :param *args: unused
-        :param **kwargs: messages for the error.
+        """
+        Constructor for generic errors.
+
+        :param reason: the main error messages
+        :param help_msg: a help message for the user
+        :param dbg_info: a list of additional debug info
         """
         self._help_msg = help_msg
         self._dbg_info = dbg_info

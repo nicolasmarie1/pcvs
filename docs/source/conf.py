@@ -373,5 +373,12 @@ apidoc_modules = [
     {
         "path": "../../pcvs",
         "destination": "api/",
+        "separate_modules": True,
     },
 ]
+
+# document __init__ function of class
+autoclass_content = "both"
+
+# mock import to avoid textual modules to be reuse in pcvs doc
+autodoc_mock_imports = ["textual"]
