@@ -83,11 +83,8 @@ def compl_list_dirs(
     """directory completion function.
 
     :param ctx: Click context
-    :type ctx: :class:`Click.Context`
     :param param: the option/argument requesting completion.
-    :type param: click.Parameter
     :param incomplete: the user input
-    :type incomplete: str
     """
     obj = click.Path(exists=True, dir_okay=True, file_okay=False)
     return obj.shell_complete(ctx, param, incomplete)
@@ -114,7 +111,6 @@ def handle_build_lockfile(exc: Exception | None = None) -> None:
 
     :raises Exception: Any exception triggering this handler
     :param exc: The raising exception.
-    :type exc: Exception
     """
     if (
         GlobalConfig.root
@@ -132,7 +128,13 @@ def handle_build_lockfile(exc: Exception | None = None) -> None:
 
 @typechecked
 def parse_tags(filters: str) -> dict[str, bool]:
-    """Parse input to generate tags set."""
+    """
+    Parse filters to generate tags set.
+
+    :param filters: a comma separated list of tag name,
+      with ! before names to exclude them.
+    :return: dict of tag and if their are included / excluded.
+    """
     tags = {}
     for f in filters.split(","):
         if len(f) == 0:

@@ -24,11 +24,8 @@ def compl_list_banks(
     Bank name completion function.
 
     :param ctx: Click context
-    :type ctx: :class:`click.Context`
     :param param: the option/argument requesting completion.
-    :type param: :class: `click.Parameter`
     :param incomplete: the user input
-    :type incomplete: str
     """
     array = []
     for k, v in pvBank.list_banks().items():
@@ -44,11 +41,8 @@ def compl_bank_projects(
     Bank project completion function.
 
     :param ctx: Click context
-    :type ctx: :class:`Click.Context`
     :param param: the option/argument requesting completion.
-    :type param: :class: `click.Parameter`
     :param incomplete: the user input
-    :type incomplete: str
     """
     array = []
     for completion in compl_list_banks(ctx, param, ""):

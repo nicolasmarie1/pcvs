@@ -27,11 +27,8 @@ def compl_session_token(
     """Session name completion function.
 
     :param ctx: Click context
-    :type ctx: :class:`Click.Context`
     :param args: the option/argument requesting completion.
-    :type args: str
     :param incomplete: the user input
-    :type incomplete: str
     """
 
     sessions = pvSession.list_alive_sessions()
@@ -46,7 +43,11 @@ def compl_session_token(
 
 @typechecked
 def print_sessions(sessions: dict[str, dict]) -> None:
-    """List detached sessions."""
+    """
+    List detached sessions.
+
+    :param sessions: dict of sessions id, and sessions data.
+    """
     if len(sessions) <= 0:
         io.console.print("[italic bold]No sessions")
         return

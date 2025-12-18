@@ -24,7 +24,7 @@ except ImportError:
 def compl_list_scope_kind(
     ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
 ) -> list[str]:
-    """Scope + Kind completion function."""
+    """Config Scope + Kind completion function."""
     all_name = [f"{str(elt.scope)}:{str(elt.kind)}" for elt in ConfigLocator().list_all_configs()]
     all_scope_kind_pair = sorted(set(all_name))
     return [elt for elt in all_scope_kind_pair if incomplete in elt]
@@ -44,7 +44,7 @@ def compl_list_configs(
 def compl_list_user_configs(
     ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
 ) -> list[str]:
-    """User configs name completion function."""
+    """User only configs name completion function."""
     return [
         elt.full_name
         for elt in ConfigLocator().list_all_configs()
@@ -59,7 +59,8 @@ def compl_list_user_configs(
 @click.pass_context
 @typechecked
 def config(ctx: click.Context) -> None:  # pylint: disable=unused-argument
-    """The 'config' command helps user to manage configurations.
+    """
+    The 'config' command helps user to manage configurations.
     Their is multiples KIND of configurations:
 
     \b
@@ -103,9 +104,11 @@ def config(ctx: click.Context) -> None:  # pylint: disable=unused-argument
 @click.pass_context
 @typechecked
 def config_list(ctx: click.Context, token: str | None) -> None:  # pylint: disable=unused-argument
-    """List available configurations on the system. The list can be
-    filtered by applying a KIND. Possible values for KIND are documented
-    through the `pcvs config --help` command.
+    """
+    List available configurations on the system.
+
+    The list can be filtered by applying a KIND.
+    Possible values for KIND are documented through the `pcvs config --help` command.
     """
     if token is None:
         scope, kinds = None, ConfigKind.all_kinds()
@@ -144,7 +147,8 @@ def config_list(ctx: click.Context, token: str | None) -> None:  # pylint: disab
 @click.pass_context
 @typechecked
 def config_show(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
-    """Prints a detailed description of this configuration block, labeled NAME
+    """
+    Prints a detailed description of this configuration block, labeled NAME
     and belonging to the KIND kind.
 
     Possible values for KIND are documented
