@@ -25,6 +25,13 @@ class BaseAnalysis(ABC):
 class SimpleAnalysis(BaseAnalysis):
 
     def generate_series_trend(self, series: Series, limit: int) -> list[dict[str, Any]]:
+        """
+        Generate series trend.
+
+        :param series: the series to get a trend of.
+        :param limit: the number of run to get the trend on.
+        :return: run date, and tests status summary for each run
+        """
         stats = []
         for run in series.history(limit):
             ci_meta = run.get_info()
@@ -39,6 +46,13 @@ class SimpleAnalysis(BaseAnalysis):
         limit: int,
         # date -> job_name -> (base_name, state, time)
     ) -> dict[str, dict[str, tuple[str, TestState, float]]]:
+        """
+        Get series information.
+
+        :param series: the series to get information of.
+        :param limit: the number of run to look back.
+        :return: test base name, test status & test duration for each jobs for each run date.
+        """
         stats = {}
         for run in series.history(limit):
             date = run.get_info()["date"]

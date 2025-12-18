@@ -3,15 +3,15 @@ Graph module.
 
 Use analysis to query data from bank and use theme to create
 mathplotlib graphs.
-Used by cli.cli_graph to draw graph from the command line.
+Used by :class:`~pcvs.cli.cli_graph` to draw graph from the command line.
 
-We create 2 types of graphs:
+2 types of graphs:
 
-    - a stacked graph representing the success rate over time of a series of run
-      where all the test state are represented as a layer.
-    - a graph for each basetest (test without criterions) in witch we
-      represent the test duration evolution per run for each criterions
-      combination.
+    - get_status_series: a stacked graph representing the success rate over time
+      of a series of run where each test status represent a layer.
+    - get_time_series: a graph for each basetest (test without criterions)
+      in witch we represent the test duration evolution per run,
+      one line for each criterions combination.
 """
 
 import os
@@ -34,11 +34,11 @@ def get_status_series(
 
     :param analysis: the analysis object that will be used to query the bank.
     :param series: the series of test used.
-    :param path: the path to save the enerated graphs.
+    :param path: the path to save the generated graphs.
     :param show: do we try to show the graphs to the user directly, (need PyQt5).
     :param extension: format/file extension to use when saving the graphs.
-    :param limit: nb max of run in the series to query (use sys.maxsize for no
-        limit).
+    :param limit: nb max of run in the series to query
+      (use :py:obj:`sys.maxsize` for no limit).
     """
     status_data = analysis.generate_series_trend(series, limit)
     xlabels = []
@@ -103,6 +103,7 @@ def _get_time_series(
     show: bool,
     extension: str,
 ) -> None:
+    """Get time series sub function, per graph handler."""
     io.console.debug(f"Times for: {jobs_base_name}")
     fig, ax = plt.subplots()
     for job_name, job_data in jobs.items():
@@ -133,11 +134,11 @@ def get_time_series(
     analysis: SimpleAnalysis, series: Series, path: str, show: bool, extension: str, limit: int
 ) -> None:
     """
-    get_time_series: create a test state graph.
+    get_time_series: create a test time graph.
 
     :param analysis: the analysis object that will be used to query the bank.
     :param series: the series of test used.
-    :param path: the path to save the enerated graphs.
+    :param path: the path to save the generated graphs.
     :param show: do we try to show the graphs to the user directly, (need PyQt5).
     :param extension: format/file extension to use when saving the graphs.
     :param limit: nb max of run in the series to query (use sys.maxsize for not
