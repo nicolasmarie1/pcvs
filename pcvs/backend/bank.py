@@ -18,36 +18,24 @@ from pcvs.orchestration.publishers import BuildDirectoryManager
 
 @typechecked
 class Bank(dsl.Bank):
-    """Representation of a PCVS result datastore.
+    """
+    Representation of a PCVS result datastore.
 
     Stored as a Git repo, a bank hold multiple results to be scanned and used to
     analyse benchmarks result over time. A single bank can manipulate namespaces
-    (referred as 'projects'). The namespace is provided by suffixing ``@proj``
-    to the original name.
-
-    :param root: the root bank directory
-    :type root: str
-    :param repo: the Pygit2 handle
-    :type repo:  :class:`Pygit2.Repository`
-    :param config: when set, configuration file of the just-submitted archive
-    :type config: : dict
-    :param rootree: When set, root handler to the next commit to insert
-    :type rootree: :class:`Pygit2.Object`
-    :param locked: Serialize Bank manipulation among multiple processes
-    :type locked: bool
-    :param proj_name: extracted default-proj from initial token
-    :type proj_name: str
+    (referred as 'projects').
+    The namespace is provided by prefixing ``proj@`` to the bank name.
     """
 
     def __init__(self, token: str) -> None:
-        """Build a Bank.
+        """
+        Build a Bank.
 
         A Bank is describe by an optional token follow by a bank name or bank path.
 
         Example: ``cholesky@mpc_ci_bank``, ``nas@/home/mpc/mpc_ci_bank``
 
-        :param token: name, path, project@name or project@path
-        :type token: str
+        :param token: ``name``, ``path``, ``project@name`` or ``project@path``
         """
         # Search for the Bank
         path_or_name: str = token
@@ -93,7 +81,6 @@ class Bank(dsl.Bank):
         Return 'default' when no default project are specify at bank creation.
 
         :return: the project name (as a Ref branch)
-        :rtype: str
         """
         return self._dflt_proj
 
@@ -103,7 +90,6 @@ class Bank(dsl.Bank):
         Get path to bank directory.
 
         :return: absolute path to directory
-        :rtype: str
         """
         return self._path
 
@@ -113,7 +99,6 @@ class Bank(dsl.Bank):
         Get bank name.
 
         :return: the bank name
-        :rtype: str
         """
         return self._name
 
@@ -121,7 +106,6 @@ class Bank(dsl.Bank):
         """Stringification of a bank.
 
         :return: a combination of name & path
-        :rtype: str
         """
         return str({self._name: self._path})
 
@@ -131,9 +115,7 @@ class Bank(dsl.Bank):
         .. note::
             This function does not use :class:`log.IOManager`
 
-        :param stringify: if True, a string will be returned. Print on stdout
-            otherwise
-        :type stringify: bool
+        :param stringify: if True, a string will be returned. Print on stdout otherwise
         :return: str if stringify is True, Nothing otherwise`
         """
         string = ["Projects contained in bank '{}':".format(self._path)]
@@ -162,11 +144,8 @@ class Bank(dsl.Bank):
         Create a new node into the bank for the given project, based on result handler.
 
         :param target_project: valid project (=branch)
-        :type target_project: str
         :param hdl: the result build directory handler
-        :type hdl: BuildDirectoryManager
         :param msg: the custom message to attach to this run (=commit msg)
-        :type msg: str, optional
         """
         if target_project is None:
             target_project = self.default_project
@@ -202,11 +181,8 @@ class Bank(dsl.Bank):
         """Extract results from the given build directory & store into the bank.
 
         :param tag: overridable default project (if different)
-        :type tag: str
         :param buildpath: the directory where PCVS stored results
-        :type buildpath: str
         :param msg: the custom message to attach to this run (=commit msg)
-        :type msg: str, optional
         """
         hdl = BuildDirectoryManager(buildpath)
         hdl.load_config()
@@ -221,11 +197,8 @@ class Bank(dsl.Bank):
         the archive is extracted first.
 
         :param tag: overridable default project (if different)
-        :type tag: str
         :param archivepath: archive path
-        :type archivepath: str
         :param msg: the custom message to attach to this run (=commit msg)
-        :type msg: str, optional
         """
         assert os.path.isfile(archivepath)
 
@@ -245,11 +218,8 @@ class Bank(dsl.Bank):
         Store a new run to the current bank.
 
         :param target_project: the target branch name
-        :type target_project: str
         :param path: the target archive or build dir to store.
-        :type path: str
-        :raises NotPCVSRelated: the path pointing to a valid
-            PCVS run.
+        :raises NotPCVSRelated: the path pointing to a valid PCVS run.
         """
         if not utils.check_is_build_or_archive(path):
             raise CommonException.NotPCVSRelated(
@@ -270,7 +240,6 @@ class Bank(dsl.Bank):
         """Bank representation.
 
         :return: a dict-based representation
-        :rtype: dict
         """
         return repr({"rootpath": self._path, "name": self._name})
 
@@ -279,7 +248,6 @@ class Bank(dsl.Bank):
         Get the number of projects managed by this bank handle.
 
         :return: number of projects
-        :rtype: int
         """
         return len(self.list_projects())
 
@@ -290,11 +258,8 @@ def init_banklink(name: str, path: str) -> bool:
     Create a new bank and store it to the global system.
 
     :param name: bank label
-    :type name: str
     :param path: path to bank directory
-    :type path: str
     :return: if bank was successfully created
-    :rtype: bool
     """
     banks = list_banks()
     # check if the bank name already exist
@@ -324,10 +289,10 @@ def init_banklink(name: str, path: str) -> bool:
 
 @typechecked
 def rm_banklink(name: str) -> None:
-    """Remove a bank from the global management system.
+    """
+    Remove a bank from the global management system.
 
     :param name: bank name
-    :type name: str
     """
     banks = list_banks()
     banks.pop(name)
@@ -335,8 +300,11 @@ def rm_banklink(name: str) -> None:
 
 
 @typechecked
-def list_banks() -> dict:
-    """Read Banks."""
+def list_banks() -> dict[str, str]:
+    """
+    Read Banks.
+    :return: a dictionary with banks name associated with their bank path.
+    """
     banks = {}
     try:
         with open(PATH_BANK, "r", encoding="utf-8") as f:
@@ -349,7 +317,10 @@ def list_banks() -> dict:
 
 @typechecked
 def write_banks(banks: dict[str, str]) -> None:
-    """Write banks."""
+    """
+    Write banks.
+    :param banks: a dictionary with banks name associated with their path.
+    """
     try:
         prefix_file = os.path.dirname(PATH_BANK)
         if not os.path.isdir(prefix_file):

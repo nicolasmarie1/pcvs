@@ -171,7 +171,7 @@ class ConfigDesc:
 
     @property
     def exist(self) -> bool:
-        """Return if the file pointer by this config descriptor exist."""
+        """Return if the file pointed by this config descriptor exist."""
         return self._path.is_file()
 
     def __eq__(self, other: object) -> bool:

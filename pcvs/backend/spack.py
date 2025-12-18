@@ -13,9 +13,7 @@ def parse_spec_variants(specname: str) -> dict[str, dict[str, Any]]:
     From a given Spack spec, build the list of values for any declared variant.
 
     :param specname: the spack spec to concretize
-    :type specname: str
     :return: the dict of possible values for each variants
-    :rtype: Dict[str, Any]
     """
     d = {}
     cmd = (
@@ -45,11 +43,8 @@ def generate_from_variants(package: str, label: str, prefix: str) -> None:
     Build job to be scheduled from a given Spack package.
 
     :param package: Spack package name
-    :type package: str
     :param label: group label name
-    :type label: str
     :param prefix: subprefix name for this package
-    :type prefix: str
     """
     data: dict[str, Any] = {}
     dict_of_variants = parse_spec_variants(package)

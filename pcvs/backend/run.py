@@ -39,12 +39,11 @@ from pcvs.testing.testfile import TestFile
 
 @typechecked
 def print_progbar_walker(elt: tuple[str, str | None]) -> str | None:
-    """Walker used to pretty-print progress bar element within Click.
+    """
+    Walker used to pretty-print progress bar element within Click.
 
     :param elt: the element to pretty-print, containing the label & subprefix
-    :type elt: tuple
     :return: the formatted string
-    :rtype: str
     """
     if elt is None:
         return None
@@ -53,10 +52,10 @@ def print_progbar_walker(elt: tuple[str, str | None]) -> str | None:
 
 @typechecked
 def display_summary(the_session: Session) -> None:
-    """Display a summary for this run, based on profile & CLI arguments.
+    """
+    Display a summary for this run, based on profile & CLI arguments.
 
     :param the_session: active session, for extra info to be displayed.
-    :type the_session: Session
     """
     cfg = GlobalConfig.root["validation"]
 
@@ -105,7 +104,6 @@ def stop_pending_jobs(exc: Exception | None = None) -> None:
     Called when PCVS is going to stop upon external request, stop the scheduler
 
     :param exc: exception to raise, defaults to None
-    :type exc: Exception, optional
     :raises exc: the exception to raise (this function is generally called when
         a exception is raised, this do some actions without capturing the exception)
     """
@@ -119,15 +117,14 @@ def stop_pending_jobs(exc: Exception | None = None) -> None:
 @io.capture_exception(Exception, stop_pending_jobs)
 @typechecked
 def process_main_workflow(the_session: Session) -> int:
-    """Main run.py entry point, triggering a PCVS validation run.
+    """
+    Main run.py entry point, triggering a PCVS validation run.
 
     This function is called by session management and may be run within an
     active terminal or as a detached process.
 
     :param the_session: the session handler this run is connected to, defaults to None
-    :type the_session: Session, optional
     :return: the exit code
-    :rtype: int
     """
     io.console.info("RUN: Session start")
     global_config: MetaConfig = GlobalConfig.root
@@ -218,8 +215,8 @@ def process_main_workflow(the_session: Session) -> int:
 
 @typechecked
 def check_defined_program_validity() -> None:
-    """Ensure most programs defined in profiles & parameters are valid in the
-    current environment.
+    """
+    Ensure most programs defined in profiles & parameters are valid in the current environment.
 
     Only system-wide commands are assessed here (compiler, runtime, etc...) not
     test-wide, as some resource may not be available at the time.
@@ -250,7 +247,8 @@ def check_defined_program_validity() -> None:
 
 @typechecked
 def prepare() -> None:
-    """Prepare the environment for a validation run.
+    """
+    Prepare the environment for a validation run.
 
     This function prepares the build dir, create trees...
     """
@@ -305,8 +303,8 @@ def prepare() -> None:
 def find_files_to_process(
     path_dict: dict[str, str],
 ) -> tuple[list[tuple[str, str, str]], list[tuple[str, str, str]]]:
-    """Lookup for test files to process, from the list of paths provided as
-    parameter.
+    """
+    Lookup for test files to process, from the list of paths provided as parameter.
 
     The given `path_dict` is a dict, where keys are path labels given by the
     user, while values are the actual path. This function then returns a
@@ -319,9 +317,7 @@ def find_files_to_process(
          * file basename (either "pcvs.setup" or "pcvs.yml")
 
     :param path_dict: tree of paths to look for
-    :type path_dict: dict
     :return: a tuple with two lists
-    :rtype: tuple
     """
     setup_files = []
     yaml_files = []
@@ -352,7 +348,8 @@ def find_files_to_process(
 @io.capture_exception(Exception, doexit=True)
 @typechecked
 def process_files() -> list[Test]:
-    """Process the test-suite generation.
+    """
+    Process the test-suite generation.
 
     It includes walking through user directories to find definitions AND
     generating the associated tests.
@@ -377,6 +374,7 @@ def process_files() -> list[Test]:
 
 @typechecked
 def prepare_runtime_env_file() -> None:
+    """Export run environment into a file for later import by runner script."""
     io.console.info("Building env from config.")
     env_config = build_env_from_configuration(GlobalConfig.root)
 
@@ -394,7 +392,6 @@ def process_spack() -> None:
     """
     Build job to schedule from Spack recipes.
     """
-
     if not shutil.which("spack"):
         io.console.warn("Unable to parse Spack recipes without having Spack in $PATH")
         return
@@ -429,7 +426,6 @@ def build_env_from_configuration(config: dict) -> dict:
     - PCVS_CRIT_MPI='1 2 4'
 
     :param config: the current config
-    :type config: dict
     :return: a dict of environment variables to export.
     """
 
@@ -460,18 +456,17 @@ def build_env_from_configuration(config: dict) -> dict:
     return env
 
 
+@typechecked
 def process_dyn_setup_scripts(setup_files: list[tuple[str, str, str]]) -> list[Test]:
-    """Process dynamic test files and generate associated tests.
+    """
+    Process all dynamic 'pcvs.yaml.setup' files and generate associated tests.
 
     This function executes pcvs.setup files after deploying the environment (to
     let these scripts access it). It leads to generate "pcvs.yml" files, then
     processed to construct tests.
 
     :param setup_files: list of tuples, each mapping a single pcvs.setup file
-    :type setup_files: tuple
-    :raises NonZeroSetupScript: the Setup script doe not complete successfully
-    :return: list of errors encountered while processing.
-    :rtype: list
+    :return: list of generated tests
     """
     io.console.info("Iteration over files")
     tests: list[Test] = []
@@ -483,12 +478,10 @@ def process_dyn_setup_scripts(setup_files: list[tuple[str, str, str]]) -> list[T
 @typechecked
 def process_static_yaml_files(yaml_files: list[tuple[str, str, str]]) -> list[Test]:
     """
-    Process 'pcvs.yml' files to construct the test base.
+    Process all static 'pcvs.yml' files and generate associated tests.
 
     :param yaml_files: list of tuples, each describing a single input file.
-    :type yaml_files: list
-    :return: list of encountered errors while processing
-    :rtype: list
+    :return: list of generated tests
     """
     io.console.info("Iteration over files")
     tests: list[Test] = []
@@ -499,6 +492,11 @@ def process_static_yaml_files(yaml_files: list[tuple[str, str, str]]) -> list[Te
 
 @typechecked
 def process_dyn_setup(label: str, prefix: str, file_name: str) -> list[Test]:
+    """
+    Process one setup script and return it's test descriptor.
+
+    :raises SetupError: An error occurred when running the setup script.
+    """
     io.console.info(f"Processing {prefix} dynamic script. ({label})")
     base_src, cur_src, base_build, cur_build = testing.test.generate_local_variables(label, prefix)
     os.makedirs(cur_build, exist_ok=True)
@@ -543,6 +541,7 @@ def process_dyn_setup(label: str, prefix: str, file_name: str) -> list[Test]:
 
 @typechecked
 def process_static_yaml(label: str, prefix: str, file_name: str) -> list[Test]:
+    """Process one yaml file and return it's test descriptor."""
     _, cur_src, _, cur_build = testing.test.generate_local_variables(label, prefix)
     os.makedirs(cur_build, exist_ok=True)
     f = os.path.join(cur_src, file_name)
@@ -554,7 +553,11 @@ def process_static_yaml(label: str, prefix: str, file_name: str) -> list[Test]:
 def process_yaml(
     file_path: str, build_path: str, label: str, prefix: str, content: str | None = None
 ) -> list[Test]:
-    """Process one yaml file and register it's test descriptor."""
+    """
+    Process one yaml and return it's test descriptor.
+
+    :raises YamlError: An error occurred when loading the yaml file, invalid yaml structure of file.
+    """
     GlobalConfig.root.get_internal("pColl").invoke_plugins(Plugin.Step.TFILE_BEFORE)
 
     tests: list[Test] = []
@@ -613,7 +616,8 @@ def anonymize_archive() -> None:
 
 @typechecked
 def terminate() -> None:
-    """Finalize a validation run.
+    """
+    Finalize a validation run.
 
     This include generating & anonymizing (if needed) the archive.
     """
@@ -641,17 +645,15 @@ def terminate() -> None:
 
 @typechecked
 def dup_another_build(build_dir: str, outdir: str) -> MetaConfig:
-    """Clone another build directory to start this validation upon it.
+    """
+    Clone another build directory to start this validation upon it.
 
     It allows to save test-generation time if the validation is re-run under the
     exact same terms (identical configuration & tests).
 
     :param build_dir: the build directory to copy resource from
-    :type build_dir: str
     :param outdir: where data will be copied to.
-    :type outdir: str
     :return: the whole configuration loaded from the dup'd build directory
-    :rtype: dict
     """
     global_config = None
 

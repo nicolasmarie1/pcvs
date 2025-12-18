@@ -20,7 +20,7 @@ class Report:
 
     def __init__(self) -> None:
         """
-        Initialize a new report (no args)
+        Initialize a new report
         """
         self._sessions: dict[str, BuildDirectoryManager] = {}
         self._alive_session_infos: dict[str, Any] = {}
@@ -32,10 +32,8 @@ class Report:
         This object will be used to forward result requests.
 
         :param path: build directory path
-        :type path: str
         :raises NotPCVSRelated: Invalid path is provided
         :return: the actual handler
-        :rtype: BuildDirectoryManager
         """
         if utils.check_is_buildir(path):
             hdl = BuildDirectoryManager(path)
@@ -52,9 +50,7 @@ class Report:
         Insert new session to be managed.
 
         :param path: the build path (root dir)
-        :type path: str
         :return: the session handler
-        :rtype: BuildDirectoryManager
         """
         hdl = self.__create_build_handler(path)
         hdl.load_config()
@@ -91,7 +87,6 @@ class Report:
         Get the list of session ids managed by this instance.
 
         :return: a list of session ids
-        :rtype: list of integers
         """
         return list(self._sessions.keys())
 
@@ -102,16 +97,13 @@ class Report:
         Used to convert dict of per-status jobs to a summary of them.
 
         :param arrays: the dict of arrays
-        :type arrays: dict
         :return: a summary of given dict
-        :rtype: dict
         """
         return {k: len(v) for k, v in arrays.items()}
 
-    def session_infos(self) -> Iterable[dict]:
+    def session_infos(self) -> Iterable[dict[str, Any]]:
         """
         Get session metadata for each session currently loaded into the instance.
-        :rtype: Iterator[Dict[str, Any]]
         """
         for sid, sdata in self._sessions.items():
             status_dict = self.single_session_status(sid)
@@ -135,9 +127,7 @@ class Report:
         Get the configuration map from a single session.
 
         :param sid: the session ID
-        :type sid: str
         :return: the configuration node (=conf.yml)
-        :rtype: dict
         """
         assert sid in self._sessions
         d = self._sessions[sid].config
@@ -151,11 +141,8 @@ class Report:
         Get per-session status infos
 
         :param sid: Session id to extract info from.
-        :type sid: str
         :param filter: optional status to filter in, defaults to None
-        :type filter: str, optional
         :return: A dict of statuses (or a single list if the filter is used)
-        :rtype: dict or list
         """
         assert sid in self._sessions
         statuses = self._sessions[sid].results.status_view
@@ -173,9 +160,7 @@ class Report:
         Outputs a per-status dict.
 
         :param sid: Session ID
-        :type sid: str
         :return: dict of statuses
-        :rtype: dict
         """
         assert sid in self._sessions
         return self._sessions[sid].results.tags_view
@@ -185,9 +170,7 @@ class Report:
         Get per session number of job.
 
         :param sid: the session ID
-        :type sid: str
         :return: The number of jobs (total)
-        :rtype: int
         """
         assert sid in self._sessions
         return self._sessions[sid].results.total_cnt
@@ -199,9 +182,7 @@ class Report:
         Outputs a per-status dict.
 
         :param sid: Session ID
-        :type sid: str
         :return: dict of statuses
-        :rtype: dict
         """
         assert sid in self._sessions
         labels_info = self._sessions[sid].results.tree_view
@@ -215,9 +196,7 @@ class Report:
         Get build prefix of a given session.
 
         :param sid: session ID
-        :type sid: int
         :return: build path
-        :rtype: str
         """
         assert sid in self._sessions
         return self._sessions[sid].prefix
@@ -227,11 +206,8 @@ class Report:
         For a given session id, convert a job it into its relative class:`Test` object.
 
         :param sid: Session ID
-        :type sid: str
         :param jid: Job ID
-        :type jid: str
         :return: the Actual test object
-        :rtype: Test
         """
         assert sid in self._sessions
         return self._sessions[sid].results.map_id(jid)
@@ -254,15 +230,10 @@ class Report:
         job ids.
 
         :param sid: Session ID
-        :type sid: str
         :param name: view name
-        :type name: str
         :param subset: only a selection of the view, defaults to None
-        :type subset: str, optional
         :param summary: Should it be summarized, defaults to False
-        :type summary: bool, optional
         :return: the result dict
-        :rtype: dict
         """
         if sid not in self._sessions:
             return None
@@ -296,7 +267,6 @@ def upload_buildir_results(
     """Upload a whole test-suite from disk to the server data model.
 
     :param buildir: the build directory
-    :type buildir: str
     """
     # TODO: That would be cool to dev the real stuff,
     # before making interface that use function that never existed.

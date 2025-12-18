@@ -1,3 +1,5 @@
+"""A configuration dictionary with additional feature."""
+
 from typing import Any
 
 from typeguard import typechecked
@@ -10,7 +12,7 @@ class Config(dict):
 
     While it can contain arbitrary data, the whole PCVS
     configuration is composed of 5 distinct 'categories', each being a single
-    Config. These are then gathered in a `MetaConfig` object (see below)
+    Config. These are then gathered in a :class:`~pcvs.backend.metaconfig.MetaConfig` object.
     """
 
     def __init__(self, d: dict = {}):
@@ -18,7 +20,6 @@ class Config(dict):
         Init the object.
 
         :param d: items of the configuration
-        :type d: dict
         """
         super().__init__(**d)
 
@@ -40,9 +41,7 @@ class Config(dict):
         Shortcut function: init self[k] only if v is not None.
 
         :param k: name of value to add
-        :type k: str
         :param v: value to add
-        :type v: str
         """
         if v is not None:
             self[k] = v

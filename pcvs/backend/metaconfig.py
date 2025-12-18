@@ -15,6 +15,7 @@ from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers.validation import ValidationScheme
 from pcvs.io import Verbosity
 
+# Compiler to file extension mappings.
 COMPILER_EXTENSION_CONFIG = {
     "cc": "\\.(h|H|i|I|s|S|c|c90|c99|c11)$",
     # ".h.H.i.I.s.S.c.c90.c99.c11"
@@ -47,13 +48,22 @@ class MetaConfig(Config):
         Init the object.
 
         :param d: items of the configuration
-        :type d: dict
+        :param internal_config: items to add to the internal_config
+
+        internal_config is a subdictionnary for non serializable runtime object.
+        The internal_config is therefore not save like the regular config.
+        It act as a global variables registry.
+        Using it is bad practice and should be avoided.
         """
         super().__init__(d)
         self.__internal_config = internal_config
 
     def bootstrap_from_profile(self, pf: Profile) -> None:
-        """Bootstrap MetaConfig from profile."""
+        """
+        Bootstrap MetaConfig from profile.
+
+        :param pf: The profile to bootstrap from.
+        """
         self.bootstrap_compiler(pf.compiler)
         self.bootstrap_criterion(pf.criterion)
         self.bootstrap_group(pf.group)
@@ -65,7 +75,6 @@ class MetaConfig(Config):
         Specific initialize for compiler config.
 
         :param conf: compiler config to initialize
-        :type conf: Config
         """
         self.setdefault("compiler", conf)
 
@@ -86,7 +95,6 @@ class MetaConfig(Config):
         Specific initialize for criterion config.
 
         :param conf: criterion config to initialize
-        :type conf: Config
         """
         self.setdefault("criterion", conf)
 
@@ -94,8 +102,7 @@ class MetaConfig(Config):
         """
         Specific initialize for group config.
 
-        :param node: group config to initialize
-        :type node: Config
+        :param conf: group config to initialize
         """
         self.setdefault("group", conf)
 
@@ -104,7 +111,6 @@ class MetaConfig(Config):
         Specific initialize for machine config block.
 
         :param conf: machine config to initialize
-        :type conf: Config
         """
         self.setdefault("machine", conf)
 
@@ -130,8 +136,7 @@ class MetaConfig(Config):
     def bootstrap_runtime(self, conf: Config) -> None:
         """Specific initialize for runtime config.
 
-        :param node: runtime config to initialize
-        :type node: Config
+        :param conf: runtime config to initialize
         """
         self.setdefault("runtime", conf)
         if "package_manager" in conf:
@@ -142,8 +147,8 @@ class MetaConfig(Config):
         Specific initialize for validation config block.
 
         This function loads a file containing the validation dict.
+
         :param filepath: path to file to be validated
-        :type filepath: str
         :raises IOError: file is not found or badly formatted
         """
         node = {}
@@ -174,8 +179,7 @@ class MetaConfig(Config):
         """
         Specific initialize for validation config.
 
-        :param node: validation block to initialize
-        :type node: dict
+        :param conf: validation block to initialize
         """
         self.setdefault("validation", conf)
 
@@ -221,9 +225,7 @@ class MetaConfig(Config):
         Manipulate the internal MetaConfig() node to store unexportable data.
 
         :param k: name of value to add
-        :type k: str
         :param v: value to add
-        :type v: str
         """
         self.__internal_config[k] = v
 
@@ -232,7 +234,6 @@ class MetaConfig(Config):
         Manipulate the internal MetaConfig() node to load unexportable data.
 
         :param k: value to get
-        :type k: str
         """
         if k in self.__internal_config:
             return self.__internal_config[k]
@@ -246,7 +247,7 @@ class GlobalConfig:
 
     To avoid carrying a global instancied object over the whole code, a
     class-scoped attribute allows to browse the global configuration from
-    anywhere through `GlobalConfig.root`"
+    anywhere through `GlobalConfig.root`
     """
 
-    root = MetaConfig()
+    root: MetaConfig = MetaConfig()

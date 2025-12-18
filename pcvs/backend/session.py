@@ -31,9 +31,7 @@ def store_session_to_file(infos: dict) -> str:
     """Save a new session into the session file (in HOME dir).
 
     :param c: session infos to store
-    :type c: dict
     :return: the sid associated to new create session id.
-    :rtype: int
     """
     global yml
 
@@ -102,7 +100,6 @@ def list_alive_sessions() -> dict[str, dict]:
     """Load and return the complete dict from session.yml file
 
     :return: the session dict
-    :rtype: dict
     """
     global yml
     if not os.path.exists(PATH_SESSION):
@@ -122,7 +119,7 @@ def list_alive_sessions() -> dict[str, dict]:
 
 
 @typechecked
-def main_detached_session(sid: str, user_func: Callable, *args, **kwargs) -> int:  # type: ignore
+def main_detached_session(sid: str, user_func: Callable, *args: tuple, **kwargs: dict) -> int:
     """Main function processed when running in detached mode.
 
     This function is called by Session.run_detached() and is launched from
@@ -133,9 +130,7 @@ def main_detached_session(sid: str, user_func: Callable, *args, **kwargs) -> int
     :param sid: the session id
     :param user_func: the Python function used as the new main()
     :param args: user_func() arguments
-    :type args: tuple
     :param kwargs: user_func() arguments
-    :type kwargs: dict
     """
 
     # When calling a subprocess, the parent is attached to its child
@@ -205,7 +200,6 @@ class SessionState(IntEnum):
         """Stringify the state.
 
         :return: the enum name.
-        :rtype: str
         """
         return self.name
 
@@ -218,12 +212,8 @@ class Session:
     callback and can be derived for other needs.
 
     :param _func: user function to be called once the session starts
-    :type _func: Callable
     :param _sid: session id, automatically generated
-    :type _sid: str
     :param _session_infos: session infos dict
-    :type _session_infos: dict
-
     """
 
     @property
@@ -231,7 +221,6 @@ class Session:
         """Getter to session status.
 
         :return: session status
-        :rtype: int
         """
         state = self._session_infos["state"]
         assert isinstance(state, SessionState)
@@ -242,7 +231,6 @@ class Session:
         """Getter to session id.
 
         :return: session hash
-        :rtype: str
         """
         return self._sid
 
@@ -259,7 +247,6 @@ class Session:
         """Getter to session infos.
 
         :return: session infos
-        :rtype: dict
         """
         return self._session_infos
 
@@ -267,9 +254,7 @@ class Session:
         """Access specific data from the session stored info session.yml.
 
         :param kw: the information to retrieve. kw must be a valid key
-        :type kw: str
         :return: the requested session infos if exist
-        :rtype: Any
         """
         assert kw in self._session_infos
         return self._session_infos[kw]
@@ -278,9 +263,7 @@ class Session:
         """constructor method.
 
         :param date: the start timestamp
-        :type date: datetime.datetime
         :param path: the build directory
-        :type path: str
         """
         self._func: Callable[..., int] | None = None
         self._rc = -1
@@ -300,9 +283,7 @@ class Session:
         """Update the current object with session infos read from global file.
 
         :param sid: session id read from file
-        :type sid: str
         :param data: session infos read from file
-        :type data: dict
         """
         self._sid = sid
         self._session_infos = data
@@ -312,21 +293,18 @@ class Session:
         started.
 
         :param callback: function to invoke
-        :type callback: Callable
         """
         self._func = callback
 
     def run_detached(self, *args, **kwargs) -> str:  # type: ignore
-        """Run the session is detached mode.
+        """
+        Run the session in detached mode.
 
         Arguments are for user function only.
         :param args: user function positional arguments
-        :type args: tuple
         :param kwargs user function keyword-based arguments.
-        :type kwargs: tuple
 
         :return: the Session id created for this run.
-        :rtype: str
         """
         io.detach_console()
         self._session_infos["io"] = io.console.outfile
@@ -360,11 +338,8 @@ class Session:
         redirecting I/O properly (stdout, file, logs)
 
         :param args: user function positional arguments
-        :type args: tuple
         :param kwargs: user function keyword-based arguments.
-        :type kwargs: tuple
         :return: the session ID for this run
-        :rtype: str
         """
         if self._func is not None:
             # same as above, shifted starting time or not

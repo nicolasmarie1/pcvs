@@ -26,12 +26,11 @@ from pcvs.testing.tedesc import TEDescriptor
 
 @typechecked
 def locate_scriptpaths(output: str | None = None) -> list[str]:
-    """Path lookup to find all 'list_of_tests' script within a given prefix.
+    """
+    Path lookup to find all 'list_of_tests' script within a given prefix.
 
     :param output: prefix to walk through, defaults to current directory
-    :type output: str, optional
     :return: the list of scripts found in prefix
-    :rtype: List[str]
     """
     if output is None:
         output = os.getcwd()
@@ -45,15 +44,12 @@ def locate_scriptpaths(output: str | None = None) -> list[str]:
 
 @typechecked
 def compute_scriptpath_from_testname(testname: str, output: str | None = None) -> str:
-    """Locate the proper 'list_of_tests.sh' according to a fully-qualified test
-    name.
+    """
+    Locate the proper 'list_of_tests.sh' according to a fully-qualified test name.
 
     :param testname: test name belonging to the script
-    :type testname: str
     :param output: prefix to walk through, defaults to current directory
-    :type output: str, optional
     :return: the associated path with testname
-    :rtype: str
     """
     if output is None:
         output = os.getcwd()
@@ -69,11 +65,8 @@ def get_logged_output(prefix: str, testname: str) -> str:
     Get job output from the given archive/build path.
 
     :param prefix: the archive or directory to scan from
-    :type prefix: str
     :param testname: the full test name
-    :type testname: str
     :return: the raw output
-    :rtype: str
     """
     if prefix is None:
         prefix = os.getcwd()
@@ -99,7 +92,6 @@ def process_check_configs() -> dict[str, int]:
     To ensure their correctness relatively to their respective schemes.
 
     :return: caught errors, as a dict, where the keys is the errmsg base64
-    :rtype: dict
     """
     errors: dict[str, int] = {}
     t = io.console.create_table("Configurations", [Column("Valid"), Column("ID")])
@@ -125,12 +117,12 @@ def process_check_configs() -> dict[str, int]:
 
 @typechecked
 def process_check_profiles() -> dict[str, int]:
-    """Analyse availables profiles and check their correctness.
+    """
+    Analyse availables profiles and check their correctness.
 
     Relatively to the base scheme.
 
     :return: list of caught errors as a dict, where keys are error msg base64
-    :rtype: dict
     """
     t = io.console.create_table("Available Profiles", [Column("Valid"), Column("ID")])
     errors: dict[str, int] = {}
@@ -159,16 +151,12 @@ def process_check_profiles() -> dict[str, int]:
 
 @typechecked
 def process_check_directory(directory: str, pf_name: str = "default.yml") -> dict[str, int]:
-    """Analyze a directory to ensure defined test files are valid.
+    """
+    Analyze a directory to ensure defined test files are valid.
 
-    :param conversion: allow legacy format for this check (True by default)
-    :type conversion: bool, optional
-    :param dir: the directory to process.
-    :type dir: str
+    :param directory: the directory to process.
     :param pf_name: profile name to be loaded, defaults to "default"
-    :type pf_name: str, defaults to "default"
     :return: a dict of caught errors
-    :rtype: dict
     """
     errors: dict[str, int] = {}
     cd: ConfigDesc = ConfigLocator().parse_full_raise(
@@ -245,27 +233,26 @@ def process_check_directory(directory: str, pf_name: str = "default.yml") -> dic
 
 @typechecked
 class BuildSystem:
-    """Manage a generic build system discovery service.
+    """
+    Manage a generic build system discovery service.
 
     :ivar _root: the root directory the discovery service is attached to.
-    :type _root: str
+    :vartype _root: :py:obj:`str`
     :ivar _dirs: list of directory found in _root.
-    :type _dirs: List[str]
+    :vartype _dirs: :py:obj:`list[str]`
     :ivar _files: list of files found in _root
-    :type _files: List[str]
+    :vartype _files: :py:obj:`list[str]`
     :ivar _stream: the resulted dict, representing targeted YAML architecture
-    :type _stream: dict
+    :vartype _stream: :py:obj:`dict`
     """
 
     def __init__(self, root: str, dirs: list[str] | None = None, files: list[str] | None = None):
-        """Constructor method.
+        """
+        Constructor method.
 
         :param root: root dir where discovery service is applied
-        :type root: str
         :param dirs: list of dirs, defaults to None
-        :type dirs: list[str], optional
         :param files: list of files, defaults to None
-        :type files: list[str], optional
         """
         self._root = root
         self._dirs = dirs
@@ -274,7 +261,8 @@ class BuildSystem:
 
     @abstractmethod
     def fill(self) -> None:
-        """This function should be overridden by overridden classes.
+        """
+        This function should be overridden by overridden classes.
 
         Nothing to do, by default.
         """
@@ -284,9 +272,7 @@ class BuildSystem:
         model.
 
         :param filename: test file suffix
-        :type filename: str
         :param force: erase target file if exist.
-        :type force: bool
         """
         out_file = os.path.join(self._root, filename)
         if os.path.isfile(out_file) and not force:
@@ -302,8 +288,7 @@ class AutotoolsBuildSystem(BuildSystem):
     """Derived BuildSystem targeting Autotools projects."""
 
     def fill(self) -> None:
-        """Populate the dict relatively to the build system to build the proper
-        YAML representation."""
+        """Populate the dict relatively to the build system to build the proper YAML representation."""
         name = os.path.basename(self._root)
         self._stream.setdefault(name, {}).setdefault("build", {}).setdefault("autotools", {})
         self._stream[name]["build"]["autotools"]["autogen"] = (
@@ -318,8 +303,7 @@ class CMakeBuildSystem(BuildSystem):
     """Derived BuildSystem targeting CMake projects."""
 
     def fill(self) -> None:
-        """Populate the dict relatively to the build system to build the proper
-        YAML representation."""
+        """Populate the dict relatively to the build system to build the proper YAML representation."""
         name = os.path.basename(self._root)
         self._stream.setdefault(name, {}).setdefault("build", {}).setdefault("cmake", {})
         self._stream[name]["build"]["cmake"]["vars"] = "CMAKE_BUILD_TYPE=Debug"
@@ -331,8 +315,7 @@ class MakefileBuildSystem(BuildSystem):
     """Derived BuildSystem targeting Makefile-based projects."""
 
     def fill(self) -> None:
-        """Populate the dict relatively to the build system to build the proper
-        YAML representation."""
+        """Populate the dict relatively to the build system to build the proper YAML representation."""
         name = os.path.basename(self._root)
         self._stream.setdefault(name, {}).setdefault("build", {}).setdefault("make", {})
         self._stream[name]["build"]["make"]["target"] = ""
@@ -341,14 +324,12 @@ class MakefileBuildSystem(BuildSystem):
 
 @typechecked
 def process_discover_directory(path: str, override: bool = False, force: bool = False) -> None:
-    """Path discovery to detect & initialize build systems found.
+    """
+    Path discovery to detect & initialize build systems found.
 
     :param path: the root path to start with
-    :type path: str
     :param override: True if test files should be generated, default to False
-    :type override: bool
     :param force: True if test files should be replaced if exist, default to False
-    :type force: bool
     """
     for root, dirs, files in os.walk(path):
         obj: BuildSystem | None = None
