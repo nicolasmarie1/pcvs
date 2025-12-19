@@ -8,9 +8,11 @@ from typing_extensions import Self
 class TestState(IntEnum):
     """Provide Status management, specifically for tests/jobs.
 
-    Defined as an enum, it represents different states a job can take during
+    Defined as an enum, it represents different states a
+    :class:`~pcvs.testing.test`/:class:`~pcvs.dsl.Job` can take during
     its lifetime. As tests are then serialized into a JSON file, there is
-    no need for construction/representation (as done for Session states).
+    no need for construction/representation (as done for
+    :class:`~pcvs.backend.session.SessionState`).
 
     :var int WAITING: Job is currently waiting to be scheduled
     :var int IN_PROGRESS: A running Set() handle the job, and is scheduled
@@ -22,7 +24,7 @@ class TestState(IntEnum):
     :var int FAILURE: Job didn't succeed, at least one condition failed.
     :var SOFT_TIMEOUT: Job has exceeded his soft time limit but pass.
     :var HARD_TIMEOUT: Job has exceeded his hard time limit and got killed.
-    :var int ERR_DEP: Special cases to manage jobs descheduled because at
+    :var int ERR_DEP: Special cases to manage jobs unscheduled because at
         least one of its dependencies have failed to complete.
     :var int ERR_OTHER: Any other uncaught situation.
     """

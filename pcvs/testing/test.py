@@ -14,6 +14,7 @@ from typing_extensions import Self
 from pcvs import io
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers.criterion import Combination
+from pcvs.helpers.pm import PManager
 from pcvs.helpers.validation import ValidationScheme
 from pcvs.plugins import Plugin
 from pcvs.testing.teststate import TestState
@@ -29,11 +30,10 @@ class Test:
     in a convenient way, more information can be attached to the command like a
     name, the elapsed time, the output, etc.
 
-    In order to make test content flexible, there is no fixed list of
-    attributes. A Test() constructor is initialized via (\*args, \*\*kwargs), to
-    populate a dict `_array`.
-
-    :cvar str NOSTART_STR: constant, setting default output when job cannot be run.
+    :cvar NOSTART_STR: constant, setting default output when job cannot be run.
+    :vartype NOSTART_STR: :py:obj:`str`
+    :cvar DISCARDED_STR: constant, setting default output for discarded test.
+    :vartype DISCARDED_STR: :py:obj:`str`
     """
 
     res_scheme = ValidationScheme("test-result")
@@ -52,18 +52,40 @@ class Test:
         subtree: str = "nosubtree",
         user_suffix: str | None = None,
         command: str = "",
-        metrics: dict = {},
+        metrics: dict[str, dict[str, Any]] = {},
         tags: list[str] = [],
         artifacts: dict = {},
         validation: dict = {},
-        mod_deps: list = [],
-        job_deps: list = [],
+        mod_deps: list[PManager] = [],
+        job_deps: list[str] = [],
     ):
         """
-        Constructu a Test.
+        Construct a Test.
 
-        :param kwargs: flexible list of arguments to initialize a Test with.
-        :type kwargs: dict
+        :param comb: Criterion expanded combination for this specific test.
+        :param wd: Test working directory.
+        :param resources: Resources consumed by the test (cpu_cores / nodes),
+          scheduler heuristic to avoid running to much jobs in scheduler that badly scale (like slurm).
+        :param environment: Environment variables used when running the test.
+        :param te_name: Test name.
+        :param label: Test label.
+        :param subtree: Sub directory of the test from the pcvs execution directory.
+        :param user_suffix: Test suffix.
+        :param command: The command used to run the test.
+        :param metrics: Dictionary of regexs to get data from test output, stored in test results.
+        :param tags: Tets tags, used to filter test execution and console output of test stdout/stderr.
+        :param artifacts: Artifacts (files) that will be saved in test data after test run,
+          a dict mapping artifact name in test data to files names to read from the disks.
+        :param validation: Validation configuration. Contain some to all of the following:
+
+          - expected exit code
+          - soft_timeout
+          - hard_timeout
+          - dynamic time validation ``((mean + tolerance) * weight)``
+          - regex matcher
+          - validation script path
+        :param mod_deps: Package manager dependency (modules or spack).
+        :param job_deps: Other jobs name that this test depends on (like compilation phases).
         """
         # Basic Info Compute
         comb_str: str | None = comb.translate_to_str() if comb is not None else None
@@ -90,8 +112,8 @@ class Test:
         self._comb: Combination | None = comb
         self._comb_str: str | None = comb_str
         self._resources: list[int] = _resources
-        self._metrics: dict = metrics
-        self._mod_deps: list = mod_deps
+        self._metrics: dict[str, dict[str, Any]] = metrics
+        self._mod_deps: list[PManager] = mod_deps
         self._depnames: list[str] = job_deps
 
         # Runtime infos (change during the run, the others vars should be const)
@@ -128,139 +150,155 @@ class Test:
 
     @property
     def jid(self) -> str:
-        """Getter for unique Job ID within a run.
+        """
+        Getter for unique Job ID within a run.
 
         This attribute is generally set by the manager once job is uploaded
         to the dataset.
+
         :return: a unique hash of the job name
-        :rtype: str
         """
         return self._jid
 
     @property
     def basename(self) -> str:
+        """Get fully-qualified name."""
         return Test.compute_fq_name(self._label, self._subtree, self._te_name)
 
     @property
     def tags(self) -> list[str]:
-        """Getter for the full list of tags.
+        """
+        Getter for the full list of tags.
 
         :return: the list of of tags
-        :rtype: list
         """
         return self._tags
 
     @property
     def label(self) -> str:
-        """Getter to the test label.
+        """
+        Getter to the test label.
 
         :return: the label
-        :rtype: str
         """
         return self._label
 
     @property
     def name(self) -> str:
-        """Getter for fully-qualified job name.
+        """
+        Getter for fully-qualified job name.
 
         :return: test name.
-        :rtype: str
         """
         return self._fq_name
 
     @property
     def subtree(self) -> str:
-        """Getter to the test subtree.
+        """
+        Getter to the test subtree.
 
         :return: test subtree.
-        :rtype: str.
         """
         return self._subtree
 
     @property
     def te_name(self) -> str:
-        """Getter to the test TE name.
+        """
+        Getter to the test TE name.
 
         :return: test TE name.
-        :rtype: str.
         """
 
         return self._te_name
 
     @property
     def combination(self) -> Combination:
-        """Getter to the test combination dict.
+        """
+        Getter to the test combination dict.
 
         :return: test comb dict.
-        :rtype: dict
         """
         assert self._comb is not None
         return self._comb
 
     @property
     def command(self) -> str:
-        """Getter for the full command.
+        """
+        Getter for the full command.
 
         This is a real command, executed in a shell, coming from user's
         specificaition. It should not be confused with `invocation_command`.
 
         :return: unescaped command line
-        :rtype: str
         """
         return self._execmd
 
     @property
     def invocation_command(self) -> str:
-        """Getter for the list_of_test.sh invocation leading to run the job.
+        """
+        Getter for the list_of_test.sh invocation leading to run the job.
 
         This command is under the form: `sh /path/list_of_tests.sh <test-name>`
 
         :return: wrapper command line
-        :rtype: str
         """
         assert self._invocation_cmd is not None
         return self._invocation_cmd
 
     @property
     def job_deps(self) -> list[Self]:
-        """ "Getter to the dependency list for this job.
+        """
+        Getter to the dependency list for this job.
 
         The dependency struct is an array, where for each name (=key), the
         associated Job is stored (value)
+
         :return: the list of object-converted deps
-        :rtype: list
         """
         return self._deps
 
     @property
     def job_depnames(self) -> list[str]:
-        """Getter to the list of deps, as an array of names.
+        """
+        Getter to the list of deps, as an array of names.
 
         This array is emptied when all deps are converted to objects.
 
-        :return: the array of dep names
-        :rtype: list
+        :return: the array of dependency names
         """
         return self._depnames
 
     @property
-    def mod_deps(self) -> list:
-        """Getter to the list of pack-manager rules defined for this job.
+    def mod_deps(self) -> list[PManager]:
+        """
+        Getter to the list of pack-manager rules defined for this job.
 
         There is no need for a ``_depnames`` version as these deps are provided
         as PManager objects directly.
 
         :return: the list of package-manager based deps.
-        :rtype: list
         """
         return self._mod_deps
 
     @classmethod
     def get_jid_from_name(cls, name: str) -> str:
+        """
+        Compute a Test ID from a Test name.
+
+        :param name: The name of the Test.
+        :return: The test id.
+        """
         namebytes = name.encode("utf-8")
         return hashlib.md5(namebytes).hexdigest()
 
-    def get_dep_graph(self) -> dict:
+    def get_dep_graph(self) -> dict[str, dict]:
+        """
+        Get the dependency graph from that test.
+
+        Associate every dependency name to their own recursive dependency graph.
+
+        :return: The dependency Graph build from dicts.
+        """
         res = {}
         for d in self._deps:
             res[d.name] = d.get_dep_graph()
@@ -270,9 +308,7 @@ class Test:
         """Resolve the dep object for a given dep name.
 
         :param name: the dep name to resolve, should be a valid dep.
-        :type name: str
         :param obj: the dep object, should be a Test()
-        :type obj: :class:`Test`
         """
         if name not in self._depnames:
             return
@@ -281,25 +317,42 @@ class Test:
             self._deps.append(obj)
 
     def add_dependee(self, test: Self) -> None:
+        """
+        Add a Test to the list of test that depends on this test.
+
+        :param test: the test to add.
+        """
         self._dependee.append(test)
 
     def remove_dependee(self, test: Self) -> None:
+        """
+        Remove a Tets to the list of test that depends on this test.
+
+        :param test: the test to remove.
+        """
         self._dependee.remove(test)
 
     def transpose_deps(self) -> None:
+        """Transpose the dependency graph to compute the dependee graph."""
         for test in self._deps:
             test.add_dependee(self)  # type: ignore
 
     def remove_test_from_deps(self) -> None:
+        """
+        Remove this Test from it's dependency dependee list.
+        i.e. remove self from the dependee list of test that we depends on.
+        """
         for test in self._deps:
             test.remove_dependee(self)  # type: ignore
 
     def should_run(self) -> bool:
         """Should the test be run."""
+        # There is tests tat depends on this one, so it should be run.
         if len(self._dependee) > 0:
             return True
         valcfg = GlobalConfig.root["validation"]
 
+        # Is this job included or excluded by job filter ?
         contain_allow_filter: bool = False
         for t, allow in valcfg["run_filter"].items():
             if allow:
@@ -310,63 +363,46 @@ class Test:
                 if t in self._tags:
                     return False
 
-        # if there is allow filters, deny every thing that is not in it.
+        # if there is at least one allow filters, deny every thing that is not in it.
         if contain_allow_filter:
             return False
+        # By default test is not filter.
         return True
 
     def has_completed_deps(self) -> bool:
-        """Check if the test can be scheduled.
+        """
+        Check if the test can be scheduled.
 
-        It ensures it hasn't been executed yet (or currently running) and all
-        its deps are resolved and successfully run.
+        Ensures all its deps are resolved and successfully run.
 
         :return: True if the job can be scheduled
-        :rtype: bool
         """
         return len([d for d in self._deps if not d.been_executed()]) == 0
 
     def has_failed_dep(self) -> bool:
-        """Check if at least one dep is blocking this job from ever be
-        scheduled.
+        """
+        Check if at least one dep is blocking this job from ever be scheduled.
 
         :return: True if at least one dep is shown a Failure state.
-        :rtype: bool
         """
         for d in self._deps:
             if d.state in TestState.bad_states():
                 return True
         return False
 
-    def first_incomplete_dep(self) -> Self | None:
-        """Retrieve the first ready-for-schedule dep.
-
-        This is mainly used to ease the scheduling process by following the job
-        dependency graph.
-
-        :return: a Test object if possible, None otherwise
-        :rtype: :class:`Test` or NoneType
-        """
-        for d in self._deps:
-            if d.state == TestState.WAITING:
-                return d
-        return None
-
     @property
     def soft_timeout(self) -> int:
-        """Getter for Test timeout in seconds.
+        """
+        Getter for Test timeout in seconds.
 
-        It cumulates timeout + tolerance, this value being passed to the
-        subprocess.timeout.
+        timeout is (in order):
+          1. explicitly defined
+          2. OR extrapolated from defined result.mean
+          3. set by default (GlobalConfig.root.validation.job_timeout)
 
         :return: an integer if a timeout is defined, None otherwise
-        :rtype: int or NoneType
         """
 
-        # timeout is (in order):
-        # 1. explicitly defined
-        # 2. OR extrapolated from defined result.mean
-        # 3. set by default (GlobalConfig.root.validation.job_timeout)
         if self._soft_timeout:
             return self._soft_timeout
         if self._time_validation and self._time_validation["mean"] > 0:
@@ -383,9 +419,10 @@ class Test:
 
     @property
     def hard_timeout(self) -> int:
-        """Getter for Test hard timeout in seconds.
-        :return: an integer if timeout is defined, None otherwise.
-        :rtype: int or NoneType
+        """
+        Getter for Test hard timeout in seconds.
+
+        :return: the hard timeout after which the job is killed.
         """
         if self._hard_timeout:
             return self._hard_timeout
@@ -394,14 +431,14 @@ class Test:
         return global_hard
 
     def get_nb_nodes(self) -> int:
-        """Return the orch-dimension value for this test.
+        """
+        Return the first higher orcherstrator dimension value for this test (mostlikely the number of nodes).
 
         The dimension can be defined by the user and let the orchestrator knows
         what resource are, and how to 'count' them'. This accessor allow the
         orchestrator to extract the information, based on the key name.
 
         :return: The number of resource this Test is requesting.
-        :rtype: int
         """
         if self._resources and len(self._resources) > 0:
             return self._resources[0]
@@ -409,26 +446,31 @@ class Test:
 
     @property
     def needed_resources(self) -> list[int]:
-        """Return the resources used by the jobs
+        """
+        Return the orcherstrator resources used by the jobs
 
-        :return: The number of nodes / cpus used by the jobs.
-        :rtype: int
+        The meaning for resources list is user defined and can vary depending on
+        how test/plugin defines the resources and how the job orcherstrator
+        of the wrapper defines themes.
+
+        It will most likely be [nb_nodes, nb_cpu_per_nodes].
+        But it could be [nb_nodes_lvl1, nb_nodes_lvl2, nb_nodes_lvl3, NUMA_NODE,
+        UNIX_process, MPI_PROCESS, L3_CACHE, pthreads, L2_CACHE, omp_threads, L1_CACHE, ...].
+
+        :return: The resources allocation list for the jobs.
         """
         return self._resources
 
     def save_final_result(
         self, rc: int = 0, time: float = 0.0, out: str = "", state: TestState | None = None
     ) -> None:
-        """Build the final Test result node.
+        """
+        Build the final Test result node.
 
         :param rc: return code, defaults to 0
-        :type rc: int, optional
         :param time: elapsed time, defaults to 0.0
-        :type time: float, optional
         :param out: standard out/err, default to ""
-        :type out: str, optional
-        :param state: Job final status (if override needed), defaults to FAILED
-        :type state: :class:`TestState`, optional
+        :param state: Job final status (if override needed), defaults to None
         """
         _state: TestState
         if state is None:
@@ -441,6 +483,7 @@ class Test:
         self.save_artifacts()
 
     def save_artifacts(self) -> None:
+        """Read artifacts from disk for storage in test data."""
         for elt_k, elt_v in self._artifacts.items():
             if os.path.isfile(elt_v):
                 with open(elt_v, "rb") as fh:
@@ -453,7 +496,14 @@ class Test:
         time: float | None = None,
         hard_timeout: bool = False,
     ) -> None:
-        """TODO:"""
+        """
+        Save basic run information.
+
+        :param out: standard out/err
+        :param rc: return code
+        :param time: elapsed time
+        :param hard_timeout: has the test reach hard timeout and got killed.
+        """
         if out is not None:
             self._output = out
         if rc is not None:
@@ -463,7 +513,7 @@ class Test:
         self._has_hard_timeout = hard_timeout
 
     def extract_metrics(self) -> None:
-        """TODO:"""
+        """Use user defined 'metrics' to grep requested information from test output and store themes."""
         for name in self._metrics.keys():
             node = self._metrics[name]
 
@@ -475,7 +525,7 @@ class Test:
             self._metrics[name]["values"] = list(ens(re.findall(node["key"], self._output)))
 
     def evaluate(self) -> None:
-        """TODO:"""
+        """Evaluate test results to update the test state according to validation configuration."""
         if self._has_hard_timeout:
             self._state = TestState.HARD_TIMEOUT
             return
@@ -529,20 +579,22 @@ class Test:
         self._state = state
 
     def save_status(self, state: TestState) -> None:
-        """Set current Test state.
+        """
+        Set current Test state.
 
-        :param state: give a special state to the test, defaults to FAILURE
-        :param state: :class:`TestState`, optional
+        :param state: give a special state to the test
         """
         assert isinstance(state, TestState)
         self._state = state
 
     def should_print(self) -> bool:
         """Should the test result be printed."""
+        # No output recorded
         if not self._output:
             return False
         valcfg = GlobalConfig.root["validation"]
 
+        # Is the test filtered
         contain_allow_filter: bool = False
         for t, allow in valcfg["print_filter"].items():
             if allow:
@@ -564,6 +616,7 @@ class Test:
             return False
         if valcfg["print_policy"] == "errors" and self.state in TestState.bad_states():
             return True
+        # don't print by default
         return False
 
     def get_state_fancy(self) -> tuple[str, str, str]:
@@ -584,6 +637,7 @@ class Test:
         return (label, color, io.console.utf(icon))
 
     def get_testinfo_fancy(self) -> str:
+        """Get the test status string printed when running pcvs run."""
         label, color, icon = self.get_state_fancy()
 
         if self._state == TestState.HARD_TIMEOUT:
@@ -599,8 +653,7 @@ class Test:
         return f"[{color} bold]   {icon} {self._exectime:8.2f}s{sep}{label:7}{timeout_str}{sep}{self.name}"
 
     def display(self) -> None:
-        """Print the Test into stdout (through the manager)."""
-
+        """Print the Test to console."""
         output = None
         if self.should_print():
             output = self._output
@@ -614,10 +667,10 @@ class Test:
         )
 
     def been_executed(self) -> bool:
-        """Check if job has been executed (not waiting or in progress).
+        """
+        Check if job has been executed and result computed (not waiting, in progress or EXECUTED).
 
-        :return: False if job is waiting for scheduling or in progress.
-        :rtype: bool
+        :return: False if job is waiting for scheduling, in progress or waiting for post processing.
         """
         return self._state not in [TestState.WAITING, TestState.IN_PROGRESS, TestState.EXECUTED]
 
@@ -627,10 +680,10 @@ class Test:
 
     @property
     def state(self) -> TestState:
-        """Getter for current job state.
+        """
+        Getter for current job state.
 
         :return: the job current status.
-        :rtype: :class:`TestState`
         """
         return self._state
 
@@ -656,7 +709,7 @@ class Test:
 
     @property
     def b64_output_bytes(self) -> bytes:
-        """Setter for the test output in base64 as utf-8 encoded bytes."""
+        """Getter for the test output in base64 as utf-8 encoded bytes."""
         return base64.b64encode(self._output.encode("utf-8"))
 
     @b64_output_bytes.setter
@@ -671,7 +724,7 @@ class Test:
 
     @property
     def time(self) -> float:
-        """Execution time."""
+        """Test execution time."""
         return self._exectime
 
     @property
@@ -680,10 +733,10 @@ class Test:
         return self._rc
 
     def to_json(self, strstate: bool = False) -> dict[str, Any]:
-        """Serialize the whole Test as a JSON object.
+        """
+        Serialize the whole Test as a JSON object.
 
-        :return: a JSON object mapping the test
-        :rtype: dict[str, Any]
+        :return: a JSON dict mapping the test
         """
         output = self.output_info
         output["raw"] = self.b64_output
@@ -712,25 +765,34 @@ class Test:
         }
         return res
 
-    def to_minimal_json(self) -> dict:
+    def to_minimal_json(self) -> dict[str, Any]:
+        """
+        Serialize minimal test information.
+
+        :return: a JSON dict mapping the test.
+        """
         return {
             "jid": self._jid,
             "invocation_cmd": self._invocation_cmd,
         }
 
     def from_minimal_json(self, jsonstr: str) -> None:
+        """
+        Import test object from minimal JSON.
+
+        :param json: the imported json as raw str.
+        """
         assert isinstance(jsonstr, str)
         jsonobj = json.loads(jsonstr)
         self._invocation_cmd = jsonobj.get("invocation_cmd", "exit 1")
         self._jid = jsonobj.get("jid", "-1")
 
     def from_json(self, test_json: dict[str, Any], filepath: str) -> None:
-        """Replace the whole Test structure based on input JSON.
-
-        :param json: the json used to set this Test
-        :type json: test-result-valid JSON-formatted str
         """
-        # TODO: make sure this work
+        Import test object from full JSON.
+
+        :param json: the json used to set this Test as dict.
+        """
         assert isinstance(test_json, dict)
         self.res_scheme.validate(test_json, filepath)
 
@@ -758,15 +820,14 @@ class Test:
             self._artifacts = test_json["data"].get("artifacts", {})
 
     def generate_script(self, srcfile: str) -> str:
-        """Serialize test logic to its Shell representation.
+        """
+        Serialize test logic to its Shell representation.
 
         This script provides the shell sequence to put in a shell script
         switch-case, in order to reach that test from script arguments.
 
         :param srcfile: script filepath, to store the actual wrapped command.
-        :type srcfile: str
         :return: the shell-compliant instruction set to build the test
-        :rtype: str
         """
         pm_code = ""
         cd_code = ""
@@ -816,11 +877,15 @@ class Test:
         suffix: str | None = None,
         combination: str | None = None,
     ) -> str:
-        """Generate the fully-qualified (dq) name for a test, based on :
-        - the label & subtree (original FS tree)
-        - the name (the TE name it is originated)
-        - a potential extra suffix
-        - the combination PCVS computed for this iteration."""
+        """
+        Generate the fully-qualified (dq) name for a test, based on:
+
+        :param label: the label
+        :param subtree: the subtree
+        :param name: the TE name it is originated
+        :param suffix: the extra suffix
+        :param combination: the combination str.
+        """
         assert label
         assert subtree
         assert name
@@ -845,13 +910,9 @@ def generate_local_variables(label: str, subprefix: str) -> tuple[str, str, str,
         - the current build directory
 
     :param label: name of the object used to generate paths
-    :type label: str
     :param subprefix: path to the subdirectories in the base path
-    :type subprefix: str
-    :raises CommonException.NotFoundError: the label is not recognized as to be
-        validated
+    :raises CommonException.NotFoundError: the label is not recognized as to bevalidated
     :return: paths for PCVS working tree
-    :rtype: tuple
     """
     if subprefix is None:
         subprefix = ""

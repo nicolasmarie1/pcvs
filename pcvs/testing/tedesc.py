@@ -73,11 +73,8 @@ def extract_compiler_config(
     Build resource to compile based on language and variants involved.
 
     :param lang: target compiler name
-    :type lang: str
     :param variants: list of enabled variants
-    :type variants: list
     :return: the program, its args and env modifiers (in that order)
-    :rtype: tuple
     """
     if compiler is None or compiler not in GlobalConfig.root["compiler"]["compilers"]:
         raise ProfileException.IncompleteError(
@@ -107,7 +104,7 @@ def extract_compiler_config(
 
 
 @typechecked
-def build_job_deps(deps_node: dict[str, Any], pkg_label: str, pkg_prefix: str) -> list:
+def build_job_deps(deps_node: dict[str, Any], pkg_label: str, pkg_prefix: str) -> list[str]:
     """
     Build the dependency list from a given dependency YAML node.
 
@@ -119,14 +116,9 @@ def build_job_deps(deps_node: dict[str, Any], pkg_label: str, pkg_prefix: str) -
             ["list_of_test_name"]
 
     :param deps_node: the TE/job YAML node.
-    :type deps_node: dict
     :param pkg_label: the label where this TE is from (to compute depnames)
-    :type pkg_label: str
     :param pkg_prefix: the subtree where this TE is from (to compute depnames)
-    :type pkg_prefix: str or NoneType
-
     :return: a list of dependencies, either as depnames or PManager objects
-    :rtype: list
     """
     deps = []
     for d in deps_node.get("depends_on", []):
@@ -142,9 +134,7 @@ def build_pm_deps(deps_node: dict[str, Any]) -> list[PManager]:
     ``build_job_deps``
 
     :param deps_node: contains package_manager YAML information
-    :type deps_node: str
     :return: a list of PM objects, one for each entry
-    :rtype: List[:class:`PManager`]
     """
     return pm.identify(deps_node.get("package_manager", {}))
 
@@ -159,23 +149,23 @@ class TEDescriptor:
     (providing on which MPI processes to run it, for instance).
 
     :ivar _te_name: YAML root node name, part of its unique id
-    :type _te_name: str
+    :vartype _te_name: str
     :ivar _te_label: which user directory this TE is coming from
-    :type _te_label: str
+    :vartype _te_label: str
     :ivar _te_subtree: subprefix, relative to label, where this TE is located
-    :type _te_subtree: str or NoneType
+    :vartype _te_subtree: str or NoneType
     :ivar _full_name: fully-qualified te-name
-    :type _full_name: str
+    :vartype _full_name: str
     :ivar _srcdir: absolute path pointing to the YAML testfile dirname
-    :type _srcdir: str
+    :vartype _srcdir: str
     :ivar _buildir: absolute path pointing to build equivalent of _srcdir
-    :type _buildir: str
+    :vartype _buildir: str
     :ivar _skipped: flag if this TE should be unfolded to tests or not
-    :type _skipped: bool
+    :vartype _skipped: bool
     :ivar _effective_cnt: number of tests created by this single TE
-    :type _effective_cnt: int
+    :vartype _effective_cnt: int
     :ivar _program_criterion: extra criterion defined by the TE
-    :type _program_criterion: :class:`Criterion`
+    :vartype _program_criterion: :class:`Criterion`
     :ivar others: used yaml node references.
     """
 
@@ -188,7 +178,6 @@ class TEDescriptor:
         Initialize system-wide information (to shorten accesses).
 
         :param base_criterion_name: iterator name used as scheduling resource.
-        :type base_criterion_name: str
         """
         cls._sys_crit = GlobalConfig.root.get_internal("crit_obj")
         cls._base_it = base_criterion_name
@@ -198,14 +187,9 @@ class TEDescriptor:
         Constructor method.
 
         :param name: the TE name
-        :type name: str
         :param node: the TE YAML content.
-        :type node: dict
         :param label: the user dir label.
-        :type label: str
         :param subprefix: relative path between user dir & current TE testfile
-        :type subprefix: str or NoneType
-
         :raises TDFormatError: Unproper YAML TE format (sanity check)
         """
         self._te_name: str = name
@@ -286,11 +270,11 @@ class TEDescriptor:
             return dflt
 
     def _compatibility_support(self, compat: dict | None) -> None:
-        """Convert tricky keywords from old syntax too complex to be handled
+        """
+        Convert tricky keywords from old syntax too complex to be handled
         by the automatic converter.
 
         :param compat: dict of complex keyword extracted from old syntax.
-        :type compat: dict or NoneType
         """
         if compat is None:
             return
@@ -330,7 +314,8 @@ class TEDescriptor:
             self._build["cmake"]["args"] = self._build["cmake"]["vars"]
 
     def _configure_criterions(self) -> None:
-        """Prepare the list of components this TE will be built against.
+        """
+        Prepare the list of components this TE will be built against.
 
         It consists in intersecting system-wide criterions and their
         definitions with this overridden criterion by this TE. The result is then
@@ -381,10 +366,10 @@ class TEDescriptor:
                 elt.expand_values()
 
     def __build_from_sources(self) -> tuple[str, list[str], int]:
-        """How to create build tests from a collection of source files.
+        """
+        How to create build tests from a collection of source files.
 
-        :return: the command to be used.
-        :rtype: str
+        :return: the command to be used, env to be imported & nb threads to run the test.
         """
         compilers = detect_compiler(self._build)
         if compilers is None:
@@ -416,10 +401,10 @@ class TEDescriptor:
         return (command, envs, 1)
 
     def __build_from_makefile(self) -> tuple[str, list[str], int]:
-        """How to create build tests from a Makefile.
+        """
+        How to create build tests from a Makefile.
 
-        :return: the command to be used.
-        :rtype: str
+        :return: the command to be used, env to be imported & nb threads to run the test.
         """
         command = ["make"]
         basepath = self._srcdir
@@ -444,10 +429,10 @@ class TEDescriptor:
         return (" ".join(command), envs, jobs)
 
     def __build_from_cmake(self) -> tuple[str, list[str], int]:
-        """How to create build tests from a CMake project.
+        """
+        How to create build tests from a CMake project.
 
-        :return: the command to be used.
-        :rtype: str
+        :return: the command to be used, env to be imported & nb threads to run the test.
         """
         command = ["cmake"]
         if "files" in self._build:
@@ -470,10 +455,10 @@ class TEDescriptor:
         return (" && ".join([" ".join(command), next_command]), envs, tmp[2])
 
     def __build_from_autotools(self) -> tuple[str, list[str], int]:
-        """How to create build tests from a Autotools-based project.
+        """
+        How to create build tests from a Autotools-based project.
 
-        :return: the command to be used.
-        :rtype: str
+        :return: the command to be used, env to be imported & nb threads to run the test.
         """
         command = []
         configure_path = ""
@@ -502,6 +487,11 @@ class TEDescriptor:
         return (" && ".join([" ".join(command), next_command]), envs, tmp[2])
 
     def __build_from_user_script(self) -> tuple[str, list[str], int]:
+        """
+        How to create build tests from a user script.
+
+        :return: the command to be used, env to be imported & nb threads to run the test.
+        """
         command = self._build["custom"].get("program", "echo")
         # args not relevant as cflags/ldflags can be used instead
         env = self._build["custom"].get("envs", [])
@@ -516,10 +506,10 @@ class TEDescriptor:
         return (full_cmd, env, 1)
 
     def __build_exec_process(self) -> tuple[str, list[str], int]:
-        """Drive compilation command generation based on TE format.
+        """
+        Drive compilation command generation based on Test format.
 
-        :return: the command to be used.
-        :rtype: str
+        :return: the command to be used, env to be imported & nb threads to run the test.
         """
         if "autotools" in self._build:
             return self.__build_from_autotools()
@@ -532,7 +522,11 @@ class TEDescriptor:
         return self.__build_from_sources()
 
     def __construct_compil_tests(self) -> Iterable[Test]:
-        """Meta-function steering compilation tests."""
+        """
+        Generate compilation tests.
+
+        :return: a list of generated compilation tests.
+        """
         job_deps = []
 
         # ensure consistency when 'files' node is used
@@ -581,7 +575,11 @@ class TEDescriptor:
         )
 
     def __construct_runtime_tests(self, series: Series) -> Iterable[Test]:
-        """Generate tests to be run by the runtime command."""
+        """
+        Generate runtime tests.
+
+        :return: a list of generated runtime tests.
+        """
         te_job_deps = build_job_deps(self._run, self._te_label, self._te_subtree)
         te_mod_deps = build_pm_deps(self._run)
 
@@ -646,10 +644,12 @@ class TEDescriptor:
 
     @io.capture_exception(Exception, doexit=True)
     def construct_tests(self) -> Iterable[Test]:
-        """Construct a collection of tests (build & run) from a given TE.
+        """
+        Construct a collection of tests (build & run) from a given TE.
 
         This function will process a YAML node and, through a generator, will
         create each test coming from it.
+        :return: All generated tests from one test description.
         """
         # if this TE does not lead to a single test, skip now
         if self._skipped:
@@ -675,10 +675,10 @@ class TEDescriptor:
             yield from self.__construct_runtime_tests(series)
 
     def get_debug(self) -> dict:
-        """Build information debug for the current TE.
+        """
+        Build information debug for the current TE.
 
         :return: the debug info
-        :rtype: dict
         """
         # if the current TE did not lead to a single test, skip now
         if self._skipped:
@@ -701,17 +701,17 @@ class TEDescriptor:
 
     @property
     def name(self) -> str:
-        """Getter to the current TE name.
+        """
+        Getter to the current TE name.
 
         :return: te_name
-        :rtype: str
         """
         return self._te_name
 
     def __repr__(self) -> str:
-        """Internal TE representation, for auto-dumping.
+        """
+        Internal TE representation, for auto-dumping.
 
         :return: the node representation.
-        :rtype: str
         """
         return repr(self._build) + repr(self._run) + repr(self._validation)

@@ -53,7 +53,7 @@ def replace_special_token(content: str, src: str, build: str, prefix: str | None
     errors = []
 
     global constant_tokens
-    if not constant_tokens:
+    if constant_tokens is None:
         init_constant_tokens()
 
     if prefix is None:
@@ -87,26 +87,27 @@ def replace_special_token(content: str, src: str, build: str, prefix: str | None
 
 @typechecked
 class TestFile:
-    """A TestFile manipulates source files to be processed as benchmarks
+    """
+    A TestFile manipulates source files to be processed as benchmarks
     (pcvs.yml & pcvs.setup).
 
-        It handles global information about source imports & building one execution
-        script (``list_of_tests.sh``) per input file.
+    It handles global information about source imports & building one execution
+    script (``list_of_tests.sh``) per input file.
 
-        :param _in: YAML input file
-        :type _in: str
-        :param _path_out: prefix where to store output artifacts
-        :type _path_out: str
-        :param _raw: stream to populate the TestFile rather than opening input file
-        :type _raw: dict
-        :param _label: label the test file comes from
-        :type _label: str
-        :param _prefix: subtree the test file has been extracted
-        :type _prefix: str
-        :param _tests: list of tests handled by this file
-        :type _tests: list
-        :param _debug: debug instructions (concatenation of TE debug infos)
-        :type _debug: dict
+    :ivar _in: YAML input file
+    :vartype _in: str
+    :ivar _path_out: prefix where to store output artifacts
+    :vartype _path_out: str
+    :ivar _raw: stream to populate the TestFile (rather than opening input file)
+    :vartype _raw: dict
+    :ivar _label: label the test file comes from
+    :vartype _label: str
+    :ivar _prefix: subtree the test file has been extracted
+    :vartype _prefix: str
+    :ivar _tests: list of tests handled by this file
+    :vartype _tests: list
+    :ivar _debug: debug instructions (concatenation of TE debug infos)
+    :vartype _debug: dict
     """
 
     cc_pm_string = ""
@@ -121,18 +122,14 @@ class TestFile:
         label: str | None = None,
         prefix: str | None = None,
     ):
-        """Constructor method.
+        """
+        Constructor method.
 
         :param file_in: input file
-        :type file_in: str
         :param path_out: prefix to store artifacts
-        :type path_out: str
         :param data: raw data to inject instead of opening input file
-        :type data: dict
         :param label: label the TE is coming from
-        :type label: str
         :param prefix: testfile Subtree (may be Nonetype)
-        :type prefix: str
         """
         self._in: str = file_in
         self._path_out: str = path_out
@@ -156,12 +153,12 @@ class TestFile:
             self.load_from_str(stream)
 
     def load_from_str(self, data: str) -> None:
-        """Fill a File object from stream.
+        """
+        Fill a File object from stream.
 
         This allows reusability (by loading only once).
 
         :param data: the YAML-formatted input stream.
-        :type data: YAMl-formatted str
         """
         assert self._label is not None and self._prefix is not None
         source, _, build, _ = testing.test.generate_local_variables(self._label, self._prefix)
@@ -224,18 +221,21 @@ class TestFile:
 
     @property
     def nb_descs(self) -> int:
+        """Number of tests descriptor in the testfile."""
         if self._raw is None:
             return 0
         return len(self._raw.keys())
 
     @property
     def nb_tests(self) -> int:
+        """Number of tests in the testfile."""
         if self._tests is None:
             return 0
         return len(self._tests)
 
     @property
     def tests(self) -> list[Test]:
+        """The tests object once generated."""
         return self._tests
 
     @property
@@ -310,10 +310,7 @@ fi
 for arg in "$@"; do case $arg in
 """.format(
                     simulated=(
-                        "sim"
-                        if "simulated" in GlobalConfig.root["validation"]
-                        and GlobalConfig.root["validation"]["simulated"] is True
-                        else ""
+                        "sim" if GlobalConfig.root["validation"].get("simulated", False) else ""
                     ),
                     pm_string="\n".join([TestFile.cc_pm_string, TestFile.rt_pm_string]),
                 )
