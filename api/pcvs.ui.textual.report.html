@@ -447,23 +447,29 @@
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.ui.textual.report.ReportApplication.BINDINGS">
-<span class="sig-name descname"><span class="pre">BINDINGS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[textual.binding.Binding,</span> <span class="pre">textual.binding.Binding,</span> <span class="pre">textual.binding.Binding,</span> <span class="pre">textual.binding.Binding,</span> <span class="pre">textual.binding.Binding]</span></em><a class="headerlink" href="#pcvs.ui.textual.report.ReportApplication.BINDINGS" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">BINDINGS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[list[BindingType]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[textual.binding.Binding,</span> <span class="pre">textual.binding.Binding,</span> <span class="pre">textual.binding.Binding,</span> <span class="pre">textual.binding.Binding,</span> <span class="pre">textual.binding.Binding]</span></em><a class="headerlink" href="#pcvs.ui.textual.report.ReportApplication.BINDINGS" title="Link to this definition"></a></dt>
+<dd><p>The default key bindings.</p>
+</dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.ui.textual.report.ReportApplication.CSS_PATH">
-<span class="sig-name descname"><span class="pre">CSS_PATH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'main.css'</span></em><a class="headerlink" href="#pcvs.ui.textual.report.ReportApplication.CSS_PATH" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">CSS_PATH</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[CSSPathType</span> <span class="pre">|</span> <span class="pre">None]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'main.css'</span></em><a class="headerlink" href="#pcvs.ui.textual.report.ReportApplication.CSS_PATH" title="Link to this definition"></a></dt>
+<dd><p>File paths to load CSS from.</p>
+</dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.ui.textual.report.ReportApplication.SCREENS">
-<span class="sig-name descname"><span class="pre">SCREENS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'exit':</span> <span class="pre">&lt;class</span> <span class="pre">'pcvs.ui.textual.report.ExitConfirmScreen'&gt;,</span> <span class="pre">'filter':</span> <span class="pre">&lt;class</span> <span class="pre">'pcvs.ui.textual.report.FilterScreen'&gt;,</span> <span class="pre">'main':</span> <span class="pre">&lt;class</span> <span class="pre">'pcvs.ui.textual.report.MainScreen'&gt;,</span> <span class="pre">'session_infos':</span> <span class="pre">&lt;class</span> <span class="pre">'pcvs.ui.textual.report.SessionInfoScreen'&gt;,</span> <span class="pre">'session_list':</span> <span class="pre">&lt;class</span> <span class="pre">'pcvs.ui.textual.report.SessionPickScreen'&gt;,</span> <span class="pre">'wait':</span> <span class="pre">&lt;class</span> <span class="pre">'pcvs.ui.textual.report.PleaseWaitScreen'&gt;}</span></em><a class="headerlink" href="#pcvs.ui.textual.report.ReportApplication.SCREENS" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">SCREENS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[dict[str,</span> <span class="pre">Callable[[],</span> <span class="pre">Screen[Any]]]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'exit':</span> <span class="pre">&lt;class</span> <span class="pre">'pcvs.ui.textual.report.ExitConfirmScreen'&gt;,</span> <span class="pre">'filter':</span> <span class="pre">&lt;class</span> <span class="pre">'pcvs.ui.textual.report.FilterScreen'&gt;,</span> <span class="pre">'main':</span> <span class="pre">&lt;class</span> <span class="pre">'pcvs.ui.textual.report.MainScreen'&gt;,</span> <span class="pre">'session_infos':</span> <span class="pre">&lt;class</span> <span class="pre">'pcvs.ui.textual.report.SessionInfoScreen'&gt;,</span> <span class="pre">'session_list':</span> <span class="pre">&lt;class</span> <span class="pre">'pcvs.ui.textual.report.SessionPickScreen'&gt;,</span> <span class="pre">'wait':</span> <span class="pre">&lt;class</span> <span class="pre">'pcvs.ui.textual.report.PleaseWaitScreen'&gt;}</span></em><a class="headerlink" href="#pcvs.ui.textual.report.ReportApplication.SCREENS" title="Link to this definition"></a></dt>
+<dd><p>Screens associated with the app for the lifetime of the app.</p>
+</dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.ui.textual.report.ReportApplication.TITLE">
-<span class="sig-name descname"><span class="pre">TITLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'PCVS</span> <span class="pre">Job</span> <span class="pre">Result</span> <span class="pre">Viewer'</span></em><a class="headerlink" href="#pcvs.ui.textual.report.ReportApplication.TITLE" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">TITLE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'PCVS</span> <span class="pre">Job</span> <span class="pre">Result</span> <span class="pre">Viewer'</span></em><a class="headerlink" href="#pcvs.ui.textual.report.ReportApplication.TITLE" title="Link to this definition"></a></dt>
+<dd><p>A class variable to set the <em>default</em> title for the application.</p>
+<p>To update the title while the app is running, you can set the [title][textual.app.App.title] attribute.
+See also [the <cite>Screen.TITLE</cite> attribute][textual.screen.Screen.TITLE].</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.ui.textual.report.ReportApplication.action_do_filter">

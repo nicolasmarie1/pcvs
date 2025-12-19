@@ -115,8 +115,66 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-analysis-graph-module">
-<h1>pcvs.analysis.graph module<a class="headerlink" href="#pcvs-analysis-graph-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.analysis.graph">
+<span id="pcvs-analysis-graph-module"></span><h1>pcvs.analysis.graph module<a class="headerlink" href="#module-pcvs.analysis.graph" title="Link to this heading"></a></h1>
+<p>Graph module.</p>
+<p>Use analysis to query data from bank and use theme to create
+mathplotlib graphs.
+Used by <a class="reference internal" href="pcvs.cli.cli_graph.html#module-pcvs.cli.cli_graph" title="pcvs.cli.cli_graph"><code class="xref py py-class docutils literal notranslate"><span class="pre">cli_graph</span></code></a> to draw graph from the command line.</p>
+<p>2 types of graphs:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>get_status_series: a stacked graph representing the success rate over time
+of a series of run where each test status represent a layer.</p></li>
+<li><p>get_time_series: a graph for each basetest (test without criterions)
+in witch we represent the test duration evolution per run,
+one line for each criterions combination.</p></li>
+</ul>
+</div></blockquote>
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.analysis.graph.get_status_series">
+<span class="sig-prename descclassname"><span class="pre">pcvs.analysis.graph.</span></span><span class="sig-name descname"><span class="pre">get_status_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extension</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/analysis/graph.html#get_status_series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.analysis.graph.get_status_series" title="Link to this definition"></a></dt>
+<dd><p>get_status_series: create a test state graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.analysis.html#pcvs.analysis.SimpleAnalysis" title="pcvs.analysis.SimpleAnalysis"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleAnalysis</span></code></a></span>) – the analysis object that will be used to query the bank.</p></li>
+<li><p><strong>series</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.dsl.html#pcvs.dsl.Series" title="pcvs.dsl.Series"><code class="xref py py-class docutils literal notranslate"><span class="pre">Series</span></code></a></span>) – the series of test used.</p></li>
+<li><p><strong>path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the path to save the generated graphs.</p></li>
+<li><p><strong>show</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – do we try to show the graphs to the user directly, (need PyQt5).</p></li>
+<li><p><strong>extension</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – format/file extension to use when saving the graphs.</p></li>
+<li><p><strong>limit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – nb max of run in the series to query
+(use <code class="xref py py-obj docutils literal notranslate"><span class="pre">sys.maxsize</span></code> for no limit).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.analysis.graph.get_time_series">
+<span class="sig-prename descclassname"><span class="pre">pcvs.analysis.graph.</span></span><span class="sig-name descname"><span class="pre">get_time_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extension</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/analysis/graph.html#get_time_series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.analysis.graph.get_time_series" title="Link to this definition"></a></dt>
+<dd><p>get_time_series: create a test time graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.analysis.html#pcvs.analysis.SimpleAnalysis" title="pcvs.analysis.SimpleAnalysis"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleAnalysis</span></code></a></span>) – the analysis object that will be used to query the bank.</p></li>
+<li><p><strong>series</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.dsl.html#pcvs.dsl.Series" title="pcvs.dsl.Series"><code class="xref py py-class docutils literal notranslate"><span class="pre">Series</span></code></a></span>) – the series of test used.</p></li>
+<li><p><strong>path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the path to save the generated graphs.</p></li>
+<li><p><strong>show</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – do we try to show the graphs to the user directly, (need PyQt5).</p></li>
+<li><p><strong>extension</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – format/file extension to use when saving the graphs.</p></li>
+<li><p><strong>limit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – nb max of run in the series to query (use sys.maxsize for not
+limit).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
