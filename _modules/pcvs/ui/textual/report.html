@@ -1,0 +1,631 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.ui.textual.report &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../../../_static/pcvs_favicon.ico"/>
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pcvs.ui.textual.report</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.ui.textual.report</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pprint</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual</span><span class="w"> </span><span class="kn">import</span> <span class="n">on</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.app</span><span class="w"> </span><span class="kn">import</span> <span class="n">App</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.app</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComposeResult</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.binding</span><span class="w"> </span><span class="kn">import</span> <span class="n">Binding</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.containers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Container</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.containers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Grid</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.containers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Horizontal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.containers</span><span class="w"> </span><span class="kn">import</span> <span class="n">VerticalScroll</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.message</span><span class="w"> </span><span class="kn">import</span> <span class="n">Message</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.reactive</span><span class="w"> </span><span class="kn">import</span> <span class="n">reactive</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.screen</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModalScreen</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.screen</span><span class="w"> </span><span class="kn">import</span> <span class="n">Screen</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.widget</span><span class="w"> </span><span class="kn">import</span> <span class="n">Widget</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.widgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">Button</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.widgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">Checkbox</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.widgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataTable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.widgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">DirectoryTree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.widgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">Footer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.widgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">Header</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.widgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">Input</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.widgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoadingIndicator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.widgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptionList</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.widgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">RichLog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.widgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">Static</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textual.widgets.option_list</span><span class="w"> </span><span class="kn">import</span> <span class="n">Option</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">NAME_BUILDIR</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_is_build_or_archive</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">Test</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.teststate</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestState</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.ui.textual.report.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReportModel</span>
+
+
+<div class="viewcode-block" id="ActiveSessionList">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.ActiveSessionList">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ActiveSessionList</span><span class="p">(</span><span class="n">Widget</span><span class="p">):</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">reactive</span><span class="p">(</span><span class="n">OptionList</span><span class="p">())</span>
+    <span class="n">selected</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ActiveSessionList.compose">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.ActiveSessionList.compose">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_list</span><span class="p">()</span>
+        <span class="k">yield</span> <span class="n">Static</span><span class="p">(</span><span class="s2">&quot;Loaded Sessions:&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span>
+        <span class="k">yield</span> <span class="n">Horizontal</span><span class="p">(</span>
+            <span class="n">Button</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;Done&quot;</span><span class="p">,</span> <span class="n">variant</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;session-pick-done&quot;</span><span class="p">),</span>
+            <span class="n">Button</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;Cancel&quot;</span><span class="p">,</span> <span class="n">variant</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;session-pick-cancel&quot;</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ActiveSessionList.init_list">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.ActiveSessionList.init_list">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="n">item_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">session_prefixes</span>
+        <span class="n">active</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">active</span><span class="o">.</span><span class="n">prefix</span>
+        <span class="k">assert</span> <span class="n">active</span> <span class="ow">in</span> <span class="n">item_names</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">item_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">item_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Option</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+        <span class="n">ActiveSessionList</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="n">OptionList</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">item_list</span><span class="p">)</span></div>
+
+
+    <span class="nd">@on</span><span class="p">(</span><span class="n">OptionList</span><span class="o">.</span><span class="n">OptionSelected</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">select_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">OptionList</span><span class="o">.</span><span class="n">OptionSelected</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selected</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">option</span><span class="o">.</span><span class="n">prompt</span>
+
+<div class="viewcode-block" id="ActiveSessionList.add">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.ActiveSessionList.add">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_list</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">item_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">ActiveSessionList</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="n">item</span><span class="o">=</span><span class="n">path</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="FileBrowser">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.FileBrowser">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FileBrowser</span><span class="p">(</span><span class="n">Widget</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+
+    <span class="n">BINDINGS</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="s2">&quot;pop_screen&quot;</span><span class="p">,</span> <span class="s2">&quot;Back&quot;</span><span class="p">)]</span>
+    <span class="n">last_select</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">reactive</span><span class="p">(</span><span class="n">Static</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;error-log&quot;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="FileBrowser.CustomDirectoryTree">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.FileBrowser.CustomDirectoryTree">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">CustomDirectoryTree</span><span class="p">(</span><span class="n">DirectoryTree</span><span class="p">):</span>
+
+<div class="viewcode-block" id="FileBrowser.CustomDirectoryTree.filter_paths">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.FileBrowser.CustomDirectoryTree.filter_paths">[docs]</a>
+        <span class="k">def</span><span class="w"> </span><span class="nf">filter_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="n">path</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span> <span class="k">if</span> <span class="n">check_is_build_or_archive</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="p">]</span></div>
+</div>
+
+
+<div class="viewcode-block" id="FileBrowser.compose">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.FileBrowser.compose">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="n">Static</span><span class="p">(</span><span class="s2">&quot;File Browser:&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">CustomDirectoryTree</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;filepicker&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">Static</span><span class="p">(</span><span class="s2">&quot;Direct path:&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">Input</span><span class="p">(</span><span class="n">placeholder</span><span class="o">=</span><span class="s2">&quot;Valid PCVS prefix&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">Button</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;Add&quot;</span><span class="p">,</span> <span class="n">variant</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;add-session&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span></div>
+
+
+    <span class="nd">@on</span><span class="p">(</span><span class="n">DirectoryTree</span><span class="o">.</span><span class="n">FileSelected</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_selected_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">DirectoryTree</span><span class="o">.</span><span class="n">FileSelected</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+        <span class="n">FileBrowser</span><span class="o">.</span><span class="n">last_select</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">path</span></div>
+
+
+
+<div class="viewcode-block" id="SessionPickScreen">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.SessionPickScreen">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SessionPickScreen</span><span class="p">(</span><span class="n">ModalScreen</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SessionPickScreen.compose">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.SessionPickScreen.compose">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Grid</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="n">Grid</span><span class="p">(</span><span class="n">ActiveSessionList</span><span class="p">(),</span> <span class="n">FileBrowser</span><span class="p">(),</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;session-list-screen&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SessionPickScreen.SwitchAnotherSession">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.SessionPickScreen.SwitchAnotherSession">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">SwitchAnotherSession</span><span class="p">(</span><span class="n">Message</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+    <span class="nd">@on</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Pressed</span><span class="p">,</span> <span class="s2">&quot;#session-pick-cancel&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pop_screen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Button</span><span class="o">.</span><span class="n">Pressed</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">pop_screen</span><span class="p">()</span>
+
+    <span class="nd">@on</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Pressed</span><span class="p">,</span> <span class="s2">&quot;#session-pick-done&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_active_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Button</span><span class="o">.</span><span class="n">Pressed</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="n">selected_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">ActiveSessionList</span><span class="p">)</span><span class="o">.</span><span class="n">selected</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">set_active</span><span class="p">(</span><span class="n">selected_row</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">post_message</span><span class="p">(</span><span class="n">SessionPickScreen</span><span class="o">.</span><span class="n">SwitchAnotherSession</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">pop_screen</span><span class="p">()</span>
+
+    <span class="nd">@on</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Pressed</span><span class="p">,</span> <span class="s2">&quot;#add-session&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_from_file_browser</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Button</span><span class="o">.</span><span class="n">Pressed</span>  <span class="c1"># pylint: disable=unused-argument</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">Input</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">Input</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">FileBrowser</span><span class="o">.</span><span class="n">last_select</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">check_is_build_or_archive</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">FileBrowser</span><span class="p">)</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> is not a valid PCVS prefix&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">FileBrowser</span><span class="p">)</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="n">sid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_session</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">set_active</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">ActiveSessionList</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="JobListViewer">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.JobListViewer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">JobListViewer</span><span class="p">(</span><span class="n">Widget</span><span class="p">):</span>
+    <span class="n">name_colkey</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">jobgroup</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">table</span><span class="p">:</span> <span class="n">reactive</span><span class="p">[</span><span class="n">DataTable</span><span class="p">]</span> <span class="o">=</span> <span class="n">reactive</span><span class="p">(</span><span class="n">DataTable</span><span class="p">())</span>
+    <span class="n">BINDINGS</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="s2">&quot;cursor_up&quot;</span><span class="p">,</span> <span class="s2">&quot;Cursor up&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;j&quot;</span><span class="p">,</span> <span class="s2">&quot;cursor_down&quot;</span><span class="p">,</span> <span class="s2">&quot;Cursor down&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+    <span class="p">]</span>
+
+<div class="viewcode-block" id="JobListViewer.compose">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.JobListViewer.compose">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Grid</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">focus</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">zebra_stripes</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">cursor_type</span> <span class="o">=</span> <span class="s2">&quot;row&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_colkey</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">add_columns</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="s2">&quot;Status&quot;</span><span class="p">,</span> <span class="s2">&quot;Time (s)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_table</span><span class="p">()</span>
+
+        <span class="k">yield</span> <span class="n">Grid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="JobListViewer.update_table">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.JobListViewer.update_table">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TestState</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">jobs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">single_session_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">active_id</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">jobid</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">:</span>
+                <span class="n">obj</span><span class="p">:</span> <span class="n">Test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">single_session_map_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">active_id</span><span class="p">,</span> <span class="n">jobid</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">states</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">obj</span><span class="o">.</span><span class="n">state</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+                    <span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">icon</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_state_fancy</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s2">]</span><span class="si">{</span><span class="n">icon</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">[/</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">jobgroup</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name_colkey</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="JobListViewer.action_cursor_up">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.JobListViewer.action_cursor_up">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">action_cursor_up</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Scroll up jobs list.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">action_cursor_up</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="JobListViewer.action_cursor_down">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.JobListViewer.action_cursor_down">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">action_cursor_down</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Scroll down jobs list.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">action_cursor_down</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SingleJobViewer">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.SingleJobViewer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SingleJobViewer</span><span class="p">(</span><span class="n">Widget</span><span class="p">):</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">reactive</span><span class="p">(</span><span class="n">RichLog</span><span class="p">(</span><span class="n">wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="n">reactive</span><span class="p">(</span><span class="n">Static</span><span class="p">())</span>
+
+<div class="viewcode-block" id="SingleJobViewer.compose">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.SingleJobViewer.compose">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span></div>
+
+
+<div class="viewcode-block" id="SingleJobViewer.watch_log">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.SingleJobViewer.watch_log">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">watch_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old</span><span class="p">:</span> <span class="n">RichLog</span><span class="p">,</span> <span class="n">new</span><span class="p">:</span> <span class="n">RichLog</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">new</span></div>
+
+
+<div class="viewcode-block" id="SingleJobViewer.watch_cmd">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.SingleJobViewer.watch_cmd">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">watch_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old</span><span class="p">:</span> <span class="n">Static</span><span class="p">,</span> <span class="n">new</span><span class="p">:</span> <span class="n">Static</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span> <span class="o">=</span> <span class="n">new</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MainScreen">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.MainScreen">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MainScreen</span><span class="p">(</span><span class="n">Screen</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MainScreen.compose">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.MainScreen.compose">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="c1"># with TabbedContent():</span>
+        <span class="c1">#    with TabPane(&quot;main&quot;, id=&quot;main&quot;):</span>
+        <span class="c1"># with TabPane(&quot;main2&quot;, id=&quot;main2&quot;):</span>
+        <span class="k">yield</span> <span class="n">Header</span><span class="p">()</span>
+        <span class="k">yield</span> <span class="n">JobListViewer</span><span class="p">()</span>
+        <span class="k">yield</span> <span class="n">SingleJobViewer</span><span class="p">()</span>
+        <span class="k">yield</span> <span class="n">Footer</span><span class="p">()</span></div>
+
+
+    <span class="nd">@on</span><span class="p">(</span><span class="n">DataTable</span><span class="o">.</span><span class="n">RowSelected</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">selected_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">DataTable</span><span class="o">.</span><span class="n">RowSelected</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="n">name_colkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">JobListViewer</span><span class="p">)</span><span class="o">.</span><span class="n">name_colkey</span>
+        <span class="n">jobname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">DataTable</span><span class="p">)</span><span class="o">.</span><span class="n">get_cell</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">row_key</span><span class="p">,</span> <span class="n">name_colkey</span><span class="p">)</span>
+
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">JobListViewer</span><span class="p">)</span><span class="o">.</span><span class="n">jobgroup</span><span class="p">[</span><span class="n">jobname</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="s2">&quot;** No Output **&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">obj</span><span class="o">.</span><span class="n">output</span> <span class="k">else</span> <span class="n">obj</span><span class="o">.</span><span class="n">output</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">SingleJobViewer</span><span class="p">)</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">command</span><span class="p">)</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">SingleJobViewer</span><span class="p">)</span><span class="o">.</span><span class="n">log</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ExitConfirmScreen">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.ExitConfirmScreen">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExitConfirmScreen</span><span class="p">(</span><span class="n">ModalScreen</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Screen asking for confirmation before exit.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ExitConfirmScreen.compose">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.ExitConfirmScreen.compose">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Grid</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="n">Grid</span><span class="p">(</span>
+            <span class="n">Static</span><span class="p">(</span><span class="s2">&quot;Are you sure you want to quit?&quot;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;question&quot;</span><span class="p">),</span>
+            <span class="n">Button</span><span class="p">(</span><span class="s2">&quot;Quit&quot;</span><span class="p">,</span> <span class="n">variant</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;quit&quot;</span><span class="p">),</span>
+            <span class="n">Button</span><span class="p">(</span><span class="s2">&quot;Cancel&quot;</span><span class="p">,</span> <span class="n">variant</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;cancel&quot;</span><span class="p">),</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;dialog&quot;</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="nd">@on</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Pressed</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">press_exit_screen_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Button</span><span class="o">.</span><span class="n">Pressed</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="s2">&quot;quit&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">pop_screen</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="PleaseWaitScreen">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.PleaseWaitScreen">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PleaseWaitScreen</span><span class="p">(</span><span class="n">ModalScreen</span><span class="p">):</span>
+
+<div class="viewcode-block" id="PleaseWaitScreen.compose">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.PleaseWaitScreen.compose">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="n">Static</span><span class="p">(</span><span class="s2">&quot;Please Wait...&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">LoadingIndicator</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SessionInfoScreen">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.SessionInfoScreen">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SessionInfoScreen</span><span class="p">(</span><span class="n">ModalScreen</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SessionInfoScreen.compose">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.SessionInfoScreen.compose">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Container</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="c1"># display = {</span>
+        <span class="c1">#     &quot;datetime&quot;: Static(&quot;Date of run:&quot;),</span>
+        <span class="c1">#     &quot;pf_name&quot;: Static(&quot;Profile:&quot;),</span>
+        <span class="c1"># }</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">active</span><span class="o">.</span><span class="n">config</span>
+        <span class="n">infolog</span> <span class="o">=</span> <span class="n">RichLog</span><span class="p">()</span>
+
+        <span class="n">infolog</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">config</span><span class="p">))</span>
+
+        <span class="k">yield</span> <span class="n">Container</span><span class="p">(</span>
+            <span class="n">Horizontal</span><span class="p">(</span>
+                <span class="n">Static</span><span class="p">(</span><span class="s2">&quot;File Path:&quot;</span><span class="p">),</span>
+                <span class="n">Static</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">active</span><span class="o">.</span><span class="n">prefix</span><span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">Static</span><span class="p">(</span><span class="s2">&quot;Configuration:&quot;</span><span class="p">),</span>
+            <span class="n">infolog</span><span class="p">,</span>
+            <span class="n">Button</span><span class="p">(</span><span class="s2">&quot;Done&quot;</span><span class="p">),</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;session-infos&quot;</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="nd">@on</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Pressed</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">quit_infos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Button</span><span class="o">.</span><span class="n">Pressed</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;TODO.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">pop_screen</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="FilterScreen">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.FilterScreen">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FilterScreen</span><span class="p">(</span><span class="n">ModalScreen</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">TestState</span><span class="p">]]):</span>
+
+    <span class="n">cbs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Checkbox</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">include_states</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TestState</span><span class="p">]</span> <span class="o">=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">all_states</span><span class="p">()</span>
+
+<div class="viewcode-block" id="FilterScreen.compose">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.FilterScreen.compose">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComposeResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Radio selection for job filtering.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">VerticalScroll</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;filter_screen&quot;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">TestState</span><span class="o">.</span><span class="n">all_states</span><span class="p">():</span>
+                <span class="n">cb</span><span class="p">:</span> <span class="n">Checkbox</span> <span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">value</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cbs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cb</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="n">cb</span>
+            <span class="k">yield</span> <span class="n">Button</span><span class="p">(</span><span class="s2">&quot;Done&quot;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;done&quot;</span><span class="p">)</span></div>
+
+
+    <span class="nd">@on</span><span class="p">(</span><span class="n">Checkbox</span><span class="o">.</span><span class="n">Changed</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_checkbox_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Checkbox</span><span class="o">.</span><span class="n">Changed</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">state_str</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">checkbox</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">assert</span> <span class="n">state_str</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">from_str</span><span class="p">(</span><span class="n">state_str</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">checkbox</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">include_states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">include_states</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+    <span class="nd">@on</span><span class="p">(</span><span class="n">Button</span><span class="o">.</span><span class="n">Pressed</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">press_done_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Button</span><span class="o">.</span><span class="n">Pressed</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="s2">&quot;done&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dismiss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">include_states</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ReportApplication">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.ReportApplication">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReportApplication</span><span class="p">(</span><span class="n">App</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main Application handler.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TITLE</span> <span class="o">=</span> <span class="s2">&quot;PCVS Job Result Viewer&quot;</span>
+    <span class="n">SCREENS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;main&quot;</span><span class="p">:</span> <span class="n">MainScreen</span><span class="p">,</span>
+        <span class="s2">&quot;exit&quot;</span><span class="p">:</span> <span class="n">ExitConfirmScreen</span><span class="p">,</span>
+        <span class="s2">&quot;wait&quot;</span><span class="p">:</span> <span class="n">PleaseWaitScreen</span><span class="p">,</span>
+        <span class="s2">&quot;session_list&quot;</span><span class="p">:</span> <span class="n">SessionPickScreen</span><span class="p">,</span>
+        <span class="s2">&quot;session_infos&quot;</span><span class="p">:</span> <span class="n">SessionInfoScreen</span><span class="p">,</span>
+        <span class="s2">&quot;filter&quot;</span><span class="p">:</span> <span class="n">FilterScreen</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">BINDINGS</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="s1">&#39;push_screen(&quot;exit&quot;)&#39;</span><span class="p">,</span> <span class="s2">&quot;Exit&quot;</span><span class="p">),</span>
+        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="s1">&#39;push_screen(&quot;session_list&quot;)&#39;</span><span class="p">,</span> <span class="s2">&quot;Open&quot;</span><span class="p">),</span>
+        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;toggle_dark&quot;</span><span class="p">,</span> <span class="s2">&quot;Dark mode&quot;</span><span class="p">),</span>
+        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;push_screen(&#39;session_infos&#39;)&quot;</span><span class="p">,</span> <span class="s2">&quot;Infos&quot;</span><span class="p">),</span>
+        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="s2">&quot;do_filter&quot;</span><span class="p">,</span> <span class="s2">&quot;Filter&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">CSS_PATH</span> <span class="o">=</span> <span class="s2">&quot;main.css&quot;</span>
+
+    <span class="nd">@on</span><span class="p">(</span><span class="n">SessionPickScreen</span><span class="o">.</span><span class="n">SwitchAnotherSession</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">switch_session</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">SessionPickScreen</span><span class="o">.</span><span class="n">SwitchAnotherSession</span>  <span class="c1"># pylint: disable=unused-argument</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Coming back from picking a session, refresh the table.</span>
+
+<span class="sd">        :param event: not significant here</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">screen</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">JobListViewer</span><span class="p">)</span><span class="o">.</span><span class="n">update_table</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ReportApplication.on_mount">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.ReportApplication.on_mount">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_mount</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        First screen loaded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">push_screen</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ReportApplication.action_do_filter">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.ReportApplication.action_do_filter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">action_do_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">on_filter</span><span class="p">(</span><span class="n">states</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TestState</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">screen</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">JobListViewer</span><span class="p">)</span><span class="o">.</span><span class="n">update_table</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">push_screen</span><span class="p">(</span><span class="s2">&quot;filter&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">on_filter</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">ReportModel</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Init the application with a model.</span>
+
+<span class="sd">        Currently, a model is a derived class from BuildDirectoryManager</span>
+
+<span class="sd">        :param model: the model used to access resources</span>
+<span class="sd">        :type model: ReportModel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">io</span><span class="o">.</span><span class="n">console</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">NAME_BUILDIR</span><span class="p">))</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">ReportModel</span><span class="p">([</span><span class="n">path</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">:</span> <span class="n">ReportModel</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states_filter</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TestState</span><span class="p">]</span> <span class="o">=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">all_states</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="start_app">
+<a class="viewcode-back" href="../../../../api/pcvs.ui.textual.report.html#pcvs.ui.textual.report.start_app">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">start_app</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handle to start a new Textual application.</span>
+
+<span class="sd">    :param p: profile, defaults to None</span>
+<span class="sd">    :type p: list of config files, optional</span>
+<span class="sd">    :return: A return code from Textual Application</span>
+<span class="sd">    :rtype: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">app</span><span class="p">:</span> <span class="n">ReportApplication</span> <span class="o">=</span> <span class="n">ReportApplication</span><span class="p">(</span><span class="n">ReportModel</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

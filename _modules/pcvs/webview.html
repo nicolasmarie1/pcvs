@@ -1,0 +1,370 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.webview &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../_static/pcvs_favicon.ico"/>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pcvs.webview</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.webview</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">abort</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">jsonify</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">render_template</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">request</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">PATH_INSTDIR</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.report</span><span class="w"> </span><span class="kn">import</span> <span class="n">Report</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">Test</span>
+
+<span class="n">DATA_MANAGER</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="create_app">
+<a class="viewcode-back" href="../../api/pcvs.webview.html#pcvs.webview.create_app">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_app</span><span class="p">(</span><span class="n">report</span><span class="p">:</span> <span class="n">Report</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Flask</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start and run the Flask application.</span>
+
+<span class="sd">    :return: the application</span>
+<span class="sd">    :rtype: :class:`Flask`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">DATA_MANAGER</span>
+    <span class="n">DATA_MANAGER</span> <span class="o">=</span> <span class="n">report</span>
+
+    <span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">template_folder</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PATH_INSTDIR</span><span class="p">,</span> <span class="s2">&quot;webview/templates&quot;</span><span class="p">))</span>
+
+    <span class="c1"># app.config.from_object(...)</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/about&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">about</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Provide the about-us page.</span>
+
+<span class="sd">        :return: webpage content</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;tbw.html&quot;</span><span class="p">)</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/doc&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">doc</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Provide the doc page.</span>
+
+<span class="sd">        :return: webpage content</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;tbw.html&quot;</span><span class="p">)</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/welcome&quot;</span><span class="p">)</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/main&quot;</span><span class="p">)</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">root</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Provide the main page.</span>
+
+<span class="sd">        :return: webpage content</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;json&quot;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;render&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">DATA_MANAGER</span><span class="o">.</span><span class="n">session_infos</span><span class="p">()))</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;main.html&quot;</span><span class="p">)</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/run/&lt;sid&gt;&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">session_main</span><span class="p">(</span><span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Provide the per-session main page</span>
+
+<span class="sd">        :param sid: session id</span>
+<span class="sd">        :type sid: str</span>
+<span class="sd">        :return: page content</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">DATA_MANAGER</span><span class="o">.</span><span class="n">session_ids</span><span class="p">:</span>
+            <span class="n">abort</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">DATA_MANAGER</span><span class="o">.</span><span class="n">single_session_labels</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="n">DATA_MANAGER</span><span class="o">.</span><span class="n">single_session_tags</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+        <span class="n">jobs_cnt</span> <span class="o">=</span> <span class="n">DATA_MANAGER</span><span class="o">.</span><span class="n">single_session_job_cnt</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;json&quot;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;render&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;tag&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">tags</span><span class="p">),</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">),</span>
+                    <span class="s2">&quot;test&quot;</span><span class="p">:</span> <span class="n">jobs_cnt</span><span class="p">,</span>
+                    <span class="s2">&quot;config&quot;</span><span class="p">:</span> <span class="n">DATA_MANAGER</span><span class="o">.</span><span class="n">single_session_config</span><span class="p">(</span><span class="n">sid</span><span class="p">),</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span>
+            <span class="s2">&quot;session_main.html&quot;</span><span class="p">,</span>
+            <span class="n">sid</span><span class="o">=</span><span class="n">sid</span><span class="p">,</span>
+            <span class="n">rootdir</span><span class="o">=</span><span class="n">DATA_MANAGER</span><span class="o">.</span><span class="n">single_session_build_path</span><span class="p">(</span><span class="n">sid</span><span class="p">),</span>
+            <span class="n">nb_tests</span><span class="o">=</span><span class="n">jobs_cnt</span><span class="p">,</span>
+            <span class="n">nb_labels</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">),</span>
+            <span class="n">nb_tags</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">tags</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/compare&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compare</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Provide the archive comparison interface.</span>
+
+<span class="sd">        :return: webpage content</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;tbw.html&quot;</span><span class="p">)</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/run/&lt;sid&gt;/&lt;selection&gt;/list&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_list</span><span class="p">(</span><span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">selection</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a listing.</span>
+
+<span class="sd">        The response will depend on the request, which can be:</span>
+<span class="sd">            * tags</span>
+<span class="sd">            * label</span>
+<span class="sd">            * status</span>
+
+<span class="sd">        Providing a GET ``render`` to ``json`` returns the raw JSON version.</span>
+
+<span class="sd">        :param selection: which listing to target</span>
+<span class="sd">        :type selection: str</span>
+<span class="sd">        :return: web content</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;json&quot;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;render&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">infos</span> <span class="o">=</span> <span class="n">DATA_MANAGER</span><span class="o">.</span><span class="n">single_session_get_view</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">summary</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">infos</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">infos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="n">v</span><span class="p">})</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;list_view.html&quot;</span><span class="p">,</span> <span class="n">sid</span><span class="o">=</span><span class="n">sid</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="n">selection</span><span class="p">)</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/run/&lt;sid&gt;/&lt;selection&gt;/detail&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_details</span><span class="p">(</span><span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">selection</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a detailed view of a component.</span>
+
+<span class="sd">        The response will depend on the request, which can be:</span>
+<span class="sd">            * tag</span>
+<span class="sd">            * label</span>
+<span class="sd">            * status</span>
+
+<span class="sd">        Providing a GET ``render`` to ``json`` returns the raw JSON version.</span>
+
+<span class="sd">        :param selection: which view to target</span>
+<span class="sd">        :type selection: str</span>
+<span class="sd">        :return: web response</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">request_item</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;json&quot;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;render&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="c1"># special case</span>
+            <span class="k">if</span> <span class="n">selection</span> <span class="o">==</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span>
+                <span class="n">job_list</span> <span class="o">=</span> <span class="n">DATA_MANAGER</span><span class="o">.</span><span class="n">single_session_status</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">status_filter</span><span class="o">=</span><span class="n">request_item</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">struct</span> <span class="o">=</span> <span class="n">DATA_MANAGER</span><span class="o">.</span><span class="n">single_session_get_view</span><span class="p">(</span>
+                    <span class="n">sid</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="n">request_item</span><span class="p">,</span> <span class="n">summary</span><span class="o">=</span><span class="kc">False</span>
+                <span class="p">)</span>
+                <span class="c1"># jobs are returned split into 3 lists, depending on their status</span>
+                <span class="c1"># -&gt; browse all three lists</span>
+                <span class="k">if</span> <span class="n">struct</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="s2">&quot;Not Found !&quot;</span><span class="p">,</span> <span class="mi">404</span>
+                <span class="n">job_list</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">struct</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">job_list</span> <span class="o">+=</span> <span class="n">s</span>
+            <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">job_list</span><span class="p">:</span>
+                <span class="n">cur</span><span class="p">:</span> <span class="n">Test</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">DATA_MANAGER</span><span class="o">.</span><span class="n">single_session_map_id</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">elt</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">cur</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">strstate</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">render_template</span><span class="p">(</span>
+                <span class="s2">&quot;detailed_view.html&quot;</span><span class="p">,</span> <span class="n">sid</span><span class="o">=</span><span class="n">sid</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="n">selection</span><span class="p">,</span> <span class="n">sel_item</span><span class="o">=</span><span class="n">request_item</span>
+            <span class="p">),</span>
+            <span class="mi">200</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/submit/session_init&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">submit_new_session</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Entry point to receive new session request.</span>
+
+<span class="sd">        :return: OK</span>
+<span class="sd">        :rtype: HTTP request</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">json_session</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+        <span class="n">sid</span> <span class="o">=</span> <span class="n">json_session</span><span class="p">[</span><span class="s2">&quot;sid&quot;</span><span class="p">]</span>
+        <span class="n">DATA_MANAGER</span><span class="o">.</span><span class="n">add_session</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;OK!&quot;</span><span class="p">,</span> <span class="mi">200</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/submit/session_fini&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">submit_end_session</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Entry point to request a session end.</span>
+
+<span class="sd">        :return: OK</span>
+<span class="sd">        :rtype: HTTP request</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;OK!&quot;</span><span class="p">,</span> <span class="mi">200</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/submit/test&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">submit</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Entry point to receive test data.</span>
+
+<span class="sd">        :return: OK</span>
+<span class="sd">        :rtype: HTTP request</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">json_str</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+
+        <span class="c1"># test_sid = json_str[&quot;metadata&quot;][&quot;sid&quot;]  # pylint: disable=unused-variable</span>
+        <span class="n">test_obj</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+        <span class="n">test_obj</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_str</span><span class="p">[</span><span class="s2">&quot;test_data&quot;</span><span class="p">],</span> <span class="s2">&quot;Webview API INIT&quot;</span><span class="p">)</span>
+
+        <span class="c1"># TODO: implement insert test function and test management in data_manager</span>
+        <span class="c1"># ok = data_manager.insert_test(test_sid, test_obj)</span>
+        <span class="n">ok</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">406</span>
+        <span class="k">return</span> <span class="s2">&quot;OK!&quot;</span><span class="p">,</span> <span class="mi">200</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">errorhandler</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">page_not_found</span><span class="p">(</span><span class="n">e</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;404 Not found page handler.</span>
+
+<span class="sd">        :param e: the caught error, only 404 here</span>
+<span class="sd">        :type e: int</span>
+<span class="sd">        :return: web content</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;404.html&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">app</span></div>
+
+
+
+<div class="viewcode-block" id="start_server">
+<a class="viewcode-back" href="../../api/pcvs.webview.html#pcvs.webview.start_server">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">start_server</span><span class="p">(</span><span class="n">report</span><span class="p">:</span> <span class="n">Report</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize the Flask server, default to 5000.</span>
+
+<span class="sd">    A random port is picked if the default is already in use.</span>
+<span class="sd">    :param report: The model to be used.</span>
+<span class="sd">    :type report: Report</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">create_app</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PCVS_REPORT_PORT&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="mi">5000</span><span class="p">))),</span> <span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

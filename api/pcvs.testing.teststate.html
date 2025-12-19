@@ -115,8 +115,117 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-testing-teststate-module">
-<h1>pcvs.testing.teststate module<a class="headerlink" href="#pcvs-testing-teststate-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.testing.teststate">
+<span id="pcvs-testing-teststate-module"></span><h1>pcvs.testing.teststate module<a class="headerlink" href="#module-pcvs.testing.teststate" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.testing.teststate.TestState">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.testing.teststate.</span></span><span class="sig-name descname"><span class="pre">TestState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/teststate.html#TestState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.teststate.TestState" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></p>
+<p>Provide Status management, specifically for tests/jobs.</p>
+<p>Defined as an enum, it represents different states a
+<a class="reference internal" href="pcvs.testing.test.html#module-pcvs.testing.test" title="pcvs.testing.test"><code class="xref py py-class docutils literal notranslate"><span class="pre">test</span></code></a>/<a class="reference internal" href="pcvs.dsl.html#pcvs.dsl.Job" title="pcvs.dsl.Job"><code class="xref py py-class docutils literal notranslate"><span class="pre">Job</span></code></a> can take during
+its lifetime. As tests are then serialized into a JSON file, there is
+no need for construction/representation (as done for
+<a class="reference internal" href="pcvs.backend.session.html#pcvs.backend.session.SessionState" title="pcvs.backend.session.SessionState"><code class="xref py py-class docutils literal notranslate"><span class="pre">SessionState</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>WAITING</strong> (<em>int</em>) – Job is currently waiting to be scheduled</p></li>
+<li><p><strong>IN_PROGRESS</strong> (<em>int</em>) – A running Set() handle the job, and is scheduled
+for run.</p></li>
+<li><p><strong>EXECUTED</strong> (<em>int</em>) – Job have been executed, but result status
+has not been computed yet.</p></li>
+<li><p><strong>SUCCESS</strong> (<em>int</em>) – Job successfully run and passes all checks (rc,
+matchers…)</p></li>
+<li><p><strong>FAILURE</strong> (<em>int</em>) – Job didn’t succeed, at least one condition failed.</p></li>
+<li><p><strong>SOFT_TIMEOUT</strong> – Job has exceeded his soft time limit but pass.</p></li>
+<li><p><strong>HARD_TIMEOUT</strong> – Job has exceeded his hard time limit and got killed.</p></li>
+<li><p><strong>ERR_DEP</strong> (<em>int</em>) – Special cases to manage jobs unscheduled because at
+least one of its dependencies have failed to complete.</p></li>
+<li><p><strong>ERR_OTHER</strong> (<em>int</em>) – Any other uncaught situation.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.testing.teststate.TestState.ERR_DEP">
+<span class="sig-name descname"><span class="pre">ERR_DEP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">7</span></em><a class="headerlink" href="#pcvs.testing.teststate.TestState.ERR_DEP" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.testing.teststate.TestState.ERR_OTHER">
+<span class="sig-name descname"><span class="pre">ERR_OTHER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#pcvs.testing.teststate.TestState.ERR_OTHER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.testing.teststate.TestState.EXECUTED">
+<span class="sig-name descname"><span class="pre">EXECUTED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#pcvs.testing.teststate.TestState.EXECUTED" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.testing.teststate.TestState.FAILURE">
+<span class="sig-name descname"><span class="pre">FAILURE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#pcvs.testing.teststate.TestState.FAILURE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.testing.teststate.TestState.HARD_TIMEOUT">
+<span class="sig-name descname"><span class="pre">HARD_TIMEOUT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#pcvs.testing.teststate.TestState.HARD_TIMEOUT" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.testing.teststate.TestState.IN_PROGRESS">
+<span class="sig-name descname"><span class="pre">IN_PROGRESS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#pcvs.testing.teststate.TestState.IN_PROGRESS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.testing.teststate.TestState.SOFT_TIMEOUT">
+<span class="sig-name descname"><span class="pre">SOFT_TIMEOUT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#pcvs.testing.teststate.TestState.SOFT_TIMEOUT" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.testing.teststate.TestState.SUCCESS">
+<span class="sig-name descname"><span class="pre">SUCCESS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#pcvs.testing.teststate.TestState.SUCCESS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.testing.teststate.TestState.WAITING">
+<span class="sig-name descname"><span class="pre">WAITING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#pcvs.testing.teststate.TestState.WAITING" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.testing.teststate.TestState.all_states">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">all_states</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/teststate.html#TestState.all_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.teststate.TestState.all_states" title="Link to this definition"></a></dt>
+<dd><p>All tests states.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Self</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.testing.teststate.TestState.bad_states">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bad_states</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/teststate.html#TestState.bad_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.teststate.TestState.bad_states" title="Link to this definition"></a></dt>
+<dd><p>State that represent a FAILED test.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Self</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.testing.teststate.TestState.from_str">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/teststate.html#TestState.from_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.teststate.TestState.from_str" title="Link to this definition"></a></dt>
+<dd><p>Convert str to TestState.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Self</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 

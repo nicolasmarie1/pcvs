@@ -115,8 +115,319 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-helpers-storage-module">
-<h1>pcvs.helpers.storage module<a class="headerlink" href="#pcvs-helpers-storage-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.helpers.storage">
+<span id="pcvs-helpers-storage-module"></span><h1>pcvs.helpers.storage module<a class="headerlink" href="#module-pcvs.helpers.storage" title="Link to this heading"></a></h1>
+<p>Helper package to find configuration and plugin files in pcvs configuration directories.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigDesc">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.storage.</span></span><span class="sig-name descname"><span class="pre">ConfigDesc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigDesc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigDesc" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An object to describe a config file.</p>
+<p>Initialize a Config file object description.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigDesc.exist">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">exist</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigDesc.exist" title="Link to this definition"></a></dt>
+<dd><p>Return if the file pointed by this config descriptor exist.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigDesc.full_name">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">full_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigDesc.full_name" title="Link to this definition"></a></dt>
+<dd><p>Get the full name of the config.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigDesc.kind">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">kind</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pcvs.helpers.storage.ConfigKind" title="pcvs.helpers.storage.ConfigKind"><span class="pre">ConfigKind</span></a></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigDesc.kind" title="Link to this definition"></a></dt>
+<dd><p>The type of the config.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigDesc.name">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigDesc.name" title="Link to this definition"></a></dt>
+<dd><p>The name of the config (with file extension).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigDesc.path">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Path</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigDesc.path" title="Link to this definition"></a></dt>
+<dd><p>The path of the config.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigDesc.scope">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scope</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pcvs.helpers.storage.ConfigScope" title="pcvs.helpers.storage.ConfigScope"><span class="pre">ConfigScope</span></a></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigDesc.scope" title="Link to this definition"></a></dt>
+<dd><p>The scope of the config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigKind">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.storage.</span></span><span class="sig-name descname"><span class="pre">ConfigKind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigKind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigKind" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Configuration types.</p>
+<p>Associated with their config subdirectory and their default extension.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigKind.COMPILER">
+<span class="sig-name descname"><span class="pre">COMPILER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigKind.COMPILER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigKind.CRITERION">
+<span class="sig-name descname"><span class="pre">CRITERION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigKind.CRITERION" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigKind.GROUP">
+<span class="sig-name descname"><span class="pre">GROUP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigKind.GROUP" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigKind.MACHINE">
+<span class="sig-name descname"><span class="pre">MACHINE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigKind.MACHINE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigKind.PLUGIN">
+<span class="sig-name descname"><span class="pre">PLUGIN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigKind.PLUGIN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigKind.PROFILE">
+<span class="sig-name descname"><span class="pre">PROFILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigKind.PROFILE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigKind.RUNTIME">
+<span class="sig-name descname"><span class="pre">RUNTIME</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigKind.RUNTIME" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigKind.all_kinds">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">all_kinds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigKind.all_kinds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigKind.all_kinds" title="Link to this definition"></a></dt>
+<dd><p>Get a list of all ConfigTypes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Self</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigKind.fromstr">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fromstr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigKind.fromstr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigKind.fromstr" title="Link to this definition"></a></dt>
+<dd><p>Get Scope from user str.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Self</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigKind.get_file_ext">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_file_ext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ck</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigKind.get_file_ext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigKind.get_file_ext" title="Link to this definition"></a></dt>
+<dd><p>Get file type from ConfigType.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigLocator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.storage.</span></span><span class="sig-name descname"><span class="pre">ConfigLocator</span></span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigLocator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigLocator" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Helper to find and list config.</p>
+<p>Init a Config Locator.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigLocator.EXEC_PATH">
+<span class="sig-name descname"><span class="pre">EXEC_PATH</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> <span class="pre">|</span> <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigLocator.EXEC_PATH" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigLocator.check_filename_ext">
+<span class="sig-name descname"><span class="pre">check_filename_ext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigLocator.check_filename_ext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigLocator.check_filename_ext" title="Link to this definition"></a></dt>
+<dd><p>Check of filename.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigLocator.find_config">
+<span class="sig-name descname"><span class="pre">find_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigLocator.find_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigLocator.find_config" title="Link to this definition"></a></dt>
+<dd><p>Get a config file description from it’s name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pcvs.helpers.storage.ConfigDesc" title="pcvs.helpers.storage.ConfigDesc"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigDesc</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigLocator.get_storage_dir">
+<span class="sig-name descname"><span class="pre">get_storage_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigLocator.get_storage_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigLocator.get_storage_dir" title="Link to this definition"></a></dt>
+<dd><p>Get config dir from config scope and config type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigLocator.get_storage_path">
+<span class="sig-name descname"><span class="pre">get_storage_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigLocator.get_storage_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigLocator.get_storage_path" title="Link to this definition"></a></dt>
+<dd><p>Get config path from config label name, config type and config scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigLocator.list_all_configs">
+<span class="sig-name descname"><span class="pre">list_all_configs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigLocator.list_all_configs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigLocator.list_all_configs" title="Link to this definition"></a></dt>
+<dd><p>List all configs types in all scopes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="#pcvs.helpers.storage.ConfigDesc" title="pcvs.helpers.storage.ConfigDesc"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigDesc</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigLocator.list_configs">
+<span class="sig-name descname"><span class="pre">list_configs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigLocator.list_configs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigLocator.list_configs" title="Link to this definition"></a></dt>
+<dd><p>List configs of type <cite>ct</cite> in scopes <cite>cs</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="#pcvs.helpers.storage.ConfigDesc" title="pcvs.helpers.storage.ConfigDesc"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigDesc</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigLocator.parse_full">
+<span class="sig-name descname"><span class="pre">parse_full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">should_exist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigLocator.parse_full"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigLocator.parse_full" title="Link to this definition"></a></dt>
+<dd><p>Parse [scope:[kind:]]label token.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pcvs.helpers.storage.ConfigDesc" title="pcvs.helpers.storage.ConfigDesc"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigDesc</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigLocator.parse_full_raise">
+<span class="sig-name descname"><span class="pre">parse_full_raise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">should_exist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigLocator.parse_full_raise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigLocator.parse_full_raise" title="Link to this definition"></a></dt>
+<dd><p>Parse use token and return and associated config file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pcvs.helpers.storage.ConfigDesc" title="pcvs.helpers.storage.ConfigDesc"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigDesc</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigLocator.parse_scope_and_kind">
+<span class="sig-name descname"><span class="pre">parse_scope_and_kind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigLocator.parse_scope_and_kind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigLocator.parse_scope_and_kind" title="Link to this definition"></a></dt>
+<dd><p>Parse scope[:kind] token, return None on failure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<a class="reference internal" href="#pcvs.helpers.storage.ConfigScope" title="pcvs.helpers.storage.ConfigScope"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigScope</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>, <a class="reference internal" href="#pcvs.helpers.storage.ConfigKind" title="pcvs.helpers.storage.ConfigKind"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigKind</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>] | <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigLocator.parse_scope_and_kind_raise">
+<span class="sig-name descname"><span class="pre">parse_scope_and_kind_raise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_token</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigLocator.parse_scope_and_kind_raise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigLocator.parse_scope_and_kind_raise" title="Link to this definition"></a></dt>
+<dd><p>Parse scope[:kind] token, raise on failure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<a class="reference internal" href="#pcvs.helpers.storage.ConfigScope" title="pcvs.helpers.storage.ConfigScope"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigScope</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>, <a class="reference internal" href="#pcvs.helpers.storage.ConfigKind" title="pcvs.helpers.storage.ConfigKind"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigKind</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigScope">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.storage.</span></span><span class="sig-name descname"><span class="pre">ConfigScope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigScope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigScope" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Storage Scope Enumeration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>GLOBAL</strong> – pcvs installation path</p></li>
+<li><p><strong>USER</strong> – user Home directory</p></li>
+<li><p><strong>REPO</strong> – current .git repo</p></li>
+<li><p><strong>LOCAL</strong> – current testing directory</p></li>
+<li><p><strong>CWD</strong> – current working directory</p></li>
+<li><p><strong>ABS</strong> – user provided absolute path</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigScope.GLOBAL">
+<span class="sig-name descname"><span class="pre">GLOBAL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigScope.GLOBAL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigScope.LOCAL">
+<span class="sig-name descname"><span class="pre">LOCAL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigScope.LOCAL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigScope.USER">
+<span class="sig-name descname"><span class="pre">USER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#pcvs.helpers.storage.ConfigScope.USER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigScope.all_scopes">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">all_scopes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigScope.all_scopes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigScope.all_scopes" title="Link to this definition"></a></dt>
+<dd><p>Get all possible scopes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Self</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.ConfigScope.fromstr">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fromstr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#ConfigScope.fromstr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.ConfigScope.fromstr" title="Link to this definition"></a></dt>
+<dd><p>Get Scope from user str.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Self</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.helpers.storage.set_exec_path">
+<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.storage.</span></span><span class="sig-name descname"><span class="pre">set_exec_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exec_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/storage.html#set_exec_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.storage.set_exec_path" title="Link to this definition"></a></dt>
+<dd><p>Set EXEC_PATH.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 

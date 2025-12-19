@@ -1,0 +1,531 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.testing.testfile &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pcvs.testing.testfile</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.testing.testfile</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">getpass</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">operator</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pprint</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">YAML</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">YAMLError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">PATH_INSTDIR</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">testing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.metaconfig</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlobalConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.converter</span><span class="w"> </span><span class="kn">import</span> <span class="n">yaml_converter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationScheme</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plugin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">tedesc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">Test</span>
+
+<span class="c1"># pylint for python3.10 and pylint for python3.12 does not agree on if this should be snake case or upper case ...</span>
+<span class="n">constant_tokens</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># pylint: disable=invalid-name</span>
+
+
+<div class="viewcode-block" id="init_constant_tokens">
+<a class="viewcode-back" href="../../../api/pcvs.testing.testfile.html#pcvs.testing.testfile.init_constant_tokens">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_constant_tokens</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize global tokens to be replaced.</span>
+
+<span class="sd">    The dict is built from profile specifications. The exact location for this</span>
+<span class="sd">    function is still to be determined.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">constant_tokens</span>
+    <span class="n">constant_tokens</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;@HOME@&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()),</span>
+        <span class="s2">&quot;@USER@&quot;</span><span class="p">:</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">(),</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">comp</span><span class="p">,</span> <span class="n">comp_node</span> <span class="ow">in</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;compiler&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;compilers&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">constant_tokens</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;@COMPILER_</span><span class="si">{</span><span class="n">comp</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">@&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">comp_node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;program&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">constant_tokens</span><span class="p">[</span><span class="s2">&quot;@RUNTIME_PROGRAM@&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;runtime&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;program&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="replace_special_token">
+<a class="viewcode-back" href="../../../api/pcvs.testing.testfile.html#pcvs.testing.testfile.replace_special_token">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">replace_special_token</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">build</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">global</span> <span class="n">constant_tokens</span>
+    <span class="k">if</span> <span class="n">constant_tokens</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">init_constant_tokens</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">prefix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">assert</span> <span class="n">constant_tokens</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="o">**</span><span class="n">constant_tokens</span><span class="p">,</span>
+        <span class="s2">&quot;@BUILDPATH@&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">build</span><span class="p">,</span> <span class="n">prefix</span><span class="p">),</span>
+        <span class="s2">&quot;@SRCPATH@&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">prefix</span><span class="p">),</span>
+        <span class="s2">&quot;@ROOTPATH@&quot;</span><span class="p">:</span> <span class="n">src</span><span class="p">,</span>
+        <span class="s2">&quot;@BROOTPATH@&quot;</span><span class="p">:</span> <span class="n">build</span><span class="p">,</span>
+        <span class="s2">&quot;@SPACKPATH@&quot;</span><span class="p">:</span> <span class="s2">&quot;TBD&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;(?P&lt;name&gt;@[a-zA-Z0-9-_]+@)&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">content</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+
+            <span class="n">name</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">tokens</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ValidationException</span><span class="o">.</span><span class="n">WrongTokenError</span><span class="p">(</span><span class="n">invalid_tokens</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">errors</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="TestFile">
+<a class="viewcode-back" href="../../../api/pcvs.testing.testfile.html#pcvs.testing.testfile.TestFile">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TestFile</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A TestFile manipulates source files to be processed as benchmarks</span>
+<span class="sd">    (pcvs.yml &amp; pcvs.setup).</span>
+
+<span class="sd">    It handles global information about source imports &amp; building one execution</span>
+<span class="sd">    script (``list_of_tests.sh``) per input file.</span>
+
+<span class="sd">    :ivar _in: YAML input file</span>
+<span class="sd">    :vartype _in: str</span>
+<span class="sd">    :ivar _path_out: prefix where to store output artifacts</span>
+<span class="sd">    :vartype _path_out: str</span>
+<span class="sd">    :ivar _raw: stream to populate the TestFile (rather than opening input file)</span>
+<span class="sd">    :vartype _raw: dict</span>
+<span class="sd">    :ivar _label: label the test file comes from</span>
+<span class="sd">    :vartype _label: str</span>
+<span class="sd">    :ivar _prefix: subtree the test file has been extracted</span>
+<span class="sd">    :vartype _prefix: str</span>
+<span class="sd">    :ivar _tests: list of tests handled by this file</span>
+<span class="sd">    :vartype _tests: list</span>
+<span class="sd">    :ivar _debug: debug instructions (concatenation of TE debug infos)</span>
+<span class="sd">    :vartype _debug: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">cc_pm_string</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">rt_pm_string</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">val_scheme_cache</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">file_in</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">path_out</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor method.</span>
+
+<span class="sd">        :param file_in: input file</span>
+<span class="sd">        :param path_out: prefix to store artifacts</span>
+<span class="sd">        :param data: raw data to inject instead of opening input file</span>
+<span class="sd">        :param label: label the TE is coming from</span>
+<span class="sd">        :param prefix: testfile Subtree (may be Nonetype)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_in</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">file_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path_out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">path_out</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_raw</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">prefix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tests</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Test</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">TestFile</span><span class="o">.</span><span class="n">val_scheme_cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">TestFile</span><span class="o">.</span><span class="n">val_scheme_cache</span> <span class="o">=</span> <span class="n">ValidationScheme</span><span class="p">(</span><span class="s2">&quot;te&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_scheme</span><span class="p">:</span> <span class="n">ValidationScheme</span> <span class="o">=</span> <span class="n">TestFile</span><span class="o">.</span><span class="n">val_scheme_cache</span>
+
+<div class="viewcode-block" id="TestFile.load_from_file">
+<a class="viewcode-back" href="../../../api/pcvs.testing.testfile.html#pcvs.testing.testfile.TestFile.load_from_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_in</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_in</span> <span class="o">=</span> <span class="n">f</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">stream</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_from_str</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TestFile.load_from_str">
+<a class="viewcode-back" href="../../../api/pcvs.testing.testfile.html#pcvs.testing.testfile.TestFile.load_from_str">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_from_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fill a File object from stream.</span>
+
+<span class="sd">        This allows reusability (by loading only once).</span>
+
+<span class="sd">        :param data: the YAML-formatted input stream.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">source</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">testing</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">generate_local_variables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">)</span>
+
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">replace_special_token</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_raw</span> <span class="o">=</span> <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s2">&quot;safe&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">YAMLError</span> <span class="k">as</span> <span class="n">ye</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationException</span><span class="o">.</span><span class="n">YamlError</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_in</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">ye</span></div>
+
+
+<div class="viewcode-block" id="TestFile.save_yaml">
+<a class="viewcode-back" href="../../../api/pcvs.testing.testfile.html#pcvs.testing.testfile.TestFile.save_yaml">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_yaml</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">curbuild</span> <span class="o">=</span> <span class="n">testing</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">generate_local_variables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">curbuild</span><span class="p">,</span> <span class="s2">&quot;pcvs.setup.yml&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s2">&quot;safe&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_raw</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TestFile.validate">
+<a class="viewcode-back" href="../../../api/pcvs.testing.testfile.html#pcvs.testing.testfile.TestFile.validate">[docs]</a>
+    <span class="nd">@io</span><span class="o">.</span><span class="n">capture_exception</span><span class="p">(</span><span class="ne">Exception</span><span class="p">,</span> <span class="n">doexit</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allow_conversion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test file validation&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">val_scheme</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_raw</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_in</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="n">ValidationException</span><span class="o">.</span><span class="n">WrongTokenError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Issues with replacing @...@ keys</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">add_dbg</span><span class="p">(</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_in</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">TestException</span><span class="o">.</span><span class="n">TestExpressionError</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_in</span><span class="p">])</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+        <span class="k">except</span> <span class="n">ValidationException</span><span class="o">.</span><span class="n">FormatError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># YAML is valid but not following the Scheme</span>
+            <span class="c1"># If YAML is invalid, load() functions will failed first</span>
+
+            <span class="c1"># At first attempt, YAML are converted.</span>
+            <span class="c1"># There is no second chance</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">allow_conversion</span><span class="p">:</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">add_dbg</span><span class="p">(</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_in</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">e</span>
+
+            <span class="n">tmpfile</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s2">&quot;safe&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_raw</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">template</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PATH_INSTDIR</span><span class="p">,</span> <span class="s2">&quot;templates/config/group-compat.yml&quot;</span><span class="p">)</span>
+                <span class="n">yaml_converter</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="s2">&quot;te&quot;</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">er</span><span class="p">:</span>
+                <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;An error occurred when trying to update file </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_in</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">er</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">converted_data</span> <span class="o">=</span> <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s2">&quot;safe&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_raw</span> <span class="o">=</span> <span class="n">converted_data</span>
+            <span class="c1"># I don&#39;t understand this type error</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">allow_conversion</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">--&gt; Legacy syntax for: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_in</span><span class="p">))</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Please consider updating it with `pcvs_convert -k te`&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nb_descs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of tests descriptor in the testfile.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_raw</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nb_tests</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of tests in the testfile.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tests</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tests</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tests</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Test</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The tests object once generated.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tests</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">raw_yaml</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return raw yaml from TestFile.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw</span>
+
+<div class="viewcode-block" id="TestFile.process">
+<a class="viewcode-back" href="../../../api/pcvs.testing.testfile.html#pcvs.testing.testfile.TestFile.process">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load the YAML file and map YAML nodes to Test().&quot;&quot;&quot;</span>
+        <span class="c1"># _, _, _, _ = testing.test.generate_local_variables(</span>
+        <span class="c1">#     self._label, self._prefix)</span>
+
+        <span class="c1"># if file hasn&#39;t be loaded yet</span>
+        <span class="c1"># if self._raw is None:</span>
+        <span class="c1">#     self.load_from_file(self._in)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+
+        <span class="c1"># main loop, parse each node to register tests</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">content</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_internal</span><span class="p">(</span><span class="s2">&quot;pColl&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">invoke_plugins</span><span class="p">(</span><span class="n">Plugin</span><span class="o">.</span><span class="n">Step</span><span class="o">.</span><span class="n">TDESC_BEFORE</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">content</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># skip empty nodes</span>
+                <span class="k">continue</span>
+            <span class="n">td</span> <span class="o">=</span> <span class="n">tedesc</span><span class="o">.</span><span class="n">TEDescriptor</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">test</span> <span class="ow">in</span> <span class="n">td</span><span class="o">.</span><span class="n">construct_tests</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_tests</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">crit_debug</span><span class="p">(</span>
+                <span class="s2">&quot;Test descriptor: </span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">td</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">td</span><span class="o">.</span><span class="n">get_debug</span><span class="p">()))</span>
+            <span class="p">)</span>
+
+            <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_internal</span><span class="p">(</span><span class="s2">&quot;pColl&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">invoke_plugins</span><span class="p">(</span><span class="n">Plugin</span><span class="o">.</span><span class="n">Step</span><span class="o">.</span><span class="n">TDESC_AFTER</span><span class="p">)</span>
+
+            <span class="c1"># register debug information relative to the loaded TEs</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">get_debug</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TestFile.flush_sh_file">
+<a class="viewcode-back" href="../../../api/pcvs.testing.testfile.html#pcvs.testing.testfile.TestFile.flush_sh_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">flush_sh_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Store the given input file into their destination.&quot;&quot;&quot;</span>
+        <span class="n">fn_sh</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_out</span><span class="p">,</span> <span class="s2">&quot;list_of_tests.sh&quot;</span><span class="p">)</span>
+        <span class="n">cobj</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_internal</span><span class="p">(</span><span class="s2">&quot;cc_pm&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">TestFile</span><span class="o">.</span><span class="n">cc_pm_string</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="n">cobj</span><span class="p">:</span>
+            <span class="n">TestFile</span><span class="o">.</span><span class="n">cc_pm_string</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">load</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">install</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">cobj</span><span class="p">])</span>
+
+        <span class="n">robj</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_internal</span><span class="p">(</span><span class="s2">&quot;rt_pm&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">TestFile</span><span class="o">.</span><span class="n">rt_pm_string</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="n">robj</span><span class="p">:</span>
+            <span class="n">TestFile</span><span class="o">.</span><span class="n">rt_pm_string</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">load</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">install</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">robj</span><span class="p">])</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn_sh</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh_sh</span><span class="p">:</span>
+            <span class="n">fh_sh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;#!/bin/sh</span>
+<span class="sd">if test -n &quot;{simulated}&quot;; then</span>
+<span class="sd">    PCVS_SHOW=1</span>
+<span class="sd">    PCVS_SHOW_ENV=1</span>
+<span class="sd">    PCVS_SHOW_MOD=1</span>
+<span class="sd">    PCVS_SHOW_CMD=1</span>
+<span class="sd">fi</span>
+
+<span class="sd">if test -z &quot;$PCVS_SHOW&quot;; then</span>
+<span class="sd">eval &quot;{pm_string}&quot;</span>
+<span class="sd">elif test -n &quot;$PCVS_SHOW_MOD&quot;; then</span>
+<span class="sd">test -n &quot;$PCVS_VERBOSE&quot; &amp;&amp; echo &quot;## MODULE LOADED FROM PROFILE ##&quot;</span>
+<span class="sd">cat&lt;&lt;EOF</span>
+<span class="sd">{pm_string}</span>
+<span class="sd">EOF</span>
+<span class="sd">#else... SHOW but not this option --&gt; nothing to do</span>
+
+<span class="sd">fi</span>
+
+<span class="sd">for arg in &quot;$@&quot;; do case $arg in</span>
+<span class="sd">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">simulated</span><span class="o">=</span><span class="p">(</span>
+                        <span class="s2">&quot;sim&quot;</span> <span class="k">if</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;simulated&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+                    <span class="p">),</span>
+                    <span class="n">pm_string</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">TestFile</span><span class="o">.</span><span class="n">cc_pm_string</span><span class="p">,</span> <span class="n">TestFile</span><span class="o">.</span><span class="n">rt_pm_string</span><span class="p">]),</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">test</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tests</span><span class="p">:</span>
+                <span class="n">fh_sh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">generate_script</span><span class="p">(</span><span class="n">fn_sh</span><span class="p">))</span>
+                <span class="c1"># GlobalConfig.root.get_internal(&quot;orchestrator&quot;).add_new_job(test)</span>
+
+            <span class="n">fh_sh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        --list) printf &quot;{list_of_tests}\\n&quot;; exit 0;;</span>
+<span class="sd">        *) printf &quot;Invalid test-name \&#39;$arg\&#39;\\n&quot;; exit 1;;</span>
+<span class="sd">        esac</span>
+<span class="sd">    done</span>
+
+<span class="sd">    if test -z &quot;$PCVS_SHOW&quot;; then</span>
+<span class="sd">        eval &quot;${{pcvs_load}}&quot; || exit &quot;$?&quot;</span>
+<span class="sd">        eval &quot;${{pcvs_env}}&quot; || exit &quot;$?&quot;</span>
+<span class="sd">        eval &quot;${{pcvs_cmd}}&quot; || exit &quot;$?&quot;</span>
+<span class="sd">        exit $?</span>
+<span class="sd">    else</span>
+<span class="sd">        if test -n &quot;$PCVS_SHOW_MOD&quot;; then</span>
+<span class="sd">            test -n &quot;$PCVS_VERBOSE&quot; &amp;&amp; echo &quot;#### MODULE LOADED ####&quot;</span>
+<span class="sd">cat&lt;&lt;EOF</span>
+<span class="sd">${{pcvs_load}}</span>
+<span class="sd">EOF</span>
+<span class="sd">        fi</span>
+
+<span class="sd">        if test -n &quot;$PCVS_SHOW_ENV&quot;; then</span>
+<span class="sd">        test -n &quot;$PCVS_VERBOSE&quot; &amp;&amp; echo &quot;###### SETUP ENV ######&quot;</span>
+<span class="sd">cat&lt;&lt;EOF</span>
+<span class="sd">${{pcvs_env}}</span>
+<span class="sd">EOF</span>
+<span class="sd">        fi</span>
+<span class="sd">        if test -n &quot;$PCVS_SHOW_CMD&quot;; then</span>
+<span class="sd">        test -n &quot;$PCVS_VERBOSE&quot; &amp;&amp; echo &quot;##### RUN COMMAND #####&quot;</span>
+<span class="sd">cat&lt;&lt;EOF</span>
+<span class="sd">${{pcvs_cmd}}</span>
+<span class="sd">EOF</span>
+<span class="sd">        fi</span>
+<span class="sd">    fi</span>
+<span class="sd">    exit $?\n&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">list_of_tests</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">t</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tests</span><span class="p">])</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_debug_info</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TestFile.generate_debug_info">
+<a class="viewcode-back" href="../../../api/pcvs.testing.testfile.html#pcvs.testing.testfile.TestFile.generate_debug_info">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_debug_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dump debug info to the appropriate file for the input object.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span> <span class="ow">and</span> <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">verb_debug</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_out</span><span class="p">,</span> <span class="s2">&quot;dbg-pcvs.yml&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="c1"># compute max number of combinations from system iterators</span>
+                <span class="n">sys_cnt</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span>
+                    <span class="n">operator</span><span class="o">.</span><span class="n">mul</span><span class="p">,</span>
+                    <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;criterion&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;.system-values&quot;</span><span class="p">,</span> <span class="p">{})</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">[</span><span class="s2">&quot;.system-values&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;stats&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+                <span class="k">for</span> <span class="n">c_k</span><span class="p">,</span> <span class="n">c_v</span> <span class="ow">in</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;criterion&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">[</span><span class="s2">&quot;.system-values&quot;</span><span class="p">][</span><span class="n">c_k</span><span class="p">]</span> <span class="o">=</span> <span class="n">c_v</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">[</span><span class="s2">&quot;.system-values&quot;</span><span class="p">][</span><span class="s2">&quot;stats&quot;</span><span class="p">][</span><span class="s2">&quot;theoric&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sys_cnt</span>
+                <span class="n">yml</span> <span class="o">=</span> <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s2">&quot;safe&quot;</span><span class="p">)</span>
+                <span class="n">yml</span><span class="o">.</span><span class="n">default_flow_style</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">yml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

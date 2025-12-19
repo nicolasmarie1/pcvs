@@ -1,0 +1,480 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.orchestration.manager &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../orchestration.html">pcvs.orchestration</a></li>
+      <li class="breadcrumb-item active">pcvs.orchestration.manager</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.orchestration.manager</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.metaconfig</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlobalConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrchestratorException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.resource_tracker</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResourceTracker</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.orchestration.publishers</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResultFileManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.orchestration.set</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExecMode</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.orchestration.set</span><span class="w"> </span><span class="kn">import</span> <span class="n">Set</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plugin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">Test</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.teststate</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestState</span>
+
+
+<div class="viewcode-block" id="Manager">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Manager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gather and manipulate Jobs under a hiararchical architecture.</span>
+
+<span class="sd">    A Manager is in charge of carrying jobs during the scheduling. Jobs are</span>
+<span class="sd">    divided hierarchicaly (basically, depending on the number of resource</span>
+<span class="sd">    requested to be run). To extract jobs to be scheduled, a Manager will create</span>
+<span class="sd">    Set()s. Once completed Sets are merged to the Manager before publishing the</span>
+<span class="sd">    results.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_nodes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">publisher</span><span class="p">:</span> <span class="n">ResultFileManager</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize  a Job Manager.</span>
+
+<span class="sd">        :param max_nodes: max number of nodes allowed to schedule.</span>
+<span class="sd">        :type max_nodes: int</span>
+<span class="sd">        :param publisher: requested publisher by the orchestrator</span>
+<span class="sd">        :type publisher: :class:`ResultFileManager`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_comman</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_internal</span><span class="p">(</span><span class="s2">&quot;comman&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_internal</span><span class="p">(</span><span class="s2">&quot;pColl&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_concurrent_level</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;machine&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;concurrent_run&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_nodes</span> <span class="o">=</span> <span class="n">max_nodes</span>
+
+        <span class="c1"># job_id to Job bindings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jobs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Test</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># job dependency rules</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dep_rules</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_publisher</span> <span class="o">=</span> <span class="n">publisher</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;executed&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jobs_cache</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Test</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nb_max_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get max number of nodes.</span>
+
+<span class="sd">        :return: the max nb nodes</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_nodes</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_jobs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Test</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobs</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__add_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Test</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jobs</span><span class="p">[</span><span class="n">job</span><span class="o">.</span><span class="n">jid</span><span class="p">]</span> <span class="o">=</span> <span class="n">job</span>
+
+<div class="viewcode-block" id="Manager.add_job">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager.add_job">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Test</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Store a new job to the Job Queue, the Manager table,</span>
+<span class="sd">            save the test dependency rules and count it.</span>
+
+<span class="sd">        :param job: The job to append</span>
+<span class="sd">        :type job: :class:`Test`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># if test is not know yet, add + increment</span>
+        <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">jid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__add_job</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">[</span><span class="s2">&quot;total&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_dependency_rule</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">basename</span><span class="p">,</span> <span class="n">job</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Manager.save_dependency_rule">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager.save_dependency_rule">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_dependency_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">jobs</span><span class="p">:</span> <span class="n">Test</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Test</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">jobs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">jobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">jobs</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dep_rules</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dep_rules</span><span class="p">[</span><span class="n">pattern</span><span class="p">]</span> <span class="o">+=</span> <span class="n">jobs</span></div>
+
+
+<div class="viewcode-block" id="Manager.get_count">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager.get_count">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;total&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Access to a particular counter.</span>
+
+<span class="sd">        :param tag: a specific counter to target, defaults to &quot;total&quot;</span>
+<span class="sd">        :type tag: str</span>
+<span class="sd">        :return: a count</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="k">else</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="Manager.resolve_deps">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager.resolve_deps">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resolve_deps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resolve the whole dependency graph.</span>
+
+<span class="sd">        This function is meant to be called once and browse every single tests</span>
+<span class="sd">        to resolve dep names to their real associated object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">job</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">resolve_single_job_deps</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="p">[])</span></div>
+
+
+<div class="viewcode-block" id="Manager.print_dep_graph">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager.print_dep_graph">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">print_dep_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outfile_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;digraph D {&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">job</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">job</span><span class="o">.</span><span class="n">get_dep_graph</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">job</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;-&gt;&quot;</span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s1">&quot;;&#39;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">outfile_name</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outfile_name</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Manager.resolve_single_job_deps">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager.resolve_single_job_deps">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resolve_single_job_deps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Test</span><span class="p">,</span> <span class="n">seen_deps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resolve the dependency graph for a single test.</span>
+
+<span class="sd">        The &#39;chain&#39; argument contains list of &quot;already-seen&quot; dependency, helping</span>
+<span class="sd">        to detect circular deps.</span>
+
+<span class="sd">        :raises UndefDependencyError: a depname does not have a related object</span>
+<span class="sd">        :raises CircularDependencyError: a circular dep is detected from this</span>
+<span class="sd">            job.</span>
+<span class="sd">        :param job: the job to resolve</span>
+<span class="sd">        :type job: :class:`Test`</span>
+<span class="sd">        :param chain: list of already-seen jobs during this walkthrough</span>
+<span class="sd">        :type chain: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">seen_deps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">depname</span> <span class="ow">in</span> <span class="n">job</span><span class="o">.</span><span class="n">job_depnames</span><span class="p">:</span>
+
+            <span class="n">hashed_dep</span> <span class="o">=</span> <span class="n">Test</span><span class="o">.</span><span class="n">get_jid_from_name</span><span class="p">(</span><span class="n">depname</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">hashed_dep</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobs</span><span class="p">:</span>
+                <span class="n">job_dep_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">jobs</span><span class="p">[</span><span class="n">hashed_dep</span><span class="p">]]</span>
+            <span class="k">elif</span> <span class="n">depname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dep_rules</span><span class="p">:</span>
+                <span class="n">job_dep_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dep_rules</span><span class="p">[</span><span class="n">depname</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">OrchestratorException</span><span class="o">.</span><span class="n">UndefDependencyError</span><span class="p">(</span><span class="n">depname</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">job_dep</span> <span class="ow">in</span> <span class="n">job_dep_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">job_dep</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">seen_deps</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">OrchestratorException</span><span class="o">.</span><span class="n">CircularDependencyError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">seen_deps</span><span class="p">))</span>
+
+                <span class="c1"># without copying the chain, resolution of siblings deps will alter</span>
+                <span class="c1"># the same list --&gt; a single dep may appear multiple time and raise</span>
+                <span class="c1"># a false CiprcularDep</span>
+                <span class="c1"># solution: resolve subdep path in their own chain :)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">resolve_single_job_deps</span><span class="p">(</span><span class="n">job_dep</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">seen_deps</span><span class="p">))</span>
+                <span class="n">job</span><span class="o">.</span><span class="n">resolve_a_dep</span><span class="p">(</span><span class="n">depname</span><span class="p">,</span> <span class="n">job_dep</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_transpose_dep_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">job</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">job</span><span class="o">.</span><span class="n">transpose_deps</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Manager.filter_tags">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager.filter_tags">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">filter_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_transpose_dep_graph</span><span class="p">()</span>
+        <span class="n">change</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">while</span> <span class="n">change</span><span class="p">:</span>
+            <span class="n">change</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">jid</span><span class="p">,</span> <span class="n">job</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">job</span><span class="o">.</span><span class="n">should_run</span><span class="p">():</span>
+                    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Filtering test: </span><span class="si">{</span><span class="n">job</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">job</span><span class="o">.</span><span class="n">remove_test_from_deps</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">jobs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">jid</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">[</span><span class="s2">&quot;total&quot;</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+                    <span class="n">change</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="Manager.get_leftjob_count">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager.get_leftjob_count">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_leftjob_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the number of jobs remaining to be executed.</span>
+
+<span class="sd">        :return: a number of jobs</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">[</span><span class="s2">&quot;total&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">[</span><span class="s2">&quot;executed&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Manager.publish_job">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager.publish_job">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">publish_job</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Test</span><span class="p">,</span> <span class="n">publish_args</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">TestState</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">publish_args</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">job</span><span class="o">.</span><span class="n">save_final_result</span><span class="p">(</span>
+                <span class="n">publish_args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">publish_args</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">publish_args</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">publish_args</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comman</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_comman</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">[</span><span class="s2">&quot;executed&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">state</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">state</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">state</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_publisher</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_publisher</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">job</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Manager.prune_all_jobs_as_non_runnable">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager.prune_all_jobs_as_non_runnable">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prune_all_jobs_as_non_runnable</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">job</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">publish_failed_to_run_job</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">Test</span><span class="o">.</span><span class="n">DISCARDED_STR</span><span class="p">,</span> <span class="n">TestState</span><span class="o">.</span><span class="n">ERR_OTHER</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Manager.create_subset">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager.create_subset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_subset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resources_tracker</span><span class="p">:</span> <span class="n">ResourceTracker</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract one or more jobs, ready to be run.</span>
+
+<span class="sd">        :param resources_tracker: job resource tracker.</span>
+<span class="sd">        :type resources_tracker: list[int]</span>
+<span class="sd">        :return: A set of jobs</span>
+<span class="sd">        :rtype: :class:`Set`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">the_set</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">invoke_plugins</span><span class="p">(</span><span class="n">Plugin</span><span class="o">.</span><span class="n">Step</span><span class="o">.</span><span class="n">SCHED_SET_BEFORE</span><span class="p">)</span>
+
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">has_enabled_step</span><span class="p">(</span><span class="n">Plugin</span><span class="o">.</span><span class="n">Step</span><span class="o">.</span><span class="n">SCHED_SET_EVAL</span><span class="p">):</span>
+            <span class="n">the_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">invoke_plugins</span><span class="p">(</span>
+                <span class="n">Plugin</span><span class="o">.</span><span class="n">Step</span><span class="o">.</span><span class="n">SCHED_SET_EVAL</span><span class="p">,</span>
+                <span class="n">jobman</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">max_job_limit</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">[</span><span class="s2">&quot;total&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concurrent_level</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">the_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_create_subset</span><span class="p">(</span><span class="n">resources_tracker</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span>
+        <span class="k">if</span> <span class="n">duration</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: scheduling took </span><span class="si">{</span><span class="n">duration</span><span class="si">}</span><span class="s2">s.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">invoke_plugins</span><span class="p">(</span><span class="n">Plugin</span><span class="o">.</span><span class="n">Step</span><span class="o">.</span><span class="n">SCHED_SET_AFTER</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">the_set</span></div>
+
+
+<div class="viewcode-block" id="Manager.create_job_cache">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager.create_job_cache">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_job_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a job cache for faster execution time. Need to be run before first call to create_subset.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jobs_cache</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">jobs</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span>
+            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">entry</span><span class="p">:</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">has_completed_deps</span><span class="p">()</span> <span class="k">else</span> <span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_nb_nodes</span><span class="p">(),</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__default_create_subset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resources_tracker</span><span class="p">:</span> <span class="n">ResourceTracker</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">scheduled_set</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">user_sched_job</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">has_enabled_step</span><span class="p">(</span><span class="n">Plugin</span><span class="o">.</span><span class="n">Step</span><span class="o">.</span><span class="n">SCHED_JOB_EVAL</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>  <span class="c1"># self.create_job_cache should be run.</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">job</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs_cache</span><span class="p">):</span>
+            <span class="c1"># test not ready to be run</span>
+            <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">state</span> <span class="o">!=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">WAITING</span><span class="p">:</span>
+                <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Job with wrong state in scheduler, ignoring!&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">job</span><span class="o">.</span><span class="n">has_completed_deps</span><span class="p">():</span>
+                <span class="c1"># job has missing dependency</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">has_failed_dep</span><span class="p">():</span>
+                <span class="c1"># Cannot be scheduled for dep purposes push it to publisher</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">publish_failed_to_run_job</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">Test</span><span class="o">.</span><span class="n">NOSTART_STR</span><span class="p">,</span> <span class="n">TestState</span><span class="o">.</span><span class="n">ERR_DEP</span><span class="p">)</span>
+                <span class="c1"># Attempt to find another job to schedule</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Job has completed its dep scheme all deps are successful</span>
+            <span class="c1"># =&gt; SCHEDULE</span>
+            <span class="k">if</span> <span class="n">user_sched_job</span><span class="p">:</span>
+                <span class="c1"># manual schedule with plugin</span>
+                <span class="n">pick_job</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">invoke_plugins</span><span class="p">(</span>
+                    <span class="n">Plugin</span><span class="o">.</span><span class="n">Step</span><span class="o">.</span><span class="n">SCHED_JOB_EVAL</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="nb">set</span><span class="o">=</span><span class="n">scheduled_set</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># pcvs scheduler</span>
+                <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">sched_debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Alloc pool (ALLOC TRY): </span><span class="si">{</span><span class="n">job</span><span class="o">.</span><span class="n">needed_resources</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="n">resources_tracker</span><span class="o">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">needed_resources</span><span class="p">)</span>
+                <span class="n">pick_job</span> <span class="o">=</span> <span class="n">res</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                <span class="k">if</span> <span class="n">pick_job</span><span class="p">:</span>
+                    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">sched_debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Alloc pool (ALLOC RES) </span><span class="si">{</span><span class="n">res</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">resources_tracker</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">job</span><span class="o">.</span><span class="n">alloc_tracking</span> <span class="o">=</span> <span class="n">res</span>
+
+            <span class="c1"># if job have been selected for schedule (== have passed resources allocation)</span>
+            <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">state</span> <span class="o">!=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">IN_PROGRESS</span> <span class="ow">and</span> <span class="n">pick_job</span><span class="p">:</span>
+                <span class="n">job</span><span class="o">.</span><span class="n">pick</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">scheduled_set</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">scheduled_set</span> <span class="o">=</span> <span class="n">Set</span><span class="p">(</span><span class="n">execmode</span><span class="o">=</span><span class="n">ExecMode</span><span class="o">.</span><span class="n">LOCAL</span><span class="p">)</span>
+                <span class="n">scheduled_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_jobs_cache</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+                <span class="c1"># Schedule set should only be of size one to avoid</span>
+                <span class="c1"># issue with multiples runner scheduling as multiples</span>
+                <span class="c1"># jobs in the same set cannot be scheduled at the same time.</span>
+                <span class="k">break</span>
+
+            <span class="c1"># Resources exhausted</span>
+            <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">scheduled_set</span>
+
+<div class="viewcode-block" id="Manager.publish_failed_to_run_job">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager.publish_failed_to_run_job">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">publish_failed_to_run_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Test</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">TestState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">publish_job_args</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">publish_job</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">publish_args</span><span class="o">=</span><span class="n">publish_job_args</span><span class="p">)</span>
+        <span class="n">job</span><span class="o">.</span><span class="n">display</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Manager.merge_subset">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.manager.html#pcvs.orchestration.manager.Manager.merge_subset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">merge_subset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subset</span><span class="p">:</span> <span class="n">Set</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;After completion, process the Set to publish test results.</span>
+
+<span class="sd">        :param set: the set handling jobs during the scheduling.</span>
+<span class="sd">        :type set: :class:`Set`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">subset</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">job</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">TestState</span><span class="o">.</span><span class="n">EXECUTED</span>
+
+            <span class="n">job</span><span class="o">.</span><span class="n">extract_metrics</span><span class="p">()</span>
+            <span class="n">job</span><span class="o">.</span><span class="n">save_artifacts</span><span class="p">()</span>
+            <span class="n">job</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">publish_job</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">publish_args</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">job</span><span class="o">.</span><span class="n">display</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

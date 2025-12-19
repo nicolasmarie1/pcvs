@@ -115,8 +115,237 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-orchestration-manager-module">
-<h1>pcvs.orchestration.manager module<a class="headerlink" href="#pcvs-orchestration-manager-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.orchestration.manager">
+<span id="pcvs-orchestration-manager-module"></span><h1>pcvs.orchestration.manager module<a class="headerlink" href="#module-pcvs.orchestration.manager" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.orchestration.manager.</span></span><span class="sig-name descname"><span class="pre">Manager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_nodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">publisher</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Gather and manipulate Jobs under a hiararchical architecture.</p>
+<p>A Manager is in charge of carrying jobs during the scheduling. Jobs are
+divided hierarchicaly (basically, depending on the number of resource
+requested to be run). To extract jobs to be scheduled, a Manager will create
+Set()s. Once completed Sets are merged to the Manager before publishing the
+results.</p>
+<p>Initialize  a Job Manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_nodes</strong> (<em>int</em>) – max number of nodes allowed to schedule.</p></li>
+<li><p><strong>publisher</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ResultFileManager</span></code>) – requested publisher by the orchestrator</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.add_job">
+<span class="sig-name descname"><span class="pre">add_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager.add_job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager.add_job" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Store a new job to the Job Queue, the Manager table,</dt><dd><p>save the test dependency rules and count it.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>job</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code>) – The job to append</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.create_job_cache">
+<span class="sig-name descname"><span class="pre">create_job_cache</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager.create_job_cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager.create_job_cache" title="Link to this definition"></a></dt>
+<dd><p>Create a job cache for faster execution time. Need to be run before first call to create_subset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.create_subset">
+<span class="sig-name descname"><span class="pre">create_subset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resources_tracker</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager.create_subset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager.create_subset" title="Link to this definition"></a></dt>
+<dd><p>Extract one or more jobs, ready to be run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>resources_tracker</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – job resource tracker.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A set of jobs</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Set</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.filter_tags">
+<span class="sig-name descname"><span class="pre">filter_tags</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager.filter_tags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager.filter_tags" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.get_count">
+<span class="sig-name descname"><span class="pre">get_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager.get_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager.get_count" title="Link to this definition"></a></dt>
+<dd><p>Access to a particular counter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tag</strong> (<em>str</em>) – a specific counter to target, defaults to “total”</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a count</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.get_jobs">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_jobs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="pcvs.testing.test.html#pcvs.testing.test.Test" title="pcvs.testing.test.Test"><span class="pre">Test</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pcvs.orchestration.manager.Manager.get_jobs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.get_leftjob_count">
+<span class="sig-name descname"><span class="pre">get_leftjob_count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager.get_leftjob_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager.get_leftjob_count" title="Link to this definition"></a></dt>
+<dd><p>Return the number of jobs remaining to be executed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a number of jobs</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.merge_subset">
+<span class="sig-name descname"><span class="pre">merge_subset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager.merge_subset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager.merge_subset" title="Link to this definition"></a></dt>
+<dd><p>After completion, process the Set to publish test results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>set</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Set</span></code>) – the set handling jobs during the scheduling.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.nb_max_nodes">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nb_max_nodes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pcvs.orchestration.manager.Manager.nb_max_nodes" title="Link to this definition"></a></dt>
+<dd><p>Get max number of nodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the max nb nodes</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.print_dep_graph">
+<span class="sig-name descname"><span class="pre">print_dep_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager.print_dep_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager.print_dep_graph" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.prune_all_jobs_as_non_runnable">
+<span class="sig-name descname"><span class="pre">prune_all_jobs_as_non_runnable</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager.prune_all_jobs_as_non_runnable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager.prune_all_jobs_as_non_runnable" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.publish_failed_to_run_job">
+<span class="sig-name descname"><span class="pre">publish_failed_to_run_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager.publish_failed_to_run_job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager.publish_failed_to_run_job" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.publish_job">
+<span class="sig-name descname"><span class="pre">publish_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">publish_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager.publish_job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager.publish_job" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.resolve_deps">
+<span class="sig-name descname"><span class="pre">resolve_deps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager.resolve_deps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager.resolve_deps" title="Link to this definition"></a></dt>
+<dd><p>Resolve the whole dependency graph.</p>
+<p>This function is meant to be called once and browse every single tests
+to resolve dep names to their real associated object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.resolve_single_job_deps">
+<span class="sig-name descname"><span class="pre">resolve_single_job_deps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seen_deps</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager.resolve_single_job_deps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager.resolve_single_job_deps" title="Link to this definition"></a></dt>
+<dd><p>Resolve the dependency graph for a single test.</p>
+<p>The ‘chain’ argument contains list of “already-seen” dependency, helping
+to detect circular deps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.OrchestratorException.UndefDependencyError" title="pcvs.helpers.exceptions.OrchestratorException.UndefDependencyError"><strong>UndefDependencyError</strong></a> – a depname does not have a related object</p></li>
+<li><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.OrchestratorException.CircularDependencyError" title="pcvs.helpers.exceptions.OrchestratorException.CircularDependencyError"><strong>CircularDependencyError</strong></a> – a circular dep is detected from this
+job.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>job</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code>) – the job to resolve</p></li>
+<li><p><strong>chain</strong> (<em>list</em>) – list of already-seen jobs during this walkthrough</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.manager.Manager.save_dependency_rule">
+<span class="sig-name descname"><span class="pre">save_dependency_rule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/manager.html#Manager.save_dependency_rule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.manager.Manager.save_dependency_rule" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 

@@ -115,8 +115,212 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-orchestration-set-module">
-<h1>pcvs.orchestration.set module<a class="headerlink" href="#pcvs-orchestration-set-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.orchestration.set">
+<span id="pcvs-orchestration-set-module"></span><h1>pcvs.orchestration.set module<a class="headerlink" href="#module-pcvs.orchestration.set" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.ExecMode">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.orchestration.set.</span></span><span class="sig-name descname"><span class="pre">ExecMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/set.html#ExecMode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.set.ExecMode" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></p>
+<p>Map the current execution mode of a set.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>LOCAL: Sets are run by local runners. Runners are threads collocated in</dt><dd><p>the same process.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>ALLOC: Script is provided to user-defined wrapper, intended to prepare</dt><dd><p>resource for job scheduling. Runners are processed and the launch
+command is provided as script’s arguments. The ‘ALLOC’ mode
+supposes runners are not actually running on compute resources.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>REMOTE: Script is provided to user-defined wrapper, intended to prepare</dt><dd><p>resource for job scheduling. Runners are processed and the launch
+command is provided as script’s arguments. The ‘REMOTE’ mode
+supposes runners <em>are</em> actually running on compute resources
+alongside jobs.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>BATCH: Script is provided to user-defined wrapper, intended to prepare</dt><dd><p>resource for job scheduling. Runners are processed and the launch
+command is provided as script’s arguments. The ‘BATCH’ mode
+supposes the user script to return before completion. An ACK
+method will be required to ensure Runners have properly been
+executed.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.ExecMode.ALLOC">
+<span class="sig-name descname"><span class="pre">ALLOC</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#pcvs.orchestration.set.ExecMode.ALLOC" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.ExecMode.BATCH">
+<span class="sig-name descname"><span class="pre">BATCH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#pcvs.orchestration.set.ExecMode.BATCH" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.ExecMode.LOCAL">
+<span class="sig-name descname"><span class="pre">LOCAL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#pcvs.orchestration.set.ExecMode.LOCAL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.ExecMode.REMOTE">
+<span class="sig-name descname"><span class="pre">REMOTE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#pcvs.orchestration.set.ExecMode.REMOTE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.Set">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.orchestration.set.</span></span><span class="sig-name descname"><span class="pre">Set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">execmode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ExecMode.LOCAL</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/set.html#Set"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.set.Set" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Gather multiple jobs to be scheduled.</p>
+<p>Created by the manager to manipulate a subset, these jobs are removed from
+the manager during the execution, only reachable from a Set. Sets are
+launched as thread, dealing with their own workflow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_id</strong> – unique id</p></li>
+<li><p><strong>_size</strong> – number of jobs</p></li>
+<li><p><strong>_jobs</strong> – list of jobs</p></li>
+<li><p><strong>_completed</strong> – True if all jobs have been executed</p></li>
+</ul>
+</dd>
+</dl>
+<p>constructor method.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.Set.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jobs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/set.html#Set.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.set.Set.add" title="Link to this definition"></a></dt>
+<dd><p>Add a job or a list of jobs to the current Set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>l</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code> or List[<code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code>]) – a single or a list of jobs</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.Set.comman">
+<span class="sig-name descname"><span class="pre">comman</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.GenericServer" title="pcvs.helpers.communications.GenericServer"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenericServer</span></code></a> <span class="pre">|</span> <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#pcvs.orchestration.set.Set.comman" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.Set.completed">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">completed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#pcvs.orchestration.set.Set.completed" title="Link to this definition"></a></dt>
+<dd><p>check is the Set is complete and can be flushed down to the manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if all jobs have been completed.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.Set.content">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">content</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pcvs.testing.test.html#pcvs.testing.test.Test" title="pcvs.testing.test.Test"><span class="pre">Test</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pcvs.orchestration.set.Set.content" title="Link to this definition"></a></dt>
+<dd><p>Iterable iterating over the job list.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.Set.dim">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pcvs.orchestration.set.Set.dim" title="Link to this definition"></a></dt>
+<dd><p>Getter to dim property (largest dimension of a single job)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Set dim</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.Set.execmode">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">execmode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pcvs.orchestration.set.ExecMode" title="pcvs.orchestration.set.ExecMode"><span class="pre">ExecMode</span></a></em><a class="headerlink" href="#pcvs.orchestration.set.Set.execmode" title="Link to this definition"></a></dt>
+<dd><p>Get execution mode for this Set.</p>
+<p>See Set.ExecMode for more information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The current exec mode</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>class:<cite>Set.ExecMode</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.Set.find">
+<span class="sig-name descname"><span class="pre">find</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_hash</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/set.html#Set.find"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.set.Set.find" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.testing.test.html#pcvs.testing.test.Test" title="pcvs.testing.test.Test"><code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.Set.global_increment">
+<span class="sig-name descname"><span class="pre">global_increment</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#pcvs.orchestration.set.Set.global_increment" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.Set.id">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pcvs.orchestration.set.Set.id" title="Link to this definition"></a></dt>
+<dd><p>Getter to id property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Set id</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.Set.is_empty">
+<span class="sig-name descname"><span class="pre">is_empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/set.html#Set.is_empty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.set.Set.is_empty" title="Link to this definition"></a></dt>
+<dd><p>check is the set is empty (contains no jobs)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if there is no jobs</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.set.Set.size">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pcvs.orchestration.set.Set.size" title="Link to this definition"></a></dt>
+<dd><p>Getter to size property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Set size</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 

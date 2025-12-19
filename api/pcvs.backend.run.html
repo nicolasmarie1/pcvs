@@ -115,8 +115,322 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-backend-run-module">
-<h1>pcvs.backend.run module<a class="headerlink" href="#pcvs-backend-run-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.backend.run">
+<span id="pcvs-backend-run-module"></span><h1>pcvs.backend.run module<a class="headerlink" href="#module-pcvs.backend.run" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.anonymize_archive">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">anonymize_archive</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#anonymize_archive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.anonymize_archive" title="Link to this definition"></a></dt>
+<dd><p>Erase from results any undesired output from the generated archive.</p>
+<p>This process is disabled by default as it may increase significantly the
+validation process on large test bases.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It does not alter results in-place, only the generated archive. To
+preserve the anonymization, only the archive must be exported/shared,
+not the actual build directory.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.build_env_from_configuration">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">build_env_from_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#build_env_from_configuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.build_env_from_configuration" title="Link to this definition"></a></dt>
+<dd><p>Export configuration as env variables.</p>
+<p>Not all configuration are exported, only the one that may be used.
+compiler variables:
+- PCVS_CMP_CC=mpc_cc
+- PCVS_CMP_CC_ARGS=-O5
+- PCVS_CMP_CC_VAR_OPENMP=mpc_cc_omp
+- PCVS_CMP_CC_VAR_OPENMP_ARGS=-fopenmp</p>
+<p>criterions variables:
+- PCVS_CRIT_MPI=’1 2 4’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – the current config</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a dict of environment variables to export.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.check_defined_program_validity">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">check_defined_program_validity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#check_defined_program_validity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.check_defined_program_validity" title="Link to this definition"></a></dt>
+<dd><p>Ensure most programs defined in profiles &amp; parameters are valid in the current environment.</p>
+<p>Only system-wide commands are assessed here (compiler, runtime, etc…) not
+test-wide, as some resource may not be available at the time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.display_summary">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">display_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">the_session</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#display_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.display_summary" title="Link to this definition"></a></dt>
+<dd><p>Display a summary for this run, based on profile &amp; CLI arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>the_session</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.backend.session.html#pcvs.backend.session.Session" title="pcvs.backend.session.Session"><code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code></a></span>) – active session, for extra info to be displayed.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.dup_another_build">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">dup_another_build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">build_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#dup_another_build"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.dup_another_build" title="Link to this definition"></a></dt>
+<dd><p>Clone another build directory to start this validation upon it.</p>
+<p>It allows to save test-generation time if the validation is re-run under the
+exact same terms (identical configuration &amp; tests).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>build_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the build directory to copy resource from</p></li>
+<li><p><strong>outdir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – where data will be copied to.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.backend.metaconfig.html#pcvs.backend.metaconfig.MetaConfig" title="pcvs.backend.metaconfig.MetaConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaConfig</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the whole configuration loaded from the dup’d build directory</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.find_files_to_process">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">find_files_to_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#find_files_to_process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.find_files_to_process" title="Link to this definition"></a></dt>
+<dd><p>Lookup for test files to process, from the list of paths provided as parameter.</p>
+<p>The given <cite>path_dict</cite> is a dict, where keys are path labels given by the
+user, while values are the actual path. This function then returns a
+two-list tuple, one being files needing preprocessing (setup), the other
+being static configuration files (pcvs.yml)</p>
+<dl class="simple">
+<dt>Each list element is a tuple:</dt><dd><ul class="simple">
+<li><p>origin label</p></li>
+<li><p>subtree from this label leading to the actual file</p></li>
+<li><p>file basename (either “pcvs.setup” or “pcvs.yml”)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – tree of paths to look for</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]], <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a tuple with two lists</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.prepare">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">prepare</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#prepare"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.prepare" title="Link to this definition"></a></dt>
+<dd><p>Prepare the environment for a validation run.</p>
+<p>This function prepares the build dir, create trees…</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.prepare_runtime_env_file">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">prepare_runtime_env_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#prepare_runtime_env_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.prepare_runtime_env_file" title="Link to this definition"></a></dt>
+<dd><p>Export run environment into a file for later import by runner script.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.print_progbar_walker">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">print_progbar_walker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elt</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#print_progbar_walker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.print_progbar_walker" title="Link to this definition"></a></dt>
+<dd><p>Walker used to pretty-print progress bar element within Click.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>elt</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – the element to pretty-print, containing the label &amp; subprefix</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the formatted string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.process_dyn_setup">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">process_dyn_setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#process_dyn_setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.process_dyn_setup" title="Link to this definition"></a></dt>
+<dd><p>Process one setup script and return it’s test descriptor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.ValidationException.SetupError" title="pcvs.helpers.exceptions.ValidationException.SetupError"><strong>SetupError</strong></a> – An error occurred when running the setup script.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="pcvs.testing.test.html#pcvs.testing.test.Test" title="pcvs.testing.test.Test"><code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.process_dyn_setup_scripts">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">process_dyn_setup_scripts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setup_files</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#process_dyn_setup_scripts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.process_dyn_setup_scripts" title="Link to this definition"></a></dt>
+<dd><p>Process all dynamic ‘pcvs.yaml.setup’ files and generate associated tests.</p>
+<p>This function executes pcvs.setup files after deploying the environment (to
+let these scripts access it). It leads to generate “pcvs.yml” files, then
+processed to construct tests.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>setup_files</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span>) – list of tuples, each mapping a single pcvs.setup file</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="pcvs.testing.test.html#pcvs.testing.test.Test" title="pcvs.testing.test.Test"><code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of generated tests</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.process_files">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">process_files</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#process_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.process_files" title="Link to this definition"></a></dt>
+<dd><p>Process the test-suite generation.</p>
+<p>It includes walking through user directories to find definitions AND
+generating the associated tests.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.TestException.TestExpressionError" title="pcvs.helpers.exceptions.TestException.TestExpressionError"><strong>TestExpressionError</strong></a> – An error occurred while processing files</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="pcvs.testing.test.html#pcvs.testing.test.Test" title="pcvs.testing.test.Test"><code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.process_main_workflow">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">process_main_workflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">the_session</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#process_main_workflow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.process_main_workflow" title="Link to this definition"></a></dt>
+<dd><p>Main run.py entry point, triggering a PCVS validation run.</p>
+<p>This function is called by session management and may be run within an
+active terminal or as a detached process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>the_session</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.backend.session.html#pcvs.backend.session.Session" title="pcvs.backend.session.Session"><code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code></a></span>) – the session handler this run is connected to, defaults to None</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the exit code</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.process_spack">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">process_spack</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#process_spack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.process_spack" title="Link to this definition"></a></dt>
+<dd><p>Build job to schedule from Spack recipes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.process_static_yaml">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">process_static_yaml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#process_static_yaml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.process_static_yaml" title="Link to this definition"></a></dt>
+<dd><p>Process one yaml file and return it’s test descriptor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="pcvs.testing.test.html#pcvs.testing.test.Test" title="pcvs.testing.test.Test"><code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.process_static_yaml_files">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">process_static_yaml_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">yaml_files</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#process_static_yaml_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.process_static_yaml_files" title="Link to this definition"></a></dt>
+<dd><p>Process all static ‘pcvs.yml’ files and generate associated tests.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>yaml_files</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span>) – list of tuples, each describing a single input file.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="pcvs.testing.test.html#pcvs.testing.test.Test" title="pcvs.testing.test.Test"><code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of generated tests</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.process_yaml">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">process_yaml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#process_yaml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.process_yaml" title="Link to this definition"></a></dt>
+<dd><p>Process one yaml and return it’s test descriptor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.ValidationException.YamlError" title="pcvs.helpers.exceptions.ValidationException.YamlError"><strong>YamlError</strong></a> – An error occurred when loading the yaml file, invalid yaml structure of file.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="pcvs.testing.test.html#pcvs.testing.test.Test" title="pcvs.testing.test.Test"><code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.stop_pending_jobs">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">stop_pending_jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#stop_pending_jobs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.stop_pending_jobs" title="Link to this definition"></a></dt>
+<dd><p>Called when PCVS is going to stop upon external request, stop the scheduler</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>exc</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – exception to raise, defaults to None</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>exc</strong> – the exception to raise (this function is generally called when
+a exception is raised, this do some actions without capturing the exception)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.run.terminate">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.run.</span></span><span class="sig-name descname"><span class="pre">terminate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/run.html#terminate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.run.terminate" title="Link to this definition"></a></dt>
+<dd><p>Finalize a validation run.</p>
+<p>This include generating &amp; anonymizing (if needed) the archive.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 

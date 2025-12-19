@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.orchestration &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../_static/pcvs_favicon.ico"/>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pcvs.orchestration</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.orchestration</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">queue</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">queue</span><span class="w"> </span><span class="kn">import</span> <span class="n">Queue</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">session</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.metaconfig</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlobalConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.session</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.resource_tracker</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResourceTracker</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.orchestration.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">Manager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.orchestration.runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunnerAdapter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.orchestration.set</span><span class="w"> </span><span class="kn">import</span> <span class="n">Set</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plugin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">Test</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.teststate</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestState</span>
+
+
+<div class="viewcode-block" id="global_stop">
+<a class="viewcode-back" href="../../api/pcvs.orchestration.html#pcvs.orchestration.global_stop">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">global_stop</span><span class="p">(</span><span class="n">e</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">Orchestrator</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+    <span class="k">raise</span> <span class="n">e</span></div>
+
+
+
+<div class="viewcode-block" id="Orchestrator">
+<a class="viewcode-back" href="../../api/pcvs.orchestration.html#pcvs.orchestration.Orchestrator">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Orchestrator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The job orchestrator, managing test processing through the whole test base.</span>
+
+<span class="sd">    :ivar _conf: global configuration object</span>
+<span class="sd">    :type _conf: :class:`MetaConfig`</span>
+<span class="sd">    :ivar _pending_sets: started Sets not completed yet</span>
+<span class="sd">    :type _pending_sets: list</span>
+<span class="sd">    :ivar _max_nodes: number of nodes allowed to be used</span>
+<span class="sd">    :type _max_nodes: int</span>
+<span class="sd">    :ivar _max_cores: number of cores allowed to be used</span>
+<span class="sd">    :type _max_cores: int</span>
+<span class="sd">    :ivar _publisher: BuildDirectoryManager</span>
+<span class="sd">    :type _publisher: :class:`BuildDirectoryManager`</span>
+<span class="sd">    :ivar _manager: job manager</span>
+<span class="sd">    :type _manager: :class:`Manager`</span>
+<span class="sd">    :ivar _maxconcurrent: Max number of sets started at the same time.</span>
+<span class="sd">    :type _maxconcurrent: int</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;constructor method&quot;&quot;&quot;</span>
+        <span class="n">config_tree</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span>
+        <span class="c1"># TODO: take metacong as argument and stop relying on global config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_runners</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">RunnerAdapter</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_nodes</span> <span class="o">=</span> <span class="n">config_tree</span><span class="p">[</span><span class="s2">&quot;machine&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nodes&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_cores</span> <span class="o">=</span> <span class="n">config_tree</span><span class="p">[</span><span class="s2">&quot;machine&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cores_per_node&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resources_tracker</span> <span class="o">=</span> <span class="n">ResourceTracker</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_nodes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_cores</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_publisher</span> <span class="o">=</span> <span class="n">config_tree</span><span class="o">.</span><span class="n">get_internal</span><span class="p">(</span><span class="s2">&quot;build_manager&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">results</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span> <span class="o">=</span> <span class="n">Manager</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_nodes</span><span class="p">,</span> <span class="n">publisher</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_publisher</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxconcurrent</span> <span class="o">=</span> <span class="n">config_tree</span><span class="p">[</span><span class="s2">&quot;machine&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;concurrent_run&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_complete_q</span><span class="p">:</span> <span class="n">Queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ready_q</span><span class="p">:</span> <span class="n">Queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Orchestrator.print_infos">
+<a class="viewcode-back" href="../../api/pcvs.orchestration.html#pcvs.orchestration.Orchestrator.print_infos">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">print_infos</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;display pre-run infos.&quot;&quot;&quot;</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">&quot;Test count: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">get_count</span><span class="p">(</span><span class="s2">&quot;total&quot;</span><span class="p">)))</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">&quot;Max simultaneous Sets: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_maxconcurrent</span><span class="p">))</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="s2">&quot;Configured available nodes: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_nodes</span><span class="p">))</span></div>
+
+
+    <span class="c1"># This func should only be a passthrough to the job manager</span>
+<div class="viewcode-block" id="Orchestrator.add_new_job">
+<a class="viewcode-back" href="../../api/pcvs.orchestration.html#pcvs.orchestration.Orchestrator.add_new_job">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_new_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Test</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Append a new job to be scheduled.</span>
+
+<span class="sd">        :param job: job to append</span>
+<span class="sd">        :type job: :class:`Test`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">add_job</span><span class="p">(</span><span class="n">job</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Orchestrator.compute_deps">
+<a class="viewcode-back" href="../../api/pcvs.orchestration.html#pcvs.orchestration.Orchestrator.compute_deps">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_deps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute tests dependencies and filter tests based on tags.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">resolve_deps</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">verb_debug</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">print_dep_graph</span><span class="p">(</span><span class="s2">&quot;./graph.dat&quot;</span><span class="p">)</span>
+        <span class="c1"># filter test that should be run based on tags</span>
+        <span class="c1"># this need to be done after the deps are computed to avoid</span>
+        <span class="c1"># removing test dependency that are not tagged</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">filter_tags</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">verb_debug</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">print_dep_graph</span><span class="p">(</span><span class="s2">&quot;./graph-filter.dat&quot;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># TODO implement restart so the session does not have</span>
+    <span class="c1"># to restart from scratch each time</span>
+<div class="viewcode-block" id="Orchestrator.start_run">
+<a class="viewcode-back" href="../../api/pcvs.orchestration.html#pcvs.orchestration.Orchestrator.start_run">[docs]</a>
+    <span class="nd">@io</span><span class="o">.</span><span class="n">capture_exception</span><span class="p">(</span><span class="ne">KeyboardInterrupt</span><span class="p">,</span> <span class="n">global_stop</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">start_run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">the_session</span><span class="p">:</span> <span class="n">Session</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">restart</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># pylint: disable=unused-argument</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start the orchestrator.</span>
+
+<span class="sd">        :param the_session: The session owning the run.</span>
+<span class="sd">        :param restart: Whether the run is starting from scratch. (Unsupord)</span>
+<span class="sd">        :return: the return code for the run. (0 if no test fail otherwise 1)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">restart</span>  <span class="c1"># restart is not supported yet !!</span>
+
+        <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_internal</span><span class="p">(</span><span class="s2">&quot;pColl&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">invoke_plugins</span><span class="p">(</span><span class="n">Plugin</span><span class="o">.</span><span class="n">Step</span><span class="o">.</span><span class="n">SCHED_BEFORE</span><span class="p">)</span>
+
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ORCH: initialize runners&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxconcurrent</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_new_runner</span><span class="p">()</span>
+
+        <span class="c1"># track number of currently scheduled jobs.</span>
+        <span class="n">currently_scheduled_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">last_progress</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ORCH: start job scheduling&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">create_job_cache</span><span class="p">()</span>
+        <span class="c1"># While some jobs are available to run</span>
+        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">table_container</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">get_count</span><span class="p">()):</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">get_leftjob_count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># dummy init value</span>
+                <span class="n">new_set</span><span class="p">:</span> <span class="n">Set</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Set</span><span class="p">()</span>
+                <span class="c1"># Add new tests to the queue</span>
+                <span class="k">while</span> <span class="n">new_set</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># create a new set, if not possible, returns None</span>
+                    <span class="n">new_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">create_subset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_resources_tracker</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">new_set</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">currently_scheduled_count</span> <span class="o">+=</span> <span class="n">new_set</span><span class="o">.</span><span class="n">size</span>
+                        <span class="c1"># schedule the set asynchronously</span>
+                        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">sched_debug</span><span class="p">(</span>
+                            <span class="s2">&quot;ORCH: send Set to queue (#</span><span class="si">{}</span><span class="s2">, sz:</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">new_set</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">new_set</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_ready_q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">new_set</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">currently_scheduled_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">nb_jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">get_leftjob_count</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">nb_jobs</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">prune_all_jobs_as_non_runnable</span><span class="p">()</span>
+                        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Job scheduler stuck, fail to schedule </span><span class="si">{</span><span class="n">nb_jobs</span><span class="si">}</span><span class="s2"> jobs !!!&quot;</span>
+                        <span class="p">)</span>
+                <span class="c1"># Look for tests completions</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># while queue is not empty</span>
+                    <span class="n">jobs</span><span class="p">:</span> <span class="n">Set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_complete_q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">currently_scheduled_count</span> <span class="o">-=</span> <span class="n">jobs</span><span class="o">.</span><span class="n">size</span>
+                    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">sched_debug</span><span class="p">(</span>
+                            <span class="s2">&quot;ORCH: recv Set from queue (#</span><span class="si">{}</span><span class="s2">, sz:</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jobs</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">jobs</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">jobs</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_resources_tracker</span><span class="o">.</span><span class="n">free</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">alloc_tracking</span><span class="p">)</span>
+                            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">sched_debug</span><span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;Alloc pool (FREE) </span><span class="si">{</span><span class="n">job</span><span class="o">.</span><span class="n">alloc_tracking</span><span class="si">}</span><span class="s2">:&quot;</span>
+                                <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_resources_tracker</span><span class="si">}</span><span class="s2">&quot;</span>
+                            <span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">merge_subset</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span>
+                        <span class="c1"># Continue to gather resultes as long as some are available.</span>
+                        <span class="n">jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_complete_q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+                <span class="c1"># compute progress status</span>
+                <span class="n">current_progress</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">get_count</span><span class="p">(</span><span class="s2">&quot;executed&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">get_count</span><span class="p">(</span>
+                    <span class="s2">&quot;total&quot;</span>
+                <span class="p">)</span>
+
+                <span class="c1"># TODO: create backup to allow start/stop from these files</span>
+                <span class="c1"># Condition to trigger a dump of results</span>
+                <span class="c1"># info result file at a periodic step of 5% of</span>
+                <span class="c1"># the global workload</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">current_progress</span> <span class="o">-</span> <span class="n">last_progress</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.05</span><span class="p">:</span>
+                    <span class="c1"># Publish results periodically</span>
+                    <span class="c1"># 1. on file system</span>
+                    <span class="c1">#    =&gt; Done</span>
+                    <span class="c1"># 2. directly into the selected bank</span>
+                    <span class="c1">#    =&gt; NO NEVER, not until the end of the test</span>
+                    <span class="c1">#       at risk of bank corruption</span>
+                    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">sched_debug</span><span class="p">(</span><span class="s2">&quot;ORCH: Flush a new progression file&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_publisher</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                    <span class="n">last_progress</span> <span class="o">=</span> <span class="n">current_progress</span>
+                    <span class="k">if</span> <span class="n">the_session</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">session</span><span class="o">.</span><span class="n">update_session_from_file</span><span class="p">(</span>
+                            <span class="n">the_session</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;progress&quot;</span><span class="p">:</span> <span class="n">current_progress</span> <span class="o">*</span> <span class="mi">100</span><span class="p">}</span>
+                        <span class="p">)</span>
+
+        <span class="c1"># need a new line to flush after the table container if outputting to a file</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_publisher</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">get_count</span><span class="p">(</span><span class="s2">&quot;executed&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">get_count</span><span class="p">(</span><span class="s2">&quot;total&quot;</span><span class="p">)</span>
+
+        <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_internal</span><span class="p">(</span><span class="s2">&quot;pColl&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">invoke_plugins</span><span class="p">(</span><span class="n">Plugin</span><span class="o">.</span><span class="n">Step</span><span class="o">.</span><span class="n">SCHED_AFTER</span><span class="p">)</span>
+
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ORCH: Stop active runners&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_runners</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="mi">0</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">get_count</span><span class="p">(</span><span class="s2">&quot;total&quot;</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="o">.</span><span class="n">get_count</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">TestState</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">))</span>
+            <span class="o">==</span> <span class="mi">0</span>
+            <span class="k">else</span> <span class="mi">1</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Orchestrator.start_new_runner">
+<a class="viewcode-back" href="../../api/pcvs.orchestration.html#pcvs.orchestration.Orchestrator.start_new_runner">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">start_new_runner</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start a new Runner thread &amp; register comm queues.&quot;&quot;&quot;</span>
+        <span class="n">RunnerAdapter</span><span class="o">.</span><span class="n">sched_in_progress</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">RunnerAdapter</span><span class="p">(</span>
+            <span class="n">buildir</span><span class="o">=</span><span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;output&quot;</span><span class="p">],</span>
+            <span class="n">ready</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ready_q</span><span class="p">,</span>
+            <span class="n">complete</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_q</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_runners</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Orchestrator.stop_runners">
+<a class="viewcode-back" href="../../api/pcvs.orchestration.html#pcvs.orchestration.Orchestrator.stop_runners">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stop_runners</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop all previously started runners.</span>
+
+<span class="sd">        Wait for their completion.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_runners</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Orchestrator.stop">
+<a class="viewcode-back" href="../../api/pcvs.orchestration.html#pcvs.orchestration.Orchestrator.stop">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Request runner threads to stop.&quot;&quot;&quot;</span>
+        <span class="n">RunnerAdapter</span><span class="o">.</span><span class="n">sched_in_progress</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="Orchestrator.run">
+<a class="viewcode-back" href="../../api/pcvs.orchestration.html#pcvs.orchestration.Orchestrator.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">Session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start the orchestrator.</span>
+
+<span class="sd">        :param s: container owning the run.</span>
+<span class="sd">        :type s: :class:`Session`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># pre-actions done only once</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_run</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">restart</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

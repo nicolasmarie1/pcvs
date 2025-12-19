@@ -115,8 +115,218 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-testing-tedesc-module">
-<h1>pcvs.testing.tedesc module<a class="headerlink" href="#pcvs-testing-tedesc-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.testing.tedesc">
+<span id="pcvs-testing-tedesc-module"></span><h1>pcvs.testing.tedesc module<a class="headerlink" href="#module-pcvs.testing.tedesc" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.testing.tedesc.TEDescriptor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.testing.tedesc.</span></span><span class="sig-name descname"><span class="pre">TEDescriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodecontent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subprefix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/tedesc.html#TEDescriptor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.tedesc.TEDescriptor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A Test Descriptor (named TD, TE or TED), maps a test program
+representation, as defined by a root node in a single test files.</p>
+<p>A TE Descriptor is not a test but a definition of a program (how to use it,
+to compile it…), leading to a collection once combined with a profile
+(providing on which MPI processes to run it, for instance).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_te_name</strong> (<em>str</em>) – YAML root node name, part of its unique id</p></li>
+<li><p><strong>_te_label</strong> (<em>str</em>) – which user directory this TE is coming from</p></li>
+<li><p><strong>_te_subtree</strong> (<em>str</em><em> or </em><em>NoneType</em>) – subprefix, relative to label, where this TE is located</p></li>
+<li><p><strong>_full_name</strong> (<em>str</em>) – fully-qualified te-name</p></li>
+<li><p><strong>_srcdir</strong> (<em>str</em>) – absolute path pointing to the YAML testfile dirname</p></li>
+<li><p><strong>_buildir</strong> (<em>str</em>) – absolute path pointing to build equivalent of _srcdir</p></li>
+<li><p><strong>_skipped</strong> (<em>bool</em>) – flag if this TE should be unfolded to tests or not</p></li>
+<li><p><strong>_effective_cnt</strong> (<em>int</em>) – number of tests created by this single TE</p></li>
+<li><p><strong>_program_criterion</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Criterion</span></code>) – extra criterion defined by the TE</p></li>
+<li><p><strong>others</strong> – used yaml node references.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Constructor method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the TE name</p></li>
+<li><p><strong>node</strong> – the TE YAML content.</p></li>
+<li><p><strong>label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the user dir label.</p></li>
+<li><p><strong>subprefix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – relative path between user dir &amp; current TE testfile</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TDFormatError</strong> – Unproper YAML TE format (sanity check)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.testing.tedesc.TEDescriptor.construct_tests">
+<span class="sig-name descname"><span class="pre">construct_tests</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/tedesc.html#TEDescriptor.construct_tests"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.tedesc.TEDescriptor.construct_tests" title="Link to this definition"></a></dt>
+<dd><p>Construct a collection of tests (build &amp; run) from a given TE.</p>
+<p>This function will process a YAML node and, through a generator, will
+create each test coming from it.
+:rtype: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[<a class="reference internal" href="pcvs.testing.test.html#pcvs.testing.test.Test" title="pcvs.testing.test.Test"><code class="xref py py-class docutils literal notranslate"><span class="pre">Test</span></code></a>]</span>
+:return: All generated tests from one test description.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.testing.tedesc.TEDescriptor.get_attr">
+<span class="sig-name descname"><span class="pre">get_attr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dflt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/tedesc.html#TEDescriptor.get_attr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.tedesc.TEDescriptor.get_attr" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.testing.tedesc.TEDescriptor.get_binary_name">
+<span class="sig-name descname"><span class="pre">get_binary_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/tedesc.html#TEDescriptor.get_binary_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.tedesc.TEDescriptor.get_binary_name" title="Link to this definition"></a></dt>
+<dd><p>Get the binary name for the file at the output of the compiler.</p>
+<p>If a binary name is already defined by the test, use it.
+If a program name is given, use it.
+If none are defined, use the test name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.testing.tedesc.TEDescriptor.get_debug">
+<span class="sig-name descname"><span class="pre">get_debug</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/tedesc.html#TEDescriptor.get_debug"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.tedesc.TEDescriptor.get_debug" title="Link to this definition"></a></dt>
+<dd><p>Build information debug for the current TE.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the debug info</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.testing.tedesc.TEDescriptor.init_system_wide">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">init_system_wide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_criterion_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/tedesc.html#TEDescriptor.init_system_wide"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.tedesc.TEDescriptor.init_system_wide" title="Link to this definition"></a></dt>
+<dd><p>Initialize system-wide information (to shorten accesses).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>base_criterion_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – iterator name used as scheduling resource.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.testing.tedesc.TEDescriptor.name">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.testing.tedesc.TEDescriptor.name" title="Link to this definition"></a></dt>
+<dd><p>Getter to the current TE name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>te_name</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.testing.tedesc.build_job_deps">
+<span class="sig-prename descclassname"><span class="pre">pcvs.testing.tedesc.</span></span><span class="sig-name descname"><span class="pre">build_job_deps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deps_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pkg_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pkg_prefix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/tedesc.html#build_job_deps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.tedesc.build_job_deps" title="Link to this definition"></a></dt>
+<dd><p>Build the dependency list from a given dependency YAML node.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">depends_on</span></code> is used by test to establish their relationship. It looks
+like:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>depends_on:</dt><dd><p>[“list_of_test_name”]</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>deps_node</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – the TE/job YAML node.</p></li>
+<li><p><strong>pkg_label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the label where this TE is from (to compute depnames)</p></li>
+<li><p><strong>pkg_prefix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the subtree where this TE is from (to compute depnames)</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a list of dependencies, either as depnames or PManager objects</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.testing.tedesc.build_pm_deps">
+<span class="sig-prename descclassname"><span class="pre">pcvs.testing.tedesc.</span></span><span class="sig-name descname"><span class="pre">build_pm_deps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deps_node</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/tedesc.html#build_pm_deps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.tedesc.build_pm_deps" title="Link to this definition"></a></dt>
+<dd><p>Build the dependency list from a given YAML node.</p>
+<p>This only initialize package-manager oriented deps. For job deps, see
+<code class="docutils literal notranslate"><span class="pre">build_job_deps</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>deps_node</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – contains package_manager YAML information</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="pcvs.helpers.pm.html#pcvs.helpers.pm.PManager" title="pcvs.helpers.pm.PManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">PManager</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a list of PM objects, one for each entry</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.testing.tedesc.detect_compiler">
+<span class="sig-prename descclassname"><span class="pre">pcvs.testing.tedesc.</span></span><span class="sig-name descname"><span class="pre">detect_compiler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">build_info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/tedesc.html#detect_compiler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.tedesc.detect_compiler" title="Link to this definition"></a></dt>
+<dd><p>Determine compilers to use for a target file (or list of files).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>array_of_files</strong> – list of files to identify</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the chosen compilers</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.testing.tedesc.extract_compiler_config">
+<span class="sig-prename descclassname"><span class="pre">pcvs.testing.tedesc.</span></span><span class="sig-name descname"><span class="pre">extract_compiler_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compiler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variants</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/tedesc.html#extract_compiler_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.tedesc.extract_compiler_config" title="Link to this definition"></a></dt>
+<dd><p>Build resource to compile based on language and variants involved.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lang</strong> – target compiler name</p></li>
+<li><p><strong>variants</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – list of enabled variants</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the program, its args and env modifiers (in that order)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.testing.tedesc.extract_compilers_envs">
+<span class="sig-prename descclassname"><span class="pre">pcvs.testing.tedesc.</span></span><span class="sig-name descname"><span class="pre">extract_compilers_envs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/testing/tedesc.html#extract_compilers_envs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.testing.tedesc.extract_compilers_envs" title="Link to this definition"></a></dt>
+<dd><p>Extract compilers environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 

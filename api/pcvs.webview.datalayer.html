@@ -115,8 +115,233 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-webview-datalayer-module">
-<h1>pcvs.webview.datalayer module<a class="headerlink" href="#pcvs-webview-datalayer-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.webview.datalayer">
+<span id="pcvs-webview-datalayer-module"></span><h1>pcvs.webview.datalayer module<a class="headerlink" href="#module-pcvs.webview.datalayer" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.webview.datalayer.DataRepresentation">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.webview.datalayer.</span></span><span class="sig-name descname"><span class="pre">DataRepresentation</span></span><a class="reference internal" href="../_modules/pcvs/webview/datalayer.html#DataRepresentation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.webview.datalayer.DataRepresentation" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Data Manager from the Flask server side.</p>
+<p>This class manages insertion &amp; requests to the data tree gathering test
+results from a single report server.</p>
+<p>the data representation looks like:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="nt">0</span><span class="p">:</span>
+<span class="nt">fs-tree</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">&lt;LABEL1&gt;</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">__metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">&lt;counts&gt;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="nt">__elems</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">&lt;subtree1&gt;</span><span class="p">:</span>
+<span class="w">                </span><span class="nt">__metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">&lt;counts&gt;</span><span class="p p-Indicator">}</span>
+<span class="w">                </span><span class="nt">__elems</span><span class="p">:</span>
+<span class="w">                    </span><span class="nt">&lt;te1&gt;</span><span class="p">:</span>
+<span class="w">                        </span><span class="nt">_metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">&lt;counts&gt;</span><span class="p p-Indicator">}</span>
+<span class="w">                        </span><span class="nt">_elems</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Test()</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Test()</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Test()</span><span class="p p-Indicator">]</span>
+<span class="nt">tags</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">&lt;tag1&gt;</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">__metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">&lt;counts&gt;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="nt">__elems</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Test()</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Test()</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Test()</span><span class="p p-Indicator">]</span>
+<span class="nt">iter</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">&lt;it_name&gt;</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">__metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">&lt;counts&gt;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="nt">__elems</span><span class="p">:</span>
+<span class="w">             </span><span class="nt">&lt;possible_value&gt;</span><span class="p">:</span>
+<span class="w">                 </span><span class="nt">__metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">&lt;counts&gt;</span><span class="p p-Indicator">}</span>
+<span class="w">                 </span><span class="nt">__elems</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Test()</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Test()</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Test()</span><span class="p p-Indicator">]</span>
+<span class="nt">failures</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">Test()</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Test()</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Test()</span><span class="p p-Indicator">]</span>
+<span class="c1"># ...</span>
+</pre></div>
+</div>
+<p>constructor method</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.webview.datalayer.DataRepresentation.close_session">
+<span class="sig-name descname"><span class="pre">close_session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/webview/datalayer.html#DataRepresentation.close_session"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.webview.datalayer.DataRepresentation.close_session" title="Link to this definition"></a></dt>
+<dd><p>Update the tree when the targeted session is completed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sid</strong> (<em>str</em>) – targeted session id</p></li>
+<li><p><strong>session_data</strong> (<em>dict</em>) – session infos (state)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.webview.datalayer.DataRepresentation.extract_tests_under">
+<span class="sig-name descname"><span class="pre">extract_tests_under</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/webview/datalayer.html#DataRepresentation.extract_tests_under"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.webview.datalayer.DataRepresentation.extract_tests_under" title="Link to this definition"></a></dt>
+<dd><p>Retrieve all tests undef a given data tree subnode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>node</strong> (<em>dict</em>) – data subnode</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of tests under this subnode</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(class:<cite>Test</cite>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.webview.datalayer.DataRepresentation.get_label_cnt">
+<span class="sig-name descname"><span class="pre">get_label_cnt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sid</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/webview/datalayer.html#DataRepresentation.get_label_cnt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.webview.datalayer.DataRepresentation.get_label_cnt" title="Link to this definition"></a></dt>
+<dd><p>Get the number of labels for a given session.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sid</strong> (<em>str</em>) – session id</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>number of labels</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.webview.datalayer.DataRepresentation.get_root_path">
+<span class="sig-name descname"><span class="pre">get_root_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sid</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/webview/datalayer.html#DataRepresentation.get_root_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.webview.datalayer.DataRepresentation.get_root_path" title="Link to this definition"></a></dt>
+<dd><p>For a session, get the build path where data are stored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sid</strong> (<em>str</em>) – session id</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>build path</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.webview.datalayer.DataRepresentation.get_sessions">
+<span class="sig-name descname"><span class="pre">get_sessions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/webview/datalayer.html#DataRepresentation.get_sessions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.webview.datalayer.DataRepresentation.get_sessions" title="Link to this definition"></a></dt>
+<dd><p>Get the list of current known sessions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a dict mapping to session infos.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.webview.datalayer.DataRepresentation.get_tag_cnt">
+<span class="sig-name descname"><span class="pre">get_tag_cnt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sid</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/webview/datalayer.html#DataRepresentation.get_tag_cnt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.webview.datalayer.DataRepresentation.get_tag_cnt" title="Link to this definition"></a></dt>
+<dd><p>Get the number of tag for a given session.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sid</strong> (<em>str</em>) – session id</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>number of tags</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.webview.datalayer.DataRepresentation.get_test_cnt">
+<span class="sig-name descname"><span class="pre">get_test_cnt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sid</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/webview/datalayer.html#DataRepresentation.get_test_cnt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.webview.datalayer.DataRepresentation.get_test_cnt" title="Link to this definition"></a></dt>
+<dd><p>Get the number of tests for a given session.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sid</strong> (<em>str</em>) – session id</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>number of tests</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.webview.datalayer.DataRepresentation.get_token_content">
+<span class="sig-name descname"><span class="pre">get_token_content</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/webview/datalayer.html#DataRepresentation.get_token_content"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.webview.datalayer.DataRepresentation.get_token_content" title="Link to this definition"></a></dt>
+<dd><p>Advanced function to access partial data tree.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sid</strong> (<em>str</em>) – session id</p></li>
+<li><p><strong>token</strong> (<em>str</em>) – subtree name to access to</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the whole data tree segment, empty dict if not found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.webview.datalayer.DataRepresentation.insert_session">
+<span class="sig-name descname"><span class="pre">insert_session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/webview/datalayer.html#DataRepresentation.insert_session"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.webview.datalayer.DataRepresentation.insert_session" title="Link to this definition"></a></dt>
+<dd><p>Insert a new session into the tree.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sid</strong> (<em>str</em>) – the session id, will be the data key</p></li>
+<li><p><strong>session_data</strong> (<em>dict</em>) – session basic infos (buildpath, state)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.webview.datalayer.DataRepresentation.insert_test">
+<span class="sig-name descname"><span class="pre">insert_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/webview/datalayer.html#DataRepresentation.insert_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.webview.datalayer.DataRepresentation.insert_test" title="Link to this definition"></a></dt>
+<dd><p>Insert a new test.</p>
+<p>This test is bound to a session.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sid</strong> (<em>str</em>) – session id</p></li>
+<li><p><strong>test</strong> (class:<cite>Test</cite>) – test to insert</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a boolean, True if test has been successfully inserted</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.webview.datalayer.DataRepresentation.session_ids">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">session_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pcvs.webview.datalayer.DataRepresentation.session_ids" title="Link to this definition"></a></dt>
+<dd><p>Get list of registered session ids.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the list of know session ids</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 

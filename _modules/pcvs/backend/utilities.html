@@ -1,0 +1,521 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.backend.utilities &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pcvs.backend.utilities</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.backend.utilities</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">click</span><span class="w"> </span><span class="kn">import</span> <span class="n">BadArgumentUsage</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">rich.table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Column</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">YAML</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">run</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.configfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.configfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">Profile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.metaconfig</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlobalConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">criterion</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">PCVSException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigDesc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigKind</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigLocator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.orchestration.publishers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BuildDirectoryManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.tedesc</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEDescriptor</span>
+
+
+<div class="viewcode-block" id="locate_scriptpaths">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.locate_scriptpaths">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">locate_scriptpaths</span><span class="p">(</span><span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Path lookup to find all &#39;list_of_tests&#39; script within a given prefix.</span>
+
+<span class="sd">    :param output: prefix to walk through, defaults to current directory</span>
+<span class="sd">    :return: the list of scripts found in prefix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="n">scripts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">output</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">f</span> <span class="o">==</span> <span class="s2">&quot;list_of_tests.sh&quot;</span><span class="p">:</span>
+                <span class="n">scripts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">scripts</span></div>
+
+
+
+<div class="viewcode-block" id="compute_scriptpath_from_testname">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.compute_scriptpath_from_testname">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_scriptpath_from_testname</span><span class="p">(</span><span class="n">testname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Locate the proper &#39;list_of_tests.sh&#39; according to a fully-qualified test name.</span>
+
+<span class="sd">    :param testname: test name belonging to the script</span>
+<span class="sd">    :param output: prefix to walk through, defaults to current directory</span>
+<span class="sd">    :return: the associated path with testname</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+
+    <span class="n">buildir</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">find_buildir_from_prefix</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">testname</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">buildir</span><span class="p">,</span> <span class="s2">&quot;test_suite&quot;</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="s2">&quot;list_of_tests.sh&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_logged_output">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.get_logged_output">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_logged_output</span><span class="p">(</span><span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">testname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get job output from the given archive/build path.</span>
+
+<span class="sd">    :param prefix: the archive or directory to scan from</span>
+<span class="sd">    :param testname: the full test name</span>
+<span class="sd">    :return: the raw output</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">prefix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="n">buildir</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">find_buildir_from_prefix</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">buildir</span><span class="p">:</span>
+        <span class="n">man</span> <span class="o">=</span> <span class="n">BuildDirectoryManager</span><span class="p">(</span><span class="n">build_dir</span><span class="o">=</span><span class="n">buildir</span><span class="p">)</span>
+        <span class="n">man</span><span class="o">.</span><span class="n">init_results</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">test</span> <span class="ow">in</span> <span class="n">man</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">retrieve_tests_by_name</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">testname</span><span class="p">):</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">output</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="n">output</span>
+        <span class="n">man</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;No test named &#39;</span><span class="si">{}</span><span class="s2">&#39; found here.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">testname</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">s</span></div>
+
+
+
+<div class="viewcode-block" id="process_check_configs">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.process_check_configs">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">process_check_configs</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyse available configurations.</span>
+
+<span class="sd">    To ensure their correctness relatively to their respective schemes.</span>
+
+<span class="sd">    :return: caught errors, as a dict, where the keys is the errmsg base64</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">errors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">create_table</span><span class="p">(</span><span class="s2">&quot;Configurations&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;Valid&quot;</span><span class="p">),</span> <span class="n">Column</span><span class="p">(</span><span class="s2">&quot;ID&quot;</span><span class="p">)])</span>
+
+    <span class="n">cds</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ConfigDesc</span><span class="p">]</span> <span class="o">=</span> <span class="n">ConfigLocator</span><span class="p">()</span><span class="o">.</span><span class="n">list_all_configs</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">cds</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cd</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">ConfigKind</span><span class="o">.</span><span class="n">PLUGIN</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">utf</span><span class="p">(</span><span class="s2">&quot;fail&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ConfigFile</span><span class="p">(</span><span class="n">cd</span><span class="p">)</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">utf</span><span class="p">(</span><span class="s2">&quot;succ&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ValidationException</span><span class="o">.</span><span class="n">FormatError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">err_msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">err_msg</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">errors</span><span class="p">[</span><span class="n">err_msg</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+        <span class="n">t</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">cd</span><span class="o">.</span><span class="n">full_name</span><span class="p">)</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">errors</span></div>
+
+
+
+<div class="viewcode-block" id="process_check_profiles">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.process_check_profiles">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">process_check_profiles</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Analyse availables profiles and check their correctness.</span>
+
+<span class="sd">    Relatively to the base scheme.</span>
+
+<span class="sd">    :return: list of caught errors as a dict, where keys are error msg base64</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">create_table</span><span class="p">(</span><span class="s2">&quot;Available Profiles&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">Column</span><span class="p">(</span><span class="s2">&quot;Valid&quot;</span><span class="p">),</span> <span class="n">Column</span><span class="p">(</span><span class="s2">&quot;ID&quot;</span><span class="p">)])</span>
+    <span class="n">errors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">cds</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ConfigDesc</span><span class="p">]</span> <span class="o">=</span> <span class="n">ConfigLocator</span><span class="p">()</span><span class="o">.</span><span class="n">list_configs</span><span class="p">(</span><span class="n">ConfigKind</span><span class="o">.</span><span class="n">PROFILE</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">cds</span><span class="p">:</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">utf</span><span class="p">(</span><span class="s2">&quot;fail&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">Profile</span><span class="p">(</span><span class="n">cd</span><span class="p">)</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">utf</span><span class="p">(</span><span class="s2">&quot;succ&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">BadArgumentUsage</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">err_msg</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">message</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">err_msg</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">errors</span><span class="p">[</span><span class="n">err_msg</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ValidationException</span><span class="o">.</span><span class="n">FormatError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">err_msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">err_msg</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">errors</span><span class="p">[</span><span class="n">err_msg</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+        <span class="n">t</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">cd</span><span class="o">.</span><span class="n">full_name</span><span class="p">)</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">errors</span></div>
+
+
+
+<div class="viewcode-block" id="process_check_directory">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.process_check_directory">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">process_check_directory</span><span class="p">(</span><span class="n">directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pf_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;default.yml&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Analyze a directory to ensure defined test files are valid.</span>
+
+<span class="sd">    :param directory: the directory to process.</span>
+<span class="sd">    :param pf_name: profile name to be loaded, defaults to &quot;default&quot;</span>
+<span class="sd">    :return: a dict of caught errors</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">errors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">cd</span><span class="p">:</span> <span class="n">ConfigDesc</span> <span class="o">=</span> <span class="n">ConfigLocator</span><span class="p">()</span><span class="o">.</span><span class="n">parse_full_raise</span><span class="p">(</span>
+        <span class="n">pf_name</span><span class="p">,</span> <span class="n">ConfigKind</span><span class="o">.</span><span class="n">PROFILE</span><span class="p">,</span> <span class="n">should_exist</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">pf</span> <span class="o">=</span> <span class="n">Profile</span><span class="p">(</span><span class="n">cd</span><span class="p">)</span>
+
+    <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">bootstrap_validation</span><span class="p">(</span><span class="n">Config</span><span class="p">())</span>
+    <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">bootstrap_from_profile</span><span class="p">(</span><span class="n">pf</span><span class="p">)</span>
+    <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;output&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/tmp&quot;</span>
+    <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;dirs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span> <span class="n">directory</span><span class="p">}</span>
+
+    <span class="n">build_manager</span> <span class="o">=</span> <span class="n">BuildDirectoryManager</span><span class="p">(</span><span class="n">build_dir</span><span class="o">=</span><span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;output&quot;</span><span class="p">])</span>
+    <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">set_internal</span><span class="p">(</span><span class="s2">&quot;build_manager&quot;</span><span class="p">,</span> <span class="n">build_manager</span><span class="p">)</span>
+
+    <span class="c1"># run prepare section:</span>
+    <span class="n">run</span><span class="o">.</span><span class="n">check_defined_program_validity</span><span class="p">()</span>
+    <span class="n">criterion</span><span class="o">.</span><span class="n">initialize_from_system</span><span class="p">()</span>
+    <span class="n">TEDescriptor</span><span class="o">.</span><span class="n">init_system_wide</span><span class="p">(</span><span class="s2">&quot;n_node&quot;</span><span class="p">)</span>
+    <span class="c1"># GlobalConfig.root.set_internal(&quot;orchestrator&quot;, Orchestrator())</span>
+
+    <span class="c1"># get environment variables</span>
+    <span class="n">env_config</span> <span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">build_env_from_configuration</span><span class="p">(</span><span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+    <span class="c1"># export to process env</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">env_config</span><span class="p">)</span>
+    <span class="c1"># get files to validate</span>
+    <span class="n">setup_files</span><span class="p">,</span> <span class="n">yaml_files</span> <span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">find_files_to_process</span><span class="p">({</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span> <span class="n">directory</span><span class="p">})</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">rich.table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Table</span>
+
+    <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Results&quot;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Runnable Script&quot;</span><span class="p">,</span> <span class="n">justify</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">max_width</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Valid YAML&quot;</span><span class="p">,</span> <span class="n">justify</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">max_width</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;File Path&quot;</span><span class="p">,</span> <span class="n">justify</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
+
+    <span class="n">token_ok</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[green bold]</span><span class="si">{</span><span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">utf</span><span class="p">(</span><span class="s1">&#39;succ&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">[/]&quot;</span>
+    <span class="n">token_bad</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[red bold]</span><span class="si">{</span><span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">utf</span><span class="p">(</span><span class="s1">&#39;fail&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">[/]&quot;</span>
+    <span class="n">token_unknown</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[yellow bold]</span><span class="si">{</span><span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">utf</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">[/]&quot;</span>
+
+    <span class="c1"># with io.console.pager():</span>
+    <span class="c1"># with Live(table, refresh_per_second=4):</span>
+    <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">subtree</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">progress_iter</span><span class="p">([</span><span class="o">*</span><span class="n">setup_files</span><span class="p">,</span> <span class="o">*</span><span class="n">yaml_files</span><span class="p">]):</span>
+        <span class="n">is_setup</span> <span class="o">=</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">subtree</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="ow">in</span> <span class="n">setup_files</span>
+        <span class="n">setup_ok</span> <span class="o">=</span> <span class="n">token_ok</span> <span class="k">if</span> <span class="n">is_setup</span> <span class="k">else</span> <span class="n">token_unknown</span>
+        <span class="n">yaml_ok</span> <span class="o">=</span> <span class="n">token_ok</span>
+        <span class="n">err</span><span class="p">:</span> <span class="n">PCVSException</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">subtree</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">subtree</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_setup</span><span class="p">:</span>
+                <span class="n">run</span><span class="o">.</span><span class="n">process_dyn_setup</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">subtree</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">run</span><span class="o">.</span><span class="n">process_static_yaml</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">subtree</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ValidationException</span><span class="o">.</span><span class="n">YamlError</span> <span class="k">as</span> <span class="n">val_err</span><span class="p">:</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">val_err</span>
+            <span class="n">yaml_ok</span> <span class="o">=</span> <span class="n">token_bad</span>
+        <span class="k">except</span> <span class="n">ValidationException</span><span class="o">.</span><span class="n">SetupError</span> <span class="k">as</span> <span class="n">setup_err</span><span class="p">:</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">setup_err</span>
+            <span class="n">setup_ok</span> <span class="o">=</span> <span class="n">token_bad</span>
+            <span class="n">yaml_ok</span> <span class="o">=</span> <span class="n">token_unknown</span>
+
+        <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="n">setup_ok</span><span class="p">,</span> <span class="n">yaml_ok</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">subtree</span> <span class="k">else</span> <span class="n">subtree</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">))</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">errors</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">table</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">errors</span></div>
+
+    <span class="c1"># TODO: format and return errors</span>
+
+
+<div class="viewcode-block" id="BuildSystem">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.BuildSystem">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BuildSystem</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manage a generic build system discovery service.</span>
+
+<span class="sd">    :ivar _root: the root directory the discovery service is attached to.</span>
+<span class="sd">    :vartype _root: :py:obj:`str`</span>
+<span class="sd">    :ivar _dirs: list of directory found in _root.</span>
+<span class="sd">    :vartype _dirs: :py:obj:`list[str]`</span>
+<span class="sd">    :ivar _files: list of files found in _root</span>
+<span class="sd">    :vartype _files: :py:obj:`list[str]`</span>
+<span class="sd">    :ivar _stream: the resulted dict, representing targeted YAML architecture</span>
+<span class="sd">    :vartype _stream: :py:obj:`dict`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dirs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor method.</span>
+
+<span class="sd">        :param root: root dir where discovery service is applied</span>
+<span class="sd">        :param dirs: list of dirs, defaults to None</span>
+<span class="sd">        :param files: list of files, defaults to None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_root</span> <span class="o">=</span> <span class="n">root</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dirs</span> <span class="o">=</span> <span class="n">dirs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="n">files</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="BuildSystem.fill">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.BuildSystem.fill">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fill</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function should be overridden by overridden classes.</span>
+
+<span class="sd">        Nothing to do, by default.</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="BuildSystem.generate_file">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.BuildSystem.generate_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;pcvs.yml&quot;</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build the YAML test file, based on path introspection and build</span>
+<span class="sd">        model.</span>
+
+<span class="sd">        :param filename: test file suffix</span>
+<span class="sd">        :param force: erase target file if exist.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot; --&gt; skipped, already exist;&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s2">&quot;safe&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stream</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="AutotoolsBuildSystem">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.AutotoolsBuildSystem">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AutotoolsBuildSystem</span><span class="p">(</span><span class="n">BuildSystem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Derived BuildSystem targeting Autotools projects.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AutotoolsBuildSystem.fill">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.AutotoolsBuildSystem.fill">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fill</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate the dict relatively to the build system to build the proper YAML representation.&quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;build&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;autotools&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;build&quot;</span><span class="p">][</span><span class="s2">&quot;autotools&quot;</span><span class="p">][</span><span class="s2">&quot;autogen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s2">&quot;autogen.sh&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;build&quot;</span><span class="p">][</span><span class="s2">&quot;files&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">,</span> <span class="s2">&quot;configure&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;build&quot;</span><span class="p">][</span><span class="s2">&quot;autotools&quot;</span><span class="p">][</span><span class="s2">&quot;params&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="CMakeBuildSystem">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.CMakeBuildSystem">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CMakeBuildSystem</span><span class="p">(</span><span class="n">BuildSystem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Derived BuildSystem targeting CMake projects.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CMakeBuildSystem.fill">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.CMakeBuildSystem.fill">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fill</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate the dict relatively to the build system to build the proper YAML representation.&quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;build&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;cmake&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;build&quot;</span><span class="p">][</span><span class="s2">&quot;cmake&quot;</span><span class="p">][</span><span class="s2">&quot;vars&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;CMAKE_BUILD_TYPE=Debug&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;build&quot;</span><span class="p">][</span><span class="s2">&quot;files&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">,</span> <span class="s2">&quot;CMakeLists.txt&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MakefileBuildSystem">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.MakefileBuildSystem">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MakefileBuildSystem</span><span class="p">(</span><span class="n">BuildSystem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Derived BuildSystem targeting Makefile-based projects.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MakefileBuildSystem.fill">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.MakefileBuildSystem.fill">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fill</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate the dict relatively to the build system to build the proper YAML representation.&quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;build&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;make&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;build&quot;</span><span class="p">][</span><span class="s2">&quot;make&quot;</span><span class="p">][</span><span class="s2">&quot;target&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;build&quot;</span><span class="p">][</span><span class="s2">&quot;files&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">,</span> <span class="s2">&quot;Makefile&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="process_discover_directory">
+<a class="viewcode-back" href="../../../api/pcvs.backend.utilities.html#pcvs.backend.utilities.process_discover_directory">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">process_discover_directory</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">override</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Path discovery to detect &amp; initialize build systems found.</span>
+
+<span class="sd">    :param path: the root path to start with</span>
+<span class="sd">    :param override: True if test files should be generated, default to False</span>
+<span class="sd">    :param force: True if test files should be replaced if exist, default to False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="n">obj</span><span class="p">:</span> <span class="n">BuildSystem</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="s2">&quot;configure&quot;</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="s2">&quot;[yellow bold]Autotools[/]&quot;</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">AutotoolsBuildSystem</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;CMakeLists.txt&quot;</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="s2">&quot;[cyan bold]CMake[/]&quot;</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">CMakeBuildSystem</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;Makefile&quot;</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="s2">&quot;[red bold]Make[/]&quot;</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">MakefileBuildSystem</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dirs</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_item</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">fill</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">override</span><span class="p">:</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">generate_file</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;pcvs.yml&quot;</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,411 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.webview.datalayer &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../webview.html">pcvs.webview</a></li>
+      <li class="breadcrumb-item active">pcvs.webview.datalayer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.webview.datalayer</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.session</span><span class="w"> </span><span class="kn">import</span> <span class="n">SessionState</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">Test</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.teststate</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestState</span>
+
+
+<div class="viewcode-block" id="DataRepresentation">
+<a class="viewcode-back" href="../../../api/pcvs.webview.datalayer.html#pcvs.webview.datalayer.DataRepresentation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DataRepresentation</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Data Manager from the Flask server side.</span>
+
+<span class="sd">    This class manages insertion &amp; requests to the data tree gathering test</span>
+<span class="sd">    results from a single report server.</span>
+
+<span class="sd">    the data representation looks like:</span>
+
+<span class="sd">    .. code-block:: yaml</span>
+
+<span class="sd">        0:</span>
+<span class="sd">      fs-tree:</span>
+<span class="sd">          &lt;LABEL1&gt;:</span>
+<span class="sd">              __metadata: {&lt;counts&gt;}</span>
+<span class="sd">              __elems:</span>
+<span class="sd">                  &lt;subtree1&gt;:</span>
+<span class="sd">                      __metadata: {&lt;counts&gt;}</span>
+<span class="sd">                      __elems:</span>
+<span class="sd">                          &lt;te1&gt;:</span>
+<span class="sd">                              _metadata: {&lt;counts&gt;}</span>
+<span class="sd">                              _elems: [Test(), Test(), Test()]</span>
+<span class="sd">      tags:</span>
+<span class="sd">          &lt;tag1&gt;:</span>
+<span class="sd">              __metadata: {&lt;counts&gt;}</span>
+<span class="sd">              __elems: [Test(), Test(), Test()]</span>
+<span class="sd">      iter:</span>
+<span class="sd">          &lt;it_name&gt;:</span>
+<span class="sd">              __metadata: {&lt;counts&gt;}</span>
+<span class="sd">              __elems:</span>
+<span class="sd">                   &lt;possible_value&gt;:</span>
+<span class="sd">                       __metadata: {&lt;counts&gt;}</span>
+<span class="sd">                       __elems: [Test(), Test(), Test()]</span>
+<span class="sd">      failures: [ Test(), Test(), Test()]</span>
+<span class="sd">      # ...</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;constructor method&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rootree</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__insert_in_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">Test</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">depth</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Insert the given test to the given subtree.</span>
+
+<span class="sd">        This function can be called recursively. depth being the list of node</span>
+<span class="sd">        names where the Test() should be inserted. The &#39;node&#39; maps to the</span>
+<span class="sd">        current node level.</span>
+
+<span class="sd">        :param test: the test to insert</span>
+<span class="sd">        :type test: class:`Test`</span>
+<span class="sd">        :param node: a global tree intermediate node</span>
+<span class="sd">        :type node: dict</span>
+<span class="sd">        :param depth: list of node names to walk through</span>
+<span class="sd">        :type depth: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="s2">&quot;__metadata&quot;</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="n">node</span><span class="p">[</span><span class="s2">&quot;__metadata&quot;</span><span class="p">][</span><span class="s2">&quot;count&quot;</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">state</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># if targeted node is reached, insert the test</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">depth</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;__elems&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">node</span><span class="p">:</span>
+                <span class="n">node</span><span class="p">[</span><span class="s2">&quot;__elems&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">node</span><span class="p">[</span><span class="s2">&quot;__elems&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># create default for the first access + init counters to zero</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;__elems&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">node</span><span class="p">[</span><span class="s2">&quot;__elems&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
+                <span class="n">depth</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">{</span><span class="s2">&quot;__metadata&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">TestState</span><span class="p">))}}}</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__insert_in_tree</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">node</span><span class="p">[</span><span class="s2">&quot;__elems&quot;</span><span class="p">][</span><span class="n">depth</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">depth</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+<div class="viewcode-block" id="DataRepresentation.insert_session">
+<a class="viewcode-back" href="../../../api/pcvs.webview.datalayer.html#pcvs.webview.datalayer.DataRepresentation.insert_session">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Insert a new session into the tree.</span>
+
+<span class="sd">        :param sid: the session id, will be the data key</span>
+<span class="sd">        :type sid: str</span>
+<span class="sd">        :param session_data: session basic infos (buildpath, state)</span>
+<span class="sd">        :type session_data: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># if the SID already exist, a dummy one is generated.</span>
+        <span class="k">if</span> <span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootree</span><span class="p">:</span>
+            <span class="k">while</span> <span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootree</span><span class="p">:</span>
+                <span class="n">sid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10000</span><span class="p">))</span>
+
+        <span class="c1"># initialize the subtree for this session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rootree</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
+            <span class="n">sid</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;fs-tree&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;__metadata&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">TestState</span><span class="p">))}}},</span>
+                <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;__metadata&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">TestState</span><span class="p">))}}},</span>
+                <span class="s2">&quot;iterators&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;__metadata&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">TestState</span><span class="p">))}}},</span>
+                <span class="s2">&quot;failures&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;__metadata&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">TestState</span><span class="p">))}}},</span>
+                <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="n">SessionState</span><span class="p">(</span><span class="n">session_data</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">]),</span>
+                <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">session_data</span><span class="p">[</span><span class="s2">&quot;buildpath&quot;</span><span class="p">],</span>
+            <span class="p">},</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DataRepresentation.close_session">
+<a class="viewcode-back" href="../../../api/pcvs.webview.datalayer.html#pcvs.webview.datalayer.DataRepresentation.close_session">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the tree when the targeted session is completed.</span>
+
+<span class="sd">        :param sid: targeted session id</span>
+<span class="sd">        :type sid: str</span>
+<span class="sd">        :param session_data: session infos (state)</span>
+<span class="sd">        :type session_data: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootree</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rootree</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="s2">&quot;state&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">session_data</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="DataRepresentation.insert_test">
+<a class="viewcode-back" href="../../../api/pcvs.webview.datalayer.html#pcvs.webview.datalayer.DataRepresentation.insert_test">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">Test</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Insert a new test.</span>
+
+<span class="sd">        This test is bound to a session.</span>
+
+<span class="sd">        :param sid: session id</span>
+<span class="sd">        :type sid: str</span>
+<span class="sd">        :param test: test to insert</span>
+<span class="sd">        :type test: class:`Test`</span>
+<span class="sd">        :return: a boolean, True if test has been successfully inserted</span>
+<span class="sd">        :rtype: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># first, insert the test in the hierarchy</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">label</span>
+        <span class="n">subtree</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">subtree</span>
+        <span class="n">te_name</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">te_name</span>
+
+        <span class="n">sid_tree</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootree</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span>
+        <span class="c1"># insert under hierarchical subtree</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__insert_in_tree</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">sid_tree</span><span class="p">[</span><span class="s2">&quot;fs-tree&quot;</span><span class="p">],</span> <span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="n">subtree</span><span class="p">,</span> <span class="n">te_name</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">test</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+            <span class="c1"># insert for each tag subtree</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__insert_in_tree</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">sid_tree</span><span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="p">[</span><span class="n">tag</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">test</span><span class="o">.</span><span class="n">combination</span><span class="p">:</span>
+            <span class="c1"># insert for each combination subtree</span>
+            <span class="k">for</span> <span class="n">iter_k</span><span class="p">,</span> <span class="n">iter_v</span> <span class="ow">in</span> <span class="n">test</span><span class="o">.</span><span class="n">combination</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__insert_in_tree</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">sid_tree</span><span class="p">[</span><span class="s2">&quot;iterators&quot;</span><span class="p">],</span> <span class="p">[</span><span class="n">iter_k</span><span class="p">,</span> <span class="n">iter_v</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">test</span><span class="o">.</span><span class="n">state</span> <span class="o">!=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+            <span class="c1"># if failed, save it</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__insert_in_tree</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">sid_tree</span><span class="p">[</span><span class="s2">&quot;failures&quot;</span><span class="p">],</span> <span class="p">[])</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">session_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get list of registered session ids.</span>
+
+<span class="sd">        :return: the list of know session ids</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rootree</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+<div class="viewcode-block" id="DataRepresentation.get_tag_cnt">
+<a class="viewcode-back" href="../../../api/pcvs.webview.datalayer.html#pcvs.webview.datalayer.DataRepresentation.get_tag_cnt">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_tag_cnt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the number of tag for a given session.</span>
+
+<span class="sd">        :param sid: session id</span>
+<span class="sd">        :type sid: str</span>
+<span class="sd">        :return: number of tags</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rootree</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="s2">&quot;tags&quot;</span><span class="p">][</span><span class="s2">&quot;__elems&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="DataRepresentation.get_label_cnt">
+<a class="viewcode-back" href="../../../api/pcvs.webview.datalayer.html#pcvs.webview.datalayer.DataRepresentation.get_label_cnt">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_label_cnt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the number of labels for a given session.</span>
+
+<span class="sd">        :param sid: session id</span>
+<span class="sd">        :type sid: str</span>
+<span class="sd">        :return: number of labels</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rootree</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="s2">&quot;fs-tree&quot;</span><span class="p">][</span><span class="s2">&quot;__elems&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="DataRepresentation.get_test_cnt">
+<a class="viewcode-back" href="../../../api/pcvs.webview.datalayer.html#pcvs.webview.datalayer.DataRepresentation.get_test_cnt">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_test_cnt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the number of tests for a given session.</span>
+
+<span class="sd">        :param sid: session id</span>
+<span class="sd">        :type sid: str</span>
+<span class="sd">        :return: number of tests</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rootree</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="s2">&quot;fs-tree&quot;</span><span class="p">][</span><span class="s2">&quot;__metadata&quot;</span><span class="p">][</span><span class="s2">&quot;count&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="DataRepresentation.get_root_path">
+<a class="viewcode-back" href="../../../api/pcvs.webview.datalayer.html#pcvs.webview.datalayer.DataRepresentation.get_root_path">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_root_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;For a session, get the build path where data are stored.</span>
+
+<span class="sd">        :param sid: session id</span>
+<span class="sd">        :type sid: str</span>
+<span class="sd">        :return: build path</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootree</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="s2">&quot;path&quot;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">path</span></div>
+
+
+<div class="viewcode-block" id="DataRepresentation.get_token_content">
+<a class="viewcode-back" href="../../../api/pcvs.webview.datalayer.html#pcvs.webview.datalayer.DataRepresentation.get_token_content">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_token_content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Advanced function to access partial data tree.</span>
+
+<span class="sd">        :param sid: session id</span>
+<span class="sd">        :type sid: str</span>
+<span class="sd">        :param token: subtree name to access to</span>
+<span class="sd">        :type token: str</span>
+<span class="sd">        :return: the whole data tree segment, empty dict if not found</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootree</span><span class="p">[</span><span class="n">sid</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootree</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="n">token</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="DataRepresentation.extract_tests_under">
+<a class="viewcode-back" href="../../../api/pcvs.webview.datalayer.html#pcvs.webview.datalayer.DataRepresentation.extract_tests_under">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extract_tests_under</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve all tests undef a given data tree subnode.</span>
+
+<span class="sd">        :param node: data subnode</span>
+<span class="sd">        :type node: dict</span>
+<span class="sd">        :return: list of tests under this subnode</span>
+<span class="sd">        :rtype: list(class:`Test`)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="s2">&quot;__elems&quot;</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">elements</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="s2">&quot;__elems&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">strstate</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">elements</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">Test</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">elements</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">ret</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_tests_under</span><span class="p">(</span><span class="n">elt</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ret</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="DataRepresentation.get_sessions">
+<a class="viewcode-back" href="../../../api/pcvs.webview.datalayer.html#pcvs.webview.datalayer.DataRepresentation.get_sessions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_sessions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the list of current known sessions.</span>
+
+<span class="sd">        :return: a dict mapping to session infos.</span>
+<span class="sd">        :rtype: list of dicts</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">SessionState</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">])),</span>
+                <span class="s2">&quot;sid&quot;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span>
+                <span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="s2">&quot;fs-tree&quot;</span><span class="p">][</span><span class="s2">&quot;__metadata&quot;</span><span class="p">][</span><span class="s2">&quot;count&quot;</span><span class="p">],</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootree</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">]</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

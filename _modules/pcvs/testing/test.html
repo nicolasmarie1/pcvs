@@ -1,0 +1,1141 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.testing.test &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pcvs.testing.test</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.testing.test</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shlex</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing_extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Self</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.metaconfig</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlobalConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.criterion</span><span class="w"> </span><span class="kn">import</span> <span class="n">Combination</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.pm</span><span class="w"> </span><span class="kn">import</span> <span class="n">PManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationScheme</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plugin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.teststate</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestState</span>
+
+
+<div class="viewcode-block" id="Test">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Test</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Smallest component of a validation process.</span>
+
+<span class="sd">    A test is basically a shell command to run. Depending on its post-execution</span>
+<span class="sd">    status, a success or a failure can be determined. To handle such component</span>
+<span class="sd">    in a convenient way, more information can be attached to the command like a</span>
+<span class="sd">    name, the elapsed time, the output, etc.</span>
+
+<span class="sd">    :cvar NOSTART_STR: constant, setting default output when job cannot be run.</span>
+<span class="sd">    :vartype NOSTART_STR: :py:obj:`str`</span>
+<span class="sd">    :cvar DISCARDED_STR: constant, setting default output for discarded test.</span>
+<span class="sd">    :vartype DISCARDED_STR: :py:obj:`str`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">res_scheme</span> <span class="o">=</span> <span class="n">ValidationScheme</span><span class="p">(</span><span class="s2">&quot;test-result&quot;</span><span class="p">)</span>
+
+    <span class="n">NOSTART_STR</span> <span class="o">=</span> <span class="s2">&quot;This test cannot be started.&quot;</span>
+    <span class="n">DISCARDED_STR</span> <span class="o">=</span> <span class="s2">&quot;This test has failed to be scheduled. Discarded.&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">comb</span><span class="p">:</span> <span class="n">Combination</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">wd</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">resources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">environment</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">te_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;noname&quot;</span><span class="p">,</span>
+        <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;nolabel&quot;</span><span class="p">,</span>
+        <span class="n">subtree</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;nosubtree&quot;</span><span class="p">,</span>
+        <span class="n">user_suffix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">command</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">metrics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+        <span class="n">artifacts</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">validation</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">mod_deps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">PManager</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+        <span class="n">job_deps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct a Test.</span>
+
+<span class="sd">        :param comb: Criterion expanded combination for this specific test.</span>
+<span class="sd">        :param wd: Test working directory.</span>
+<span class="sd">        :param resources: Resources consumed by the test (cpu_cores / nodes),</span>
+<span class="sd">          scheduler heuristic to avoid running to much jobs in scheduler that badly scale (like slurm).</span>
+<span class="sd">        :param environment: Environment variables used when running the test.</span>
+<span class="sd">        :param te_name: Test name.</span>
+<span class="sd">        :param label: Test label.</span>
+<span class="sd">        :param subtree: Sub directory of the test from the pcvs execution directory.</span>
+<span class="sd">        :param user_suffix: Test suffix.</span>
+<span class="sd">        :param command: The command used to run the test.</span>
+<span class="sd">        :param metrics: Dictionary of regexs to get data from test output, stored in test results.</span>
+<span class="sd">        :param tags: Tets tags, used to filter test execution and console output of test stdout/stderr.</span>
+<span class="sd">        :param artifacts: Artifacts (files) that will be saved in test data after test run,</span>
+<span class="sd">          a dict mapping artifact name in test data to files names to read from the disks.</span>
+<span class="sd">        :param validation: Validation configuration. Contain some to all of the following:</span>
+
+<span class="sd">          - expected exit code</span>
+<span class="sd">          - soft_timeout</span>
+<span class="sd">          - hard_timeout</span>
+<span class="sd">          - dynamic time validation ``((mean + tolerance) * weight)``</span>
+<span class="sd">          - regex matcher</span>
+<span class="sd">          - validation script path</span>
+<span class="sd">        :param mod_deps: Package manager dependency (modules or spack).</span>
+<span class="sd">        :param job_deps: Other jobs name that this test depends on (like compilation phases).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Basic Info Compute</span>
+        <span class="n">comb_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">comb</span><span class="o">.</span><span class="n">translate_to_str</span><span class="p">()</span> <span class="k">if</span> <span class="n">comb</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">fq_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Test</span><span class="o">.</span><span class="n">compute_fq_name</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">subtree</span><span class="p">,</span> <span class="n">te_name</span><span class="p">,</span> <span class="n">user_suffix</span><span class="p">,</span> <span class="n">comb_str</span><span class="p">)</span>
+        <span class="n">jid</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_jid_from_name</span><span class="p">(</span><span class="n">fq_name</span><span class="p">)</span>
+        <span class="n">cores_per_nodes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;machine&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cores_per_nodes&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">_resources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">resources</span> <span class="k">if</span> <span class="n">resources</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">cores_per_nodes</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">_resources</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">r</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="c1"># Identification infos</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jid</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">jid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fq_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">fq_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_te_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">te_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subtree</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">subtree</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">user_suffix</span> <span class="k">if</span> <span class="n">user_suffix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="c1"># Advanced infos</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_testenv</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">environment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execmd</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">command</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">tags</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_artifacts</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">artifacts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_comb</span><span class="p">:</span> <span class="n">Combination</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">comb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_comb_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">comb_str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">_resources</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metrics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="n">metrics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mod_deps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">PManager</span><span class="p">]</span> <span class="o">=</span> <span class="n">mod_deps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_depnames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">job_deps</span>
+
+        <span class="c1"># Runtime infos (change during the run, the others vars should be const)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rc</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cwd</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">wd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_exectime</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">:</span> <span class="n">TestState</span> <span class="o">=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">WAITING</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Self</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dependee</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Self</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_has_hard_timeout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_invocation_cmd</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="kc">None</span>  <span class="c1"># Command that launch list_of_test.sh (not the test command itself)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Validation Infos / Compute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expect_rc</span> <span class="o">=</span> <span class="n">validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;expect_exit&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_time_validation</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="s2">&quot;time&quot;</span> <span class="ow">in</span> <span class="n">validation</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_time_validation</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">validation</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+                <span class="s2">&quot;tolerance&quot;</span><span class="p">:</span> <span class="n">validation</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tolerance&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="s2">&quot;coef&quot;</span><span class="p">:</span> <span class="n">validation</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;coef&quot;</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">),</span>
+            <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_soft_timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;soft_timeout&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hard_timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hard_timeout&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_matchers</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;match&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;analysis&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_script</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;script&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;file&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;offset&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;length&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="c1"># alloc tracking number, used by job manager to track job allocation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alloc_tracking</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">jid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter for unique Job ID within a run.</span>
+
+<span class="sd">        This attribute is generally set by the manager once job is uploaded</span>
+<span class="sd">        to the dataset.</span>
+
+<span class="sd">        :return: a unique hash of the job name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jid</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">basename</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get fully-qualified name.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Test</span><span class="o">.</span><span class="n">compute_fq_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subtree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_te_name</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter for the full list of tags.</span>
+
+<span class="sd">        :return: the list of of tags</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter to the test label.</span>
+
+<span class="sd">        :return: the label</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter for fully-qualified job name.</span>
+
+<span class="sd">        :return: test name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fq_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">subtree</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter to the test subtree.</span>
+
+<span class="sd">        :return: test subtree.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subtree</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">te_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter to the test TE name.</span>
+
+<span class="sd">        :return: test TE name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_te_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">combination</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Combination</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter to the test combination dict.</span>
+
+<span class="sd">        :return: test comb dict.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comb</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comb</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">command</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter for the full command.</span>
+
+<span class="sd">        This is a real command, executed in a shell, coming from user&#39;s</span>
+<span class="sd">        specificaition. It should not be confused with `invocation_command`.</span>
+
+<span class="sd">        :return: unescaped command line</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execmd</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">invocation_command</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter for the list_of_test.sh invocation leading to run the job.</span>
+
+<span class="sd">        This command is under the form: `sh /path/list_of_tests.sh &lt;test-name&gt;`</span>
+
+<span class="sd">        :return: wrapper command line</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_invocation_cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_invocation_cmd</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">job_deps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Self</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter to the dependency list for this job.</span>
+
+<span class="sd">        The dependency struct is an array, where for each name (=key), the</span>
+<span class="sd">        associated Job is stored (value)</span>
+
+<span class="sd">        :return: the list of object-converted deps</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deps</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">job_depnames</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter to the list of deps, as an array of names.</span>
+
+<span class="sd">        This array is emptied when all deps are converted to objects.</span>
+
+<span class="sd">        :return: the array of dependency names</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_depnames</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mod_deps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PManager</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter to the list of pack-manager rules defined for this job.</span>
+
+<span class="sd">        There is no need for a ``_depnames`` version as these deps are provided</span>
+<span class="sd">        as PManager objects directly.</span>
+
+<span class="sd">        :return: the list of package-manager based deps.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mod_deps</span>
+
+<div class="viewcode-block" id="Test.get_jid_from_name">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.get_jid_from_name">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_jid_from_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute a Test ID from a Test name.</span>
+
+<span class="sd">        :param name: The name of the Test.</span>
+<span class="sd">        :return: The test id.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">namebytes</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">namebytes</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Test.get_dep_graph">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.get_dep_graph">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dep_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the dependency graph from that test.</span>
+
+<span class="sd">        Associate every dependency name to their own recursive dependency graph.</span>
+
+<span class="sd">        :return: The dependency Graph build from dicts.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deps</span><span class="p">:</span>
+            <span class="n">res</span><span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get_dep_graph</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="Test.resolve_a_dep">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.resolve_a_dep">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resolve_a_dep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resolve the dep object for a given dep name.</span>
+
+<span class="sd">        :param name: the dep name to resolve, should be a valid dep.</span>
+<span class="sd">        :param obj: the dep object, should be a Test()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_depnames</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deps</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_deps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Test.add_dependee">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.add_dependee">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_dependee</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a Test to the list of test that depends on this test.</span>
+
+<span class="sd">        :param test: the test to add.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dependee</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Test.remove_dependee">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.remove_dependee">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_dependee</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove a Tets to the list of test that depends on this test.</span>
+
+<span class="sd">        :param test: the test to remove.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dependee</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">test</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Test.transpose_deps">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.transpose_deps">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transpose_deps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transpose the dependency graph to compute the dependee graph.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">test</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deps</span><span class="p">:</span>
+            <span class="n">test</span><span class="o">.</span><span class="n">add_dependee</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+
+
+<div class="viewcode-block" id="Test.remove_test_from_deps">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.remove_test_from_deps">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_test_from_deps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove this Test from it&#39;s dependency dependee list.</span>
+<span class="sd">        i.e. remove self from the dependee list of test that we depends on.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">test</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deps</span><span class="p">:</span>
+            <span class="n">test</span><span class="o">.</span><span class="n">remove_dependee</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+
+
+<div class="viewcode-block" id="Test.should_run">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.should_run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">should_run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Should the test be run.&quot;&quot;&quot;</span>
+        <span class="c1"># There is tests tat depends on this one, so it should be run.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dependee</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="n">valcfg</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Is this job included or excluded by job filter ?</span>
+        <span class="n">contain_allow_filter</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">allow</span> <span class="ow">in</span> <span class="n">valcfg</span><span class="p">[</span><span class="s2">&quot;run_filter&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">allow</span><span class="p">:</span>
+                <span class="n">contain_allow_filter</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># if there is at least one allow filters, deny every thing that is not in it.</span>
+        <span class="k">if</span> <span class="n">contain_allow_filter</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="c1"># By default test is not filter.</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="Test.has_completed_deps">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.has_completed_deps">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_completed_deps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if the test can be scheduled.</span>
+
+<span class="sd">        Ensures all its deps are resolved and successfully run.</span>
+
+<span class="sd">        :return: True if the job can be scheduled</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">([</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deps</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">d</span><span class="o">.</span><span class="n">been_executed</span><span class="p">()])</span> <span class="o">==</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="Test.has_failed_dep">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.has_failed_dep">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_failed_dep</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if at least one dep is blocking this job from ever be scheduled.</span>
+
+<span class="sd">        :return: True if at least one dep is shown a Failure state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deps</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">state</span> <span class="ow">in</span> <span class="n">TestState</span><span class="o">.</span><span class="n">bad_states</span><span class="p">():</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">soft_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter for Test timeout in seconds.</span>
+
+<span class="sd">        timeout is (in order):</span>
+<span class="sd">          1. explicitly defined</span>
+<span class="sd">          2. OR extrapolated from defined result.mean</span>
+<span class="sd">          3. set by default (GlobalConfig.root.validation.job_timeout)</span>
+
+<span class="sd">        :return: an integer if a timeout is defined, None otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_soft_timeout</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_soft_timeout</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_validation</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_validation</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_validation</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span>
+            <span class="n">tolerance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_validation</span><span class="p">[</span><span class="s2">&quot;tolerance&quot;</span><span class="p">]</span>
+            <span class="n">coef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_validation</span><span class="p">[</span><span class="s2">&quot;coef&quot;</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tolerance</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coef</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">((</span><span class="n">mean</span> <span class="o">+</span> <span class="n">tolerance</span><span class="p">)</span> <span class="o">*</span> <span class="n">coef</span><span class="p">)</span>
+        <span class="n">global_soft</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;soft_timeout&quot;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">global_soft</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">global_soft</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hard_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter for Test hard timeout in seconds.</span>
+
+<span class="sd">        :return: the hard timeout after which the job is killed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hard_timeout</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hard_timeout</span>
+        <span class="n">global_hard</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;hard_timeout&quot;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">global_hard</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">global_hard</span>
+
+<div class="viewcode-block" id="Test.get_nb_nodes">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.get_nb_nodes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_nb_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the first higher orcherstrator dimension value for this test (mostlikely the number of nodes).</span>
+
+<span class="sd">        The dimension can be defined by the user and let the orchestrator knows</span>
+<span class="sd">        what resource are, and how to &#39;count&#39; them&#39;. This accessor allow the</span>
+<span class="sd">        orchestrator to extract the information, based on the key name.</span>
+
+<span class="sd">        :return: The number of resource this Test is requesting.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resources</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_resources</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="mi">1</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">needed_resources</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the orcherstrator resources used by the jobs</span>
+
+<span class="sd">        The meaning for resources list is user defined and can vary depending on</span>
+<span class="sd">        how test/plugin defines the resources and how the job orcherstrator</span>
+<span class="sd">        of the wrapper defines themes.</span>
+
+<span class="sd">        It will most likely be [nb_nodes, nb_cpu_per_nodes].</span>
+<span class="sd">        But it could be [nb_nodes_lvl1, nb_nodes_lvl2, nb_nodes_lvl3, NUMA_NODE,</span>
+<span class="sd">        UNIX_process, MPI_PROCESS, L3_CACHE, pthreads, L2_CACHE, omp_threads, L1_CACHE, ...].</span>
+
+<span class="sd">        :return: The resources allocation list for the jobs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resources</span>
+
+<div class="viewcode-block" id="Test.save_final_result">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.save_final_result">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_final_result</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">rc</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">TestState</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build the final Test result node.</span>
+
+<span class="sd">        :param rc: return code, defaults to 0</span>
+<span class="sd">        :param time: elapsed time, defaults to 0.0</span>
+<span class="sd">        :param out: standard out/err, default to &quot;&quot;</span>
+<span class="sd">        :param state: Job final status (if override needed), defaults to None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_state</span><span class="p">:</span> <span class="n">TestState</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_state</span> <span class="o">=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">SUCCESS</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expect_rc</span> <span class="o">==</span> <span class="n">rc</span> <span class="k">else</span> <span class="n">TestState</span><span class="o">.</span><span class="n">FAILURE</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_state</span> <span class="o">=</span> <span class="n">state</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_raw_run</span><span class="p">(</span><span class="n">rc</span><span class="o">=</span><span class="n">rc</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_status</span><span class="p">(</span><span class="n">_state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_artifacts</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Test.save_artifacts">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.save_artifacts">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_artifacts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read artifacts from disk for storage in test data.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">elt_k</span><span class="p">,</span> <span class="n">elt_v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_artifacts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">elt_v</span><span class="p">):</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">elt_v</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_artifacts</span><span class="p">[</span><span class="n">elt_k</span><span class="p">]</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Test.save_raw_run">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.save_raw_run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_raw_run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rc</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">hard_timeout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save basic run information.</span>
+
+<span class="sd">        :param out: standard out/err</span>
+<span class="sd">        :param rc: return code</span>
+<span class="sd">        :param time: elapsed time</span>
+<span class="sd">        :param hard_timeout: has the test reach hard timeout and got killed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">out</span>
+        <span class="k">if</span> <span class="n">rc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rc</span> <span class="o">=</span> <span class="n">rc</span>
+        <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_exectime</span> <span class="o">=</span> <span class="n">time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_has_hard_timeout</span> <span class="o">=</span> <span class="n">hard_timeout</span></div>
+
+
+<div class="viewcode-block" id="Test.extract_metrics">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.extract_metrics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extract_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Use user defined &#39;metrics&#39; to grep requested information from test output and store themes.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metrics</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metrics</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ens</span> <span class="o">=</span> <span class="nb">set</span> <span class="k">if</span> <span class="n">node</span><span class="p">[</span><span class="s2">&quot;attributes&quot;</span><span class="p">][</span><span class="s2">&quot;unique&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="nb">list</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">ens</span> <span class="o">=</span> <span class="nb">list</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_metrics</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ens</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">node</span><span class="p">[</span><span class="s2">&quot;key&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="Test.evaluate">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate test results to update the test state according to validation configuration.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hard_timeout</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">HARD_TIMEOUT</span>
+            <span class="k">return</span>
+
+        <span class="n">state</span> <span class="o">=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">SUCCESS</span>
+
+        <span class="c1"># validation by return code</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expect_rc</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rc</span><span class="p">:</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">FAILURE</span>
+
+        <span class="c1"># validation through a matching regex</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="n">TestState</span><span class="o">.</span><span class="n">SUCCESS</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_matchers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_matchers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">expected</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;expect&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;expr&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="p">)</span>
+                <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Looking for expr: </span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">&#39;expr&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, foud: </span><span class="si">{</span><span class="n">found</span><span class="si">}</span><span class="s2">, expected: </span><span class="si">{</span><span class="n">expected</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">found</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">expected</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">found</span> <span class="ow">and</span> <span class="n">expected</span><span class="p">):</span>
+                    <span class="n">state</span> <span class="o">=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">FAILURE</span>
+                    <span class="k">break</span>
+
+        <span class="c1"># validation throw a plugin</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="n">TestState</span><span class="o">.</span><span class="n">SUCCESS</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_internal</span><span class="p">(</span><span class="s2">&quot;pColl&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">invoke_plugins</span><span class="p">(</span>
+                <span class="n">Plugin</span><span class="o">.</span><span class="n">Step</span><span class="o">.</span><span class="n">TEST_RESULT_EVAL</span><span class="p">,</span> <span class="n">analysis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="bp">self</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">res</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">state</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_soft_timeout</span> <span class="o">=</span> <span class="n">res</span>
+
+        <span class="c1"># validation throw a custom script</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="n">TestState</span><span class="o">.</span><span class="n">SUCCESS</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_script</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_script</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+                <span class="n">rc</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">returncode</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">rc</span> <span class="o">=</span> <span class="mi">42</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expect_rc</span> <span class="o">!=</span> <span class="n">rc</span><span class="p">:</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">FAILURE</span>
+
+        <span class="c1"># if the test succeed, check for soft timeout</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">state</span> <span class="o">==</span> <span class="n">TestState</span><span class="o">.</span><span class="n">SUCCESS</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_soft_timeout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_soft_timeout</span>
+        <span class="p">):</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">SOFT_TIMEOUT</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">state</span></div>
+
+
+<div class="viewcode-block" id="Test.save_status">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.save_status">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">TestState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set current Test state.</span>
+
+<span class="sd">        :param state: give a special state to the test</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">TestState</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">state</span></div>
+
+
+<div class="viewcode-block" id="Test.should_print">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.should_print">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">should_print</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Should the test result be printed.&quot;&quot;&quot;</span>
+        <span class="c1"># No output recorded</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">valcfg</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Is the test filtered</span>
+        <span class="n">contain_allow_filter</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">allow</span> <span class="ow">in</span> <span class="n">valcfg</span><span class="p">[</span><span class="s2">&quot;print_filter&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">allow</span><span class="p">:</span>
+                <span class="n">contain_allow_filter</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># if there is allow filters, deny every thing that is not in it.</span>
+        <span class="k">if</span> <span class="n">contain_allow_filter</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># print policy</span>
+        <span class="k">if</span> <span class="n">valcfg</span><span class="p">[</span><span class="s2">&quot;print_policy&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">valcfg</span><span class="p">[</span><span class="s2">&quot;print_policy&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">valcfg</span><span class="p">[</span><span class="s2">&quot;print_policy&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;errors&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="ow">in</span> <span class="n">TestState</span><span class="o">.</span><span class="n">bad_states</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="c1"># don&#39;t print by default</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="Test.get_state_fancy">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.get_state_fancy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_state_fancy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the label, color &amp; icon representing the status of the test.&quot;&quot;&quot;</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">)</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;yellow&quot;</span>
+        <span class="n">icon</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">==</span> <span class="n">TestState</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;green&quot;</span>
+            <span class="n">icon</span> <span class="o">=</span> <span class="s2">&quot;succ&quot;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="ow">in</span> <span class="p">[</span><span class="n">TestState</span><span class="o">.</span><span class="n">FAILURE</span><span class="p">,</span> <span class="n">TestState</span><span class="o">.</span><span class="n">HARD_TIMEOUT</span><span class="p">]:</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;red&quot;</span>
+            <span class="n">icon</span> <span class="o">=</span> <span class="s2">&quot;fail&quot;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="ow">in</span> <span class="p">[</span><span class="n">TestState</span><span class="o">.</span><span class="n">ERR_DEP</span><span class="p">,</span> <span class="n">TestState</span><span class="o">.</span><span class="n">ERR_OTHER</span><span class="p">,</span> <span class="n">TestState</span><span class="o">.</span><span class="n">SOFT_TIMEOUT</span><span class="p">]:</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;yellow&quot;</span>
+            <span class="n">icon</span> <span class="o">=</span> <span class="s2">&quot;fail&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">utf</span><span class="p">(</span><span class="n">icon</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Test.get_testinfo_fancy">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.get_testinfo_fancy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_testinfo_fancy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the test status string printed when running pcvs run.&quot;&quot;&quot;</span>
+        <span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">icon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_state_fancy</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">==</span> <span class="n">TestState</span><span class="o">.</span><span class="n">HARD_TIMEOUT</span><span class="p">:</span>
+            <span class="n">timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hard_timeout</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">==</span> <span class="n">TestState</span><span class="o">.</span><span class="n">SOFT_TIMEOUT</span><span class="p">:</span>
+            <span class="n">timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">soft_timeout</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">timeout</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timeout</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="n">timeout_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; (</span><span class="si">{</span><span class="n">timeout</span><span class="si">:</span><span class="s2">5.2f</span><span class="si">}</span><span class="s2">s)&quot;</span> <span class="k">if</span> <span class="n">timeout</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="n">sep</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">utf</span><span class="p">(</span><span class="s2">&quot;sep_v&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s2"> bold]   </span><span class="si">{</span><span class="n">icon</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_exectime</span><span class="si">:</span><span class="s2">8.2f</span><span class="si">}</span><span class="s2">s</span><span class="si">{</span><span class="n">sep</span><span class="si">}{</span><span class="n">label</span><span class="si">:</span><span class="s2">7</span><span class="si">}{</span><span class="n">timeout_str</span><span class="si">}{</span><span class="n">sep</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+
+<div class="viewcode-block" id="Test.display">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.display">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">display</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print the Test to console.&quot;&quot;&quot;</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">should_print</span><span class="p">():</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span>
+
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print_job</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_testinfo_fancy</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+            <span class="s2">&quot;/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subtree</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subtree</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">output</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Test.been_executed">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.been_executed">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">been_executed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if job has been executed and result computed (not waiting, in progress or EXECUTED).</span>
+
+<span class="sd">        :return: False if job is waiting for scheduling, in progress or waiting for post processing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">TestState</span><span class="o">.</span><span class="n">WAITING</span><span class="p">,</span> <span class="n">TestState</span><span class="o">.</span><span class="n">IN_PROGRESS</span><span class="p">,</span> <span class="n">TestState</span><span class="o">.</span><span class="n">EXECUTED</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Test.pick">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.pick">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pick</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Flag the job as picked up for scheduling.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">TestState</span><span class="o">.</span><span class="n">IN_PROGRESS</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TestState</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter for current job state.</span>
+
+<span class="sd">        :return: the job current status.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">output</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for the test output.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span>
+
+    <span class="nd">@output</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setter for the test output.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">output</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">b64_output</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for the test output in base64.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+    <span class="nd">@b64_output</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">b64_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setter for the test output in base64.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">b64_output_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for the test output in base64 as utf-8 encoded bytes.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+
+    <span class="nd">@b64_output_bytes</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">b64_output_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setter for the test output in base64 as utf-8 decoded bytes.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">output_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Info about the output (file, offset &amp; length).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_info</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test execution time.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exectime</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">retcode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return code of the test process.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rc</span>
+
+<div class="viewcode-block" id="Test.to_json">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.to_json">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strstate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serialize the whole Test as a JSON object.</span>
+
+<span class="sd">        :return: a JSON dict mapping the test</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_info</span>
+        <span class="n">output</span><span class="p">[</span><span class="s2">&quot;raw&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">b64_output</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;jid&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jid</span><span class="p">,</span>
+                <span class="s2">&quot;fq_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fq_name</span><span class="p">,</span>
+                <span class="s2">&quot;te_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_te_name</span><span class="p">,</span>
+                <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span><span class="p">,</span>
+                <span class="s2">&quot;subtree&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subtree</span><span class="p">,</span>
+                <span class="s2">&quot;suffix&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span><span class="p">,</span>
+                <span class="s2">&quot;comb&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comb_str</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;exec&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execmd</span><span class="p">,</span>
+            <span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;rc&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rc</span><span class="p">,</span>
+                <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">)</span> <span class="k">if</span> <span class="n">strstate</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">,</span>
+                <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exectime</span><span class="p">,</span>
+                <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="n">output</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;metrics&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metrics</span><span class="p">,</span>
+                <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span><span class="p">,</span>
+                <span class="s2">&quot;artifacts&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_artifacts</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="Test.to_minimal_json">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.to_minimal_json">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_minimal_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serialize minimal test information.</span>
+
+<span class="sd">        :return: a JSON dict mapping the test.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;jid&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jid</span><span class="p">,</span>
+            <span class="s2">&quot;invocation_cmd&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_invocation_cmd</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Test.from_minimal_json">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.from_minimal_json">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_minimal_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jsonstr</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Import test object from minimal JSON.</span>
+
+<span class="sd">        :param json: the imported json as raw str.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">jsonstr</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="n">jsonobj</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">jsonstr</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_invocation_cmd</span> <span class="o">=</span> <span class="n">jsonobj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;invocation_cmd&quot;</span><span class="p">,</span> <span class="s2">&quot;exit 1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jid</span> <span class="o">=</span> <span class="n">jsonobj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;jid&quot;</span><span class="p">,</span> <span class="s2">&quot;-1&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Test.from_json">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.from_json">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_json</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Import test object from full JSON.</span>
+
+<span class="sd">        :param json: the json used to set this Test as dict.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">test_json</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">res_scheme</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">test_json</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;id&quot;</span> <span class="ow">in</span> <span class="n">test_json</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_jid</span> <span class="o">=</span> <span class="n">test_json</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;jid&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fq_name</span> <span class="o">=</span> <span class="n">test_json</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fq_name&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_te_name</span> <span class="o">=</span> <span class="n">test_json</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;te_name&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="o">=</span> <span class="n">test_json</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_subtree</span> <span class="o">=</span> <span class="n">test_json</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;subtree&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span> <span class="o">=</span> <span class="n">test_json</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;suffix&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_comb</span> <span class="o">=</span> <span class="n">Combination</span><span class="p">({},</span> <span class="n">test_json</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;comb&quot;</span><span class="p">,</span> <span class="p">{}),</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execmd</span> <span class="o">=</span> <span class="n">test_json</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;exec&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">test_json</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;result&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rc</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rc&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">TestState</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;state&quot;</span><span class="p">,</span> <span class="n">TestState</span><span class="o">.</span><span class="n">ERR_OTHER</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_exectime</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_info</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b64_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;raw&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;data&quot;</span> <span class="ow">in</span> <span class="n">test_json</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_metrics</span> <span class="o">=</span> <span class="n">test_json</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metrics&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span> <span class="o">=</span> <span class="n">test_json</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_artifacts</span> <span class="o">=</span> <span class="n">test_json</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;artifacts&quot;</span><span class="p">,</span> <span class="p">{})</span></div>
+
+
+<div class="viewcode-block" id="Test.generate_script">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.generate_script">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_script</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">srcfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serialize test logic to its Shell representation.</span>
+
+<span class="sd">        This script provides the shell sequence to put in a shell script</span>
+<span class="sd">        switch-case, in order to reach that test from script arguments.</span>
+
+<span class="sd">        :param srcfile: script filepath, to store the actual wrapped command.</span>
+<span class="sd">        :return: the shell-compliant instruction set to build the test</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pm_code</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">cd_code</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">env_code</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">cmd_code</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_invocation_cmd</span> <span class="o">=</span> <span class="s2">&quot;bash </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">srcfile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fq_name</span><span class="p">)</span>
+
+        <span class="c1"># if changing directory is required by the test</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cwd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cd_code</span> <span class="o">+=</span> <span class="s2">&quot;cd &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cwd</span><span class="p">))</span>
+
+        <span class="c1"># manage package-manager deps</span>
+        <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mod_deps</span><span class="p">:</span>
+            <span class="n">pm_code</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">elt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">load</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">install</span><span class="o">=</span><span class="kc">True</span><span class="p">)])</span>
+
+        <span class="c1"># manage environment variables defined in TE</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_testenv</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">envs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_testenv</span><span class="p">:</span>
+                <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">envs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{k}</span><span class="s2">=</span><span class="si">{v}</span><span class="s2">; export </span><span class="si">{k}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">v</span><span class="o">=</span><span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">v</span><span class="p">)))</span>
+            <span class="n">env_code</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">envs</span><span class="p">)</span>
+
+        <span class="n">cmd_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execmd</span>
+
+        <span class="k">return</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        &quot;</span><span class="si">{name}</span><span class="s2">&quot;)</span>
+<span class="s2">            </span><span class="si">{cd_code}</span>
+<span class="s2">            pcvs_load=</span><span class="si">{pm_code}</span>
+<span class="s2">            pcvs_env=</span><span class="si">{env_code}</span>
+<span class="s2">            pcvs_cmd=</span><span class="si">{cmd_code}</span>
+<span class="s2">            ;;&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">cmd_code</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">cmd_code</span><span class="p">)),</span>
+            <span class="n">env_code</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">env_code</span><span class="p">)),</span>
+            <span class="n">pm_code</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">pm_code</span><span class="p">)),</span>
+            <span class="n">cd_code</span><span class="o">=</span><span class="n">cd_code</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_fq_name</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Test.compute_fq_name">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.Test.compute_fq_name">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_fq_name</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">subtree</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">combination</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate the fully-qualified (dq) name for a test, based on:</span>
+
+<span class="sd">        :param label: the label</span>
+<span class="sd">        :param subtree: the subtree</span>
+<span class="sd">        :param name: the TE name it is originated</span>
+<span class="sd">        :param suffix: the extra suffix</span>
+<span class="sd">        :param combination: the combination str.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">label</span>
+        <span class="k">assert</span> <span class="n">subtree</span>
+        <span class="k">assert</span> <span class="n">name</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">subtree</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">[</span><span class="n">path</span><span class="p">,</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">combination</span><span class="p">]))</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__rich_repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="generate_local_variables">
+<a class="viewcode-back" href="../../../api/pcvs.testing.test.html#pcvs.testing.test.generate_local_variables">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_local_variables</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subprefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return directories from PCVS working tree.</span>
+
+<span class="sd">        - the base source directory</span>
+<span class="sd">        - the current source directory</span>
+<span class="sd">        - the base build directory</span>
+<span class="sd">        - the current build directory</span>
+
+<span class="sd">    :param label: name of the object used to generate paths</span>
+<span class="sd">    :param subprefix: path to the subdirectories in the base path</span>
+<span class="sd">    :raises CommonException.NotFoundError: the label is not recognized as to bevalidated</span>
+<span class="sd">    :return: paths for PCVS working tree</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">subprefix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">subprefix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="n">base_srcdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;dirs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+    <span class="n">cur_srcdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_srcdir</span><span class="p">,</span> <span class="n">subprefix</span><span class="p">))</span>
+    <span class="n">base_buildir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;output&quot;</span><span class="p">],</span> <span class="s2">&quot;test_suite&quot;</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">cur_buildir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_buildir</span><span class="p">,</span> <span class="n">subprefix</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">base_srcdir</span><span class="p">,</span> <span class="n">cur_srcdir</span><span class="p">,</span> <span class="n">base_buildir</span><span class="p">,</span> <span class="n">cur_buildir</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

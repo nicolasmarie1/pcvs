@@ -115,8 +115,43 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-backend-spack-module">
-<h1>pcvs.backend.spack module<a class="headerlink" href="#pcvs-backend-spack-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.backend.spack">
+<span id="pcvs-backend-spack-module"></span><h1>pcvs.backend.spack module<a class="headerlink" href="#module-pcvs.backend.spack" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.spack.generate_from_variants">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.spack.</span></span><span class="sig-name descname"><span class="pre">generate_from_variants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/spack.html#generate_from_variants"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.spack.generate_from_variants" title="Link to this definition"></a></dt>
+<dd><p>Build job to be scheduled from a given Spack package.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>package</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Spack package name</p></li>
+<li><p><strong>label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – group label name</p></li>
+<li><p><strong>prefix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – subprefix name for this package</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.spack.parse_spec_variants">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.spack.</span></span><span class="sig-name descname"><span class="pre">parse_spec_variants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">specname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/spack.html#parse_spec_variants"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.spack.parse_spec_variants" title="Link to this definition"></a></dt>
+<dd><p>From a given Spack spec, build the list of values for any declared variant.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>specname</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the spack spec to concretize</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the dict of possible values for each variants</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 

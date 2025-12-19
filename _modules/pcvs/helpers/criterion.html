@@ -1,0 +1,872 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.helpers.criterion &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pcvs.helpers.criterion</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.helpers.criterion</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Criterion Modules:</span>
+
+<span class="sd">- Criterion:</span>
+<span class="sd">    A criterion represent a test parameter (command line argument or environment variables)</span>
+<span class="sd">    and the different values that the parameter will takes when running the test. (-n=1, -n=2, ...)</span>
+<span class="sd">    Their can be multiples criterions per tests. (-n=[1, 8], -N=[1, 8])</span>
+
+<span class="sd">- Combinations:</span>
+<span class="sd">    One or multiples criterions are expanded into combinations.</span>
+<span class="sd">    One combination contain one value for each criterion such as (-n=1, -N=2, ...).</span>
+<span class="sd">    For each combination their will be a run of the test with the argument at the value of the combination.</span>
+<span class="sd">    A Combination may be valid or invalid. (-n=1 &amp; -N=2 is an invalid combination).</span>
+<span class="sd">    Combination are vallidated by plugins.</span>
+
+<span class="sd">- Series:</span>
+<span class="sd">    A Series (of combination), represent all the valid Combinations that the test will be run with.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ItemsView</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing_extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Self</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.metaconfig</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlobalConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">CommonException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">Collection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plugin</span>
+
+
+<div class="viewcode-block" id="Criterion">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Criterion</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A Criterion is the representation of a component (i.e. parameter)</span>
+<span class="sd">    each program (i.e. test binary) should be run against.</span>
+<span class="sd">    A criterion comes with a range of possible values, each leading to a different test.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">local</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">numeric</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a criterion from its YAML/dict description.</span>
+
+<span class="sd">        :param name: name of the criterion (eg: n_mpi)</span>
+<span class="sd">        :param description: description of the criterion from configuration, include:</span>
+
+<span class="sd">            - numeric: :py:obj:`bool`, is the criterion numeric</span>
+<span class="sd">            - option: :py:obj:`str`, what is the option of the criterion (eg: -N)</span>
+<span class="sd">            - position: :py:obj:`str`, &#39;after&#39; or &#39;before&#39; is the criterion option before or after it&#39;s value</span>
+<span class="sd">            - aliases: :py:obj:`list[str]`, aliases names for the criterion</span>
+<span class="sd">            - type: :py:obj:`str`, &#39;argument&#39; or &#39;environment&#39;</span>
+<span class="sd">            - local: :py:obj:`bool`, if the criterion a parameter,</span>
+<span class="sd">                should the criterion be a parameter of the test or a parameter of the wrapper</span>
+<span class="sd">            - subtitle: :py:obj:`str`, the str that will be used with the current value to name the test</span>
+
+<span class="sd">        :param local: True if the criterion is a parameter on the test binary,</span>
+<span class="sd">                      False if it is a parameter to the wrapper,</span>
+<span class="sd">                      default to False, is override by local in description.</span>
+<span class="sd">        :param numeric: True if the criterion is numeric, default to False</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_input_values</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_numeric</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">description</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;numeric&quot;</span><span class="p">,</span> <span class="n">numeric</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">description</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;option&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_after</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">description</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;position&quot;</span><span class="p">,</span> <span class="s2">&quot;after&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;after&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_alias</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">description</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;aliases&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_env</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">description</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;argument&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;environment&quot;</span>
+        <span class="c1"># this should be only set by per-TE criterion definition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">description</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;local&quot;</span><span class="p">,</span> <span class="n">local</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subtitle</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">description</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;subtitle&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="c1"># Sanity check</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_input_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sanitize_values</span><span class="p">(</span><span class="n">description</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;values&quot;</span><span class="p">,</span> <span class="p">[]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expanded</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__sanitize_values</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_values</span><span class="p">:</span> <span class="p">(</span>
+            <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+        <span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check for any inconsistent values in the current Criterion.</span>
+
+<span class="sd">        Currently, only scalar items or dict (=&gt; sequence) are allowed.</span>
+<span class="sd">        Will raise an exception in case of inconsistency (Maybe this should be</span>
+<span class="sd">        managed in another way through the error handling)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">input_values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_values</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
+            <span class="n">input_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">input_values</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_values</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">input_values</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
+                    <span class="k">raise</span> <span class="n">CommonException</span><span class="o">.</span><span class="n">UnclassifiableError</span><span class="p">(</span>
+                        <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;Criterion: list elements should be an int, float, str or dict.&quot;</span><span class="p">,</span>
+                        <span class="n">dbg_info</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;element&quot;</span><span class="p">:</span> <span class="n">v</span><span class="p">},</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;op&quot;</span><span class="p">,</span> <span class="s2">&quot;of&quot;</span><span class="p">,</span> <span class="s2">&quot;from&quot;</span><span class="p">,</span> <span class="s2">&quot;to&quot;</span><span class="p">]:</span>
+                            <span class="k">raise</span> <span class="n">CommonException</span><span class="o">.</span><span class="n">UnclassifiableError</span><span class="p">(</span>
+                                <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;Criterion: invlide sequence operation.&quot;</span><span class="p">,</span>
+                                <span class="n">dbg_info</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;element&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)},</span>
+                            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CommonException</span><span class="o">.</span><span class="n">UnclassifiableError</span><span class="p">(</span>
+                <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;Criterion: should be, a int, float or string, a list (of int, float or str) or a dict.&quot;</span><span class="p">,</span>
+                <span class="n">dbg_info</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;element&quot;</span><span class="p">:</span> <span class="n">input_values</span><span class="p">},</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">input_values</span>
+
+    <span class="c1"># only allow overriding values (for now)</span>
+
+<div class="viewcode-block" id="Criterion.override">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.override">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">override</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">desc</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replace the value of the criterion using a descriptor containing the</span>
+<span class="sd">        said value</span>
+
+<span class="sd">        :param desc: descriptor supposedly containing a ``values`` entry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="s2">&quot;values&quot;</span> <span class="ow">in</span> <span class="n">desc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_input_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sanitize_values</span><span class="p">(</span><span class="n">desc</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expanded</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="Criterion.intersect">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.intersect">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">intersect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the calling Criterion with the intersection of the current</span>
+<span class="sd">        range of possible values with the one given as a parameters.</span>
+
+<span class="sd">        This is used to refine overridden per-TE criterion according to</span>
+<span class="sd">        system-wide&#39;s</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Criterion</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expanded</span>
+        <span class="k">assert</span> <span class="n">other</span><span class="o">.</span><span class="n">expanded</span>
+
+        <span class="c1"># None is special value meaning, discard this criterion because</span>
+        <span class="c1"># irrelevant</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">values</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Criterion.is_empty">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.is_empty">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Is the current set of values empty</span>
+<span class="sd">        May lead to errors, as it may indicates no common values has been</span>
+<span class="sd">        found between user and system specifications</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expanded</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="Criterion.is_discarded">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.is_discarded">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_discarded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Should this criterion be ignored from the current TE generaiton ?&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_values</span> <span class="ow">is</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Criterion.is_local">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.is_local">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_local</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the criterion local ? (program-scoped)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span></div>
+
+
+<div class="viewcode-block" id="Criterion.is_env">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.is_env">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_env</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is this criterion targeting a component used as an env var ?&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_env</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the ``value`` attribute of this criterion.</span>
+
+<span class="sd">        :return: values of this criterion</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expanded</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">,</span> <span class="nb">set</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the number of values this criterion holds.</span>
+
+<span class="sd">        :return: the value list count</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expanded</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the ``name`` attribute of this criterion.</span>
+
+<span class="sd">        :return: name of this criterion</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">subtitle</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the ``subtitle`` attribute of this criterion.</span>
+
+<span class="sd">        :return: subtitle of this criterion</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subtitle</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return if this criterion a numeric criterion (or a string iterator).</span>
+
+<span class="sd">        :return: numeric of this criterion</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_numeric</span>
+
+<div class="viewcode-block" id="Criterion.concretize_value">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.concretize_value">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">concretize_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the exact string mapping this criterion, according to the specification.</span>
+<span class="sd">        (is it aliased ? should the option be put before/after the value?...)</span>
+
+<span class="sd">        :param val: value to add with prefix</span>
+<span class="sd">        :return: values with aliases replaced</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># replace value with alias (if defined)</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aliased_value</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+        <span class="c1"># put value before of after the defined prefix</span>
+        <span class="n">elt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="o">+</span> <span class="n">val</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_after</span> <span class="k">else</span> <span class="n">val</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span>
+        <span class="c1"># return the elt. up to the caller to determine</span>
+        <span class="c1"># if this should be added as an arg or an env</span>
+        <span class="c1"># ==&gt; is_env()</span>
+        <span class="k">return</span> <span class="n">elt</span></div>
+
+
+<div class="viewcode-block" id="Criterion.aliased_value">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.aliased_value">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">aliased_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if the given value has an alias for the current criterion.</span>
+<span class="sd">        An alias is the value replacement to use instead of the one defined by</span>
+<span class="sd">        test configuration. This allows to split test logic from runtime</span>
+<span class="sd">        semantics.</span>
+
+<span class="sd">        For instance, TEs manipulate &#39;ib&#39; as a value to depict the &#39;infiniband&#39;</span>
+<span class="sd">        network layer. But once the test has to be built, the term will change</span>
+<span class="sd">        depending on the runtime carrying it, the value may be different from</span>
+<span class="sd">        a runtime to another</span>
+<span class="sd">        :param val: string with aliases to be replaced</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alias</span><span class="p">[</span><span class="n">val</span><span class="p">]</span> <span class="k">if</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alias</span> <span class="k">else</span> <span class="n">val</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__convert_sequence_to_list</span><span class="p">(</span>
+        <span class="n">node</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">],</span> <span class="n">s</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts a sequence (as a string) to a valid list of values.</span>
+
+<span class="sd">        :param dic: dictionary to take the values from</span>
+<span class="sd">        :param s: start (can be overridden by ``from`` in ``dic``), defaults to -1</span>
+<span class="sd">        :param e: end (can be overridden by ``to`` in ``dic``), defaults to -1</span>
+<span class="sd">        :return: list of values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">values</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># these must be integers</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_convert_sequence_item_to_int</span><span class="p">(</span><span class="n">val</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Helper to convert a string-formatted number to a valid repr.</span>
+
+<span class="sd">            :param val: the string-based number to convert</span>
+<span class="sd">            :raises CommonException.BadTokenError: val is not a number</span>
+<span class="sd">            :return: the number</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">n</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
+                        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">n</span>
+                <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ve</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ve</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">val</span>
+
+        <span class="n">start</span> <span class="o">=</span> <span class="n">_convert_sequence_item_to_int</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;from&quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">_convert_sequence_item_to_int</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;to&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+        <span class="n">of</span> <span class="o">=</span> <span class="n">_convert_sequence_item_to_int</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;of&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">op</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;op&quot;</span><span class="p">,</span> <span class="s2">&quot;seq&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">op</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;seq&quot;</span><span class="p">,</span> <span class="s2">&quot;arithmetic&quot;</span><span class="p">,</span> <span class="s2">&quot;ari&quot;</span><span class="p">]:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">of</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">of</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">op</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mul&quot;</span><span class="p">,</span> <span class="s2">&quot;geometric&quot;</span><span class="p">,</span> <span class="s2">&quot;geo&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">of</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+                <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">start</span><span class="o">**</span><span class="n">of</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cur</span> <span class="o">=</span> <span class="n">start</span>
+                <span class="k">while</span> <span class="n">cur</span> <span class="o">&lt;=</span> <span class="n">end</span><span class="p">:</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span>
+                    <span class="n">cur</span> <span class="o">*=</span> <span class="n">of</span>
+        <span class="k">elif</span> <span class="n">op</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;pow&quot;</span><span class="p">,</span> <span class="s2">&quot;powerof&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">of</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">start</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">of</span><span class="p">))</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">end</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">of</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="o">**</span><span class="n">of</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;failure in Criterion sequence!&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">values</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expanded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expanded</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">min_value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expanded</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max_value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expanded</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Criterion.expand_values">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.expand_values">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expand_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference</span><span class="p">:</span> <span class="n">Self</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Browse values for the current criterion and make it ready to generate combinations.&quot;&quot;&quot;</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="mi">100</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expanded</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_expanded</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">reference</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">Criterion</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">reference</span><span class="o">.</span><span class="n">expanded</span><span class="p">:</span>
+                <span class="n">reference</span><span class="o">.</span><span class="n">expand_values</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">reference</span><span class="o">.</span><span class="n">is_discarded</span><span class="p">():</span>
+                <span class="n">ref_min</span> <span class="o">=</span> <span class="n">reference</span><span class="o">.</span><span class="n">min_value</span>
+                <span class="n">ref_max</span> <span class="o">=</span> <span class="n">reference</span><span class="o">.</span><span class="n">max_value</span>
+
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ref_min</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ref_max</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+
+                <span class="n">start</span> <span class="o">=</span> <span class="n">ref_min</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">ref_max</span>
+
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">crit_debug</span><span class="p">(</span><span class="s2">&quot;Expanding </span><span class="si">{self.name}</span><span class="s2">: </span><span class="si">{self._input_values}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">values</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_numeric</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_values</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__convert_sequence_to_list</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">e</span><span class="o">=</span><span class="n">end</span><span class="p">):</span>
+                        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span>
+                        <span class="n">values</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Only accept int, float or sequence (as string) as values for numeric iterators&quot;</span>
+                    <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_values</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">))</span>
+                <span class="n">values</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expanded</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">crit_debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;EXPANDED </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+        <span class="c1"># TODO: handle criterion dependency (ex: n_mpi: [&#39;n_node * 2&#39;])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__rich_repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Combination">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Combination">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Combination</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A combination maps the actual concretization from multiple criterion.</span>
+
+<span class="sd">    For a given set of criterion, a Combination carries, for each kind, its</span>
+<span class="sd">    associated value in order to generate the appropriate test</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crit_desc</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Criterion</span><span class="p">],</span> <span class="n">comb</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">resources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a combination from two components:</span>
+<span class="sd">        - the actual combination dict</span>
+<span class="sd">        - the dict of criterions</span>
+
+<span class="sd">        :param crit_desc: dict of criterions (=their full description)</span>
+<span class="sd">            represented in the current combination.</span>
+<span class="sd">        :param dict_comb: actual combination dict (k=criterion name, v=actual value)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_criterions</span> <span class="o">=</span> <span class="n">crit_desc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_combination</span> <span class="o">=</span> <span class="n">comb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resources</span> <span class="o">=</span> <span class="n">resources</span>
+
+<div class="viewcode-block" id="Combination.get">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Combination.get">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dflt</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve the actual value for a given combination element.</span>
+
+<span class="sd">        :param k: value to retrieve</span>
+<span class="sd">        :param dflt: default value if k is not a valid key</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combination</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">dflt</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combination</span><span class="p">[</span><span class="n">k</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Combination.items">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Combination.items">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ItemsView</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the combination dict.</span>
+
+<span class="sd">        :return: the whole combination dict.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combination</span><span class="o">.</span><span class="n">items</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Combination.translate_to_str">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Combination.translate_to_str">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">translate_to_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Translate the actual combination in a pretty-format string.</span>
+
+<span class="sd">        This is mainly used to generate actual test names</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_criterions</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># each combination is built following: &#39;defined-prefix+value&#39;</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_combination</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">subtitle</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">subtitle</span>
+            <span class="n">string</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subtitle</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_combination</span><span class="p">[</span><span class="n">n</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">string</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Combination.translate_to_command">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Combination.translate_to_command">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">translate_to_command</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Translate the actual combination is tuple of three elements, based</span>
+<span class="sd">        on the representation of each criterion in the test semantic. It builds</span>
+<span class="sd">        tokens to provide to properly build the test command. It can</span>
+<span class="sd">        either be:</span>
+
+<span class="sd">        1. an environment variable to export before the test to run (gathering</span>
+<span class="sd">           system-scope and program-scope elements)</span>
+<span class="sd">        2. a runtime argument</span>
+<span class="sd">        3. a program-level argument (through custom-made iterators)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">envs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># for each elt, where k is the criterion name, v is the actual value</span>
+        <span class="k">for</span> <span class="n">k_elt</span><span class="p">,</span> <span class="n">v_elt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combination</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_criterions</span><span class="p">[</span><span class="n">k_elt</span><span class="p">]</span>
+            <span class="c1"># concretize_value() gathers both criterion label &amp; value according</span>
+            <span class="c1"># to specs (before, after, aliasing...)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">concretize_value</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v_elt</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">is_env</span><span class="p">():</span>
+                <span class="n">envs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">c</span><span class="o">.</span><span class="n">is_local</span><span class="p">():</span>
+                <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">envs</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Combination.get_combinations">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Combination.get_combinations">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_combinations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Translate the combination into a dictionary.</span>
+
+<span class="sd">        :return: configuration in the shape of a python dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combination</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resources</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resources</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__rich_repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Series">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Series">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Series</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A series ties a test expression (:class:`TEDescriptor`) to the possible values</span>
+<span class="sd">    which can be taken for each criterion to build test sets.</span>
+<span class="sd">    A series can be seen as the Combination generator for a given :class:`TEDescriptor`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># TODO: delete if unused</span>
+    <span class="c1"># @classmethod</span>
+    <span class="c1"># def register_sys_criterion(cls, system_criterion):</span>
+    <span class="c1">#    &quot;&quot;&quot;copy/inherit the system-defined criterion (shortcut to global config)&quot;&quot;&quot;</span>
+    <span class="c1">#    cls.sys_iterators = system_criterion</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_of_criterion</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Criterion</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a series, by extracting the list of values.</span>
+<span class="sd">        Note that here, the dict also contains program-based criterions.</span>
+<span class="sd">        :param dict_of_criterion: values to build the series with</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># this has to be saved, need to be forwarded to each combination</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Criterion</span><span class="p">]</span> <span class="o">=</span> <span class="n">dict_of_criterion</span>  <span class="c1"># type: ignore</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">dict_of_criterion</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">Criterion</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">name</span> <span class="o">==</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Series.generate">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.Series.generate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Combination</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generator to build each combination&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">combination</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">):</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">combination</span><span class="p">)}</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">valid_combination</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">resources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">get_resources</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">Combination</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dict</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">resources</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__rich_repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="initialize_from_system">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.initialize_from_system">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">initialize_from_system</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialise system-wide criterions</span>
+
+<span class="sd">    TODO: Move this function elsewhere.&quot;&quot;&quot;</span>
+    <span class="c1"># sanity checks</span>
+    <span class="k">if</span> <span class="s2">&quot;criterion&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">:</span>
+        <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">set_internal</span><span class="p">(</span><span class="s2">&quot;crit_obj&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># raw YAML objects</span>
+        <span class="n">runtime_iterators</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;runtime&quot;</span><span class="p">][</span><span class="s2">&quot;criterions&quot;</span><span class="p">]</span>
+        <span class="n">criterion_iterators</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;criterion&quot;</span><span class="p">]</span>
+        <span class="n">it_to_remove</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># if a criterion defined in criterion.yaml but</span>
+        <span class="c1"># not declared as part of a runtime, the criterion</span>
+        <span class="c1"># should be silently discarded</span>
+        <span class="c1"># here is the purpose</span>
+        <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">criterion_iterators</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">it</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">runtime_iterators</span><span class="p">:</span>
+                <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Undeclared criterion &quot;</span> <span class="s2">&quot;as part of runtime: &#39;</span><span class="si">{}</span><span class="s2">&#39; &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">it</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">criterion_iterators</span><span class="p">[</span><span class="n">it</span><span class="p">][</span><span class="s2">&quot;values&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;No combination found for </span><span class="si">{}</span><span class="s2">,&quot;</span> <span class="s2">&quot; removing from schedule&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Removing &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">it</span><span class="p">))</span>
+            <span class="n">it_to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>
+
+        <span class="c1"># register the new dict {criterion_name: Criterion object}</span>
+        <span class="c1"># the criterion object gathers both information from runtime &amp; criterion</span>
+        <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">set_internal</span><span class="p">(</span>
+            <span class="s2">&quot;crit_obj&quot;</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="n">Criterion</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">{</span><span class="o">**</span><span class="n">runtime_iterators</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="o">**</span><span class="n">criterion_iterators</span><span class="p">[</span><span class="n">k</span><span class="p">]})</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">criterion_iterators</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">it_to_remove</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+    <span class="c1"># convert any sequence into valid range of integers for</span>
+
+    <span class="c1"># numeric criterions</span>
+    <span class="n">comb_cnt</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">criterion</span> <span class="ow">in</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_internal</span><span class="p">(</span><span class="s2">&quot;crit_obj&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">criterion</span><span class="o">.</span><span class="n">expand_values</span><span class="p">()</span>
+        <span class="n">comb_cnt</span> <span class="o">*=</span> <span class="nb">len</span><span class="p">(</span><span class="n">criterion</span><span class="p">)</span>
+    <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">set_internal</span><span class="p">(</span><span class="s2">&quot;comb_cnt&quot;</span><span class="p">,</span> <span class="n">comb_cnt</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># pylint for python3.10 and pylint for python3.12 does not agree on if this should be snake case or upper case ...</span>
+<span class="n">first</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># pylint: disable=invalid-name</span>
+
+
+<div class="viewcode-block" id="load_plugin">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.load_plugin">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_plugin</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">rt</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;runtime&quot;</span><span class="p">]</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">]</span>
+    <span class="n">p_collection</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_internal</span><span class="p">(</span><span class="s2">&quot;pColl&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;plugin&quot;</span> <span class="ow">in</span> <span class="n">rt</span><span class="p">:</span>
+        <span class="c1"># Temporary, for compatibility with older buold base64 encoded profile. -- start</span>
+        <span class="n">plugin_code</span> <span class="o">=</span> <span class="n">rt</span><span class="p">[</span><span class="s2">&quot;plugin&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">plugin_code</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">plugin_code</span> <span class="o">=</span> <span class="n">plugin_code</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">plugin_code</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Profile plugin still encoded in base64, please use pcvs profile edit -p to convert plugin.&quot;</span>
+            <span class="p">)</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
+
+            <span class="n">plugin_code</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">plugin_code</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="c1"># end</span>
+
+        <span class="n">rt</span><span class="p">[</span><span class="s2">&quot;pluginfile&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;buildcache&quot;</span><span class="p">],</span> <span class="s2">&quot;rt-plugin.py&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">rt</span><span class="p">[</span><span class="s2">&quot;pluginfile&quot;</span><span class="p">],</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">plugin_code</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">p_collection</span><span class="o">.</span><span class="n">register_plugin_by_file</span><span class="p">(</span><span class="n">rt</span><span class="p">[</span><span class="s2">&quot;pluginfile&quot;</span><span class="p">],</span> <span class="n">activate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">SyntaxError</span><span class="p">:</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span>
+                <span class="s2">&quot;Profile plugin encoded in base64, &quot;</span>
+                <span class="s2">&quot;update plugin in profile file, &quot;</span>
+                <span class="s1">&#39;base64 -d &lt;&lt;&lt; &quot;&lt;plugin&gt;&quot;, &#39;</span>
+                <span class="s2">&quot;or by using `pcvs edit -p`&quot;</span>
+            <span class="p">)</span>
+    <span class="k">elif</span> <span class="s2">&quot;defaultplugin&quot;</span> <span class="ow">in</span> <span class="n">rt</span><span class="p">:</span>
+        <span class="n">p_collection</span><span class="o">.</span><span class="n">activate_plugin</span><span class="p">(</span><span class="n">rt</span><span class="p">[</span><span class="s2">&quot;defaultplugin&quot;</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="get_plugin">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.get_plugin">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_plugin</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Collection</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the current validation plugin for the run.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">first</span>
+    <span class="n">rt</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;runtime&quot;</span><span class="p">]</span>
+    <span class="n">plugin</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_internal</span><span class="p">(</span><span class="s2">&quot;pColl&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plugin</span><span class="p">,</span> <span class="n">Collection</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">first</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;plugin&quot;</span> <span class="ow">in</span> <span class="n">rt</span> <span class="ow">or</span> <span class="s2">&quot;defaultplugin&quot;</span> <span class="ow">in</span> <span class="n">rt</span><span class="p">):</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">first</span>
+        <span class="n">load_plugin</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">plugin</span></div>
+
+
+
+<div class="viewcode-block" id="valid_combination">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.valid_combination">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">valid_combination</span><span class="p">(</span><span class="n">dic</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if dict is a valid criterion combination.</span>
+
+<span class="sd">    :param dic: dict to check</span>
+<span class="sd">    :return: True if dic is a valid combination</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ret</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">get_plugin</span><span class="p">()</span><span class="o">.</span><span class="n">invoke_plugins</span><span class="p">(</span>
+        <span class="n">Plugin</span><span class="o">.</span><span class="n">Step</span><span class="o">.</span><span class="n">TEST_EVAL</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">combination</span><span class="o">=</span><span class="n">dic</span>
+    <span class="p">)</span>
+
+    <span class="c1"># by default, no plugin = always true</span>
+    <span class="k">if</span> <span class="n">ret</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+
+
+<div class="viewcode-block" id="get_resources">
+<a class="viewcode-back" href="../../../api/pcvs.helpers.criterion.html#pcvs.helpers.criterion.get_resources">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_resources</span><span class="p">(</span><span class="n">dic</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the resources needed for a job.&quot;&quot;&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">get_plugin</span><span class="p">()</span><span class="o">.</span><span class="n">try_invoke_plugins</span><span class="p">(</span>
+        <span class="n">Plugin</span><span class="o">.</span><span class="n">Step</span><span class="o">.</span><span class="n">TEST_EVAL</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;get_resources&quot;</span><span class="p">,</span> <span class="n">combination</span><span class="o">=</span><span class="n">dic</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">res</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

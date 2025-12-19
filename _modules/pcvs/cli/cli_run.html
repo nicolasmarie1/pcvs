@@ -1,0 +1,605 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.cli.cli_run &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pcvs.cli.cli_run</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.cli.cli_run</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">NAME_BUILDFILE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">NAME_RUN_CONFIG_FILE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">bank</span> <span class="k">as</span> <span class="n">pvBank</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">run</span> <span class="k">as</span> <span class="n">pvRun</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">session</span> <span class="k">as</span> <span class="n">pvSession</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.configfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">Profile</span> <span class="k">as</span> <span class="n">pvProfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.metaconfig</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlobalConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.metaconfig</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetaConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.cli</span><span class="w"> </span><span class="kn">import</span> <span class="n">cli_bank</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigDesc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigKind</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigLocator</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">rich_click</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">click</span>
+
+    <span class="n">click</span><span class="o">.</span><span class="n">rich_click</span><span class="o">.</span><span class="n">SHOW_ARGUMENTS</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">click</span>  <span class="c1"># type: ignore</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">click.shell_completion</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompletionItem</span>
+
+
+<div class="viewcode-block" id="iterate_dirs">
+<a class="viewcode-back" href="../../../api/pcvs.cli.cli_run.html#pcvs.cli.cli_run.iterate_dirs">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">iterate_dirs</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span>  <span class="c1"># pylint: disable=unused-argument</span>
+    <span class="n">param</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span>  <span class="c1"># pylint: disable=unused-argument</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate directories provided by users &amp; format them correctly.</span>
+
+<span class="sd">    Set the default label for a given path if not specified &amp; Configure default</span>
+<span class="sd">    directories if none was provided.</span>
+
+<span class="sd">    :param ctx: Click Context</span>
+<span class="sd">    :param param: The param targeting the function</span>
+<span class="sd">    :param value: The value given by the user:</span>
+<span class="sd">    :return: properly formatted dict of user directories, keys are labels.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dirs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># if not specified</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">err_msg</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+        <span class="n">testpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">testpath</span><span class="p">)</span>
+
+        <span class="c1"># if label already used for a different path</span>
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">dirs</span> <span class="ow">and</span> <span class="n">testpath</span> <span class="o">!=</span> <span class="n">dirs</span><span class="p">[</span><span class="n">label</span><span class="p">]:</span>
+            <span class="n">err_msg</span> <span class="o">+=</span> <span class="s2">&quot;- &#39;</span><span class="si">{}</span><span class="s2">&#39;: Used more than once</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">testpath</span><span class="p">):</span>
+            <span class="n">err_msg</span> <span class="o">+=</span> <span class="s2">&quot;- &#39;</span><span class="si">{}</span><span class="s2">&#39;: No such directory</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">testpath</span><span class="p">)</span>
+        <span class="c1"># else, add it</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dirs</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">testpath</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">BadArgumentUsage</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;While parsing user directories:&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err_msg</span><span class="p">),</span>
+                    <span class="s2">&quot;please see &#39;--help&#39; for more information&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">dirs</span></div>
+
+
+
+<div class="viewcode-block" id="compl_list_dirs">
+<a class="viewcode-back" href="../../../api/pcvs.cli.cli_run.html#pcvs.cli.cli_run.compl_list_dirs">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compl_list_dirs</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">param</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">incomplete</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompletionItem</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;directory completion function.</span>
+
+<span class="sd">    :param ctx: Click context</span>
+<span class="sd">    :param param: the option/argument requesting completion.</span>
+<span class="sd">    :param incomplete: the user input</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dir_okay</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">file_okay</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">shell_complete</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">incomplete</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="compl_list_profiles">
+<a class="viewcode-back" href="../../../api/pcvs.cli.cli_run.html#pcvs.cli.cli_run.compl_list_profiles">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compl_list_profiles</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">param</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">incomplete</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;All profiles name completion function.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">elt</span><span class="o">.</span><span class="n">full_name</span>
+        <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">ConfigLocator</span><span class="p">()</span><span class="o">.</span><span class="n">list_configs</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="n">ConfigKind</span><span class="o">.</span><span class="n">PROFILE</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">incomplete</span> <span class="ow">in</span> <span class="n">elt</span><span class="o">.</span><span class="n">full_name</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="handle_build_lockfile">
+<a class="viewcode-back" href="../../../api/pcvs.cli.cli_run.html#pcvs.cli.cli_run.handle_build_lockfile">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">handle_build_lockfile</span><span class="p">(</span><span class="n">exc</span><span class="p">:</span> <span class="ne">Exception</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove the file lock in build dir if the application stops abruptly.</span>
+
+<span class="sd">    This function will automatically forward the raising exception to the next</span>
+<span class="sd">    handler.</span>
+
+<span class="sd">    :raises Exception: Any exception triggering this handler</span>
+<span class="sd">    :param exc: The raising exception.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span>
+        <span class="ow">and</span> <span class="s2">&quot;validation&quot;</span> <span class="ow">in</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span>
+        <span class="ow">and</span> <span class="s2">&quot;output&quot;</span> <span class="ow">in</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">]</span>
+    <span class="p">):</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;output&quot;</span><span class="p">],</span> <span class="n">NAME_BUILDFILE</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">utils</span><span class="o">.</span><span class="n">is_locked</span><span class="p">(</span><span class="n">prefix</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_lock_owner</span><span class="p">(</span><span class="n">prefix</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">():</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">unlock_file</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">exc</span></div>
+
+
+
+<div class="viewcode-block" id="parse_tags">
+<a class="viewcode-back" href="../../../api/pcvs.cli.cli_run.html#pcvs.cli.cli_run.parse_tags">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_tags</span><span class="p">(</span><span class="n">filters</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse filters to generate tags set.</span>
+
+<span class="sd">    :param filters: a comma separated list of tag name,</span>
+<span class="sd">      with ! before names to exclude them.</span>
+<span class="sd">    :return: dict of tag and if their are included / excluded.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tags</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filters</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;!&quot;</span><span class="p">:</span>
+            <span class="n">tags</span><span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tags</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="n">tags</span></div>
+
+
+
+<span class="nd">@click</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;run&quot;</span><span class="p">,</span>
+    <span class="n">short_help</span><span class="o">=</span><span class="s2">&quot;Run a validation&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-p&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--profile&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;profilename&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">shell_complete</span><span class="o">=</span><span class="n">compl_list_profiles</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+    <span class="n">show_envvar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Existing and valid profile supporting this run&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-o&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--output&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;output&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">show_envvar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">file_okay</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;F directory where PCVS is allowed to store data&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-c&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--settings-file&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;settings_file&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">show_envvar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">file_okay</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dir_okay</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">readable</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Invoke file gathering validation options&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--detach&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;detach&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_envvar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Run the validation asynchronously (WIP)&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-f/-F&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--override/--no-override&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;override&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_envvar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Allow to reuse an already existing output directory&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-d&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--dry-run&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;simulated&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Reproduce the whole process without running tests&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-a&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--anonymize&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;anon&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Purge the results from sensitive data (HOME, USER...)&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-b&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--bank&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;bank&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">shell_complete</span><span class="o">=</span><span class="n">cli_bank</span><span class="o">.</span><span class="n">compl_bank_projects</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Which bank will store the run in addition to the archive&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-m&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--message&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;msg&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Message to store the run (if bank is enabled)&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--duplicate&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;dup&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">file_okay</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+    <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Reuse old test directories (no DIRS required)&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-r&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--report&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;enable_report&quot;</span><span class="p">,</span>
+    <span class="n">show_envvar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Attach a webview server to the current session run.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--report-uri&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;report_addr&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Override default Server address&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-g&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--generate-only&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;generate_only&quot;</span><span class="p">,</span>
+    <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Rebuild the test-base, populating resources for `pcvs exec`&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-t&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--timeout&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;timeout&quot;</span><span class="p">,</span>
+    <span class="n">show_envvar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;PCVS process timeout&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-S&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--successful&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;only_success&quot;</span><span class="p">,</span>
+    <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Return non-zero exit code if a single test has failed&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-s&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--spack-recipe&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;spack_recipe&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">multiple</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Build test-suites based on Spack recipes&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-P&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--print&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;print_policy&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Choice</span><span class="p">([</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;errors&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]),</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Policy for printing tests output depending on its status&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-T&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--print-filter&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;print_filter&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Filter test output based on a list of tags.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;-R&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--run-filter&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;run_filter&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Filter which tests are run based on a list of tags.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span>
+    <span class="s2">&quot;dirs&quot;</span><span class="p">,</span>
+    <span class="n">nargs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+    <span class="n">callback</span><span class="o">=</span><span class="n">iterate_dirs</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
+<span class="nd">@io</span><span class="o">.</span><span class="n">capture_exception</span><span class="p">(</span><span class="ne">Exception</span><span class="p">)</span>
+<span class="nd">@io</span><span class="o">.</span><span class="n">capture_exception</span><span class="p">(</span><span class="ne">Exception</span><span class="p">,</span> <span class="n">handle_build_lockfile</span><span class="p">)</span>
+<span class="nd">@io</span><span class="o">.</span><span class="n">capture_exception</span><span class="p">(</span><span class="ne">KeyboardInterrupt</span><span class="p">,</span> <span class="n">handle_build_lockfile</span><span class="p">)</span>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span>
+    <span class="n">profilename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">settings_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">detach</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">override</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">simulated</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">anon</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">bank</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">msg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">dup</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">enable_report</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">report_addr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">generate_only</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">only_success</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">spack_recipe</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">print_policy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">print_filter</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">run_filter</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">dirs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>  <span class="c1"># see callback function for type infos</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Execute a validation suite from a given PROFILE.</span>
+
+<span class="sd">    By default the current directory is scanned to find test-suites to run.</span>
+<span class="sd">    May also be provided as a list of directories as described by tests</span>
+<span class="sd">    found in DIRS.</span>
+
+<span class="sd">    Warning: Tags filters are order sensitive, a test with &#39;compiler&#39; and &#39;test&#39; tags</span>
+<span class="sd">    will be filter out by &#39;!test,compiler&#39; but included by &#39;compiler,!test&#39;.</span>
+<span class="sd">    (The first tag in the filter to match a tag in the test rule).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;PRE-RUN: start&quot;</span><span class="p">)</span>
+    <span class="c1"># first, prepare raw arguments to be usable</span>
+    <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+    <span class="n">global_config</span> <span class="o">=</span> <span class="n">MetaConfig</span><span class="p">()</span>
+    <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">global_config</span>
+    <span class="n">global_config</span><span class="o">.</span><span class="n">set_internal</span><span class="p">(</span><span class="s2">&quot;pColl&quot;</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span><span class="p">[</span><span class="s2">&quot;plugins&quot;</span><span class="p">])</span>
+
+    <span class="c1"># then init the configuration</span>
+    <span class="k">if</span> <span class="n">settings_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># detect ?</span>
+        <span class="n">detect</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">NAME_RUN_CONFIG_FILE</span><span class="p">)</span>
+        <span class="n">settings_file</span> <span class="o">=</span> <span class="n">detect</span> <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">detect</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;PRE-RUN: load settings from local file: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">settings_file</span><span class="p">))</span>
+    <span class="n">global_config</span><span class="o">.</span><span class="n">bootstrap_validation_from_file</span><span class="p">(</span><span class="n">settings_file</span><span class="p">)</span>
+    <span class="n">val_cfg</span> <span class="o">=</span> <span class="n">global_config</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">]</span>
+
+    <span class="c1"># save &#39;run&#39; parameters into global configuration</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;print_policy&quot;</span><span class="p">,</span> <span class="n">print_policy</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;print_filter&quot;</span><span class="p">,</span> <span class="n">parse_tags</span><span class="p">(</span><span class="n">print_filter</span><span class="p">))</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;run_filter&quot;</span><span class="p">,</span> <span class="n">parse_tags</span><span class="p">(</span><span class="n">run_filter</span><span class="p">))</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">])</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;background&quot;</span><span class="p">,</span> <span class="n">detach</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;override&quot;</span><span class="p">,</span> <span class="n">override</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;simulated&quot;</span><span class="p">,</span> <span class="n">simulated</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;onlygen&quot;</span><span class="p">,</span> <span class="n">generate_only</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;anonymize&quot;</span><span class="p">,</span> <span class="n">anon</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;reused_build&quot;</span><span class="p">,</span> <span class="n">dup</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;default_profile&quot;</span><span class="p">,</span> <span class="n">profilename</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;target_bank&quot;</span><span class="p">,</span> <span class="n">bank</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;enable_report&quot;</span><span class="p">,</span> <span class="n">enable_report</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;report_addr&quot;</span><span class="p">,</span> <span class="n">report_addr</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;timeout&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;spack_recipe&quot;</span><span class="p">,</span> <span class="n">spack_recipe</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;only_success&quot;</span><span class="p">,</span> <span class="n">only_success</span><span class="p">)</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;buildcache&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">],</span> <span class="s2">&quot;cache&quot;</span><span class="p">))</span>
+
+    <span class="c1"># if dirs not set by config file nor CLI</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">dirs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;dirs&quot;</span><span class="p">]:</span>
+        <span class="n">dirs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">spack_recipe</span><span class="p">:</span>
+            <span class="n">testpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+            <span class="n">dirs</span> <span class="o">=</span> <span class="p">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">testpath</span><span class="p">):</span> <span class="n">testpath</span><span class="p">}</span>
+
+    <span class="c1"># not overriding if dirs is None</span>
+    <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;dirs&quot;</span><span class="p">,</span> <span class="n">dirs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">bank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">pvBank</span><span class="o">.</span><span class="n">Bank</span><span class="p">(</span><span class="n">bank</span><span class="p">)</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;PRE-RUN: configure target bank: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+
+    <span class="c1"># BEFORE the build dir still does not exist !</span>
+    <span class="n">buildfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">],</span> <span class="n">NAME_BUILDFILE</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]):</span>
+        <span class="c1"># careful if the build dir does not exist</span>
+        <span class="c1"># the condition above may be executed concurrently</span>
+        <span class="c1"># by two runs, inducing parallel execution in the same dir</span>
+        <span class="c1"># TODO.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">utils</span><span class="o">.</span><span class="n">trylock_file</span><span class="p">(</span><span class="n">buildfile</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;override&quot;</span><span class="p">]:</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">lock_file</span><span class="p">(</span><span class="n">buildfile</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">RunException</span><span class="o">.</span><span class="n">InProgressError</span><span class="p">(</span>
+                    <span class="n">path</span><span class="o">=</span><span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">],</span>
+                    <span class="n">lockfile</span><span class="o">=</span><span class="n">buildfile</span><span class="p">,</span>
+                    <span class="n">owner_pid</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">get_lock_owner</span><span class="p">(</span><span class="n">buildfile</span><span class="p">)),</span>
+                <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]):</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;PRE-RUN: Prepare output directory: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]))</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">])</span>
+
+    <span class="c1"># check if another build should reused</span>
+    <span class="c1"># this avoids to re-run combinatorial system twice</span>
+    <span class="k">if</span> <span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;reused_build&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;PRE-RUN: Clone previous build to be reused&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;PRE-RUN: previous build: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;reused_build&quot;</span><span class="p">]))</span>
+            <span class="n">global_config</span> <span class="o">=</span> <span class="n">pvRun</span><span class="o">.</span><span class="n">dup_another_build</span><span class="p">(</span><span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;reused_build&quot;</span><span class="p">],</span> <span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">])</span>
+            <span class="c1"># TODO: Currently nothing can be overridden from cloned build except:</span>
+            <span class="c1"># - &#39;output&#39;</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">fnfe</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">BadOptionUsage</span><span class="p">(</span>
+                <span class="s2">&quot;--duplicate&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> is not a valid build directory!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;reused_build&quot;</span><span class="p">])</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">fnfe</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cl</span><span class="p">:</span> <span class="n">ConfigLocator</span> <span class="o">=</span> <span class="n">ConfigLocator</span><span class="p">()</span>
+        <span class="n">cd</span><span class="p">:</span> <span class="n">ConfigDesc</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="n">parse_full_raise</span><span class="p">(</span>
+            <span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;default_profile&quot;</span><span class="p">],</span> <span class="n">kind</span><span class="o">=</span><span class="n">ConfigKind</span><span class="o">.</span><span class="n">PROFILE</span><span class="p">,</span> <span class="n">should_exist</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">pf</span> <span class="o">=</span> <span class="n">pvProfile</span><span class="p">(</span><span class="n">cd</span><span class="p">,</span> <span class="n">cl</span><span class="p">)</span>
+
+        <span class="n">val_cfg</span><span class="o">.</span><span class="n">set_ifdef</span><span class="p">(</span><span class="s2">&quot;pf_name&quot;</span><span class="p">,</span> <span class="n">pf</span><span class="o">.</span><span class="n">full_name</span><span class="p">)</span>
+        <span class="n">global_config</span><span class="o">.</span><span class="n">bootstrap_from_profile</span><span class="p">(</span><span class="n">pf</span><span class="p">)</span>
+
+    <span class="n">the_session</span> <span class="o">=</span> <span class="n">pvSession</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">],</span> <span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">])</span>
+    <span class="n">the_session</span><span class="o">.</span><span class="n">register_callback</span><span class="p">(</span><span class="n">callback</span><span class="o">=</span><span class="n">pvRun</span><span class="o">.</span><span class="n">process_main_workflow</span><span class="p">)</span>
+
+    <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;PRE-RUN: Session to be started&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">val_cfg</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]:</span>
+        <span class="n">sid</span> <span class="o">=</span> <span class="n">the_session</span><span class="o">.</span><span class="n">run_detached</span><span class="p">(</span><span class="n">the_session</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Session successfully started, ID </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sid</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sid</span> <span class="o">=</span> <span class="n">the_session</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">the_session</span><span class="p">)</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">unlock_file</span><span class="p">(</span><span class="n">buildfile</span><span class="p">)</span>
+
+    <span class="n">final_rc</span> <span class="o">=</span> <span class="n">the_session</span><span class="o">.</span><span class="n">rc</span> <span class="k">if</span> <span class="n">only_success</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">final_rc</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

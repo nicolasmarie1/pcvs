@@ -124,8 +124,78 @@
 </ul>
 </div>
 </section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<section id="module-pcvs.analysis">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pcvs.analysis" title="Link to this heading"></a></h2>
+<p>Analysis Package.</p>
+<p>Used to query information for Analysis from a finished pcvs run through the dsl layer.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.analysis.BaseAnalysis">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.analysis.</span></span><span class="sig-name descname"><span class="pre">BaseAnalysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bank</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/analysis.html#BaseAnalysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.analysis.BaseAnalysis" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.analysis.ResolverAnalysis">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.analysis.</span></span><span class="sig-name descname"><span class="pre">ResolverAnalysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bank</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/analysis.html#ResolverAnalysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.analysis.ResolverAnalysis" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pcvs.analysis.BaseAnalysis" title="pcvs.analysis.BaseAnalysis"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseAnalysis</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.analysis.ResolverAnalysis.fill">
+<span class="sig-name descname"><span class="pre">fill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/analysis.html#ResolverAnalysis.fill"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.analysis.ResolverAnalysis.fill" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.analysis.SimpleAnalysis">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.analysis.</span></span><span class="sig-name descname"><span class="pre">SimpleAnalysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bank</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/analysis.html#SimpleAnalysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.analysis.SimpleAnalysis" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pcvs.analysis.BaseAnalysis" title="pcvs.analysis.BaseAnalysis"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseAnalysis</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.analysis.SimpleAnalysis.generate_series_infos">
+<span class="sig-name descname"><span class="pre">generate_series_infos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/analysis.html#SimpleAnalysis.generate_series_infos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.analysis.SimpleAnalysis.generate_series_infos" title="Link to this definition"></a></dt>
+<dd><p>Get series information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>series</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.dsl.html#pcvs.dsl.Series" title="pcvs.dsl.Series"><code class="xref py py-class docutils literal notranslate"><span class="pre">Series</span></code></a></span>) – the series to get information of.</p></li>
+<li><p><strong>limit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – the number of run to look back.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <a class="reference internal" href="pcvs.testing.teststate.html#pcvs.testing.teststate.TestState" title="pcvs.testing.teststate.TestState"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestState</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>test base name, test status &amp; test duration for each jobs for each run date.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.analysis.SimpleAnalysis.generate_series_trend">
+<span class="sig-name descname"><span class="pre">generate_series_trend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/analysis.html#SimpleAnalysis.generate_series_trend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.analysis.SimpleAnalysis.generate_series_trend" title="Link to this definition"></a></dt>
+<dd><p>Generate series trend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>series</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.dsl.html#pcvs.dsl.Series" title="pcvs.dsl.Series"><code class="xref py py-class docutils literal notranslate"><span class="pre">Series</span></code></a></span>) – the series to get a trend of.</p></li>
+<li><p><strong>limit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – the number of run to get the trend on.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>run date, and tests status summary for each run</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 

@@ -115,8 +115,317 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-backend-configfile-module">
-<h1>pcvs.backend.configfile module<a class="headerlink" href="#pcvs-backend-configfile-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.backend.configfile">
+<span id="pcvs-backend-configfile-module"></span><h1>pcvs.backend.configfile module<a class="headerlink" href="#module-pcvs.backend.configfile" title="Link to this heading"></a></h1>
+<p>Module for parsing configuration.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#pcvs.backend.configfile.ConfigFile" title="pcvs.backend.configfile.ConfigFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigFile</span></code></a>: a file on the disc, can be read, write, verify, edited, display …</p></li>
+<li><p><a class="reference internal" href="#pcvs.backend.configfile.YmlConfigFile" title="pcvs.backend.configfile.YmlConfigFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">YmlConfigFile</span></code></a>: inherite <a class="reference internal" href="#pcvs.backend.configfile.ConfigFile" title="pcvs.backend.configfile.ConfigFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigFile</span></code></a> and add yaml parsing support.</p></li>
+<li><p><a class="reference internal" href="#pcvs.backend.configfile.Profile" title="pcvs.backend.configfile.Profile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code></a>: A <a class="reference internal" href="#pcvs.backend.configfile.YmlConfigFile" title="pcvs.backend.configfile.YmlConfigFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">YmlConfigFile</span></code></a> that also contain multiples
+others <a class="reference internal" href="#pcvs.backend.configfile.YmlConfigFile" title="pcvs.backend.configfile.YmlConfigFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">YmlConfigFile</span></code></a> that represent it’s configuration.</p></li>
+</ul>
+<p>From a user persperctive, a <a class="reference internal" href="#pcvs.backend.configfile.ConfigFile" title="pcvs.backend.configfile.ConfigFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigFile</span></code></a> is a file, gathered in a Python
+object information relative to the configuration of a single component.
+In PCVS, there is 7 types of components:</p>
+<ul class="simple">
+<li><p>5 basic blocks:</p>
+<ul>
+<li><p>Compiler (defining compiler commands)</p></li>
+<li><p>Runtime (setting runtime &amp; parametrization)</p></li>
+<li><p>Machine (Defining resources used for execution)</p></li>
+<li><p>Group (used a templates to globally describe tests)</p></li>
+<li><p>Criterion (range of parameters used to run a test-suite)</p></li>
+</ul>
+</li>
+<li><p>2 special:</p>
+<ul>
+<li><p>Profile (a group of one of each the above configuration)</p></li>
+<li><p>Plugin (a python plugin)</p></li>
+</ul>
+</li>
+</ul>
+<p>These classes helps to manage any of these config blocks above.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.ConfigFile">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.backend.configfile.</span></span><span class="sig-name descname"><span class="pre">ConfigFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_desc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/configfile.html#ConfigFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.configfile.ConfigFile" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Handle configuration file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_raw</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>) – the content of the file</p></li>
+<li><p><strong>_descriptor</strong> (<a class="reference internal" href="pcvs.helpers.storage.html#pcvs.helpers.storage.ConfigDesc" title="pcvs.helpers.storage.ConfigDesc"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigDesc</span></code></a>) – the  of the current file.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Initialize a configuration file representation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.ConfigFile.delete">
+<span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/configfile.html#ConfigFile.delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.configfile.ConfigFile.delete" title="Link to this definition"></a></dt>
+<dd><p>Delete a configuration from disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.ConfigFile.descriptor">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">descriptor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pcvs.helpers.storage.html#pcvs.helpers.storage.ConfigDesc" title="pcvs.helpers.storage.ConfigDesc"><span class="pre">ConfigDesc</span></a></em><a class="headerlink" href="#pcvs.backend.configfile.ConfigFile.descriptor" title="Link to this definition"></a></dt>
+<dd><p>Return the description of the config file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.ConfigFile.display">
+<span class="sig-name descname"><span class="pre">display</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/configfile.html#ConfigFile.display"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.configfile.ConfigFile.display" title="Link to this definition"></a></dt>
+<dd><p>Pretty print Configuration block.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.ConfigFile.edit">
+<span class="sig-name descname"><span class="pre">edit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/configfile.html#ConfigFile.edit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.configfile.ConfigFile.edit" title="Link to this definition"></a></dt>
+<dd><p>Open the current configuration for edition.</p>
+<p>After eddition, the new file is loaded, check and then written to disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>Exception</strong> – Something occurred during the edition or at the validation of the edited file.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.ConfigFile.exist">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">exist</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#pcvs.backend.configfile.ConfigFile.exist" title="Link to this definition"></a></dt>
+<dd><p>Return if the config file exist on disk.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.ConfigFile.flush_to_disk">
+<span class="sig-name descname"><span class="pre">flush_to_disk</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/configfile.html#ConfigFile.flush_to_disk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.configfile.ConfigFile.flush_to_disk" title="Link to this definition"></a></dt>
+<dd><p>Write the configuration to disk.</p>
+<p>Also check the configuration before writing it do disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.ConfigFile.from_str">
+<span class="sig-name descname"><span class="pre">from_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/configfile.html#ConfigFile.from_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.configfile.ConfigFile.from_str" title="Link to this definition"></a></dt>
+<dd><p>Set configuration from str.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.ConfigFile.full_name">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">full_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.backend.configfile.ConfigFile.full_name" title="Link to this definition"></a></dt>
+<dd><p>Return full name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.ConfigFile.load_from_disk">
+<span class="sig-name descname"><span class="pre">load_from_disk</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/configfile.html#ConfigFile.load_from_disk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.configfile.ConfigFile.load_from_disk" title="Link to this definition"></a></dt>
+<dd><p>Load the configuration file to populate the current object.</p>
+<p>Also verify the loaded content according to schema (for yml files).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.ConfigFile.loaded">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">loaded</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#pcvs.backend.configfile.ConfigFile.loaded" title="Link to this definition"></a></dt>
+<dd><p>Return if the config is loaded in Object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.ConfigFile.to_str">
+<span class="sig-name descname"><span class="pre">to_str</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/configfile.html#ConfigFile.to_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.configfile.ConfigFile.to_str" title="Link to this definition"></a></dt>
+<dd><p>Get configuration as str.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.ConfigFile.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/configfile.html#ConfigFile.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.configfile.ConfigFile.validate" title="Link to this definition"></a></dt>
+<dd><p>Validate a Config against it’s shema.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.Profile">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.backend.configfile.</span></span><span class="sig-name descname"><span class="pre">Profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_desc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/configfile.html#Profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.configfile.Profile" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pcvs.backend.configfile.YmlConfigFile" title="pcvs.backend.configfile.YmlConfigFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">YmlConfigFile</span></code></a></p>
+<p>A profile represents the most complete object the user can provide.</p>
+<p>It is built upon 5 configuration, one of each kind
+(compiler, runtime, machine, criterion &amp; group) and plugins
+and gathers all required information to start a validation process.
+A profile object is the basic representation to be manipulated by the user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_config_locator</strong> (<a class="reference internal" href="pcvs.helpers.storage.html#pcvs.helpers.storage.ConfigLocator" title="pcvs.helpers.storage.ConfigLocator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigLocator</span></code></a>) – the ConfigLocator use to locate the configurations referenced in the profile.</p></li>
+<li><p><strong>_innerconfigs</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">YmlConfigFile]</span></code>) – the Configuration referenced by the profile once loaded.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Initialize a profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cl</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.helpers.storage.html#pcvs.helpers.storage.ConfigLocator" title="pcvs.helpers.storage.ConfigLocator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigLocator</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A ConfigLocator Object used to locat config specify by Profile.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.Profile.CONFIGS_KINDS">
+<span class="sig-name descname"><span class="pre">CONFIGS_KINDS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[COMPILER,</span> <span class="pre">CRITERION,</span> <span class="pre">GROUP,</span> <span class="pre">MACHINE,</span> <span class="pre">RUNTIME]</span></em><a class="headerlink" href="#pcvs.backend.configfile.Profile.CONFIGS_KINDS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.Profile.compiler">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compiler</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pcvs.backend.config.html#pcvs.backend.config.Config" title="pcvs.backend.config.Config"><span class="pre">Config</span></a></em><a class="headerlink" href="#pcvs.backend.configfile.Profile.compiler" title="Link to this definition"></a></dt>
+<dd><p>Access the ‘compiler’ section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the ‘compiler’ config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.Profile.criterion">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">criterion</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pcvs.backend.config.html#pcvs.backend.config.Config" title="pcvs.backend.config.Config"><span class="pre">Config</span></a></em><a class="headerlink" href="#pcvs.backend.configfile.Profile.criterion" title="Link to this definition"></a></dt>
+<dd><p>Access the ‘criterion’ section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the ‘criterion’ config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.Profile.group">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">group</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pcvs.backend.config.html#pcvs.backend.config.Config" title="pcvs.backend.config.Config"><span class="pre">Config</span></a></em><a class="headerlink" href="#pcvs.backend.configfile.Profile.group" title="Link to this definition"></a></dt>
+<dd><p>Access the ‘group’ section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the ‘group’ config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.Profile.machine">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">machine</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pcvs.backend.config.html#pcvs.backend.config.Config" title="pcvs.backend.config.Config"><span class="pre">Config</span></a></em><a class="headerlink" href="#pcvs.backend.configfile.Profile.machine" title="Link to this definition"></a></dt>
+<dd><p>Access the ‘machine’ section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the ‘machine’ config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.Profile.runtime">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">runtime</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pcvs.backend.config.html#pcvs.backend.config.Config" title="pcvs.backend.config.Config"><span class="pre">Config</span></a></em><a class="headerlink" href="#pcvs.backend.configfile.Profile.runtime" title="Link to this definition"></a></dt>
+<dd><p>Access the ‘runtime’ section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the ‘runtime’ config</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.YmlConfigFile">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.backend.configfile.</span></span><span class="sig-name descname"><span class="pre">YmlConfigFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_desc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/configfile.html#YmlConfigFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.configfile.YmlConfigFile" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pcvs.backend.configfile.ConfigFile" title="pcvs.backend.configfile.ConfigFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigFile</span></code></a></p>
+<p>A Yaml File Configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>_details</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>) – the yaml representation of the configuration.</p>
+</dd>
+</dl>
+<p>Initialize a Yaml configuration file representation.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.YmlConfigFile.config">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pcvs.backend.config.html#pcvs.backend.config.Config" title="pcvs.backend.config.Config"><span class="pre">Config</span></a></em><a class="headerlink" href="#pcvs.backend.configfile.YmlConfigFile.config" title="Link to this definition"></a></dt>
+<dd><p>Get config object associated with config file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the config object associated with the config file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.YmlConfigFile.from_dict">
+<span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/configfile.html#YmlConfigFile.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.configfile.YmlConfigFile.from_dict" title="Link to this definition"></a></dt>
+<dd><p>Fill the config from the raw parameter.</p>
+<p>Content of the dictionary is check to ensure it respect yaml template
+associated with configuration file. File is <em>not</em> written to disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>d</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – the dictionary to be impoted.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.YmlConfigFile.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/configfile.html#YmlConfigFile.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.configfile.YmlConfigFile.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert the Config() to regular dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.configfile.get_conf">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.configfile.</span></span><span class="sig-name descname"><span class="pre">get_conf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/configfile.html#get_conf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.configfile.get_conf" title="Link to this definition"></a></dt>
+<dd><p>Get Appropriate ConfigFile Object from a <a class="reference internal" href="pcvs.helpers.storage.html#pcvs.helpers.storage.ConfigDesc" title="pcvs.helpers.storage.ConfigDesc"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigDesc</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pcvs.backend.configfile.ConfigFile" title="pcvs.backend.configfile.ConfigFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigFile</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 

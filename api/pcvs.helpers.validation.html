@@ -115,8 +115,60 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-helpers-validation-module">
-<h1>pcvs.helpers.validation module<a class="headerlink" href="#pcvs-helpers-validation-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.helpers.validation">
+<span id="pcvs-helpers-validation-module"></span><h1>pcvs.helpers.validation module<a class="headerlink" href="#module-pcvs.helpers.validation" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.helpers.validation.ValidationScheme">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.validation.</span></span><span class="sig-name descname"><span class="pre">ValidationScheme</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">schema_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/validation.html#ValidationScheme"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.validation.ValidationScheme" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Object manipulating schemes (yaml) to enforce data formats.</p>
+<p>A validationScheme is instancied according to a ‘model’ (the format to
+validate). This instance can be used multiple times to check multiple
+streams belonging to the same model.</p>
+<p>Create a new ValidationScheme instance based on a given model.</p>
+<p>During initialisation the file scheme is loaded from disk.
+:param name: name
+:raises SchemeError: file is not found OR unable to load
+the YAML scheme file.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.helpers.validation.ValidationScheme.avail_list">
+<span class="sig-name descname"><span class="pre">avail_list</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#pcvs.helpers.validation.ValidationScheme.avail_list" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.validation.ValidationScheme.available_schemes">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">available_schemes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/validation.html#ValidationScheme.available_schemes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.validation.ValidationScheme.available_schemes" title="Link to this definition"></a></dt>
+<dd><p>Return list of currently supported formats to be validated.</p>
+<p>The list is extracted from INSTALL/schemes/generated/&lt;model&gt;-scheme.yml
+:rtype: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span>
+:return: List of available schemes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.validation.ValidationScheme.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/validation.html#ValidationScheme.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.validation.ValidationScheme.validate" title="Link to this definition"></a></dt>
+<dd><p>Validate a given datastructure (dict) agasint the loaded scheme.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>content</strong> (<em>dict</em>) – json to validate</p></li>
+<li><p><strong>filepath</strong> (<em>str</em>) – the path of the file content come from</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.ValidationException.FormatError" title="pcvs.helpers.exceptions.ValidationException.FormatError"><strong>FormatError</strong></a> – data are not valid</p></li>
+<li><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.ValidationException.SchemeError" title="pcvs.helpers.exceptions.ValidationException.SchemeError"><strong>SchemeError</strong></a> – issue while applying scheme</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 

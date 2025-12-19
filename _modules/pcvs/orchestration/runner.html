@@ -1,0 +1,491 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.orchestration.runner &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../orchestration.html">pcvs.orchestration</a></li>
+      <li class="breadcrumb-item active">pcvs.orchestration.runner</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.orchestration.runner</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">queue</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">signal</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">BufferedWriter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">queue</span><span class="w"> </span><span class="kn">import</span> <span class="n">Queue</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pcvs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.metaconfig</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlobalConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunnerException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.orchestration.set</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExecMode</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.orchestration.set</span><span class="w"> </span><span class="kn">import</span> <span class="n">Set</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">Test</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.teststate</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestState</span>
+
+
+<div class="viewcode-block" id="RemoteContext">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RemoteContext">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RemoteContext</span><span class="p">:</span>
+
+    <span class="n">MAGIC_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;PCVS-MAGIC&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">jobs</span><span class="p">:</span> <span class="n">Set</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="n">prefix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cnt</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">jobs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">jobs</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_completed_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="s2">&quot;.completed&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">jobs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_input_to_disk</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span>
+
+        <span class="c1"># inputs are flushed atomically, no need for a file handler</span>
+        <span class="c1"># outputs are stored incrementally to avoid data losses</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="p">:</span> <span class="n">BufferedWriter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cnt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cnt</span>
+
+<div class="viewcode-block" id="RemoteContext.save_input_to_disk">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RemoteContext.save_input_to_disk">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_input_to_disk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobs</span><span class="p">:</span> <span class="n">Set</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">,</span> <span class="s2">&quot;input.json&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">to_minimal_json</span><span class="p">(),</span> <span class="n">jobs</span><span class="o">.</span><span class="n">content</span><span class="p">))))</span></div>
+
+
+<div class="viewcode-block" id="RemoteContext.check_input_avail">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RemoteContext.check_input_avail">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_input_avail</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">,</span> <span class="s2">&quot;input.json&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RemoteContext.check_output_avail">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RemoteContext.check_output_avail">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_output_avail</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">,</span> <span class="s2">&quot;output.bin&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RemoteContext.load_input_from_disk">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RemoteContext.load_input_from_disk">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_input_from_disk</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">))</span>
+        <span class="n">jobs</span> <span class="o">=</span> <span class="n">Set</span><span class="p">(</span><span class="n">execmode</span><span class="o">=</span><span class="n">ExecMode</span><span class="o">.</span><span class="n">LOCAL</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">,</span> <span class="s2">&quot;input.json&quot;</span><span class="p">),</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">cur</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">from_minimal_json</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+                <span class="n">jobs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cnt</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">jobs</span></div>
+
+
+<div class="viewcode-block" id="RemoteContext.save_result_to_disk">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RemoteContext.save_result_to_disk">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_result_to_disk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Test</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">,</span> <span class="s2">&quot;output.bin&quot;</span><span class="p">),</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">b64_output_bytes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">MAGIC_TOKEN</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">jid</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">job</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">retcode</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span>
+                <span class="n">data</span><span class="p">,</span>
+                <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RemoteContext.load_result_from_disk">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RemoteContext.load_result_from_disk">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_result_from_disk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobs</span><span class="p">:</span> <span class="n">Set</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">,</span> <span class="s2">&quot;output.bin&quot;</span><span class="p">),</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">lineum</span><span class="p">,</span> <span class="n">linedata</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">lineum</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># metadata:</span>
+                    <span class="n">magic</span><span class="p">,</span> <span class="n">jobid</span><span class="p">,</span> <span class="n">_datalen</span><span class="p">,</span> <span class="n">_timexec</span><span class="p">,</span> <span class="n">_retcode</span> <span class="o">=</span> <span class="n">linedata</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+                    <span class="k">assert</span> <span class="n">magic</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">MAGIC_TOKEN</span>
+                    <span class="n">datalen</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_datalen</span><span class="p">)</span>
+                    <span class="n">timexec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">_timexec</span><span class="p">)</span>
+                    <span class="n">retcode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_retcode</span><span class="p">)</span>
+                    <span class="n">job</span><span class="p">:</span> <span class="n">Test</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">jobs</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span>
+                    <span class="k">assert</span> <span class="n">job</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="n">datalen</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">job</span><span class="o">.</span><span class="n">b64_output_bytes</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">lineum</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                    <span class="n">job</span><span class="o">.</span><span class="n">save_raw_run</span><span class="p">(</span><span class="n">rc</span><span class="o">=</span><span class="n">retcode</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">timexec</span><span class="p">)</span>
+                    <span class="n">job</span><span class="o">.</span><span class="n">save_status</span><span class="p">(</span><span class="n">TestState</span><span class="o">.</span><span class="n">EXECUTED</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RemoteContext.mark_as_completed">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RemoteContext.mark_as_completed">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mark_as_completed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_completed_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="RemoteContext.mark_as_not_completed">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RemoteContext.mark_as_not_completed">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mark_as_not_completed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_completed_file</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_completed_file</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">completed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_completed_file</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RunnerAdapter">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RunnerAdapter">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RunnerAdapter</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
+    <span class="n">sched_in_progress</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">buildir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">ready</span><span class="p">:</span> <span class="n">Queue</span><span class="p">,</span>
+        <span class="n">complete</span><span class="p">:</span> <span class="n">Queue</span><span class="p">,</span>
+        <span class="n">context</span><span class="p">:</span> <span class="n">RemoteContext</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">buildir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ctx</span><span class="p">:</span> <span class="n">RemoteContext</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">context</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rq</span><span class="p">:</span> <span class="n">Queue</span> <span class="o">=</span> <span class="n">ready</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cq</span><span class="p">:</span> <span class="n">Queue</span> <span class="o">=</span> <span class="n">complete</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="RunnerAdapter.run">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RunnerAdapter.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sched_in_progress</span><span class="p">:</span>
+                    <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rq</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">execute_set</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cq</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">e</span></div>
+
+
+<div class="viewcode-block" id="RunnerAdapter.execute_set">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RunnerAdapter.execute_set">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobs</span><span class="p">:</span> <span class="n">Set</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">jobs</span><span class="o">.</span><span class="n">execmode</span> <span class="o">==</span> <span class="n">ExecMode</span><span class="o">.</span><span class="n">LOCAL</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">local_exec</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remote_exec</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RunnerAdapter.local_exec">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RunnerAdapter.local_exec">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">local_exec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobs</span><span class="p">:</span> <span class="n">Set</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute the Set and jobs within it.</span>
+
+<span class="sd">        :raises Exception: Something occurred while running a test&quot;&quot;&quot;</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">nodebug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: [LOCAL] Set start&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ident</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">_job</span> <span class="ow">in</span> <span class="n">jobs</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+            <span class="n">job</span><span class="p">:</span> <span class="n">Test</span> <span class="o">=</span> <span class="n">_job</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">invocation_command</span><span class="p">),</span>
+                <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
+                <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                <span class="n">start_new_session</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+            <span class="n">run_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+            <span class="n">rc</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">stdout</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">hard_timeout</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="c1"># Check for process end for 1s</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">stdout</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">TimeoutExpired</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Process ended -&gt; break</span>
+                    <span class="n">run_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+                    <span class="c1"># Note: The return code here is coming from the script,</span>
+                    <span class="c1"># not the test itself.</span>
+                    <span class="n">rc</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">returncode</span>
+                    <span class="k">break</span>
+
+                <span class="c1"># Timeout -&gt; terminate -&gt; break</span>
+                <span class="n">run_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+                <span class="k">if</span> <span class="n">run_time</span> <span class="o">&gt;</span> <span class="n">job</span><span class="o">.</span><span class="n">hard_timeout</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">killpg</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpgid</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">pid</span><span class="p">),</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">)</span>
+                    <span class="n">stdout</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+                    <span class="n">run_time</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">hard_timeout</span>
+                    <span class="n">hard_timeout</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+
+                <span class="c1"># Aborting runs -&gt; kill -&gt; exit</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">RunnerAdapter</span><span class="o">.</span><span class="n">sched_in_progress</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">killpg</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpgid</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">pid</span><span class="p">),</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGKILL</span><span class="p">)</span>
+                    <span class="k">return</span>
+
+            <span class="n">job</span><span class="o">.</span><span class="n">save_status</span><span class="p">(</span><span class="n">TestState</span><span class="o">.</span><span class="n">EXECUTED</span><span class="p">)</span>
+            <span class="n">job</span><span class="o">.</span><span class="n">save_raw_run</span><span class="p">(</span>
+                <span class="n">time</span><span class="o">=</span><span class="n">run_time</span><span class="p">,</span> <span class="n">rc</span><span class="o">=</span><span class="n">rc</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">hard_timeout</span><span class="o">=</span><span class="n">hard_timeout</span>
+            <span class="p">)</span>
+        <span class="n">jobs</span><span class="o">.</span><span class="n">completed</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="RunnerAdapter.remote_exec">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RunnerAdapter.remote_exec">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remote_exec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobs</span><span class="p">:</span> <span class="n">Set</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">jobman_cfg</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">jobs</span><span class="o">.</span><span class="n">execmode</span> <span class="o">==</span> <span class="n">ExecMode</span><span class="o">.</span><span class="n">ALLOC</span><span class="p">:</span>
+            <span class="n">jobman_cfg</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;machine&quot;</span><span class="p">][</span><span class="s2">&quot;job_manager&quot;</span><span class="p">][</span><span class="s2">&quot;allocate&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">jobs</span><span class="o">.</span><span class="n">execmode</span> <span class="o">==</span> <span class="n">ExecMode</span><span class="o">.</span><span class="n">REMOTE</span><span class="p">:</span>
+            <span class="n">jobman_cfg</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;machine&quot;</span><span class="p">][</span><span class="s2">&quot;job_manager&quot;</span><span class="p">][</span><span class="s2">&quot;remote&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">jobs</span><span class="o">.</span><span class="n">execmode</span> <span class="o">==</span> <span class="n">ExecMode</span><span class="o">.</span><span class="n">BATCH</span><span class="p">:</span>
+            <span class="n">jobman_cfg</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;machine&quot;</span><span class="p">][</span><span class="s2">&quot;job_manager&quot;</span><span class="p">][</span><span class="s2">&quot;batch&quot;</span><span class="p">]</span>
+
+        <span class="n">parallel</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;scheduling&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;parallel&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># TODO: Prepare exec context</span>
+        <span class="n">wrapper</span> <span class="o">=</span> <span class="n">jobman_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;wrapper&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">ctx_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">,</span> <span class="n">pcvs</span><span class="o">.</span><span class="n">NAME_BUILD_CONTEXTDIR</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">jobs</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">ctx_path</span><span class="p">)</span>
+        <span class="n">updated_env</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;PCVS_JOB_MANAGER_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">upper</span><span class="p">()):</span> <span class="n">jobman_cfg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;program&quot;</span><span class="p">,</span> <span class="s2">&quot;args&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">jobman_cfg</span>
+        <span class="p">}</span>
+        <span class="n">updated_env</span><span class="p">[</span><span class="s2">&quot;PCVS_SET_DIM&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">jobs</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>
+        <span class="n">updated_env</span><span class="p">[</span><span class="s2">&quot;PCVS_SET_CMD&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jobman_cfg</span><span class="p">[</span><span class="s2">&quot;program&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">jobman_cfg</span><span class="p">[</span><span class="s2">&quot;program&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">updated_env</span><span class="p">[</span><span class="s2">&quot;PCVS_SET_CMD_ARGS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jobman_cfg</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">jobman_cfg</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">updated_env</span><span class="p">)</span>
+
+        <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{script}</span><span class="s2"> pcvs remote-run -c </span><span class="si">{ctx}</span><span class="s2"> -p </span><span class="si">{parallel}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">script</span><span class="o">=</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">ctx_path</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span>
+        <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">RemoteContext</span><span class="p">(</span><span class="n">ctx_path</span><span class="p">)</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">save_input_to_disk</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">ctx</span><span class="o">.</span><span class="n">check_input_avail</span><span class="p">()</span>
+            <span class="n">_process_hdl</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+                <span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span>
+            <span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">_process_hdl</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">err</span><span class="p">:</span>
+                <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Set </span><span class="si">{}</span><span class="s2"> - error output: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jobs</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">err</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">check_output_avail</span><span class="p">():</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">load_result_from_disk</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Set </span><span class="si">{}</span><span class="s2"> did not produce any output&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jobs</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RunnerException</span><span class="o">.</span><span class="n">LaunchError</span><span class="p">(</span>
+                <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;Fail to start a remote Runner&quot;</span><span class="p">,</span> <span class="n">dbg_info</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;cmd&quot;</span><span class="p">:</span> <span class="n">cmd</span><span class="p">}</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="progress_jobs">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.progress_jobs">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">progress_jobs</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">RemoteContext</span><span class="p">,</span> <span class="n">ev</span><span class="p">:</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">local_cnt</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">local_cnt</span> <span class="o">&lt;</span> <span class="n">ctx</span><span class="o">.</span><span class="n">cnt</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">save_result_to_disk</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+                <span class="n">local_cnt</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">e</span>
+    <span class="n">ev</span><span class="o">.</span><span class="n">set</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="RunnerRemote">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RunnerRemote">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RunnerRemote</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ctx</span><span class="p">:</span> <span class="n">RemoteContext</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">:</span> <span class="n">Set</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ctx_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">ctx_path</span>
+
+<div class="viewcode-block" id="RunnerRemote.connect_to_context">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RunnerRemote.connect_to_context">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">connect_to_context</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ctx</span> <span class="o">=</span> <span class="n">RemoteContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ctx_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctx</span><span class="o">.</span><span class="n">load_input_from_disk</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="RunnerRemote.run">
+<a class="viewcode-back" href="../../../api/pcvs.orchestration.runner.html#pcvs.orchestration.runner.RunnerRemote.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parallel</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ctx</span><span class="o">.</span><span class="n">mark_as_not_completed</span><span class="p">()</span>
+        <span class="n">thr_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">rq</span><span class="p">:</span> <span class="n">Queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+        <span class="n">pq</span><span class="p">:</span> <span class="n">Queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+        <span class="n">ev</span><span class="p">:</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+
+        <span class="n">progress</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">progress_jobs</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">pq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctx</span><span class="p">,</span> <span class="n">ev</span><span class="p">))</span>
+        <span class="n">progress</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">parallel</span><span class="p">):</span>
+            <span class="n">thr</span> <span class="o">=</span> <span class="n">RunnerAdapter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ctx_path</span><span class="p">,</span> <span class="n">ready</span><span class="o">=</span><span class="n">rq</span><span class="p">,</span> <span class="n">complete</span><span class="o">=</span><span class="n">pq</span><span class="p">)</span>
+            <span class="n">thr</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="n">thr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">thr</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">Set</span><span class="p">(</span><span class="n">execmode</span><span class="o">=</span><span class="n">ExecMode</span><span class="o">.</span><span class="n">LOCAL</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+            <span class="n">rq</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">ev</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">RunnerAdapter</span><span class="o">.</span><span class="n">sched_in_progress</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">thr</span> <span class="ow">in</span> <span class="n">thr_list</span><span class="p">:</span>
+            <span class="n">thr</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ctx</span><span class="o">.</span><span class="n">mark_as_completed</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

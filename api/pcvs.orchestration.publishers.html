@@ -115,8 +115,808 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-orchestration-publishers-module">
-<h1>pcvs.orchestration.publishers module<a class="headerlink" href="#pcvs-orchestration-publishers-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.orchestration.publishers">
+<span id="pcvs-orchestration-publishers-module"></span><h1>pcvs.orchestration.publishers module<a class="headerlink" href="#module-pcvs.orchestration.publishers" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.orchestration.publishers.</span></span><span class="sig-name descname"><span class="pre">BuildDirectoryManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">build_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#BuildDirectoryManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class is intended to serve a build directory from a single entry
+point. Any module requiring to deal with resources from a run should be
+compliant with this interface. It provides basic mechanism to load/save any
+past, present or future executions.</p>
+<p>Initialize a new instance.</p>
+<p>This is not destructive, it won’t delete any existing resource created
+from previous execution. It will mainly flag this directory as a valid
+PCVS build directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>build_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – the build dir, defaults to “.”</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.add_cache_entry">
+<span class="sig-name descname"><span class="pre">add_cache_entry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#BuildDirectoryManager.add_cache_entry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.add_cache_entry" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.clean">
+<span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#BuildDirectoryManager.clean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.clean" title="Link to this definition"></a></dt>
+<dd><p>Prepare the build directory for a new execution by removing anything not
+relevant for a new run.</p>
+<p>Please not this function will erase anything not relative to PCVS. As an
+argument, one may specify a specific prefix to be removed. Paths should
+relative to root build directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.clean_archives">
+<span class="sig-name descname"><span class="pre">clean_archives</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#BuildDirectoryManager.clean_archives"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.clean_archives" title="Link to this definition"></a></dt>
+<dd><p>Prepare the build directory for a new execution by moving any previous
+archive to the backup directory named after NAME_BUILD_ARCHIVE_DIR.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.config">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pcvs.backend.metaconfig.html#pcvs.backend.metaconfig.MetaConfig" title="pcvs.backend.metaconfig.MetaConfig"><span class="pre">MetaConfig</span></a></em><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.config" title="Link to this definition"></a></dt>
+<dd><p>Return the configuration associated with the current build directory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>config struct</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>class:<cite>MetaConfig</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.create_archive">
+<span class="sig-name descname"><span class="pre">create_archive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#BuildDirectoryManager.create_archive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.create_archive" title="Link to this definition"></a></dt>
+<dd><p>Generate an archive for the build directory.</p>
+<p>This archive will be stored in the root directory..</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>timestamp</strong> (<em>Datetime</em><em>, </em><em>optional</em>) – file suffix, defaults to current timestamp</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the archive path name</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.finalize">
+<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#BuildDirectoryManager.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.finalize" title="Link to this definition"></a></dt>
+<dd><p>Close &amp; release the current instance.</p>
+<p>It should not be used to save tests after this call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.get_cache_entry">
+<span class="sig-name descname"><span class="pre">get_cache_entry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#BuildDirectoryManager.get_cache_entry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.get_cache_entry" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.init_results">
+<span class="sig-name descname"><span class="pre">init_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">per_file_max_sz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#BuildDirectoryManager.init_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.init_results" title="Link to this definition"></a></dt>
+<dd><p>Initialize the result handler.</p>
+<p>This function is not called directly from the __init__ method as this
+instance may be used for both reading &amp; writing into the destination
+directory. This function implies storing a new execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>per_file_max_sz</strong> (<em>int</em><em>, </em><em>optional</em>) – max file size, defaults to unlimited</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.load_config">
+<span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#BuildDirectoryManager.load_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.load_config" title="Link to this definition"></a></dt>
+<dd><p>Load config stored onto disk &amp; populate the current instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the loaded config</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>class:<cite>MetaConfig</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.load_from_archive">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_from_archive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">archive_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#BuildDirectoryManager.load_from_archive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.load_from_archive" title="Link to this definition"></a></dt>
+<dd><p>Populate the instance from an archive.</p>
+<p>This object is initially built to load data from a build directory. This
+way, the object is mapped with an existing archive.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This method does not support (yet) to save tests after an archive has
+been loaded (as no output directory has been configured).</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>archive_path</strong> (<em>_type_</em>) – _description_</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>_description_</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>_type_</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.prefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.prefix" title="Link to this definition"></a></dt>
+<dd><p>Get the build directory prefix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the build path</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.prepare">
+<span class="sig-name descname"><span class="pre">prepare</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reuse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#BuildDirectoryManager.prepare"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.prepare" title="Link to this definition"></a></dt>
+<dd><p>Prepare the dir for a new run.</p>
+<p>This function is not included as part of the __init__ function as this
+instance may be used both for reading &amp; writing into the destination
+directory. This function implies all previous results be be cleared off.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reuse</strong> (<em>bool</em><em>, </em><em>optional</em>) – keep previously generated YAML test-files, defaults to False</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.results">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">results</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pcvs.orchestration.publishers.ResultFileManager" title="pcvs.orchestration.publishers.ResultFileManager"><span class="pre">ResultFileManager</span></a></em><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.results" title="Link to this definition"></a></dt>
+<dd><p>Getter to the result handler, for direct access</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the result handler</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>class:<cite>ResultFileManager</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.save_config">
+<span class="sig-name descname"><span class="pre">save_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#BuildDirectoryManager.save_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.save_config" title="Link to this definition"></a></dt>
+<dd><p>Save the config &amp; store it directly into the build directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (class:<cite>MetaConfig</cite>) – config</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.save_extras">
+<span class="sig-name descname"><span class="pre">save_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rel_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#BuildDirectoryManager.save_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.save_extras" title="Link to this definition"></a></dt>
+<dd><p>Register a specific build-relative path, to be saved into the directory.</p>
+<p>The only entry-point to save a resource into it. Resources can be files
+(with or without content) or directory.</p>
+<p>If <cite>export</cite> is set to True, resource (file or whole directory) will also
+be copied to the final archive.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rel_filename</strong> (<em>str</em>) – the filepath, relative to build dir.</p></li>
+<li><p><strong>data</strong> (<em>Any</em><em>, </em><em>optional</em>) – data to be saved into the target file, defaults to “”</p></li>
+<li><p><strong>directory</strong> (<em>bool</em><em>, </em><em>optional</em>) – is it a directory to save, defaults to False</p></li>
+<li><p><strong>export</strong> (<em>bool</em><em>, </em><em>optional</em>) – should the target be also exported in final archive, defaults to False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.scratch_location">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scratch_location</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.scratch_location" title="Link to this definition"></a></dt>
+<dd><p>Returns where third-party artifacts must be stored</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the scratch directory</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.sid">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.sid" title="Link to this definition"></a></dt>
+<dd><p>Return the run ID as per configured with the current build directory.</p>
+<p>If not found, this function may return None</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the session ID</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.BuildDirectoryManager.use_as_global_config">
+<span class="sig-name descname"><span class="pre">use_as_global_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#BuildDirectoryManager.use_as_global_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.BuildDirectoryManager.use_as_global_config" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFile">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.orchestration.publishers.</span></span><span class="sig-name descname"><span class="pre">ResultFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFile" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A instance manages a pair of file dedicated to load/store PCVS job results
+on disk.</p>
+<p>A job result is stored in two different files whens given to a single
+ResultFile:
+* &lt;prefix&gt;.json, containing metadata (rc, command…)
+* &lt;prefix&gt;.bz2 BZ2-compressed job data.</p>
+<p>a MAGIC_TOKEN is used to detect file/data corruption.</p>
+<p>Initialize a new pair of output files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<em>str</em>) – path where files will be located.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – prefix filename</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFile.MAGIC_TOKEN">
+<span class="sig-name descname"><span class="pre">MAGIC_TOKEN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'PCVS-START-RAW-OUTPUT'</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFile.MAGIC_TOKEN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFile.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFile.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFile.close" title="Link to this definition"></a></dt>
+<dd><p>Close the current instance (flush to disk)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFile.content">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">content</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pcvs.testing.test.html#pcvs.testing.test.Test" title="pcvs.testing.test.Test"><span class="pre">Test</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFile.content" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFile.count">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">count</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFile.count" title="Link to this definition"></a></dt>
+<dd><p>Get the number of jobs in this handler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>job count</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFile.extract_output">
+<span class="sig-name descname"><span class="pre">extract_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFile.extract_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFile.extract_output" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFile.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFile.flush"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFile.flush" title="Link to this definition"></a></dt>
+<dd><p>Sync cache with disk</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFile.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFile.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFile.load" title="Link to this definition"></a></dt>
+<dd><p>Load job data from disk to populate the cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFile.metadata_prefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metadata_prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFile.metadata_prefix" title="Link to this definition"></a></dt>
+<dd><p>Getter to the actual metadata file name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>filename</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFile.prefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFile.prefix" title="Link to this definition"></a></dt>
+<dd><p>Getter to the build prefix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>build prefix</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFile.rawdata_prefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rawdata_prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFile.rawdata_prefix" title="Link to this definition"></a></dt>
+<dd><p>Getter to the actual rawdata file name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>file name</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFile.retrieve_test">
+<span class="sig-name descname"><span class="pre">retrieve_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFile.retrieve_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFile.retrieve_test" title="Link to this definition"></a></dt>
+<dd><p>Find jobs based on its id or name and return associated Test object.</p>
+<p>Only job_id OR name should be set (not both). To handle multiple matches,
+this function returns a list of class:<cite>Test</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job_id</strong> (<em>int</em><em>, </em><em>optional</em>) – job id, defaults to None</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – test name (full), defaults to None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of class:<cite>Test</cite></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFile.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFile.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFile.save" title="Link to this definition"></a></dt>
+<dd><p>Save a new job to this instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job_id</strong> (<em>str</em>) – job id</p></li>
+<li><p><strong>data</strong> (<em>dict</em>) – metadata</p></li>
+<li><p><strong>output</strong> (<em>bytes</em>) – raw output</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFile.size">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFile.size" title="Link to this definition"></a></dt>
+<dd><p>Current rawdata size</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>length of the rawdata file.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.orchestration.publishers.</span></span><span class="sig-name descname"><span class="pre">ResultFileManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_file_max_ent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_file_max_sz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Manages multiple class:<cite>ResultFile</cite>. Main purpose is to manage files to
+ensure files stored on disk remain consistent.</p>
+<p>Initialize a new instance to manage results in a build directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prefix</strong> (<em>str</em><em>, </em><em>optional</em>) – result directory, defaults to “.”</p></li>
+<li><p><strong>per_file_max_ent</strong> (<em>int</em><em>, </em><em>optional</em>) – max number of tests per output file, defaults
+t(o unlimited (0)</p></li>
+<li><p><strong>per_file_max_sz</strong> (<em>int</em><em>, </em><em>optional</em>) – max size (bytes) for a single file, defaults to unlimited</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.browse_tests">
+<span class="sig-name descname"><span class="pre">browse_tests</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.browse_tests"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.browse_tests" title="Link to this definition"></a></dt>
+<dd><p>Iterate over every job stored into this build directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>an iterable of Tests</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of tests</p>
+</dd>
+<dt class="field-odd">Yield<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Test</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Iterator[<a class="reference internal" href="pcvs.testing.test.html#pcvs.testing.test.Test" title="pcvs.testing.test.Test">Test</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.build_bidir_map_data">
+<span class="sig-name descname"><span class="pre">build_bidir_map_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.build_bidir_map_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.build_bidir_map_data" title="Link to this definition"></a></dt>
+<dd><p>Rebuild global views from partial storage on disk.</p>
+<p>For optimization reasons, information that may be rebuilt are not stored
+on disk to save space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.create_new_result_file">
+<span class="sig-name descname"><span class="pre">create_new_result_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.create_new_result_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.create_new_result_file" title="Link to this definition"></a></dt>
+<dd><p>Initialize a new result file handler upon request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.discover_result_files">
+<span class="sig-name descname"><span class="pre">discover_result_files</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.discover_result_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.discover_result_files" title="Link to this definition"></a></dt>
+<dd><p>Load existing results from prefix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.file_format">
+<span class="sig-name descname"><span class="pre">file_format</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'jobs-{}'</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.file_format" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.finalize">
+<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.finalize" title="Link to this definition"></a></dt>
+<dd><p>Flush &amp; close the current manager.</p>
+<p>This instance should not be used again after this call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.flush"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.flush" title="Link to this definition"></a></dt>
+<dd><p>Ensure everything is in sync with persistent storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.increment">
+<span class="sig-name descname"><span class="pre">increment</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.increment" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.map_id">
+<span class="sig-name descname"><span class="pre">map_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.map_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.map_id" title="Link to this definition"></a></dt>
+<dd><p>Comnvert a job ID into its class:<cite>Test</cite> representation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>job_id</strong> (<em>int</em>) – job id</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the associated Test object or None if not found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>class:<cite>Test</cite> or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.maps">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">maps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.maps" title="Link to this definition"></a></dt>
+<dd><p>Returns available views from the current instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the maps</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.reconstruct_map_data">
+<span class="sig-name descname"><span class="pre">reconstruct_map_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.reconstruct_map_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.reconstruct_map_data" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.reconstruct_view_data">
+<span class="sig-name descname"><span class="pre">reconstruct_view_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.reconstruct_view_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.reconstruct_view_data" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.register_view">
+<span class="sig-name descname"><span class="pre">register_view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.register_view"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.register_view" title="Link to this definition"></a></dt>
+<dd><p>Initialize a new view for this result manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – the view name</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.register_view_item">
+<span class="sig-name descname"><span class="pre">register_view_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.register_view_item"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.register_view_item" title="Link to this definition"></a></dt>
+<dd><p>Initialize a single item within a view.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>view</strong> (<em>str</em>) – the view name (created if not exist)</p></li>
+<li><p><strong>item</strong> (<em>str</em>) – the item</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.retrieve_test">
+<span class="sig-name descname"><span class="pre">retrieve_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.retrieve_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.retrieve_test" title="Link to this definition"></a></dt>
+<dd><p>Build the Test object mapped to the given job id.</p>
+<p>If such ID does not exist, it will return None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>job_id</strong> (<em>_type_</em>) – _description_</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>_description_</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="pcvs.testing.test.html#pcvs.testing.test.Test" title="pcvs.testing.test.Test">Test</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.retrieve_tests_by_name">
+<span class="sig-name descname"><span class="pre">retrieve_tests_by_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.retrieve_tests_by_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.retrieve_tests_by_name" title="Link to this definition"></a></dt>
+<dd><p>Locate a test by its name.</p>
+<p>As multiple matches could occur, this function return a list of class:<cite>Test</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – the test name</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the actual list of test, empty if no one is found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.save" title="Link to this definition"></a></dt>
+<dd><p>Add a new job to be saved to the result directory.</p>
+<p>May not be flushed right away to disk, some caching may be used to
+improve performance. While adding the Test to low-level manager, this
+function also updates view &amp; maps accordingly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>job</strong> (class:<cite>Test</cite>) – the job element to store</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.status_view">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">status_view</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.status_view" title="Link to this definition"></a></dt>
+<dd><p>Returns the status view provided by PCVS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a view</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.subtree_view">
+<span class="sig-name descname"><span class="pre">subtree_view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subtree</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/orchestration/publishers.html#ResultFileManager.subtree_view"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.subtree_view" title="Link to this definition"></a></dt>
+<dd><p>Get a subset of the ‘tree’ view. Any LABEL/subtree combination is valid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>subtree</strong> (<em>str</em>) – the prefix to look for</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the dict mapping tests to the request</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.tags_view">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tags_view</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.tags_view" title="Link to this definition"></a></dt>
+<dd><p>Get the tags view provided by PCVS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a view</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.total_cnt">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">total_cnt</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.total_cnt" title="Link to this definition"></a></dt>
+<dd><p>Returns the total number of jobs from that directory (=run).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>number of jobs</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.tree_view">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tree_view</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.tree_view" title="Link to this definition"></a></dt>
+<dd><p>Get the tree view, provided by default.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a view</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.orchestration.publishers.ResultFileManager.views">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">views</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#pcvs.orchestration.publishers.ResultFileManager.views" title="Link to this definition"></a></dt>
+<dd><p>Returns available views for the current instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the views</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 

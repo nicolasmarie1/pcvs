@@ -1,0 +1,871 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.testing.tedesc &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pcvs.testing.tedesc</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.testing.tedesc</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pcvs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">testing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.metaconfig</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlobalConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">pm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.criterion</span><span class="w"> </span><span class="kn">import</span> <span class="n">Criterion</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.criterion</span><span class="w"> </span><span class="kn">import</span> <span class="n">Series</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProfileException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.pm</span><span class="w"> </span><span class="kn">import</span> <span class="n">PManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">Test</span>
+
+<span class="c1"># now return the first valid language, according to settings</span>
+<span class="c1"># order matters: if sources contains multiple languages, the first</span>
+<span class="c1"># appearing in this list will be considered as the main language</span>
+
+
+<div class="viewcode-block" id="detect_compiler">
+<a class="viewcode-back" href="../../../api/pcvs.testing.tedesc.html#pcvs.testing.tedesc.detect_compiler">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">detect_compiler</span><span class="p">(</span><span class="n">build_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine compilers to use for a target file (or list of files).</span>
+
+<span class="sd">    :param array_of_files: list of files to identify</span>
+<span class="sd">    :return: the chosen compilers</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">detect</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># match compiler type with user defined language</span>
+    <span class="k">if</span> <span class="s2">&quot;sources&quot;</span> <span class="ow">in</span> <span class="n">build_info</span> <span class="ow">and</span> <span class="s2">&quot;lang&quot;</span> <span class="ow">in</span> <span class="n">build_info</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">compiler_type</span> <span class="ow">in</span> <span class="n">build_info</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">][</span><span class="s2">&quot;lang&quot;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">comp_name</span><span class="p">,</span> <span class="n">compiler</span> <span class="ow">in</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;compiler&quot;</span><span class="p">][</span><span class="s2">&quot;compilers&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="s2">&quot;type&quot;</span> <span class="ow">in</span> <span class="n">compiler</span> <span class="ow">and</span> <span class="n">compiler</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">compiler_type</span><span class="p">:</span>
+                    <span class="n">detect</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comp_name</span><span class="p">)</span>
+                    <span class="k">break</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">detect</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">detect</span>
+    <span class="c1"># detect compiler from file extension</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">build_info</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">comp_name</span><span class="p">,</span> <span class="n">compiler</span> <span class="ow">in</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;compiler&quot;</span><span class="p">][</span><span class="s2">&quot;compilers&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s2">&quot;extension&quot;</span> <span class="ow">in</span> <span class="n">compiler</span> <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">compiler</span><span class="p">[</span><span class="s2">&quot;extension&quot;</span><span class="p">],</span> <span class="n">f</span><span class="p">):</span>
+                <span class="n">detect</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comp_name</span><span class="p">)</span>
+                <span class="k">break</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">detect</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">detect</span>
+    <span class="c1"># fail to detect compiler</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="extract_compilers_envs">
+<a class="viewcode-back" href="../../../api/pcvs.testing.tedesc.html#pcvs.testing.tedesc.extract_compilers_envs">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_compilers_envs</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract compilers environment.&quot;&quot;&quot;</span>
+    <span class="n">envs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">compiler</span> <span class="ow">in</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;compiler&quot;</span><span class="p">][</span><span class="s2">&quot;compilers&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">envs</span> <span class="o">+=</span> <span class="n">compiler</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;envs&quot;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="k">return</span> <span class="n">envs</span></div>
+
+
+
+<div class="viewcode-block" id="extract_compiler_config">
+<a class="viewcode-back" href="../../../api/pcvs.testing.tedesc.html#pcvs.testing.tedesc.extract_compiler_config">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_compiler_config</span><span class="p">(</span>
+    <span class="n">compiler</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">variants</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build resource to compile based on language and variants involved.</span>
+
+<span class="sd">    :param lang: target compiler name</span>
+<span class="sd">    :param variants: list of enabled variants</span>
+<span class="sd">    :return: the program, its args and env modifiers (in that order)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">compiler</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">compiler</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;compiler&quot;</span><span class="p">][</span><span class="s2">&quot;compilers&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="n">ProfileException</span><span class="o">.</span><span class="n">IncompleteError</span><span class="p">(</span>
+            <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;Unknown compiler, not defined into Profile&quot;</span><span class="p">,</span>
+            <span class="n">dbg_info</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;compiler&quot;</span><span class="p">:</span> <span class="n">compiler</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">:</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;compiler&quot;</span><span class="p">][</span><span class="s2">&quot;compilers&quot;</span><span class="p">]},</span>
+        <span class="p">)</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;compiler&quot;</span><span class="p">][</span><span class="s2">&quot;compilers&quot;</span><span class="p">][</span><span class="n">compiler</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variants</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;variants&quot;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;variants&quot;</span><span class="p">][</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;program&quot;</span><span class="p">:</span>
+                    <span class="n">config</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">config</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">[])</span>
+                    <span class="n">config</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="n">v</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># TODO: throw error here</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[],</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">config</span><span class="p">[</span><span class="s2">&quot;program&quot;</span><span class="p">],</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;args&quot;</span><span class="p">,</span> <span class="p">[]),</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;envs&quot;</span><span class="p">,</span> <span class="p">[]),</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;valid&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="build_job_deps">
+<a class="viewcode-back" href="../../../api/pcvs.testing.tedesc.html#pcvs.testing.tedesc.build_job_deps">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_job_deps</span><span class="p">(</span><span class="n">deps_node</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">pkg_label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pkg_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build the dependency list from a given dependency YAML node.</span>
+
+<span class="sd">    A ``depends_on`` is used by test to establish their relationship. It looks</span>
+<span class="sd">    like:</span>
+
+<span class="sd">    :example:</span>
+<span class="sd">        depends_on:</span>
+<span class="sd">            [&quot;list_of_test_name&quot;]</span>
+
+<span class="sd">    :param deps_node: the TE/job YAML node.</span>
+<span class="sd">    :param pkg_label: the label where this TE is from (to compute depnames)</span>
+<span class="sd">    :param pkg_prefix: the subtree where this TE is from (to compute depnames)</span>
+<span class="sd">    :return: a list of dependencies, either as depnames or PManager objects</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">deps</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">deps_node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;depends_on&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+        <span class="n">deps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span> <span class="k">if</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">d</span> <span class="k">else</span> <span class="n">Test</span><span class="o">.</span><span class="n">compute_fq_name</span><span class="p">(</span><span class="n">pkg_label</span><span class="p">,</span> <span class="n">pkg_prefix</span><span class="p">,</span> <span class="n">d</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">deps</span></div>
+
+
+
+<div class="viewcode-block" id="build_pm_deps">
+<a class="viewcode-back" href="../../../api/pcvs.testing.tedesc.html#pcvs.testing.tedesc.build_pm_deps">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_pm_deps</span><span class="p">(</span><span class="n">deps_node</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PManager</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build the dependency list from a given YAML node.</span>
+
+<span class="sd">    This only initialize package-manager oriented deps. For job deps, see</span>
+<span class="sd">    ``build_job_deps``</span>
+
+<span class="sd">    :param deps_node: contains package_manager YAML information</span>
+<span class="sd">    :return: a list of PM objects, one for each entry</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pm</span><span class="o">.</span><span class="n">identify</span><span class="p">(</span><span class="n">deps_node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;package_manager&quot;</span><span class="p">,</span> <span class="p">{}))</span></div>
+
+
+
+<div class="viewcode-block" id="TEDescriptor">
+<a class="viewcode-back" href="../../../api/pcvs.testing.tedesc.html#pcvs.testing.tedesc.TEDescriptor">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TEDescriptor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A Test Descriptor (named TD, TE or TED), maps a test program</span>
+<span class="sd">    representation, as defined by a root node in a single test files.</span>
+
+<span class="sd">    A TE Descriptor is not a test but a definition of a program (how to use it,</span>
+<span class="sd">    to compile it...), leading to a collection once combined with a profile</span>
+<span class="sd">    (providing on which MPI processes to run it, for instance).</span>
+
+<span class="sd">    :ivar _te_name: YAML root node name, part of its unique id</span>
+<span class="sd">    :vartype _te_name: str</span>
+<span class="sd">    :ivar _te_label: which user directory this TE is coming from</span>
+<span class="sd">    :vartype _te_label: str</span>
+<span class="sd">    :ivar _te_subtree: subprefix, relative to label, where this TE is located</span>
+<span class="sd">    :vartype _te_subtree: str or NoneType</span>
+<span class="sd">    :ivar _full_name: fully-qualified te-name</span>
+<span class="sd">    :vartype _full_name: str</span>
+<span class="sd">    :ivar _srcdir: absolute path pointing to the YAML testfile dirname</span>
+<span class="sd">    :vartype _srcdir: str</span>
+<span class="sd">    :ivar _buildir: absolute path pointing to build equivalent of _srcdir</span>
+<span class="sd">    :vartype _buildir: str</span>
+<span class="sd">    :ivar _skipped: flag if this TE should be unfolded to tests or not</span>
+<span class="sd">    :vartype _skipped: bool</span>
+<span class="sd">    :ivar _effective_cnt: number of tests created by this single TE</span>
+<span class="sd">    :vartype _effective_cnt: int</span>
+<span class="sd">    :ivar _program_criterion: extra criterion defined by the TE</span>
+<span class="sd">    :vartype _program_criterion: :class:`Criterion`</span>
+<span class="sd">    :ivar others: used yaml node references.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_sys_crit</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Criterion</span><span class="p">]</span>
+    <span class="n">_base_it</span><span class="p">:</span> <span class="nb">str</span>
+
+<div class="viewcode-block" id="TEDescriptor.init_system_wide">
+<a class="viewcode-back" href="../../../api/pcvs.testing.tedesc.html#pcvs.testing.tedesc.TEDescriptor.init_system_wide">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_system_wide</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">base_criterion_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize system-wide information (to shorten accesses).</span>
+
+<span class="sd">        :param base_criterion_name: iterator name used as scheduling resource.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_sys_crit</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_internal</span><span class="p">(</span><span class="s2">&quot;crit_obj&quot;</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_base_it</span> <span class="o">=</span> <span class="n">base_criterion_name</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">nodecontent</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subprefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor method.</span>
+
+<span class="sd">        :param name: the TE name</span>
+<span class="sd">        :param node: the TE YAML content.</span>
+<span class="sd">        :param label: the user dir label.</span>
+<span class="sd">        :param subprefix: relative path between user dir &amp; current TE testfile</span>
+<span class="sd">        :raises TDFormatError: Unproper YAML TE format (sanity check)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_te_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_skipped</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_te_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_te_subtree</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">subprefix</span>
+
+        <span class="n">_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_srcdir</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buildir</span> <span class="o">=</span> <span class="n">testing</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">generate_local_variables</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">subprefix</span><span class="p">)</span>
+        <span class="c1"># before doing anything w/ node:</span>
+        <span class="c1"># arregate the &#39;group&#39; definitions with the TE</span>
+        <span class="c1"># to get all the fields in their final form</span>
+        <span class="k">if</span> <span class="s2">&quot;group&quot;</span> <span class="ow">in</span> <span class="n">nodecontent</span> <span class="ow">and</span> <span class="n">nodecontent</span><span class="p">[</span><span class="s2">&quot;group&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;group&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;group&quot;</span><span class="p">][</span><span class="n">nodecontent</span><span class="p">[</span><span class="s2">&quot;group&quot;</span><span class="p">]]</span>
+            <span class="n">tmp</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">nodecontent</span><span class="p">)</span>
+            <span class="n">nodecontent</span> <span class="o">=</span> <span class="n">tmp</span>
+        <span class="c1"># io.console.debug(f&quot;test-descriptor: {nodecontent}&quot;)</span>
+
+        <span class="c1"># load from descriptions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">nodecontent</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;build&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">nodecontent</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;run&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validation</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">nodecontent</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;validate&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_validation</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;validate&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_artifacts</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">nodecontent</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;artifact&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metrics</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">nodecontent</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metrics&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">nodecontent</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attributes&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_te_name</span> <span class="o">+</span> <span class="s2">&quot;:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_effective_cnt</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">nodecontent</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tag&quot;</span><span class="p">,</span> <span class="p">[])</span>
+
+        <span class="n">path_prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buildir</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_attr</span><span class="p">(</span><span class="s2">&quot;path_resolution&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">path_prefix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">elt_k</span><span class="p">,</span> <span class="n">elt_v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_artifacts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">elt_v</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_artifacts</span><span class="p">[</span><span class="n">elt_k</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_prefix</span><span class="p">,</span> <span class="n">elt_v</span><span class="p">)</span>
+
+        <span class="c1"># allow tags to be given as array OR a single string</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tags</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_tags</span><span class="p">]</span>
+
+        <span class="c1"># if TE used program-level criterions</span>
+        <span class="k">if</span> <span class="s2">&quot;program&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;iterate&quot;</span><span class="p">,</span> <span class="p">{}):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_program_criterion</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="n">Criterion</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">local</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">[</span><span class="s2">&quot;iterate&quot;</span><span class="p">][</span><span class="s2">&quot;program&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_program_criterion</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># compute local criterions relatively to system-wide&#39;s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configure_criterions</span><span class="p">()</span>
+        <span class="c1"># apply retro-compatibility w/ old syntax</span>
+        <span class="c1"># TODO: verify that we can remove this without breaking</span>
+        <span class="c1"># self._compatibility_support(nodecontent.get(&quot;_compat&quot;, None))</span>
+
+<div class="viewcode-block" id="TEDescriptor.get_binary_name">
+<a class="viewcode-back" href="../../../api/pcvs.testing.tedesc.html#pcvs.testing.tedesc.TEDescriptor.get_binary_name">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_binary_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the binary name for the file at the output of the compiler.</span>
+
+<span class="sd">        If a binary name is already defined by the test, use it.</span>
+<span class="sd">        If a program name is given, use it.</span>
+<span class="sd">        If none are defined, use the test name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;binary&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sources&quot;</span><span class="p">,</span> <span class="p">{}):</span>
+            <span class="n">binary_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">][</span><span class="s2">&quot;binary&quot;</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">binary_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">binary_name</span>
+        <span class="k">if</span> <span class="s2">&quot;program&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">:</span>
+            <span class="n">program_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">[</span><span class="s2">&quot;program&quot;</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">program_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">program_name</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_te_name</span></div>
+
+
+<div class="viewcode-block" id="TEDescriptor.get_attr">
+<a class="viewcode-back" href="../../../api/pcvs.testing.tedesc.html#pcvs.testing.tedesc.TEDescriptor.get_attr">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dflt</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">dflt</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compatibility_support</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compat</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert tricky keywords from old syntax too complex to be handled</span>
+<span class="sd">        by the automatic converter.</span>
+
+<span class="sd">        :param compat: dict of complex keyword extracted from old syntax.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">compat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">compat</span><span class="p">:</span>
+            <span class="c1"># the old &#39;chdir&#39; may be used by run &amp; build</span>
+            <span class="c1"># but should not be set for one if the whole</span>
+            <span class="c1"># parent node does not exist</span>
+            <span class="k">if</span> <span class="s2">&quot;chdir&quot;</span> <span class="ow">in</span> <span class="n">k</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span> <span class="ow">and</span> <span class="s2">&quot;cwd&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;cwd&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compat</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span> <span class="ow">and</span> <span class="s2">&quot;cwd&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">[</span><span class="s2">&quot;cwd&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compat</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+            <span class="c1"># the old &#39;type&#39; keyword disappeared. Still, the &#39;complete&#39;</span>
+            <span class="c1"># keyword must be handled to create both nodes &#39;build&#39; &amp; &#39;run&#39;</span>
+            <span class="k">if</span> <span class="s2">&quot;type&quot;</span> <span class="ow">in</span> <span class="n">k</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">compat</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;build&quot;</span><span class="p">,</span> <span class="s2">&quot;complete&quot;</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;dummy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">compat</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;run&quot;</span><span class="p">,</span> <span class="s2">&quot;complete&quot;</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">[</span><span class="s2">&quot;dummy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="c1"># same as for chdir, &#39;bin&#39; may be used by both build &amp; run</span>
+            <span class="c1"># but should set either not existing already</span>
+            <span class="k">elif</span> <span class="s2">&quot;bin&quot;</span> <span class="ow">in</span> <span class="n">k</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span> <span class="ow">and</span> <span class="s2">&quot;binary&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;binary&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compat</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span> <span class="ow">and</span> <span class="s2">&quot;program&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">[</span><span class="s2">&quot;program&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compat</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;cflags&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span> <span class="ow">and</span> <span class="s2">&quot;sources&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">][</span><span class="s2">&quot;cflags&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;cflags&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;ldflags&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span> <span class="ow">and</span> <span class="s2">&quot;sources&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">][</span><span class="s2">&quot;ldflags&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;ldflags&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;params&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;autotools&quot;</span><span class="p">,</span> <span class="p">{}):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;autotools&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;autotools&quot;</span><span class="p">][</span><span class="s2">&quot;params&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;vars&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cmake&quot;</span><span class="p">,</span> <span class="p">{}):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;cmake&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;cmake&quot;</span><span class="p">][</span><span class="s2">&quot;vars&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_configure_criterions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prepare the list of components this TE will be built against.</span>
+
+<span class="sd">        It consists in intersecting system-wide criterions and their</span>
+<span class="sd">        definitions with this overridden criterion by this TE. The result is then</span>
+<span class="sd">        what tests will be built on. If there is no intersection between</span>
+<span class="sd">        system-wide and this TE declaration, the whole TE is skipped.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># for now, criterion only applies to run tests</span>
+            <span class="k">return</span>
+        <span class="c1"># if this TE does not override anything: trivial</span>
+        <span class="k">if</span> <span class="s2">&quot;iterate&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_criterion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sys_crit</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">te_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">[</span><span class="s2">&quot;iterate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="n">test_crits</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="c1"># browse declared criterions (system-wide)</span>
+            <span class="k">for</span> <span class="n">k_sys</span><span class="p">,</span> <span class="n">v_sys</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sys_crit</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># if we do note inherite from this criterion, skip it</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="s2">&quot;inherite&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">[</span><span class="s2">&quot;iterate&quot;</span><span class="p">]</span>
+                    <span class="ow">and</span> <span class="n">k_sys</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">[</span><span class="s2">&quot;iterate&quot;</span><span class="p">][</span><span class="s2">&quot;inherite&quot;</span><span class="p">]</span>
+                <span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="c1"># if key is overridden by the test</span>
+                <span class="k">if</span> <span class="n">k_sys</span> <span class="ow">in</span> <span class="n">te_keys</span><span class="p">:</span>
+                    <span class="n">cur_criterion</span><span class="p">:</span> <span class="n">Criterion</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">v_sys</span><span class="p">)</span>
+                    <span class="n">cur_criterion</span><span class="o">.</span><span class="n">override</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">[</span><span class="s2">&quot;iterate&quot;</span><span class="p">][</span><span class="n">k_sys</span><span class="p">])</span>
+
+                    <span class="k">if</span> <span class="n">cur_criterion</span><span class="o">.</span><span class="n">is_discarded</span><span class="p">():</span>
+                        <span class="k">continue</span>
+                    <span class="c1"># merge manually some definitions made by</span>
+                    <span class="c1"># runtime, as some may be required to expand values:</span>
+
+                    <span class="c1"># expand according to te-values or system values if not defined</span>
+                    <span class="n">cur_criterion</span><span class="o">.</span><span class="n">expand_values</span><span class="p">(</span><span class="n">v_sys</span><span class="p">)</span>
+                    <span class="c1"># limit redefinition of criterion values to system scope.</span>
+                    <span class="n">cur_criterion</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">v_sys</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">cur_criterion</span><span class="o">.</span><span class="n">is_empty</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_skipped</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">test_crits</span><span class="p">[</span><span class="n">k_sys</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_criterion</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># key is not overridden</span>
+                    <span class="n">test_crits</span><span class="p">[</span><span class="n">k_sys</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_sys</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_criterion</span> <span class="o">=</span> <span class="n">test_crits</span>
+            <span class="c1"># now build program iterators</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">elt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_program_criterion</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">elt</span><span class="o">.</span><span class="n">expand_values</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__build_from_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        How to create build tests from a collection of source files.</span>
+
+<span class="sd">        :return: the command to be used, env to be imported &amp; nb threads to run the test.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">compilers</span> <span class="o">=</span> <span class="n">detect_compiler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">compilers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TestException</span><span class="o">.</span><span class="n">TestExpressionError</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">],</span> <span class="sa">f</span><span class="s2">&quot;Unable to dect compilers for files: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s1">&#39;files&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">compiler</span> <span class="o">=</span> <span class="n">compilers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">compiler_config</span> <span class="o">=</span> <span class="n">extract_compiler_config</span><span class="p">(</span><span class="n">compiler</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;variants&quot;</span><span class="p">,</span> <span class="p">[]))</span>
+        <span class="n">program</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">envs</span><span class="p">,</span> <span class="n">valid</span> <span class="o">=</span> <span class="n">compiler_config</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">valid</span><span class="p">:</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Compiler program &#39;</span><span class="si">{</span><span class="n">program</span><span class="si">}</span><span class="s2">&#39; not found for test &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+        <span class="n">binary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_binary_name</span><span class="p">()</span>
+
+        <span class="c1"># used to run the test later</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;sources&quot;</span><span class="p">,</span> <span class="p">{})[</span><span class="s2">&quot;binary&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">binary</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buildir</span><span class="p">,</span> <span class="n">binary</span><span class="p">)</span>
+
+        <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{cc}</span><span class="s2"> </span><span class="si">{cflags}</span><span class="s2"> </span><span class="si">{files}</span><span class="s2"> </span><span class="si">{ldflags}</span><span class="s2"> </span><span class="si">{args}</span><span class="s2"> </span><span class="si">{out}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">cc</span><span class="o">=</span><span class="n">program</span><span class="p">,</span>
+            <span class="n">cflags</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cflags&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+            <span class="n">files</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">]),</span>
+            <span class="n">ldflags</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ldflags&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+            <span class="n">args</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">),</span>
+            <span class="n">out</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;-o </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">envs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__build_from_makefile</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        How to create build tests from a Makefile.</span>
+
+<span class="sd">        :return: the command to be used, env to be imported &amp; nb threads to run the test.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;make&quot;</span><span class="p">]</span>
+        <span class="n">basepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_srcdir</span>
+
+        <span class="c1"># change makefile path if overridden by &#39;files&#39;</span>
+        <span class="k">if</span> <span class="s2">&quot;files&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">:</span>
+            <span class="n">basepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">command</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-f </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">])))</span>
+
+        <span class="n">envs</span> <span class="o">=</span> <span class="n">extract_compilers_envs</span><span class="p">()</span>
+        <span class="n">jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;make&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;jobs&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># build the &#39;make&#39; command</span>
+        <span class="n">command</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-j </span><span class="si">{</span><span class="n">jobs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">command</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="s2">&quot;-C </span><span class="si">{path}</span><span class="s2"> </span><span class="si">{target}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">path</span><span class="o">=</span><span class="n">basepath</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;make&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">command</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;make&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;args&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">envs</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;make&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;envs&quot;</span><span class="p">,</span> <span class="p">[])</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command</span><span class="p">),</span> <span class="n">envs</span><span class="p">,</span> <span class="n">jobs</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__build_from_cmake</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        How to create build tests from a CMake project.</span>
+
+<span class="sd">        :return: the command to be used, env to be imported &amp; nb threads to run the test.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;cmake&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;files&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">:</span>
+            <span class="n">command</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">command</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_srcdir</span><span class="p">)</span>
+
+        <span class="n">envs</span> <span class="o">=</span> <span class="n">extract_compilers_envs</span><span class="p">()</span>
+        <span class="n">command</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">r</span><span class="s2">&quot;-G &#39;Unix Makefiles&#39; &quot;</span> <span class="sa">r</span><span class="s2">&quot;-DCMAKE_BINARY_DIR=&#39;</span><span class="si">{build}</span><span class="s2">&#39; &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">build</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_buildir</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">command</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;cmake&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;args&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">envs</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;cmake&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;envs&quot;</span><span class="p">,</span> <span class="p">[])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buildir</span><span class="p">,</span> <span class="s2">&quot;Makefile&quot;</span><span class="p">)]</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__build_from_makefile</span><span class="p">()</span>
+        <span class="n">next_command</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">envs</span> <span class="o">+=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s2">&quot; &amp;&amp; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command</span><span class="p">),</span> <span class="n">next_command</span><span class="p">]),</span> <span class="n">envs</span><span class="p">,</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__build_from_autotools</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        How to create build tests from a Autotools-based project.</span>
+
+<span class="sd">        :return: the command to be used, env to be imported &amp; nb threads to run the test.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">configure_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">autogen_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;files&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">configure_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">configure_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_srcdir</span><span class="p">,</span> <span class="s2">&quot;configure&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;autotools&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;autogen&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">autogen_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">configure_path</span><span class="p">),</span> <span class="s2">&quot;autogen.sh&quot;</span><span class="p">)</span>
+            <span class="n">command</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> &amp;&amp; &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">autogen_path</span><span class="p">))</span>
+
+        <span class="n">envs</span> <span class="o">=</span> <span class="n">extract_compilers_envs</span><span class="p">()</span>
+
+        <span class="n">command</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="si">{configure}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">configure</span><span class="o">=</span><span class="n">configure_path</span><span class="p">))</span>
+
+        <span class="n">command</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;autotools&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;args&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">envs</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;autotools&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;envs&quot;</span><span class="p">,</span> <span class="p">[])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buildir</span><span class="p">,</span> <span class="s2">&quot;Makefile&quot;</span><span class="p">)]</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__build_from_makefile</span><span class="p">()</span>
+        <span class="n">next_command</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">envs</span> <span class="o">+=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s2">&quot; &amp;&amp; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command</span><span class="p">),</span> <span class="n">next_command</span><span class="p">]),</span> <span class="n">envs</span><span class="p">,</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__build_from_user_script</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        How to create build tests from a user script.</span>
+
+<span class="sd">        :return: the command to be used, env to be imported &amp; nb threads to run the test.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;custom&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;program&quot;</span><span class="p">,</span> <span class="s2">&quot;echo&quot;</span><span class="p">)</span>
+        <span class="c1"># args not relevant as cflags/ldflags can be used instead</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;custom&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;envs&quot;</span><span class="p">,</span> <span class="p">[])</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">command</span><span class="p">):</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buildir</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span>
+
+        <span class="n">full_cmd</span> <span class="o">=</span> <span class="s2">&quot;. </span><span class="si">{}</span><span class="s2"> &amp;&amp; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;output&quot;</span><span class="p">],</span> <span class="n">pcvs</span><span class="o">.</span><span class="n">NAME_BUILD_CONF_SH</span><span class="p">),</span>
+            <span class="n">command</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">full_cmd</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__build_exec_process</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Drive compilation command generation based on Test format.</span>
+
+<span class="sd">        :return: the command to be used, env to be imported &amp; nb threads to run the test.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;autotools&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__build_from_autotools</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;cmake&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__build_from_cmake</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;make&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__build_from_makefile</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;custom&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__build_from_user_script</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__build_from_sources</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__construct_compil_tests</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Test</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate compilation tests.</span>
+
+<span class="sd">        :return: a list of generated compilation tests.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">job_deps</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># ensure consistency when &#39;files&#39; node is used</span>
+        <span class="c1"># can be a list or a single value</span>
+        <span class="k">if</span> <span class="s2">&quot;files&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">]]</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">])):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_srcdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="c1"># manage deps (tests, package_managers...)</span>
+        <span class="n">job_deps</span> <span class="o">=</span> <span class="n">build_job_deps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_te_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_te_subtree</span><span class="p">)</span>
+        <span class="n">mod_deps</span> <span class="o">=</span> <span class="n">build_pm_deps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">)</span>
+
+        <span class="n">chdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cwd&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">chdir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">chdir</span><span class="p">):</span>
+            <span class="n">chdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buildir</span><span class="p">,</span> <span class="n">chdir</span><span class="p">))</span>
+
+        <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;compilation&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tags</span>
+
+        <span class="n">command</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__build_exec_process</span><span class="p">()</span>
+        <span class="n">wrapper</span> <span class="o">=</span> <span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;compiling&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;wrapper&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">wrapper</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">wrapper</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">command</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">assert</span> <span class="n">jobs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="c1"># count number of built tests</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_effective_cnt</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">yield</span> <span class="n">Test</span><span class="p">(</span>
+            <span class="n">te_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_te_name</span><span class="p">,</span>
+            <span class="n">user_suffix</span><span class="o">=</span><span class="s2">&quot;cc&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_te_label</span><span class="p">,</span>
+            <span class="n">subtree</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_te_subtree</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="n">command</span><span class="p">,</span>
+            <span class="n">environment</span><span class="o">=</span><span class="n">env</span><span class="p">,</span>
+            <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span>
+            <span class="n">job_deps</span><span class="o">=</span><span class="n">job_deps</span><span class="p">,</span>
+            <span class="n">mod_deps</span><span class="o">=</span><span class="n">mod_deps</span><span class="p">,</span>
+            <span class="n">artifacts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_artifacts</span><span class="p">,</span>
+            <span class="n">resources</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">jobs</span><span class="p">],</span>  <span class="c1"># 1 node / jobs cores.</span>
+            <span class="n">wd</span><span class="o">=</span><span class="n">chdir</span><span class="p">,</span>
+            <span class="n">validation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_validation</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__construct_runtime_tests</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">series</span><span class="p">:</span> <span class="n">Series</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Test</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate runtime tests.</span>
+
+<span class="sd">        :return: a list of generated runtime tests.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">te_job_deps</span> <span class="o">=</span> <span class="n">build_job_deps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_te_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_te_subtree</span><span class="p">)</span>
+        <span class="n">te_mod_deps</span> <span class="o">=</span> <span class="n">build_pm_deps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">:</span>
+            <span class="n">fq_name</span> <span class="o">=</span> <span class="n">Test</span><span class="o">.</span><span class="n">compute_fq_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_te_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_te_subtree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_te_name</span><span class="p">,</span> <span class="s2">&quot;cc&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">fq_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">te_job_deps</span><span class="p">:</span>
+                <span class="n">te_job_deps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fq_name</span><span class="p">)</span>
+
+        <span class="c1"># for each combination generated from the collection of criterions</span>
+        <span class="k">for</span> <span class="n">comb</span> <span class="ow">in</span> <span class="n">series</span><span class="o">.</span><span class="n">generate</span><span class="p">():</span>
+            <span class="n">chdir</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="c1"># start to build the proper command, three parts:</span>
+            <span class="c1"># the environment variables to export</span>
+            <span class="c1"># the runtime argument to propagate</span>
+            <span class="c1"># the program parameters to forward</span>
+            <span class="n">env</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">comb</span><span class="o">.</span><span class="n">translate_to_command</span><span class="p">()</span>
+            <span class="n">program</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_binary_name</span><span class="p">()</span>
+
+            <span class="n">clone_outdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_attr</span><span class="p">(</span><span class="s2">&quot;copy_output&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">clone_outdir</span><span class="p">:</span>
+                <span class="n">buildir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_te_name</span><span class="p">),</span> <span class="nb">dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_buildir</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">buildir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buildir</span>
+
+            <span class="c1"># attempt to determine test working directory</span>
+            <span class="n">chdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">[</span><span class="s2">&quot;cwd&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;cwd&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span> <span class="k">else</span> <span class="n">buildir</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">chdir</span><span class="p">):</span>
+                <span class="n">chdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">buildir</span><span class="p">,</span> <span class="n">chdir</span><span class="p">))</span>
+
+            <span class="c1"># keep the original value if user disabled prefix resolution</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_attr</span><span class="p">(</span><span class="s2">&quot;path_resolution&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">program</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buildir</span><span class="p">,</span> <span class="n">program</span><span class="p">))</span>
+
+            <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{program}</span><span class="s2"> </span><span class="si">{params}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">program</span><span class="o">=</span><span class="n">program</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_attr</span><span class="p">(</span><span class="s2">&quot;command_wrap&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{runtime}</span><span class="s2"> </span><span class="si">{args}</span><span class="s2"> </span><span class="si">{runtime_args}</span><span class="s2"> </span><span class="si">{cmd}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">runtime</span><span class="o">=</span><span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;program&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+                    <span class="n">runtime_args</span><span class="o">=</span><span class="n">GlobalConfig</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s2">&quot;runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;args&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+                    <span class="n">args</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">),</span>
+                    <span class="n">cmd</span><span class="o">=</span><span class="n">command</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_effective_cnt</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">yield</span> <span class="n">Test</span><span class="p">(</span>
+                <span class="n">te_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_te_name</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_te_label</span><span class="p">,</span>
+                <span class="n">subtree</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_te_subtree</span><span class="p">,</span>
+                <span class="n">command</span><span class="o">=</span><span class="n">command</span><span class="p">,</span>
+                <span class="n">job_deps</span><span class="o">=</span><span class="n">te_job_deps</span><span class="p">,</span>
+                <span class="n">mod_deps</span><span class="o">=</span><span class="n">te_mod_deps</span><span class="p">,</span>
+                <span class="n">tags</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tags</span><span class="p">,</span>
+                <span class="n">metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_metrics</span><span class="p">,</span>
+                <span class="n">environment</span><span class="o">=</span><span class="n">env</span><span class="p">,</span>
+                <span class="n">comb</span><span class="o">=</span><span class="n">comb</span><span class="p">,</span>
+                <span class="n">resources</span><span class="o">=</span><span class="n">comb</span><span class="o">.</span><span class="n">resources</span> <span class="k">if</span> <span class="n">comb</span><span class="o">.</span><span class="n">resources</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="n">wd</span><span class="o">=</span><span class="n">chdir</span><span class="p">,</span>
+                <span class="n">validation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_validation</span><span class="p">,</span>
+                <span class="n">artifacts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_artifacts</span><span class="p">,</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="TEDescriptor.construct_tests">
+<a class="viewcode-back" href="../../../api/pcvs.testing.tedesc.html#pcvs.testing.tedesc.TEDescriptor.construct_tests">[docs]</a>
+    <span class="nd">@io</span><span class="o">.</span><span class="n">capture_exception</span><span class="p">(</span><span class="ne">Exception</span><span class="p">,</span> <span class="n">doexit</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">construct_tests</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Test</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct a collection of tests (build &amp; run) from a given TE.</span>
+
+<span class="sd">        This function will process a YAML node and, through a generator, will</span>
+<span class="sd">        create each test coming from it.</span>
+<span class="sd">        :return: All generated tests from one test description.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># if this TE does not lead to a single test, skip now</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_skipped</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">clone_indir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_attr</span><span class="p">(</span><span class="s2">&quot;copy_input&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">clone_indir</span><span class="p">:</span>
+            <span class="n">isolation_path</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_te_name</span><span class="p">),</span> <span class="nb">dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_buildir</span><span class="p">)</span>
+            <span class="n">old_src_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_srcdir</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_srcdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">isolation_path</span><span class="p">,</span> <span class="s2">&quot;src&quot;</span><span class="p">)</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="n">old_src_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_srcdir</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_buildir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">isolation_path</span><span class="p">,</span> <span class="s2">&quot;build&quot;</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buildir</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">:</span>
+            <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">__construct_compil_tests</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_attr</span><span class="p">(</span><span class="s2">&quot;command_wrap&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">series</span> <span class="o">=</span> <span class="n">Series</span><span class="p">({</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_program_criterion</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">series</span> <span class="o">=</span> <span class="n">Series</span><span class="p">({</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_criterion</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_program_criterion</span><span class="p">})</span>
+            <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">__construct_runtime_tests</span><span class="p">(</span><span class="n">series</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TEDescriptor.get_debug">
+<a class="viewcode-back" href="../../../api/pcvs.testing.tedesc.html#pcvs.testing.tedesc.TEDescriptor.get_debug">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build information debug for the current TE.</span>
+
+<span class="sd">        :return: the debug info</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># if the current TE did not lead to a single test, skip now</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_skipped</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="n">debug_yaml</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># count actual tests built</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">:</span>
+            <span class="c1"># for system-wide iterators, count max number of possibilities</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_criterion</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">debug_yaml</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+            <span class="c1"># for program-level iterators, count number of possibilities</span>
+            <span class="n">debug_yaml</span><span class="p">[</span><span class="s2">&quot;program&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_program_criterion</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">debug_yaml</span><span class="p">[</span><span class="s2">&quot;program&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">debug_yaml</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter to the current TE name.</span>
+
+<span class="sd">        :return: te_name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_te_name</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Internal TE representation, for auto-dumping.</span>
+
+<span class="sd">        :return: the node representation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">)</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">)</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_validation</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

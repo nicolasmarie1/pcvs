@@ -115,8 +115,237 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-backend-bank-module">
-<h1>pcvs.backend.bank module<a class="headerlink" href="#pcvs-backend-bank-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.backend.bank">
+<span id="pcvs-backend-bank-module"></span><h1>pcvs.backend.bank module<a class="headerlink" href="#module-pcvs.backend.bank" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.backend.bank.Bank">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.backend.bank.</span></span><span class="sig-name descname"><span class="pre">Bank</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/bank.html#Bank"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.bank.Bank" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="pcvs.dsl.html#pcvs.dsl.Bank" title="pcvs.dsl.Bank"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bank</span></code></a></p>
+<p>Representation of a PCVS result datastore.</p>
+<p>Stored as a Git repo, a bank hold multiple results to be scanned and used to
+analyse benchmarks result over time. A single bank can manipulate namespaces
+(referred as ‘projects’).
+The namespace is provided by prefixing <code class="docutils literal notranslate"><span class="pre">proj&#64;</span></code> to the bank name.</p>
+<p>Build a Bank.</p>
+<p>A Bank is describe by an optional token follow by a bank name or bank path.</p>
+<p>Example: <code class="docutils literal notranslate"><span class="pre">cholesky&#64;mpc_ci_bank</span></code>, <code class="docutils literal notranslate"><span class="pre">nas&#64;/home/mpc/mpc_ci_bank</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>token</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">path</span></code>, <code class="docutils literal notranslate"><span class="pre">project&#64;name</span></code> or <code class="docutils literal notranslate"><span class="pre">project&#64;path</span></code></p>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.bank.Bank.default_project">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">default_project</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.backend.bank.Bank.default_project" title="Link to this definition"></a></dt>
+<dd><p>Get the default project select at the bank creation.</p>
+<p>Return ‘default’ when no default project are specify at bank creation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the project name (as a Ref branch)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.bank.Bank.get_count">
+<span class="sig-name descname"><span class="pre">get_count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/bank.html#Bank.get_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.bank.Bank.get_count" title="Link to this definition"></a></dt>
+<dd><p>Get the number of projects managed by this bank handle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>number of projects</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.bank.Bank.name">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.backend.bank.Bank.name" title="Link to this definition"></a></dt>
+<dd><p>Get bank name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the bank name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.backend.bank.Bank.prefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#pcvs.backend.bank.Bank.prefix" title="Link to this definition"></a></dt>
+<dd><p>Get path to bank directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>absolute path to directory</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.bank.Bank.save_from_archive">
+<span class="sig-name descname"><span class="pre">save_from_archive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">archivepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/bank.html#Bank.save_from_archive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.bank.Bank.save_from_archive" title="Link to this definition"></a></dt>
+<dd><p>Extract results from the archive, if used to export results.</p>
+<p>This is basically the same as <code class="xref py py-func docutils literal notranslate"><span class="pre">BanK.save_from_buildir()</span></code> except
+the archive is extracted first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – overridable default project (if different)</p></li>
+<li><p><strong>archivepath</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – archive path</p></li>
+<li><p><strong>msg</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – the custom message to attach to this run (=commit msg)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.bank.Bank.save_from_buildir">
+<span class="sig-name descname"><span class="pre">save_from_buildir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buildpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/bank.html#Bank.save_from_buildir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.bank.Bank.save_from_buildir" title="Link to this definition"></a></dt>
+<dd><p>Extract results from the given build directory &amp; store into the bank.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – overridable default project (if different)</p></li>
+<li><p><strong>buildpath</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the directory where PCVS stored results</p></li>
+<li><p><strong>msg</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – the custom message to attach to this run (=commit msg)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.bank.Bank.save_from_hdl">
+<span class="sig-name descname"><span class="pre">save_from_hdl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/bank.html#Bank.save_from_hdl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.bank.Bank.save_from_hdl" title="Link to this definition"></a></dt>
+<dd><p>Create a new node into the bank for the given project, based on result handler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target_project</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – valid project (=branch)</p></li>
+<li><p><strong>hdl</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.orchestration.publishers.html#pcvs.orchestration.publishers.BuildDirectoryManager" title="pcvs.orchestration.publishers.BuildDirectoryManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">BuildDirectoryManager</span></code></a></span>) – the result build directory handler</p></li>
+<li><p><strong>msg</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – the custom message to attach to this run (=commit msg)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.bank.Bank.save_new_run">
+<span class="sig-name descname"><span class="pre">save_new_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/bank.html#Bank.save_new_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.bank.Bank.save_new_run" title="Link to this definition"></a></dt>
+<dd><p>Store a new run to the current bank.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target_project</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the target branch name</p></li>
+<li><p><strong>path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the target archive or build dir to store.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.CommonException.NotPCVSRelated" title="pcvs.helpers.exceptions.CommonException.NotPCVSRelated"><strong>NotPCVSRelated</strong></a> – the path pointing to a valid PCVS run.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.bank.Bank.save_new_run_from_instance">
+<span class="sig-name descname"><span class="pre">save_new_run_from_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/bank.html#Bank.save_new_run_from_instance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.bank.Bank.save_new_run_from_instance" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.bank.Bank.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stringify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/bank.html#Bank.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.bank.Bank.show" title="Link to this definition"></a></dt>
+<dd><p>Print the bank on stdout.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function does not use <code class="xref py py-class docutils literal notranslate"><span class="pre">log.IOManager</span></code></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>stringify</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – if True, a string will be returned. Print on stdout otherwise</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str if stringify is True, Nothing otherwise`</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.bank.init_banklink">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.bank.</span></span><span class="sig-name descname"><span class="pre">init_banklink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/bank.html#init_banklink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.bank.init_banklink" title="Link to this definition"></a></dt>
+<dd><p>Create a new bank and store it to the global system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – bank label</p></li>
+<li><p><strong>path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – path to bank directory</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>if bank was successfully created</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.bank.list_banks">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.bank.</span></span><span class="sig-name descname"><span class="pre">list_banks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/bank.html#list_banks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.bank.list_banks" title="Link to this definition"></a></dt>
+<dd><p>Read Banks.
+:rtype: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>
+:return: a dictionary with banks name associated with their bank path.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.bank.rm_banklink">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.bank.</span></span><span class="sig-name descname"><span class="pre">rm_banklink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/bank.html#rm_banklink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.bank.rm_banklink" title="Link to this definition"></a></dt>
+<dd><p>Remove a bank from the global management system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – bank name</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.backend.bank.write_banks">
+<span class="sig-prename descclassname"><span class="pre">pcvs.backend.bank.</span></span><span class="sig-name descname"><span class="pre">write_banks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">banks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/bank.html#write_banks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.bank.write_banks" title="Link to this definition"></a></dt>
+<dd><p>Write banks.
+:type banks: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>
+:param banks: a dictionary with banks name associated with their path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 

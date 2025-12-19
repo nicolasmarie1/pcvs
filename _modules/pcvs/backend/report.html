@@ -1,0 +1,458 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.backend.report &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pcvs.backend.report</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.backend.report</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.session</span><span class="w"> </span><span class="kn">import</span> <span class="n">list_alive_sessions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.session</span><span class="w"> </span><span class="kn">import</span> <span class="n">SessionState</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">CommonException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.orchestration.publishers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BuildDirectoryManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.testing.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">Test</span>
+
+
+<div class="viewcode-block" id="Report">
+<a class="viewcode-back" href="../../../api/pcvs.backend.report.html#pcvs.backend.report.Report">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Report</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Map a Report interface, to handle request from frontends.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a new report</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BuildDirectoryManager</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_alive_session_infos</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__create_build_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BuildDirectoryManager</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a new handler to a build directory.</span>
+
+<span class="sd">        This object will be used to forward result requests.</span>
+
+<span class="sd">        :param path: build directory path</span>
+<span class="sd">        :raises NotPCVSRelated: Invalid path is provided</span>
+<span class="sd">        :return: the actual handler</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">utils</span><span class="o">.</span><span class="n">check_is_buildir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="n">hdl</span> <span class="o">=</span> <span class="n">BuildDirectoryManager</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">utils</span><span class="o">.</span><span class="n">check_is_archive</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="n">hdl</span> <span class="o">=</span> <span class="n">BuildDirectoryManager</span><span class="o">.</span><span class="n">load_from_archive</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CommonException</span><span class="o">.</span><span class="n">NotPCVSRelated</span><span class="p">(</span>
+                <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;Given path is not PCVS build related&quot;</span><span class="p">,</span> <span class="n">dbg_info</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">path</span><span class="p">}</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">hdl</span>
+
+<div class="viewcode-block" id="Report.add_session">
+<a class="viewcode-back" href="../../../api/pcvs.backend.report.html#pcvs.backend.report.Report.add_session">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BuildDirectoryManager</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Insert new session to be managed.</span>
+
+<span class="sd">        :param path: the build path (root dir)</span>
+<span class="sd">        :return: the session handler</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hdl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__create_build_handler</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">hdl</span><span class="o">.</span><span class="n">load_config</span><span class="p">()</span>
+        <span class="n">hdl</span><span class="o">.</span><span class="n">init_results</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="p">[</span><span class="n">hdl</span><span class="o">.</span><span class="n">sid</span><span class="p">]</span> <span class="o">=</span> <span class="n">hdl</span>
+        <span class="k">return</span> <span class="n">hdl</span></div>
+
+
+<div class="viewcode-block" id="Report.load_alive_sessions">
+<a class="viewcode-back" href="../../../api/pcvs.backend.report.html#pcvs.backend.report.Report.load_alive_sessions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_alive_sessions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load currently active sessions as reference in PATH_SESSION.</span>
+
+<span class="sd">        A issue with this function,  as invalid sessions are not manager yet.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_alive_session_infos</span> <span class="o">=</span> <span class="n">list_alive_sessions</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">sk</span><span class="p">,</span> <span class="n">sv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alive_session_infos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">hdl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__create_build_handler</span><span class="p">(</span><span class="n">sv</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">hdl</span><span class="o">.</span><span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="p">:</span>
+                <span class="c1"># SID may be recycled</span>
+                <span class="c1"># just attribute another number (negative, to make it noticeable)</span>
+                <span class="k">while</span> <span class="n">hdl</span><span class="o">.</span><span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="p">:</span>
+                    <span class="n">hdl</span><span class="o">.</span><span class="n">sid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+
+            <span class="k">elif</span> <span class="n">hdl</span><span class="o">.</span><span class="n">sid</span> <span class="o">!=</span> <span class="n">sk</span><span class="p">:</span>
+                <span class="c1"># The build directory has been reused since this session ended</span>
+                <span class="c1"># mark the old one as &#39;unavailable&#39;</span>
+                <span class="k">pass</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_session</span><span class="p">(</span><span class="n">sv</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">])</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">session_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the list of session ids managed by this instance.</span>
+
+<span class="sd">        :return: a list of session ids</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+<div class="viewcode-block" id="Report.dict_convert_list_to_cnt">
+<a class="viewcode-back" href="../../../api/pcvs.backend.report.html#pcvs.backend.report.Report.dict_convert_list_to_cnt">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dict_convert_list_to_cnt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arrays</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert dict of arrays to a dict of array lengths.</span>
+
+<span class="sd">        Used to convert dict of per-status jobs to a summary of them.</span>
+
+<span class="sd">        :param arrays: the dict of arrays</span>
+<span class="sd">        :return: a summary of given dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">arrays</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+
+
+<div class="viewcode-block" id="Report.session_infos">
+<a class="viewcode-back" href="../../../api/pcvs.backend.report.html#pcvs.backend.report.Report.session_infos">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">session_infos</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get session metadata for each session currently loaded into the instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">sid</span><span class="p">,</span> <span class="n">sdata</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">status_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_session_status</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">status_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+            <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_convert_list_to_cnt</span><span class="p">(</span><span class="n">status_dict</span><span class="p">)</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_alive_session_infos</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="s2">&quot;state&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alive_session_infos</span>
+                <span class="k">else</span> <span class="n">SessionState</span><span class="o">.</span><span class="n">COMPLETED</span>
+            <span class="p">)</span>
+            <span class="k">yield</span> <span class="p">{</span>
+                <span class="s2">&quot;sid&quot;</span><span class="p">:</span> <span class="n">sid</span><span class="p">,</span>
+                <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">state</span><span class="p">),</span>
+                <span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="n">counts</span><span class="p">,</span>
+                <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">sdata</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span>
+                <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="n">sdata</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">,</span> <span class="s2">&quot;No message&quot;</span><span class="p">),</span>
+            <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Report.single_session_config">
+<a class="viewcode-back" href="../../../api/pcvs.backend.report.html#pcvs.backend.report.Report.single_session_config">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">single_session_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the configuration map from a single session.</span>
+
+<span class="sd">        :param sid: the session ID</span>
+<span class="sd">        :return: the configuration node (=conf.yml)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">config</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;runtime&quot;</span><span class="p">][</span><span class="s2">&quot;plugin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+
+<div class="viewcode-block" id="Report.single_session_status">
+<a class="viewcode-back" href="../../../api/pcvs.backend.report.html#pcvs.backend.report.Report.single_session_status">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">single_session_status</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">status_filter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get per-session status infos</span>
+
+<span class="sd">        :param sid: Session id to extract info from.</span>
+<span class="sd">        :param filter: optional status to filter in, defaults to None</span>
+<span class="sd">        :return: A dict of statuses (or a single list if the filter is used)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span>
+        <span class="n">statuses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">status_view</span>
+        <span class="k">if</span> <span class="n">status_filter</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">status_filter</span> <span class="ow">in</span> <span class="n">statuses</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">statuses</span><span class="p">[</span><span class="n">status_filter</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">status</span>
+        <span class="k">return</span> <span class="n">statuses</span></div>
+
+
+<div class="viewcode-block" id="Report.single_session_tags">
+<a class="viewcode-back" href="../../../api/pcvs.backend.report.html#pcvs.backend.report.Report.single_session_tags">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">single_session_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get per-session available tags.</span>
+
+<span class="sd">        Outputs a per-status dict.</span>
+
+<span class="sd">        :param sid: Session ID</span>
+<span class="sd">        :return: dict of statuses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">tags_view</span></div>
+
+
+<div class="viewcode-block" id="Report.single_session_job_cnt">
+<a class="viewcode-back" href="../../../api/pcvs.backend.report.html#pcvs.backend.report.Report.single_session_job_cnt">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">single_session_job_cnt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get per session number of job.</span>
+
+<span class="sd">        :param sid: the session ID</span>
+<span class="sd">        :return: The number of jobs (total)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">total_cnt</span></div>
+
+
+<div class="viewcode-block" id="Report.single_session_labels">
+<a class="viewcode-back" href="../../../api/pcvs.backend.report.html#pcvs.backend.report.Report.single_session_labels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">single_session_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get per-session available labels.</span>
+
+<span class="sd">        Outputs a per-status dict.</span>
+
+<span class="sd">        :param sid: Session ID</span>
+<span class="sd">        :return: dict of statuses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span>
+        <span class="n">labels_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">tree_view</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">label</span><span class="p">:</span> <span class="n">labels_info</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;dirs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Report.single_session_build_path">
+<a class="viewcode-back" href="../../../api/pcvs.backend.report.html#pcvs.backend.report.Report.single_session_build_path">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">single_session_build_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get build prefix of a given session.</span>
+
+<span class="sd">        :param sid: session ID</span>
+<span class="sd">        :return: build path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">prefix</span></div>
+
+
+<div class="viewcode-block" id="Report.single_session_map_id">
+<a class="viewcode-back" href="../../../api/pcvs.backend.report.html#pcvs.backend.report.Report.single_session_map_id">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">single_session_map_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">jid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Test</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For a given session id, convert a job it into its relative class:`Test` object.</span>
+
+<span class="sd">        :param sid: Session ID</span>
+<span class="sd">        :param jid: Job ID</span>
+<span class="sd">        :return: the Actual test object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">map_id</span><span class="p">(</span><span class="n">jid</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Report.single_session_get_view">
+<a class="viewcode-back" href="../../../api/pcvs.backend.report.html#pcvs.backend.report.Report.single_session_get_view">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">single_session_get_view</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">summary</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a specific view from a given session.</span>
+
+<span class="sd">        A view consists in a per-status split of jobs depending on the purpose</span>
+<span class="sd">        of the stored view. PCVS currently provide automatically:</span>
+<span class="sd">        * Per status</span>
+<span class="sd">        * Per tags</span>
+<span class="sd">        * Per labels</span>
+
+<span class="sd">        If `subset` is provided, only the nodes matching the key will be</span>
+<span class="sd">        returned.</span>
+<span class="sd">        If `summary` is True, a job count will be returned instead of actual</span>
+<span class="sd">        job ids.</span>
+
+<span class="sd">        :param sid: Session ID</span>
+<span class="sd">        :param name: view name</span>
+<span class="sd">        :param subset: only a selection of the view, defaults to None</span>
+<span class="sd">        :param summary: Should it be summarized, defaults to False</span>
+<span class="sd">        :return: the result dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sessions</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;tags&quot;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_session_tags</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;labels&quot;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_session_labels</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">subset</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">k</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">and</span> <span class="n">summary</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_convert_list_to_cnt</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__rich_repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="upload_buildir_results">
+<a class="viewcode-back" href="../../../api/pcvs.backend.report.html#pcvs.backend.report.upload_buildir_results">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">upload_buildir_results</span><span class="p">(</span>
+    <span class="n">data_manager</span><span class="p">:</span> <span class="n">Report</span><span class="p">,</span> <span class="n">buildir</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Upload a whole test-suite from disk to the server data model.</span>
+
+<span class="sd">    :param buildir: the build directory</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+    <span class="c1"># TODO: That would be cool to dev the real stuff,</span>
+    <span class="c1"># before making interface that use function that never existed.</span>
+
+    <span class="c1"># first, need to determine the session ID -&gt; conf.yml</span>
+    <span class="c1"># with open(os.path.join(buildir, &quot;conf.yml&quot;), &quot;r&quot;, encoding=&quot;utf-8&quot;) as fh:</span>
+    <span class="c1">#     conf_yml = YAML().load(fh)</span>
+
+    <span class="c1"># sid = conf_yml[&quot;validation&quot;][&quot;sid&quot;]</span>
+    <span class="c1"># dataman = data_manager</span>
+
+    <span class="c1"># man = BuildDirectoryManager(buildir)</span>
+    <span class="c1"># dataman.insert_session(</span>
+    <span class="c1">#    sid,</span>
+    <span class="c1">#    {</span>
+    <span class="c1">#        &quot;buildpath&quot;: buildir,</span>
+    <span class="c1">#        &quot;state&quot;: Session.State.COMPLETED,</span>
+    <span class="c1">#        &quot;dirs&quot;: conf_yml[&quot;validation&quot;][&quot;dirs&quot;],</span>
+    <span class="c1">#    },</span>
+    <span class="c1"># )</span>
+    <span class="c1"># for test in man.results.browse_tests():</span>
+    <span class="c1">#    # FIXME: this function does not exist any more</span>
+    <span class="c1">#    # man.save(test)</span>
+    <span class="c1">#    dataman.insert_test(sid, test)</span>
+
+    <span class="c1"># dataman.close_session(sid, {&quot;state&quot;: Session.State.COMPLETED})</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

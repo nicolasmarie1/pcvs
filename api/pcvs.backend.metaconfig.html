@@ -115,8 +115,195 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-backend-metaconfig-module">
-<h1>pcvs.backend.metaconfig module<a class="headerlink" href="#pcvs-backend-metaconfig-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.backend.metaconfig">
+<span id="pcvs-backend-metaconfig-module"></span><h1>pcvs.backend.metaconfig module<a class="headerlink" href="#module-pcvs.backend.metaconfig" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.backend.metaconfig.GlobalConfig">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.backend.metaconfig.</span></span><span class="sig-name descname"><span class="pre">GlobalConfig</span></span><a class="reference internal" href="../_modules/pcvs/backend/metaconfig.html#GlobalConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.metaconfig.GlobalConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A static class to store a Global version of Metaconfig.</p>
+<p>To avoid carrying a global instancied object over the whole code, a
+class-scoped attribute allows to browse the global configuration from
+anywhere through <cite>GlobalConfig.root</cite></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcvs.backend.metaconfig.GlobalConfig.root">
+<span class="sig-name descname"><span class="pre">root</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pcvs.backend.metaconfig.MetaConfig" title="pcvs.backend.metaconfig.MetaConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaConfig</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#pcvs.backend.metaconfig.GlobalConfig.root" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.backend.metaconfig.MetaConfig">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.backend.metaconfig.</span></span><span class="sig-name descname"><span class="pre">MetaConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">internal_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/metaconfig.html#MetaConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.metaconfig.MetaConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="pcvs.backend.config.html#pcvs.backend.config.Config" title="pcvs.backend.config.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a></p>
+<p>Root configuration object.</p>
+<p>It is composed of Config(), categorizing each configuration blocks.
+This MetaConfig() contains the whole profile along with
+any validation and current run information.
+This configuration is used as a dict extension.</p>
+<p>The internal_config is used to contain runtime information that should/could not be serialize.</p>
+<p>Init the object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – items of the configuration</p></li>
+<li><p><strong>internal_config</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – items to add to the internal_config</p></li>
+</ul>
+</dd>
+</dl>
+<p>internal_config is a subdictionnary for non serializable runtime object.
+The internal_config is therefore not save like the regular config.
+It act as a global variables registry.
+Using it is bad practice and should be avoided.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.metaconfig.MetaConfig.bootstrap_compiler">
+<span class="sig-name descname"><span class="pre">bootstrap_compiler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/metaconfig.html#MetaConfig.bootstrap_compiler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.metaconfig.MetaConfig.bootstrap_compiler" title="Link to this definition"></a></dt>
+<dd><p>Specific initialize for compiler config.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>conf</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.backend.config.html#pcvs.backend.config.Config" title="pcvs.backend.config.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a></span>) – compiler config to initialize</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.metaconfig.MetaConfig.bootstrap_criterion">
+<span class="sig-name descname"><span class="pre">bootstrap_criterion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/metaconfig.html#MetaConfig.bootstrap_criterion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.metaconfig.MetaConfig.bootstrap_criterion" title="Link to this definition"></a></dt>
+<dd><p>Specific initialize for criterion config.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>conf</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.backend.config.html#pcvs.backend.config.Config" title="pcvs.backend.config.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a></span>) – criterion config to initialize</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.metaconfig.MetaConfig.bootstrap_from_profile">
+<span class="sig-name descname"><span class="pre">bootstrap_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/metaconfig.html#MetaConfig.bootstrap_from_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.metaconfig.MetaConfig.bootstrap_from_profile" title="Link to this definition"></a></dt>
+<dd><p>Bootstrap MetaConfig from profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pf</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.backend.configfile.html#pcvs.backend.configfile.Profile" title="pcvs.backend.configfile.Profile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code></a></span>) – The profile to bootstrap from.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.metaconfig.MetaConfig.bootstrap_group">
+<span class="sig-name descname"><span class="pre">bootstrap_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/metaconfig.html#MetaConfig.bootstrap_group"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.metaconfig.MetaConfig.bootstrap_group" title="Link to this definition"></a></dt>
+<dd><p>Specific initialize for group config.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>conf</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.backend.config.html#pcvs.backend.config.Config" title="pcvs.backend.config.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a></span>) – group config to initialize</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.metaconfig.MetaConfig.bootstrap_machine">
+<span class="sig-name descname"><span class="pre">bootstrap_machine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/metaconfig.html#MetaConfig.bootstrap_machine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.metaconfig.MetaConfig.bootstrap_machine" title="Link to this definition"></a></dt>
+<dd><p>Specific initialize for machine config block.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>conf</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.backend.config.html#pcvs.backend.config.Config" title="pcvs.backend.config.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a></span>) – machine config to initialize</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.metaconfig.MetaConfig.bootstrap_runtime">
+<span class="sig-name descname"><span class="pre">bootstrap_runtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/metaconfig.html#MetaConfig.bootstrap_runtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.metaconfig.MetaConfig.bootstrap_runtime" title="Link to this definition"></a></dt>
+<dd><p>Specific initialize for runtime config.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>conf</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.backend.config.html#pcvs.backend.config.Config" title="pcvs.backend.config.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a></span>) – runtime config to initialize</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.metaconfig.MetaConfig.bootstrap_validation">
+<span class="sig-name descname"><span class="pre">bootstrap_validation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/metaconfig.html#MetaConfig.bootstrap_validation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.metaconfig.MetaConfig.bootstrap_validation" title="Link to this definition"></a></dt>
+<dd><p>Specific initialize for validation config.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>conf</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.backend.config.html#pcvs.backend.config.Config" title="pcvs.backend.config.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a></span>) – validation block to initialize</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.backend.config.html#pcvs.backend.config.Config" title="pcvs.backend.config.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.metaconfig.MetaConfig.bootstrap_validation_from_file">
+<span class="sig-name descname"><span class="pre">bootstrap_validation_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/metaconfig.html#MetaConfig.bootstrap_validation_from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.metaconfig.MetaConfig.bootstrap_validation_from_file" title="Link to this definition"></a></dt>
+<dd><p>Specific initialize for validation config block.</p>
+<p>This function loads a file containing the validation dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filepath</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – path to file to be validated</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.CommonException.IOError" title="pcvs.helpers.exceptions.CommonException.IOError"><strong>IOError</strong></a> – file is not found or badly formatted</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.metaconfig.MetaConfig.get_internal">
+<span class="sig-name descname"><span class="pre">get_internal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/metaconfig.html#MetaConfig.get_internal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.metaconfig.MetaConfig.get_internal" title="Link to this definition"></a></dt>
+<dd><p>Manipulate the internal MetaConfig() node to load unexportable data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>k</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – value to get</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.backend.metaconfig.MetaConfig.set_internal">
+<span class="sig-name descname"><span class="pre">set_internal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/backend/metaconfig.html#MetaConfig.set_internal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.backend.metaconfig.MetaConfig.set_internal" title="Link to this definition"></a></dt>
+<dd><p>Manipulate the internal MetaConfig() node to store unexportable data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>k</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – name of value to add</p></li>
+<li><p><strong>v</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – value to add</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 

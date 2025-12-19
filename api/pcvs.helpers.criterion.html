@@ -115,8 +115,439 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="pcvs-helpers-criterion-module">
-<h1>pcvs.helpers.criterion module<a class="headerlink" href="#pcvs-helpers-criterion-module" title="Link to this heading"></a></h1>
+  <section id="module-pcvs.helpers.criterion">
+<span id="pcvs-helpers-criterion-module"></span><h1>pcvs.helpers.criterion module<a class="headerlink" href="#module-pcvs.helpers.criterion" title="Link to this heading"></a></h1>
+<p>Criterion Modules:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Criterion:</dt><dd><p>A criterion represent a test parameter (command line argument or environment variables)
+and the different values that the parameter will takes when running the test. (-n=1, -n=2, …)
+Their can be multiples criterions per tests. (-n=[1, 8], -N=[1, 8])</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Combinations:</dt><dd><p>One or multiples criterions are expanded into combinations.
+One combination contain one value for each criterion such as (-n=1, -N=2, …).
+For each combination their will be a run of the test with the argument at the value of the combination.
+A Combination may be valid or invalid. (-n=1 &amp; -N=2 is an invalid combination).
+Combination are vallidated by plugins.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Series:</dt><dd><p>A Series (of combination), represent all the valid Combinations that the test will be run with.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Combination">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.criterion.</span></span><span class="sig-name descname"><span class="pre">Combination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crit_desc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resources</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Combination"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Combination" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A combination maps the actual concretization from multiple criterion.</p>
+<p>For a given set of criterion, a Combination carries, for each kind, its
+associated value in order to generate the appropriate test</p>
+<p>Build a combination from two components:
+- the actual combination dict
+- the dict of criterions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crit_desc</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <a class="reference internal" href="#pcvs.helpers.criterion.Criterion" title="pcvs.helpers.criterion.Criterion"><code class="xref py py-class docutils literal notranslate"><span class="pre">Criterion</span></code></a>]</span>) – dict of criterions (=their full description)
+represented in the current combination.</p></li>
+<li><p><strong>dict_comb</strong> – actual combination dict (k=criterion name, v=actual value)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Combination.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dflt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Combination.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Combination.get" title="Link to this definition"></a></dt>
+<dd><p>Retrieve the actual value for a given combination element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>k</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – value to retrieve</p></li>
+<li><p><strong>dflt</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – default value if k is not a valid key</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Combination.get_combinations">
+<span class="sig-name descname"><span class="pre">get_combinations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Combination.get_combinations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Combination.get_combinations" title="Link to this definition"></a></dt>
+<dd><p>Translate the combination into a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>configuration in the shape of a python dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Combination.items">
+<span class="sig-name descname"><span class="pre">items</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Combination.items"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Combination.items" title="Link to this definition"></a></dt>
+<dd><p>Get the combination dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ItemsView</span></code></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the whole combination dict.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Combination.resources">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">resources</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#pcvs.helpers.criterion.Combination.resources" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Combination.translate_to_command">
+<span class="sig-name descname"><span class="pre">translate_to_command</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Combination.translate_to_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Combination.translate_to_command" title="Link to this definition"></a></dt>
+<dd><p>Translate the actual combination is tuple of three elements, based
+on the representation of each criterion in the test semantic. It builds
+tokens to provide to properly build the test command. It can
+either be:</p>
+<ol class="arabic simple">
+<li><p>an environment variable to export before the test to run (gathering
+system-scope and program-scope elements)</p></li>
+<li><p>a runtime argument</p></li>
+<li><p>a program-level argument (through custom-made iterators)</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Combination.translate_to_str">
+<span class="sig-name descname"><span class="pre">translate_to_str</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Combination.translate_to_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Combination.translate_to_str" title="Link to this definition"></a></dt>
+<dd><p>Translate the actual combination in a pretty-format string.</p>
+<p>This is mainly used to generate actual test names</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.criterion.</span></span><span class="sig-name descname"><span class="pre">Criterion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numeric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Criterion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Criterion" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A Criterion is the representation of a component (i.e. parameter)
+each program (i.e. test binary) should be run against.
+A criterion comes with a range of possible values, each leading to a different test.</p>
+<p>Initialize a criterion from its YAML/dict description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – name of the criterion (eg: n_mpi)</p></li>
+<li><p><strong>description</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – <p>description of the criterion from configuration, include:</p>
+<ul>
+<li><p>numeric: <code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>, is the criterion numeric</p></li>
+<li><p>option: <code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>, what is the option of the criterion (eg: -N)</p></li>
+<li><p>position: <code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>, ‘after’ or ‘before’ is the criterion option before or after it’s value</p></li>
+<li><p>aliases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">list[str]</span></code>, aliases names for the criterion</p></li>
+<li><p>type: <code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>, ‘argument’ or ‘environment’</p></li>
+<li><dl class="simple">
+<dt>local: <code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>, if the criterion a parameter,</dt><dd><p>should the criterion be a parameter of the test or a parameter of the wrapper</p>
+</dd>
+</dl>
+</li>
+<li><p>subtitle: <code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>, the str that will be used with the current value to name the test</p></li>
+</ul>
+</p></li>
+<li><p><strong>local</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – True if the criterion is a parameter on the test binary,
+False if it is a parameter to the wrapper,
+default to False, is override by local in description.</p></li>
+<li><p><strong>numeric</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – True if the criterion is numeric, default to False</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.aliased_value">
+<span class="sig-name descname"><span class="pre">aliased_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Criterion.aliased_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.aliased_value" title="Link to this definition"></a></dt>
+<dd><p>Check if the given value has an alias for the current criterion.
+An alias is the value replacement to use instead of the one defined by
+test configuration. This allows to split test logic from runtime
+semantics.</p>
+<p>For instance, TEs manipulate ‘ib’ as a value to depict the ‘infiniband’
+network layer. But once the test has to be built, the term will change
+depending on the runtime carrying it, the value may be different from
+a runtime to another
+:type val: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>
+:param val: string with aliases to be replaced</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.concretize_value">
+<span class="sig-name descname"><span class="pre">concretize_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Criterion.concretize_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.concretize_value" title="Link to this definition"></a></dt>
+<dd><p>Return the exact string mapping this criterion, according to the specification.
+(is it aliased ? should the option be put before/after the value?…)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>val</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – value to add with prefix</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>values with aliases replaced</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.expand_values">
+<span class="sig-name descname"><span class="pre">expand_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Criterion.expand_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.expand_values" title="Link to this definition"></a></dt>
+<dd><p>Browse values for the current criterion and make it ready to generate combinations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.expanded">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expanded</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.expanded" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.intersect">
+<span class="sig-name descname"><span class="pre">intersect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Criterion.intersect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.intersect" title="Link to this definition"></a></dt>
+<dd><p>Update the calling Criterion with the intersection of the current
+range of possible values with the one given as a parameters.</p>
+<p>This is used to refine overridden per-TE criterion according to
+system-wide’s</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.is_discarded">
+<span class="sig-name descname"><span class="pre">is_discarded</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Criterion.is_discarded"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.is_discarded" title="Link to this definition"></a></dt>
+<dd><p>Should this criterion be ignored from the current TE generaiton ?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.is_empty">
+<span class="sig-name descname"><span class="pre">is_empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Criterion.is_empty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.is_empty" title="Link to this definition"></a></dt>
+<dd><p>Is the current set of values empty
+May lead to errors, as it may indicates no common values has been
+found between user and system specifications</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.is_env">
+<span class="sig-name descname"><span class="pre">is_env</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Criterion.is_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.is_env" title="Link to this definition"></a></dt>
+<dd><p>Is this criterion targeting a component used as an env var ?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.is_local">
+<span class="sig-name descname"><span class="pre">is_local</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Criterion.is_local"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.is_local" title="Link to this definition"></a></dt>
+<dd><p>Is the criterion local ? (program-scoped)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.max_value">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">max_value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.max_value" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.min_value">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">min_value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.min_value" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.name">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.name" title="Link to this definition"></a></dt>
+<dd><p>Get the <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute of this criterion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>name of this criterion</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.numeric">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">numeric</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.numeric" title="Link to this definition"></a></dt>
+<dd><p>Return if this criterion a numeric criterion (or a string iterator).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numeric of this criterion</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.override">
+<span class="sig-name descname"><span class="pre">override</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Criterion.override"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.override" title="Link to this definition"></a></dt>
+<dd><p>Replace the value of the criterion using a descriptor containing the
+said value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>desc</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – descriptor supposedly containing a <code class="docutils literal notranslate"><span class="pre">values</span></code> entry</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.subtitle">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">subtitle</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.subtitle" title="Link to this definition"></a></dt>
+<dd><p>Get the <code class="docutils literal notranslate"><span class="pre">subtitle</span></code> attribute of this criterion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>subtitle of this criterion</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Criterion.values">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">values</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">set</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pcvs.helpers.criterion.Criterion.values" title="Link to this definition"></a></dt>
+<dd><p>Get the <code class="docutils literal notranslate"><span class="pre">value</span></code> attribute of this criterion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>values of this criterion</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Series">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.criterion.</span></span><span class="sig-name descname"><span class="pre">Series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dict_of_criterion</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Series" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A series ties a test expression (<code class="xref py py-class docutils literal notranslate"><span class="pre">TEDescriptor</span></code>) to the possible values
+which can be taken for each criterion to build test sets.
+A series can be seen as the Combination generator for a given <code class="xref py py-class docutils literal notranslate"><span class="pre">TEDescriptor</span></code></p>
+<p>Build a series, by extracting the list of values.
+Note that here, the dict also contains program-based criterions.
+:type dict_of_criterion: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <a class="reference internal" href="#pcvs.helpers.criterion.Criterion" title="pcvs.helpers.criterion.Criterion"><code class="xref py py-class docutils literal notranslate"><span class="pre">Criterion</span></code></a>]</span>
+:param dict_of_criterion: values to build the series with</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.Series.generate">
+<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#Series.generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.Series.generate" title="Link to this definition"></a></dt>
+<dd><p>Generator to build each combination</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[<a class="reference internal" href="#pcvs.helpers.criterion.Combination" title="pcvs.helpers.criterion.Combination"><code class="xref py py-class docutils literal notranslate"><span class="pre">Combination</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.get_plugin">
+<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.criterion.</span></span><span class="sig-name descname"><span class="pre">get_plugin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#get_plugin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.get_plugin" title="Link to this definition"></a></dt>
+<dd><p>Get the current validation plugin for the run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pcvs.plugins.html#pcvs.plugins.Collection" title="pcvs.plugins.Collection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Collection</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.get_resources">
+<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.criterion.</span></span><span class="sig-name descname"><span class="pre">get_resources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dic</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#get_resources"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.get_resources" title="Link to this definition"></a></dt>
+<dd><p>Get the resources needed for a job.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.initialize_from_system">
+<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.criterion.</span></span><span class="sig-name descname"><span class="pre">initialize_from_system</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#initialize_from_system"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.initialize_from_system" title="Link to this definition"></a></dt>
+<dd><p>Initialise system-wide criterions</p>
+<p>TODO: Move this function elsewhere.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.load_plugin">
+<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.criterion.</span></span><span class="sig-name descname"><span class="pre">load_plugin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#load_plugin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.load_plugin" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcvs.helpers.criterion.valid_combination">
+<span class="sig-prename descclassname"><span class="pre">pcvs.helpers.criterion.</span></span><span class="sig-name descname"><span class="pre">valid_combination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dic</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/criterion.html#valid_combination"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.criterion.valid_combination" title="Link to this definition"></a></dt>
+<dd><p>Check if dict is a valid criterion combination.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dic</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – dict to check</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if dic is a valid combination</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 

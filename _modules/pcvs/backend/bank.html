@@ -1,0 +1,488 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.backend.bank &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pcvs.backend.bank</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.backend.bank</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tarfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">YAML</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">dsl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">PATH_BANK</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">git</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">BankException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">CommonException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.orchestration.publishers</span><span class="w"> </span><span class="kn">import</span> <span class="n">BuildDirectoryManager</span>
+
+
+<div class="viewcode-block" id="Bank">
+<a class="viewcode-back" href="../../../api/pcvs.backend.bank.html#pcvs.backend.bank.Bank">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Bank</span><span class="p">(</span><span class="n">dsl</span><span class="o">.</span><span class="n">Bank</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Representation of a PCVS result datastore.</span>
+
+<span class="sd">    Stored as a Git repo, a bank hold multiple results to be scanned and used to</span>
+<span class="sd">    analyse benchmarks result over time. A single bank can manipulate namespaces</span>
+<span class="sd">    (referred as &#39;projects&#39;).</span>
+<span class="sd">    The namespace is provided by prefixing ``proj@`` to the bank name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a Bank.</span>
+
+<span class="sd">        A Bank is describe by an optional token follow by a bank name or bank path.</span>
+
+<span class="sd">        Example: ``cholesky@mpc_ci_bank``, ``nas@/home/mpc/mpc_ci_bank``</span>
+
+<span class="sd">        :param token: ``name``, ``path``, ``project@name`` or ``project@path``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Search for the Bank</span>
+        <span class="n">path_or_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">token</span>
+        <span class="n">dflt_proj</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span>
+        <span class="c1"># split name/path &amp; default-proj from token</span>
+        <span class="n">array</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">dflt_proj</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">path_or_name</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># by name</span>
+        <span class="n">banks</span> <span class="o">=</span> <span class="n">list_banks</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">path_or_name</span> <span class="ow">in</span> <span class="n">banks</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">path_or_name</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">banks</span><span class="p">[</span><span class="n">path_or_name</span><span class="p">]</span>
+        <span class="c1"># by paths</span>
+        <span class="k">elif</span> <span class="n">path_or_name</span> <span class="ow">in</span> <span class="n">banks</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">banks</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="n">path_or_name</span><span class="p">:</span>
+                    <span class="n">name</span> <span class="o">=</span> <span class="n">k</span>
+                    <span class="k">break</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">path_or_name</span>
+        <span class="c1"># by unregistered existing path</span>
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path_or_name</span><span class="p">):</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading unregistered Bank from: &#39;</span><span class="si">{</span><span class="n">path_or_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">path_or_name</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path_or_name</span><span class="p">)</span>
+        <span class="c1"># We did not found the bank.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">BankException</span><span class="o">.</span><span class="n">NotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to find bank: &#39;</span><span class="si">{</span><span class="n">path_or_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dflt_proj</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">dflt_proj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">path</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dflt_proj</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">default_project</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the default project select at the bank creation.</span>
+
+<span class="sd">        Return &#39;default&#39; when no default project are specify at bank creation.</span>
+
+<span class="sd">        :return: the project name (as a Ref branch)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dflt_proj</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get path to bank directory.</span>
+
+<span class="sd">        :return: absolute path to directory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get bank name.</span>
+
+<span class="sd">        :return: the bank name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stringification of a bank.</span>
+
+<span class="sd">        :return: a combination of name &amp; path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">})</span>
+
+<div class="viewcode-block" id="Bank.show">
+<a class="viewcode-back" href="../../../api/pcvs.backend.bank.html#pcvs.backend.bank.Bank.show">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stringify</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print the bank on stdout.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This function does not use :class:`log.IOManager`</span>
+
+<span class="sd">        :param stringify: if True, a string will be returned. Print on stdout otherwise</span>
+<span class="sd">        :return: str if stringify is True, Nothing otherwise`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Projects contained in bank &#39;</span><span class="si">{}</span><span class="s2">&#39;:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">)]</span>
+        <span class="c1"># browse references</span>
+        <span class="k">for</span> <span class="n">project</span><span class="p">,</span> <span class="n">series</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_all</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">string</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;- </span><span class="si">{:&lt;8}</span><span class="s2">: </span><span class="si">{}</span><span class="s2"> distinct testsuite(s)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">series</span><span class="p">)))</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">series</span><span class="p">:</span>
+                <span class="n">string</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  * </span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2"> run(s)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="n">stringify</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">string</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Close / disconnect a bank (releasing lock)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Bank.save_from_hdl">
+<a class="viewcode-back" href="../../../api/pcvs.backend.bank.html#pcvs.backend.bank.Bank.save_from_hdl">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_from_hdl</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">target_project</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">hdl</span><span class="p">:</span> <span class="n">BuildDirectoryManager</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new node into the bank for the given project, based on result handler.</span>
+
+<span class="sd">        :param target_project: valid project (=branch)</span>
+<span class="sd">        :param hdl: the result build directory handler</span>
+<span class="sd">        :param msg: the custom message to attach to this run (=commit msg)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">target_project</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">target_project</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_project</span>
+        <span class="n">series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_series</span><span class="p">(</span><span class="n">target_project</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">series</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_series</span><span class="p">(</span><span class="n">target_project</span><span class="p">)</span>
+
+        <span class="n">run</span> <span class="o">=</span> <span class="n">dsl</span><span class="o">.</span><span class="n">Run</span><span class="p">(</span><span class="n">from_series</span><span class="o">=</span><span class="n">series</span><span class="p">)</span>
+        <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;cnt&quot;</span><span class="p">:</span> <span class="p">{}}</span>
+
+        <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">hdl</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">browse_tests</span><span class="p">():</span>
+            <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;cnt&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">state</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;cnt&quot;</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">state</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">run</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">to_json</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_id</span><span class="p">(</span>
+            <span class="n">an</span><span class="o">=</span><span class="n">hdl</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;author&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
+            <span class="n">am</span><span class="o">=</span><span class="n">hdl</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;author&quot;</span><span class="p">][</span><span class="s2">&quot;email&quot;</span><span class="p">],</span>
+            <span class="n">cn</span><span class="o">=</span><span class="n">git</span><span class="o">.</span><span class="n">get_current_username</span><span class="p">(),</span>
+            <span class="n">cm</span><span class="o">=</span><span class="n">git</span><span class="o">.</span><span class="n">get_current_usermail</span><span class="p">(),</span>
+        <span class="p">)</span>
+
+        <span class="n">run</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;.pcvs-cache/conf.json&quot;</span><span class="p">,</span> <span class="n">hdl</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
+
+        <span class="n">series</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span>
+            <span class="n">run</span><span class="p">,</span>
+            <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">,</span>
+            <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">hdl</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;validation&quot;</span><span class="p">][</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">timestamp</span><span class="p">()),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Bank.save_from_buildir">
+<a class="viewcode-back" href="../../../api/pcvs.backend.bank.html#pcvs.backend.bank.Bank.save_from_buildir">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_from_buildir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">buildpath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract results from the given build directory &amp; store into the bank.</span>
+
+<span class="sd">        :param tag: overridable default project (if different)</span>
+<span class="sd">        :param buildpath: the directory where PCVS stored results</span>
+<span class="sd">        :param msg: the custom message to attach to this run (=commit msg)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hdl</span> <span class="o">=</span> <span class="n">BuildDirectoryManager</span><span class="p">(</span><span class="n">buildpath</span><span class="p">)</span>
+        <span class="n">hdl</span><span class="o">.</span><span class="n">load_config</span><span class="p">()</span>
+        <span class="n">hdl</span><span class="o">.</span><span class="n">init_results</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_from_hdl</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">hdl</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Bank.save_from_archive">
+<a class="viewcode-back" href="../../../api/pcvs.backend.bank.html#pcvs.backend.bank.Bank.save_from_archive">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_from_archive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">archivepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract results from the archive, if used to export results.</span>
+
+<span class="sd">        This is basically the same as :func:`BanK.save_from_buildir` except</span>
+<span class="sd">        the archive is extracted first.</span>
+
+<span class="sd">        :param tag: overridable default project (if different)</span>
+<span class="sd">        :param archivepath: archive path</span>
+<span class="sd">        :param msg: the custom message to attach to this run (=commit msg)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">archivepath</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tarpath</span><span class="p">:</span>
+            <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">archivepath</span><span class="p">))</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">tarpath</span><span class="p">)</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">tarpath</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;pcvsrun_&quot;</span><span class="p">)]</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_from_buildir</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tarpath</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Bank.save_new_run_from_instance">
+<a class="viewcode-back" href="../../../api/pcvs.backend.bank.html#pcvs.backend.bank.Bank.save_new_run_from_instance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_new_run_from_instance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">target_project</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">hdl</span><span class="p">:</span> <span class="n">BuildDirectoryManager</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_from_hdl</span><span class="p">(</span><span class="n">target_project</span><span class="p">,</span> <span class="n">hdl</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Bank.save_new_run">
+<a class="viewcode-back" href="../../../api/pcvs.backend.bank.html#pcvs.backend.bank.Bank.save_new_run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_new_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_project</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Store a new run to the current bank.</span>
+
+<span class="sd">        :param target_project: the target branch name</span>
+<span class="sd">        :param path: the target archive or build dir to store.</span>
+<span class="sd">        :raises NotPCVSRelated: the path pointing to a valid PCVS run.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">utils</span><span class="o">.</span><span class="n">check_is_build_or_archive</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">CommonException</span><span class="o">.</span><span class="n">NotPCVSRelated</span><span class="p">(</span>
+                <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;Invalid path, not PCVS-related&quot;</span><span class="p">,</span> <span class="n">dbg_info</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">path</span><span class="p">}</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">utils</span><span class="o">.</span><span class="n">check_is_archive</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="c1"># convert to prefix</span>
+            <span class="c1"># update path according to it</span>
+            <span class="n">hdl</span> <span class="o">=</span> <span class="n">BuildDirectoryManager</span><span class="o">.</span><span class="n">load_from_archive</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hdl</span> <span class="o">=</span> <span class="n">BuildDirectoryManager</span><span class="p">(</span><span class="n">build_dir</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
+            <span class="n">hdl</span><span class="o">.</span><span class="n">load_config</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_new_run_from_instance</span><span class="p">(</span><span class="n">target_project</span><span class="p">,</span> <span class="n">hdl</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Bank representation.</span>
+
+<span class="sd">        :return: a dict-based representation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">({</span><span class="s2">&quot;rootpath&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">})</span>
+
+<div class="viewcode-block" id="Bank.get_count">
+<a class="viewcode-back" href="../../../api/pcvs.backend.bank.html#pcvs.backend.bank.Bank.get_count">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the number of projects managed by this bank handle.</span>
+
+<span class="sd">        :return: number of projects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_projects</span><span class="p">())</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="init_banklink">
+<a class="viewcode-back" href="../../../api/pcvs.backend.bank.html#pcvs.backend.bank.init_banklink">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_banklink</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a new bank and store it to the global system.</span>
+
+<span class="sd">    :param name: bank label</span>
+<span class="sd">    :param path: path to bank directory</span>
+<span class="sd">    :return: if bank was successfully created</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">banks</span> <span class="o">=</span> <span class="n">list_banks</span><span class="p">()</span>
+    <span class="c1"># check if the bank name already exist</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">banks</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="c1"># trying to import a bank that already exist with an other name</span>
+    <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">banks</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># check if the folder of the bank can be created</span>
+    <span class="c1"># allow already existing bank to be reimported</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># register bank name/path in pcvs home configuration</span>
+    <span class="n">banks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">path</span>
+    <span class="n">write_banks</span><span class="p">(</span><span class="n">banks</span><span class="p">)</span>
+
+    <span class="c1"># create the bank</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">Bank</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+<div class="viewcode-block" id="rm_banklink">
+<a class="viewcode-back" href="../../../api/pcvs.backend.bank.html#pcvs.backend.bank.rm_banklink">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rm_banklink</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove a bank from the global management system.</span>
+
+<span class="sd">    :param name: bank name</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">banks</span> <span class="o">=</span> <span class="n">list_banks</span><span class="p">()</span>
+    <span class="n">banks</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">write_banks</span><span class="p">(</span><span class="n">banks</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="list_banks">
+<a class="viewcode-back" href="../../../api/pcvs.backend.bank.html#pcvs.backend.bank.list_banks">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_banks</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read Banks.</span>
+<span class="sd">    :return: a dictionary with banks name associated with their bank path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">banks</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">PATH_BANK</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">banks</span> <span class="o">=</span> <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s2">&quot;safe&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="c1"># nothing to do, file may not exist</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">banks</span></div>
+
+
+
+<div class="viewcode-block" id="write_banks">
+<a class="viewcode-back" href="../../../api/pcvs.backend.bank.html#pcvs.backend.bank.write_banks">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_banks</span><span class="p">(</span><span class="n">banks</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write banks.</span>
+<span class="sd">    :param banks: a dictionary with banks name associated with their path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">prefix_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">PATH_BANK</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">prefix_file</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">prefix_file</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">PATH_BANK</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s2">&quot;safe&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">banks</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">BankException</span><span class="o">.</span><span class="n">IOError</span><span class="p">(</span><span class="s2">&quot;Fail to write banks list to disk.&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

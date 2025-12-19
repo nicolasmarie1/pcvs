@@ -1,0 +1,410 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pcvs.backend.metaconfig &mdash; PCVS 0.9.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PCVS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/basic-use.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basics/workflow.html">Common workflow</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">pcvs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PCVS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pcvs.backend.metaconfig</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pcvs.backend.metaconfig</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">YAML</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">YAMLError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pcvs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">NAME_BUILDIR</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.configfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">Profile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">git</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">pm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">CommonException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.helpers.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationScheme</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">Verbosity</span>
+
+<span class="c1"># Compiler to file extension mappings.</span>
+<span class="n">COMPILER_EXTENSION_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;cc&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">.(h|H|i|I|s|S|c|c90|c99|c11)$&quot;</span><span class="p">,</span>
+    <span class="c1"># &quot;.h.H.i.I.s.S.c.c90.c99.c11&quot;</span>
+    <span class="s2">&quot;cxx&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">.(hpp|C|cc|cxx|cpp|c</span><span class="se">\\</span><span class="s2">+</span><span class="se">\\</span><span class="s2">+)$&quot;</span><span class="p">,</span>
+    <span class="c1"># &quot;.hpp.C.cc.cxx.cpp.c++&quot;</span>
+    <span class="s2">&quot;fortran&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">.(f|F)(77|90|95|(20)?(03|08)|c|C)?$&quot;</span><span class="p">,</span>
+    <span class="c1"># &quot;.f.F.f77.f90.f95.f03.f08.f2003.f2008.fc.fC.F77.F90.F95.F03.F08.F2003.F2008.Fc.FC&quot;</span>
+    <span class="s2">&quot;cuda&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">.(cu|CU)$&quot;</span><span class="p">,</span>
+    <span class="c1"># &quot;.cu.CU&quot;</span>
+    <span class="s2">&quot;hip&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">.(hip|HIP)$&quot;</span><span class="p">,</span>
+    <span class="c1"># &quot;.hip.HIP&quot;</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="MetaConfig">
+<a class="viewcode-back" href="../../../api/pcvs.backend.metaconfig.html#pcvs.backend.metaconfig.MetaConfig">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MetaConfig</span><span class="p">(</span><span class="n">Config</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Root configuration object.</span>
+
+<span class="sd">    It is composed of Config(), categorizing each configuration blocks.</span>
+<span class="sd">    This MetaConfig() contains the whole profile along with</span>
+<span class="sd">    any validation and current run information.</span>
+<span class="sd">    This configuration is used as a dict extension.</span>
+
+<span class="sd">    The internal_config is used to contain runtime information that should/could not be serialize.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span> <span class="n">internal_config</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Init the object.</span>
+
+<span class="sd">        :param d: items of the configuration</span>
+<span class="sd">        :param internal_config: items to add to the internal_config</span>
+
+<span class="sd">        internal_config is a subdictionnary for non serializable runtime object.</span>
+<span class="sd">        The internal_config is therefore not save like the regular config.</span>
+<span class="sd">        It act as a global variables registry.</span>
+<span class="sd">        Using it is bad practice and should be avoided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__internal_config</span> <span class="o">=</span> <span class="n">internal_config</span>
+
+<div class="viewcode-block" id="MetaConfig.bootstrap_from_profile">
+<a class="viewcode-back" href="../../../api/pcvs.backend.metaconfig.html#pcvs.backend.metaconfig.MetaConfig.bootstrap_from_profile">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_from_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pf</span><span class="p">:</span> <span class="n">Profile</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Bootstrap MetaConfig from profile.</span>
+
+<span class="sd">        :param pf: The profile to bootstrap from.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bootstrap_compiler</span><span class="p">(</span><span class="n">pf</span><span class="o">.</span><span class="n">compiler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bootstrap_criterion</span><span class="p">(</span><span class="n">pf</span><span class="o">.</span><span class="n">criterion</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bootstrap_group</span><span class="p">(</span><span class="n">pf</span><span class="o">.</span><span class="n">group</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bootstrap_machine</span><span class="p">(</span><span class="n">pf</span><span class="o">.</span><span class="n">machine</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bootstrap_runtime</span><span class="p">(</span><span class="n">pf</span><span class="o">.</span><span class="n">runtime</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MetaConfig.bootstrap_compiler">
+<a class="viewcode-back" href="../../../api/pcvs.backend.metaconfig.html#pcvs.backend.metaconfig.MetaConfig.bootstrap_compiler">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_compiler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">:</span> <span class="n">Config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Specific initialize for compiler config.</span>
+
+<span class="sd">        :param conf: compiler config to initialize</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;compiler&quot;</span><span class="p">,</span> <span class="n">conf</span><span class="p">)</span>
+
+        <span class="c1"># check that configured compiler does exist.</span>
+        <span class="k">for</span> <span class="n">compiler</span> <span class="ow">in</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;compilers&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="c1"># get correct extension if compiler is defined by type</span>
+            <span class="k">if</span> <span class="s2">&quot;type&quot;</span> <span class="ow">in</span> <span class="n">compiler</span> <span class="ow">and</span> <span class="s2">&quot;extension&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">compiler</span><span class="p">:</span>
+                <span class="n">ext</span> <span class="o">=</span> <span class="n">COMPILER_EXTENSION_CONFIG</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">compiler</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ext</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># TODO: throw parsing errors</span>
+                    <span class="k">pass</span>
+                <span class="n">compiler</span><span class="p">[</span><span class="s2">&quot;extension&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ext</span>
+        <span class="k">if</span> <span class="s2">&quot;package_manager&quot;</span> <span class="ow">in</span> <span class="n">conf</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_internal</span><span class="p">(</span><span class="s2">&quot;cc_pm&quot;</span><span class="p">,</span> <span class="n">pm</span><span class="o">.</span><span class="n">identify</span><span class="p">(</span><span class="n">conf</span><span class="p">[</span><span class="s2">&quot;package_manager&quot;</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="MetaConfig.bootstrap_criterion">
+<a class="viewcode-back" href="../../../api/pcvs.backend.metaconfig.html#pcvs.backend.metaconfig.MetaConfig.bootstrap_criterion">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_criterion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">:</span> <span class="n">Config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Specific initialize for criterion config.</span>
+
+<span class="sd">        :param conf: criterion config to initialize</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;criterion&quot;</span><span class="p">,</span> <span class="n">conf</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MetaConfig.bootstrap_group">
+<a class="viewcode-back" href="../../../api/pcvs.backend.metaconfig.html#pcvs.backend.metaconfig.MetaConfig.bootstrap_group">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">:</span> <span class="n">Config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Specific initialize for group config.</span>
+
+<span class="sd">        :param conf: group config to initialize</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;group&quot;</span><span class="p">,</span> <span class="n">conf</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MetaConfig.bootstrap_machine">
+<a class="viewcode-back" href="../../../api/pcvs.backend.metaconfig.html#pcvs.backend.metaconfig.MetaConfig.bootstrap_machine">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_machine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">:</span> <span class="n">Config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Specific initialize for machine config block.</span>
+
+<span class="sd">        :param conf: machine config to initialize</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;machine&quot;</span><span class="p">,</span> <span class="n">conf</span><span class="p">)</span>
+
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;nodes&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;cores_per_node&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;concurrent_run&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;default_partition&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">conf</span> <span class="ow">or</span> <span class="s2">&quot;partitions&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">conf</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># override default values by selected partition</span>
+        <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;partitions&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">if</span> <span class="n">elt</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;default_partition&quot;</span><span class="p">]:</span>
+                <span class="n">conf</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">elt</span><span class="p">)</span>
+                <span class="k">break</span>
+
+        <span class="c1"># redirect to direct programs if no wrapper is defined</span>
+        <span class="k">for</span> <span class="n">kind</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;allocate&quot;</span><span class="p">,</span> <span class="s2">&quot;remote&quot;</span><span class="p">,</span> <span class="s2">&quot;batch&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;job_manager&quot;</span><span class="p">][</span><span class="n">kind</span><span class="p">][</span><span class="s2">&quot;wrapper&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;job_manager&quot;</span><span class="p">][</span><span class="n">kind</span><span class="p">][</span><span class="s2">&quot;program&quot;</span><span class="p">]:</span>
+                <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;job_manager&quot;</span><span class="p">][</span><span class="n">kind</span><span class="p">][</span><span class="s2">&quot;wrapper&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;job_manager&quot;</span><span class="p">][</span><span class="n">kind</span><span class="p">][</span><span class="s2">&quot;program&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="MetaConfig.bootstrap_runtime">
+<a class="viewcode-back" href="../../../api/pcvs.backend.metaconfig.html#pcvs.backend.metaconfig.MetaConfig.bootstrap_runtime">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_runtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">:</span> <span class="n">Config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Specific initialize for runtime config.</span>
+
+<span class="sd">        :param conf: runtime config to initialize</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;runtime&quot;</span><span class="p">,</span> <span class="n">conf</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;package_manager&quot;</span> <span class="ow">in</span> <span class="n">conf</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_internal</span><span class="p">(</span><span class="s2">&quot;rt_pm&quot;</span><span class="p">,</span> <span class="n">pm</span><span class="o">.</span><span class="n">identify</span><span class="p">(</span><span class="n">conf</span><span class="p">[</span><span class="s2">&quot;package_manager&quot;</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="MetaConfig.bootstrap_validation_from_file">
+<a class="viewcode-back" href="../../../api/pcvs.backend.metaconfig.html#pcvs.backend.metaconfig.MetaConfig.bootstrap_validation_from_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_validation_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Specific initialize for validation config block.</span>
+
+<span class="sd">        This function loads a file containing the validation dict.</span>
+
+<span class="sd">        :param filepath: path to file to be validated</span>
+<span class="sd">        :raises IOError: file is not found or badly formatted</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="n">pcvs</span><span class="o">.</span><span class="n">PATH_VALCFG</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                    <span class="n">node</span> <span class="o">=</span> <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s2">&quot;safe&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="n">YAMLError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">CommonException</span><span class="o">.</span><span class="n">IOError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error(s) found while loading </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+        <span class="n">conf</span><span class="p">:</span> <span class="n">Config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="n">ValidationScheme</span><span class="p">(</span><span class="s2">&quot;validation&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+
+        <span class="c1"># some post-actions</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">,</span> <span class="s2">&quot;reused_build&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">conf</span><span class="p">:</span>
+                <span class="n">conf</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">conf</span><span class="p">[</span><span class="n">field</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="s2">&quot;dirs&quot;</span> <span class="ow">in</span> <span class="n">conf</span><span class="p">:</span>
+            <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;dirs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;dirs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bootstrap_validation</span><span class="p">(</span><span class="n">conf</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MetaConfig.bootstrap_validation">
+<a class="viewcode-back" href="../../../api/pcvs.backend.metaconfig.html#pcvs.backend.metaconfig.MetaConfig.bootstrap_validation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_validation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">:</span> <span class="n">Config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Config</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Specific initialize for validation config.</span>
+
+<span class="sd">        :param conf: validation block to initialize</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;validation&quot;</span><span class="p">,</span> <span class="n">conf</span><span class="p">)</span>
+
+        <span class="c1"># Initialize default values when not set by user or default files</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">Verbosity</span><span class="o">.</span><span class="n">COMPACT</span><span class="p">))</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;print_policy&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;default_profile&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">NAME_BUILDIR</span><span class="p">))</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;background&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;override&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;dirs&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;spack_recipe&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;simulated&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;anonymize&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;onlygen&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;timeout&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;target_bank&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;reused_build&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;webreport&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;only_success&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;enable_report&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;hard_timeout&quot;</span><span class="p">,</span> <span class="mi">3600</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;soft_timeout&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;per_result_file_sz&quot;</span><span class="p">,</span> <span class="mi">10</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;buildcache&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conf</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">],</span> <span class="s2">&quot;cache&quot;</span><span class="p">))</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;result&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;json&quot;</span><span class="p">]})</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
+            <span class="s2">&quot;author&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">git</span><span class="o">.</span><span class="n">get_current_username</span><span class="p">(),</span> <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">git</span><span class="o">.</span><span class="n">get_current_usermail</span><span class="p">()}</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;format&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">]:</span>
+            <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">][</span><span class="s2">&quot;format&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;json&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;log&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">]:</span>
+            <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">][</span><span class="s2">&quot;log&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="s2">&quot;logsz&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">]:</span>
+            <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">][</span><span class="s2">&quot;logsz&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1024</span>
+
+        <span class="k">return</span> <span class="n">conf</span></div>
+
+
+<div class="viewcode-block" id="MetaConfig.set_internal">
+<a class="viewcode-back" href="../../../api/pcvs.backend.metaconfig.html#pcvs.backend.metaconfig.MetaConfig.set_internal">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_internal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Manipulate the internal MetaConfig() node to store unexportable data.</span>
+
+<span class="sd">        :param k: name of value to add</span>
+<span class="sd">        :param v: value to add</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__internal_config</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span></div>
+
+
+<div class="viewcode-block" id="MetaConfig.get_internal">
+<a class="viewcode-back" href="../../../api/pcvs.backend.metaconfig.html#pcvs.backend.metaconfig.MetaConfig.get_internal">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_internal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Manipulate the internal MetaConfig() node to load unexportable data.</span>
+
+<span class="sd">        :param k: value to get</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_config</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_config</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="GlobalConfig">
+<a class="viewcode-back" href="../../../api/pcvs.backend.metaconfig.html#pcvs.backend.metaconfig.GlobalConfig">[docs]</a>
+<span class="nd">@typechecked</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GlobalConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A static class to store a Global version of Metaconfig.</span>
+
+<span class="sd">    To avoid carrying a global instancied object over the whole code, a</span>
+<span class="sd">    class-scoped attribute allows to browse the global configuration from</span>
+<span class="sd">    anywhere through `GlobalConfig.root`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">root</span><span class="p">:</span> <span class="n">MetaConfig</span> <span class="o">=</span> <span class="n">MetaConfig</span><span class="p">()</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
