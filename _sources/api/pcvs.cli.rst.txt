@@ -1,0 +1,27 @@
+pcvs.cli package
+================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   pcvs.cli.cli_bank
+   pcvs.cli.cli_config
+   pcvs.cli.cli_convert
+   pcvs.cli.cli_graph
+   pcvs.cli.cli_plumbing
+   pcvs.cli.cli_remote_run
+   pcvs.cli.cli_report
+   pcvs.cli.cli_run
+   pcvs.cli.cli_session
+   pcvs.cli.cli_utilities
+
+Module contents
+---------------
+
+.. automodule:: pcvs.cli
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,21 @@
+pcvs.orchestration package
+==========================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   pcvs.orchestration.manager
+   pcvs.orchestration.publishers
+   pcvs.orchestration.runner
+   pcvs.orchestration.set
+
+Module contents
+---------------
+
+.. automodule:: pcvs.orchestration
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,37 @@
+pcvs package
+============
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   pcvs.analysis
+   pcvs.backend
+   pcvs.cli
+   pcvs.converter
+   pcvs.dsl
+   pcvs.helpers
+   pcvs.orchestration
+   pcvs.plugins
+   pcvs.testing
+   pcvs.ui
+   pcvs.webview
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   pcvs.io
+   pcvs.main
+
+Module contents
+---------------
+
+.. automodule:: pcvs
+   :members:
+   :show-inheritance:
+   :undoc-members:

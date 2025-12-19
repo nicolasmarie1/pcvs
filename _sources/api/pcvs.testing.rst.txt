@@ -1,0 +1,21 @@
+pcvs.testing package
+====================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   pcvs.testing.tedesc
+   pcvs.testing.test
+   pcvs.testing.testfile
+   pcvs.testing.teststate
+
+Module contents
+---------------
+
+.. automodule:: pcvs.testing
+   :members:
+   :show-inheritance:
+   :undoc-members:

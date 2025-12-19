@@ -1,12 +1,12 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configurations &mdash; PCVS 0.8.0 documentation</title>
+  <title>Configurations &mdash; PCVS 0.9.0.dev0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
@@ -14,9 +14,9 @@
     <link rel="shortcut icon" href="../_static/pcvs_favicon.ico"/>
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=6a14807c"></script>
-      <script src="../_static/doctools.js?v=888ff710"></script>
-      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/documentation_options.js?v=c6d8f4ca"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -89,6 +89,7 @@
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../dev/contribution.html">Contribution Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">pcvs</a></li>
 </ul>
 
         </div>
@@ -116,9 +117,9 @@
            <div itemprop="articleBody">
              
   <section id="configurations">
-<h1>Configurations<a class="headerlink" href="#configurations" title="Permalink to this heading"></a></h1>
+<h1>Configurations<a class="headerlink" href="#configurations" title="Link to this heading"></a></h1>
 <section id="generalities">
-<h2>Generalities<a class="headerlink" href="#generalities" title="Permalink to this heading"></a></h2>
+<h2>Generalities<a class="headerlink" href="#generalities" title="Link to this heading"></a></h2>
 <p>Configurations define settings for PCVS. There are 5 basic configurations files
 which are:</p>
 <ul class="simple">
@@ -132,7 +133,7 @@ which are:</p>
 The profile is the top level configuration used to run pcvs.</p>
 </section>
 <section id="scope">
-<h2>Scope<a class="headerlink" href="#scope" title="Permalink to this heading"></a></h2>
+<h2>Scope<a class="headerlink" href="#scope" title="Link to this heading"></a></h2>
 <p>PCVS allows 3 scopes :</p>
 <ul class="simple">
 <li><p><strong>global</strong> for everyone on the machine having access to the PCVS installation</p></li>
@@ -141,16 +142,16 @@ The profile is the top level configuration used to run pcvs.</p>
 </ul>
 </section>
 <section id="configuration-description">
-<h2>Configuration description<a class="headerlink" href="#configuration-description" title="Permalink to this heading"></a></h2>
+<h2>Configuration description<a class="headerlink" href="#configuration-description" title="Link to this heading"></a></h2>
 <section id="compilers-configuration">
-<h3>Compilers configuration<a class="headerlink" href="#compilers-configuration" title="Permalink to this heading"></a></h3>
+<h3>Compilers configuration<a class="headerlink" href="#compilers-configuration" title="Link to this heading"></a></h3>
 <p>The compiler node describes how to use a compiler, it include the following nodes:
 * <code class="docutils literal notranslate"><span class="pre">program</span></code>: the name of the program to execute
 * <code class="docutils literal notranslate"><span class="pre">envs</span></code>: the env to export at build time for that compiler, useful if you are using a Makefile
 * <code class="docutils literal notranslate"><span class="pre">extension</span></code>: the source code extension match by the compilers.
 * <code class="docutils literal notranslate"><span class="pre">variants</span></code>: different version of the same compiler configuration entry.</p>
 <section id="compilers-example">
-<h4>Compilers example<a class="headerlink" href="#compilers-example" title="Permalink to this heading"></a></h4>
+<h4>Compilers example<a class="headerlink" href="#compilers-example" title="Link to this heading"></a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">compiler.compilers</span></code> block contains a collection of compiler configurations.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">compilers</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">cc</span><span class="p">:</span>
@@ -184,7 +185,7 @@ The profile is the top level configuration used to run pcvs.</p>
 </div>
 </section>
 <section id="variants">
-<h4>variants<a class="headerlink" href="#variants" title="Permalink to this heading"></a></h4>
+<h4>variants<a class="headerlink" href="#variants" title="Link to this heading"></a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">variants</span></code> block can contain any custom variant.
 The variant must have a <strong>name</strong>, and <strong>arguments</strong> as such:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">example_variant</span><span class="p">:</span>
@@ -200,7 +201,7 @@ specified in the validation setup where the user wants to use them.</p>
 </section>
 </section>
 <section id="criterion-configuration">
-<h3>Criterion configuration<a class="headerlink" href="#criterion-configuration" title="Permalink to this heading"></a></h3>
+<h3>Criterion configuration<a class="headerlink" href="#criterion-configuration" title="Link to this heading"></a></h3>
 <p>The criterion node contains a collection of iterators that describe the tests.
 PCVS can iterate over custom parameters as such :</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">iterators </span><span class="p">:</span>
@@ -210,7 +211,7 @@ PCVS can iterate over custom parameters as such :</p>
 </pre></div>
 </div>
 <section id="example">
-<h4>Example<a class="headerlink" href="#example" title="Permalink to this heading"></a></h4>
+<h4>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h4>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">iterators</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">n_core</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">subtitle</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">C</span>
@@ -223,12 +224,12 @@ validation setup file.</p>
 </section>
 </section>
 <section id="group-configuration">
-<h3>Group configuration<a class="headerlink" href="#group-configuration" title="Permalink to this heading"></a></h3>
+<h3>Group configuration<a class="headerlink" href="#group-configuration" title="Link to this heading"></a></h3>
 <p>The group node contains group definitions that describe tests. A group
 description can contain any node present in the Configuration basic blocks (CF
 <cite>Validation Setup</cite> section).</p>
 <section id="id1">
-<h4>Example<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h4>
+<h4>Example<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
 <p>The following example allow you to disable the <code class="docutils literal notranslate"><span class="pre">n_omp</span></code> criterion of the group <code class="docutils literal notranslate"><span class="pre">GRPMPI</span></code>.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">GRPMPI</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">run</span><span class="p">:</span>
@@ -240,7 +241,7 @@ description can contain any node present in the Configuration basic blocks (CF
 </section>
 </section>
 <section id="machine-configuration">
-<h3>Machine configuration<a class="headerlink" href="#machine-configuration" title="Permalink to this heading"></a></h3>
+<h3>Machine configuration<a class="headerlink" href="#machine-configuration" title="Link to this heading"></a></h3>
 <p>The machine node describes the constraints of the physical machine.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">machine</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">nodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">number of accessible nodes</span>
@@ -250,7 +251,7 @@ description can contain any node present in the Configuration basic blocks (CF
 </div>
 </section>
 <section id="runtime-configuration">
-<h3>Runtime configuration<a class="headerlink" href="#runtime-configuration" title="Permalink to this heading"></a></h3>
+<h3>Runtime configuration<a class="headerlink" href="#runtime-configuration" title="Link to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">program</span></code> specify a wrapper for runtime tests, such as <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> for example.
 The <code class="docutils literal notranslate"><span class="pre">compiling.wrapper</span></code> specify a wrapper for test compilation.
 It can be use to run the compilation on an other node using <code class="docutils literal notranslate"><span class="pre">srun</span></code> for example.</p>
@@ -278,7 +279,7 @@ plugin to use.</p>
 </pre></div>
 </div>
 <section id="plugin">
-<h4>Plugin<a class="headerlink" href="#plugin" title="Permalink to this heading"></a></h4>
+<h4>Plugin<a class="headerlink" href="#plugin" title="Link to this heading"></a></h4>
 <p>Runtime reference a plugin configuration.
 The plugin configuration is a python plugin with a function to filter valid criterions.</p>
 <div class="admonition warning">
