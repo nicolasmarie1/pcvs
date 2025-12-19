@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configuration basic blocks &mdash; PCVS 0.8.0 documentation</title>
+  <title>Configurations &mdash; PCVS 0.8.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
@@ -55,25 +55,28 @@
 <p class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="test-file.html">Validation setup</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration basic blocks</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configurations</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#generalities">Generalities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scope">Scope</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#blocks-description">Blocks description</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#compilers-node">compilers node</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#compilers-node-example">compilers node example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-description">Configuration description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#compilers-configuration">Compilers configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#compilers-example">Compilers example</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#variants">variants</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#criterion-node">criterion node</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#criterion-configuration">Criterion configuration</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#example">Example</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#group-node">Group node</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#group-configuration">Group configuration</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id1">Example</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#machine-node">machine node</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#runtime-node">runtime node</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#machine-configuration">Machine configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#runtime-configuration">Runtime configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#plugin">Plugin</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -86,7 +89,6 @@
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../dev/contribution.html">Contribution Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/pcvs.html">Package Documentation</a></li>
 </ul>
 
         </div>
@@ -103,7 +105,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Configuration basic blocks</li>
+      <li class="breadcrumb-item active">Configurations</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/ref/config.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -113,12 +115,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="configuration-basic-blocks">
-<h1>Configuration basic blocks<a class="headerlink" href="#configuration-basic-blocks" title="Permalink to this heading"></a></h1>
+  <section id="configurations">
+<h1>Configurations<a class="headerlink" href="#configurations" title="Permalink to this heading"></a></h1>
 <section id="generalities">
 <h2>Generalities<a class="headerlink" href="#generalities" title="Permalink to this heading"></a></h2>
-<p>Configuration blocks define settings for PCVS. There are 5 configurable blocks
-which are :</p>
+<p>Configurations define settings for PCVS. There are 5 basic configurations files
+which are:</p>
 <ul class="simple">
 <li><p>compiler</p></li>
 <li><p>criterion</p></li>
@@ -126,12 +128,8 @@ which are :</p>
 <li><p>machine</p></li>
 <li><p>runtime</p></li>
 </ul>
-<p>The configuration block is a virtual object, it doesn’t exist per se,
-configuration blocks are used to build profiles which can be imported/exported.
-It is possible however to share configuration blocks by addressing them in a
-scope that is large enough to reach other users.</p>
-<p>Each configuration block contains sub-blocks in order to isolate and classify
-information.</p>
+<p>One of each configuration are used to build a profile.
+The profile is the top level configuration used to run pcvs.</p>
 </section>
 <section id="scope">
 <h2>Scope<a class="headerlink" href="#scope" title="Permalink to this heading"></a></h2>
@@ -142,17 +140,17 @@ information.</p>
 <li><p><strong>local</strong> accessible only from a directory</p></li>
 </ul>
 </section>
-<section id="blocks-description">
-<h2>Blocks description<a class="headerlink" href="#blocks-description" title="Permalink to this heading"></a></h2>
-<section id="compilers-node">
-<h3>compilers node<a class="headerlink" href="#compilers-node" title="Permalink to this heading"></a></h3>
+<section id="configuration-description">
+<h2>Configuration description<a class="headerlink" href="#configuration-description" title="Permalink to this heading"></a></h2>
+<section id="compilers-configuration">
+<h3>Compilers configuration<a class="headerlink" href="#compilers-configuration" title="Permalink to this heading"></a></h3>
 <p>The compiler node describes how to use a compiler, it include the following nodes:
 * <code class="docutils literal notranslate"><span class="pre">program</span></code>: the name of the program to execute
 * <code class="docutils literal notranslate"><span class="pre">envs</span></code>: the env to export at build time for that compiler, useful if you are using a Makefile
 * <code class="docutils literal notranslate"><span class="pre">extension</span></code>: the source code extension match by the compilers.
 * <code class="docutils literal notranslate"><span class="pre">variants</span></code>: different version of the same compiler configuration entry.</p>
-<section id="compilers-node-example">
-<h4>compilers node example<a class="headerlink" href="#compilers-node-example" title="Permalink to this heading"></a></h4>
+<section id="compilers-example">
+<h4>Compilers example<a class="headerlink" href="#compilers-example" title="Permalink to this heading"></a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">compiler.compilers</span></code> block contains a collection of compiler configurations.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">compilers</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">cc</span><span class="p">:</span>
@@ -201,8 +199,8 @@ The variant must have a <strong>name</strong>, and <strong>arguments</strong> as
 specified in the validation setup where the user wants to use them.</p>
 </section>
 </section>
-<section id="criterion-node">
-<h3>criterion node<a class="headerlink" href="#criterion-node" title="Permalink to this heading"></a></h3>
+<section id="criterion-configuration">
+<h3>Criterion configuration<a class="headerlink" href="#criterion-configuration" title="Permalink to this heading"></a></h3>
 <p>The criterion node contains a collection of iterators that describe the tests.
 PCVS can iterate over custom parameters as such :</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">iterators </span><span class="p">:</span>
@@ -224,8 +222,8 @@ values 1 and 2. The name <code class="docutils literal notranslate"><span class=
 validation setup file.</p>
 </section>
 </section>
-<section id="group-node">
-<h3>Group node<a class="headerlink" href="#group-node" title="Permalink to this heading"></a></h3>
+<section id="group-configuration">
+<h3>Group configuration<a class="headerlink" href="#group-configuration" title="Permalink to this heading"></a></h3>
 <p>The group node contains group definitions that describe tests. A group
 description can contain any node present in the Configuration basic blocks (CF
 <cite>Validation Setup</cite> section).</p>
@@ -241,8 +239,8 @@ description can contain any node present in the Configuration basic blocks (CF
 </div>
 </section>
 </section>
-<section id="machine-node">
-<h3>machine node<a class="headerlink" href="#machine-node" title="Permalink to this heading"></a></h3>
+<section id="machine-configuration">
+<h3>Machine configuration<a class="headerlink" href="#machine-configuration" title="Permalink to this heading"></a></h3>
 <p>The machine node describes the constraints of the physical machine.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">machine</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">nodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">number of accessible nodes</span>
@@ -251,8 +249,8 @@ description can contain any node present in the Configuration basic blocks (CF
 </pre></div>
 </div>
 </section>
-<section id="runtime-node">
-<h3>runtime node<a class="headerlink" href="#runtime-node" title="Permalink to this heading"></a></h3>
+<section id="runtime-configuration">
+<h3>Runtime configuration<a class="headerlink" href="#runtime-configuration" title="Permalink to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">program</span></code> specify a wrapper for runtime tests, such as <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> for example.
 The <code class="docutils literal notranslate"><span class="pre">compiling.wrapper</span></code> specify a wrapper for test compilation.
 It can be use to run the compilation on an other node using <code class="docutils literal notranslate"><span class="pre">srun</span></code> for example.</p>
@@ -279,6 +277,17 @@ plugin to use.</p>
 <span class="w">            </span><span class="p p-Indicator">[</span><span class="nv">dictionary of aliases for the option</span><span class="p p-Indicator">]</span>
 </pre></div>
 </div>
+<section id="plugin">
+<h4>Plugin<a class="headerlink" href="#plugin" title="Permalink to this heading"></a></h4>
+<p>Runtime reference a plugin configuration.
+The plugin configuration is a python plugin with a function to filter valid criterions.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>When cloning a plugin with <code class="docutils literal notranslate"><span class="pre">pcvs</span> <span class="pre">create</span> <span class="pre">--clone</span></code> make sure to rename the
+Class in the plugin. Otherwise only one of the 2 plugins with the same name
+will be loaded.</p>
+</div>
+</section>
 </section>
 </section>
 </section>

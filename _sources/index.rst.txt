@@ -93,7 +93,7 @@ frameworks).
    :caption: Development
 
    dev/contribution
-   api/pcvs
+   api/modules
 ..
    dev/overview
    dev/contribution
