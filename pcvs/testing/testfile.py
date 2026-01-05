@@ -10,7 +10,6 @@ from typing import Any
 
 from ruamel.yaml import YAML
 from ruamel.yaml import YAMLError
-from typeguard import typechecked
 
 from pcvs import io
 from pcvs import PATH_INSTDIR
@@ -28,7 +27,6 @@ from pcvs.testing.test import Test
 constant_tokens: dict | None = None  # pylint: disable=invalid-name
 
 
-@typechecked
 def init_constant_tokens() -> None:
     """
     Initialize global tokens to be replaced.
@@ -47,7 +45,6 @@ def init_constant_tokens() -> None:
     constant_tokens["@RUNTIME_PROGRAM@"] = GlobalConfig.root.get("runtime", {}).get("program", "")
 
 
-@typechecked
 def replace_special_token(content: str, src: str, build: str, prefix: str | None) -> str:
     output = []
     errors = []
@@ -85,7 +82,6 @@ def replace_special_token(content: str, src: str, build: str, prefix: str | None
     return "\n".join(output)
 
 
-@typechecked
 class TestFile:
     """
     A TestFile manipulates source files to be processed as benchmarks

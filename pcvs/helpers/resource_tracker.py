@@ -1,7 +1,3 @@
-from typeguard import typechecked
-
-
-@typechecked
 class ResourceTracker:
 
     alloc_tracking_counter: int = 1

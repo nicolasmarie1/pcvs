@@ -3,7 +3,6 @@ from datetime import datetime
 from datetime import timedelta
 
 from rich.table import Table
-from typeguard import typechecked
 
 from pcvs import io
 from pcvs import NAME_BUILDFILE
@@ -20,7 +19,6 @@ except ImportError:
 from click.shell_completion import CompletionItem
 
 
-@typechecked
 def compl_session_token(
     ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
 ) -> list:
@@ -41,7 +39,6 @@ def compl_session_token(
     ]
 
 
-@typechecked
 def print_sessions(sessions: dict[str, dict]) -> None:
     """
     List detached sessions.
@@ -115,7 +112,6 @@ def print_sessions(sessions: dict[str, dict]) -> None:
     help="List detached sessions",
 )
 @click.pass_context
-@typechecked
 def session(
     ctx: click.Context,  # pylint: disable=unused-argument
     ack: str,

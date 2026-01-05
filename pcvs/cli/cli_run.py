@@ -2,8 +2,6 @@ import os
 import sys
 from datetime import datetime
 
-from typeguard import typechecked
-
 from pcvs import io
 from pcvs import NAME_BUILDFILE
 from pcvs import NAME_RUN_CONFIG_FILE
@@ -30,7 +28,6 @@ except ImportError:
 from click.shell_completion import CompletionItem
 
 
-@typechecked
 def iterate_dirs(
     ctx: click.Context,  # pylint: disable=unused-argument
     param: click.Parameter,  # pylint: disable=unused-argument
@@ -76,7 +73,6 @@ def iterate_dirs(
     return dirs
 
 
-@typechecked
 def compl_list_dirs(
     ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
 ) -> list[CompletionItem]:
@@ -90,7 +86,6 @@ def compl_list_dirs(
     return obj.shell_complete(ctx, param, incomplete)
 
 
-@typechecked
 def compl_list_profiles(
     ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
 ) -> list[str]:
@@ -102,7 +97,6 @@ def compl_list_profiles(
     ]
 
 
-@typechecked
 def handle_build_lockfile(exc: Exception | None = None) -> None:
     """Remove the file lock in build dir if the application stops abruptly.
 
@@ -126,7 +120,6 @@ def handle_build_lockfile(exc: Exception | None = None) -> None:
         raise exc
 
 
-@typechecked
 def parse_tags(filters: str) -> dict[str, bool]:
     """
     Parse filters to generate tags set.
@@ -318,7 +311,6 @@ def parse_tags(filters: str) -> dict[str, bool]:
 @io.capture_exception(Exception)
 @io.capture_exception(Exception, handle_build_lockfile)
 @io.capture_exception(KeyboardInterrupt, handle_build_lockfile)
-@typechecked
 def run(
     ctx: click.Context,
     profilename: str | None,

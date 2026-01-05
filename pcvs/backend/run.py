@@ -7,7 +7,6 @@ import time
 from typing import Any
 
 from ruamel.yaml import YAML
-from typeguard import typechecked
 
 from pcvs import io
 from pcvs import NAME_BUILD_CACHEDIR
@@ -37,7 +36,6 @@ from pcvs.testing.test import Test
 from pcvs.testing.testfile import TestFile
 
 
-@typechecked
 def print_progbar_walker(elt: tuple[str, str | None]) -> str | None:
     """
     Walker used to pretty-print progress bar element within Click.
@@ -50,7 +48,6 @@ def print_progbar_walker(elt: tuple[str, str | None]) -> str | None:
     return "[" + elt[0] + "] " + (elt[1] if elt[1] else "")
 
 
-@typechecked
 def display_summary(the_session: Session) -> None:
     """
     Display a summary for this run, based on profile & CLI arguments.
@@ -98,7 +95,6 @@ def display_summary(the_session: Session) -> None:
         )
 
 
-@typechecked
 def stop_pending_jobs(exc: Exception | None = None) -> None:
     """
     Called when PCVS is going to stop upon external request, stop the scheduler
@@ -115,7 +111,6 @@ def stop_pending_jobs(exc: Exception | None = None) -> None:
 
 
 @io.capture_exception(Exception, stop_pending_jobs)
-@typechecked
 def process_main_workflow(the_session: Session) -> int:
     """
     Main run.py entry point, triggering a PCVS validation run.
@@ -213,7 +208,6 @@ def process_main_workflow(the_session: Session) -> int:
     return rc
 
 
-@typechecked
 def check_defined_program_validity() -> None:
     """
     Ensure most programs defined in profiles & parameters are valid in the current environment.
@@ -245,7 +239,6 @@ def check_defined_program_validity() -> None:
     # maybe a dummy testfile should be used
 
 
-@typechecked
 def prepare() -> None:
     """
     Prepare the environment for a validation run.
@@ -299,7 +292,6 @@ def prepare() -> None:
     build_man.save_config(GlobalConfig.root)
 
 
-@typechecked
 def find_files_to_process(
     path_dict: dict[str, str],
 ) -> tuple[list[tuple[str, str, str]], list[tuple[str, str, str]]]:
@@ -346,7 +338,6 @@ def find_files_to_process(
 
 
 @io.capture_exception(Exception, doexit=True)
-@typechecked
 def process_files() -> list[Test]:
     """
     Process the test-suite generation.
@@ -372,7 +363,6 @@ def process_files() -> list[Test]:
     return tests
 
 
-@typechecked
 def prepare_runtime_env_file() -> None:
     """Export run environment into a file for later import by runner script."""
     io.console.info("Building env from config.")
@@ -387,7 +377,6 @@ def prepare_runtime_env_file() -> None:
         fh.close()
 
 
-@typechecked
 def process_spack() -> None:
     """
     Build job to schedule from Spack recipes.
@@ -410,7 +399,6 @@ def process_spack() -> None:
         pvSpack.generate_from_variants(spec, label, spec)
 
 
-@typechecked
 def build_env_from_configuration(config: dict) -> dict:
     """
     Export configuration as env variables.
@@ -456,7 +444,6 @@ def build_env_from_configuration(config: dict) -> dict:
     return env
 
 
-@typechecked
 def process_dyn_setup_scripts(setup_files: list[tuple[str, str, str]]) -> list[Test]:
     """
     Process all dynamic 'pcvs.yaml.setup' files and generate associated tests.
@@ -475,7 +462,6 @@ def process_dyn_setup_scripts(setup_files: list[tuple[str, str, str]]) -> list[T
     return tests
 
 
-@typechecked
 def process_static_yaml_files(yaml_files: list[tuple[str, str, str]]) -> list[Test]:
     """
     Process all static 'pcvs.yml' files and generate associated tests.
@@ -490,7 +476,6 @@ def process_static_yaml_files(yaml_files: list[tuple[str, str, str]]) -> list[Te
     return tests
 
 
-@typechecked
 def process_dyn_setup(label: str, prefix: str, file_name: str) -> list[Test]:
     """
     Process one setup script and return it's test descriptor.
@@ -539,7 +524,6 @@ def process_dyn_setup(label: str, prefix: str, file_name: str) -> list[Test]:
     return process_yaml(file_path=f, build_path=cur_build, label=label, prefix=prefix, content=out)
 
 
-@typechecked
 def process_static_yaml(label: str, prefix: str, file_name: str) -> list[Test]:
     """Process one yaml file and return it's test descriptor."""
     _, cur_src, _, cur_build = testing.test.generate_local_variables(label, prefix)
@@ -549,7 +533,6 @@ def process_static_yaml(label: str, prefix: str, file_name: str) -> list[Test]:
     return process_yaml(file_path=f, build_path=cur_build, label=label, prefix=prefix)
 
 
-@typechecked
 def process_yaml(
     file_path: str, build_path: str, label: str, prefix: str, content: str | None = None
 ) -> list[Test]:
@@ -585,7 +568,6 @@ def process_yaml(
     return tests
 
 
-@typechecked
 def anonymize_archive() -> None:
     """
     Erase from results any undesired output from the generated archive.
@@ -614,7 +596,6 @@ def anonymize_archive() -> None:
                     )
 
 
-@typechecked
 def terminate() -> None:
     """
     Finalize a validation run.
@@ -643,7 +624,6 @@ def terminate() -> None:
     build_man.finalize()
 
 
-@typechecked
 def dup_another_build(build_dir: str, outdir: str) -> MetaConfig:
     """
     Clone another build directory to start this validation upon it.

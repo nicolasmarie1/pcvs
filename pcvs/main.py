@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
+
 from importlib.metadata import version
+
+# flake8: noqa: E402
+# pylint: disable=wrong-import-position
+if version("pcvs").find("dirty") != -1:
+    from typeguard import install_import_hook
+
+    install_import_hook("pcvs")
+    TYPE_CHECKING = True
+else:
+    TYPE_CHECKING = False
 
 from pcvs import io
 from pcvs.cli import cli_bank
@@ -16,11 +27,6 @@ from pcvs.helpers import utils
 from pcvs.helpers.exceptions import PluginException
 from pcvs.plugins import Collection
 from pcvs.plugins import Plugin
-
-# from typeguard import typechecked
-# cli.add_command is badly typed in some click version used in python@3.11
-# when installing pcvs with spack. Do not type main until resolved.
-
 
 try:
     import rich_click as click
@@ -161,6 +167,8 @@ def cli(
     ctx.color = color
 
     io.init(color=color, verbose=verbose)
+    if TYPE_CHECKING:
+        io.console.debug("Type Checking enable.")
 
     if exec_path is not None:
         storage.set_exec_path(exec_path)

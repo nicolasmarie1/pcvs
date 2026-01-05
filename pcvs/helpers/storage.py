@@ -4,7 +4,6 @@ import os
 from enum import Enum
 from pathlib import Path
 
-from typeguard import typechecked
 from typing_extensions import Self
 
 from pcvs import io
@@ -20,7 +19,6 @@ except ImportError:
     import click  # type: ignore
 
 
-@typechecked
 class ConfigScope(Enum):
     """
     Storage Scope Enumeration.
@@ -66,7 +64,6 @@ class ConfigScope(Enum):
         return all_scopes  # type: ignore
 
 
-@typechecked
 class ConfigKind(Enum):
     """
     Configuration types.
@@ -133,7 +130,6 @@ class ConfigKind(Enum):
         return config_extensions[ck]
 
 
-@typechecked
 class ConfigDesc:
     """An object to describe a config file."""
 
@@ -190,7 +186,6 @@ class ConfigDesc:
         return repr({"name": self.name, "path": self.path, "kind": self.kind, "scope": self.scope})
 
 
-@typechecked
 class ConfigLocator:
     """Helper to find and list config."""
 
@@ -425,7 +420,6 @@ class ConfigLocator:
         return configs
 
 
-@typechecked
 def set_exec_path(exec_path: str) -> None:
     """Set EXEC_PATH."""
     ConfigLocator.EXEC_PATH = exec_path

@@ -24,7 +24,6 @@ from typing import Any
 from typing import ItemsView
 from typing import Iterable
 
-from typeguard import typechecked
 from typing_extensions import Self
 
 from pcvs import io
@@ -34,7 +33,6 @@ from pcvs.plugins import Collection
 from pcvs.plugins import Plugin
 
 
-@typechecked
 class Criterion:
     """
     A Criterion is the representation of a component (i.e. parameter)
@@ -395,7 +393,6 @@ class Criterion:
         return self.__dict__.items()
 
 
-@typechecked
 class Combination:
     """
     A combination maps the actual concretization from multiple criterion.
@@ -500,7 +497,6 @@ class Combination:
         return self.__dict__.items()
 
 
-@typechecked
 class Series:
     """
     A series ties a test expression (:class:`TEDescriptor`) to the possible values
@@ -546,7 +542,6 @@ class Series:
         return self.__dict__.items()
 
 
-@typechecked
 def initialize_from_system() -> None:
     """Initialise system-wide criterions
 
@@ -602,7 +597,6 @@ def initialize_from_system() -> None:
 first = True  # pylint: disable=invalid-name
 
 
-@typechecked
 def load_plugin() -> None:
     rt = GlobalConfig.root["runtime"]
     val = GlobalConfig.root["validation"]
@@ -638,7 +632,6 @@ def load_plugin() -> None:
         p_collection.activate_plugin(rt["defaultplugin"])
 
 
-@typechecked
 def get_plugin() -> Collection:
     """Get the current validation plugin for the run."""
     global first
@@ -653,7 +646,6 @@ def get_plugin() -> Collection:
     return plugin
 
 
-@typechecked
 def valid_combination(dic: dict[str, int | float | str]) -> bool:
     """
     Check if dict is a valid criterion combination.
@@ -672,7 +664,6 @@ def valid_combination(dic: dict[str, int | float | str]) -> bool:
     return ret
 
 
-@typechecked
 def get_resources(dic: dict[str, int | float | str]) -> list[int] | None:
     """Get the resources needed for a job."""
     res = get_plugin().try_invoke_plugins(

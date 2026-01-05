@@ -2,7 +2,6 @@ from abc import abstractmethod
 from typing import Any
 
 import requests
-from typeguard import typechecked
 
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.backend.session import SessionState
@@ -11,7 +10,6 @@ from pcvs.testing.test import Test
 SEND_DATA = False
 
 
-@typechecked
 class GenericServer:
 
     def __init__(self, session_id: str) -> None:
@@ -31,7 +29,6 @@ class GenericServer:
         pass
 
 
-@typechecked
 class EmbeddedServer(GenericServer):
 
     def send(self, data: Any) -> None:
@@ -41,7 +38,6 @@ class EmbeddedServer(GenericServer):
         pass
 
 
-@typechecked
 class RemoteServer(GenericServer):
 
     DEFAULT_SRV_ADDR = "http://localhost:5000"

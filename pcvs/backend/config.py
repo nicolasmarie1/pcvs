@@ -2,10 +2,7 @@
 
 from typing import Any
 
-from typeguard import typechecked
 
-
-@typechecked
 class Config(dict):
     """
     A 'Config' is a dict used to manage all configuration fields.

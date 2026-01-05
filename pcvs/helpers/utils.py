@@ -10,8 +10,6 @@ from shutil import SameFileError
 from types import FrameType
 from typing import Iterator
 
-from typeguard import typechecked
-
 from pcvs import io
 from pcvs import NAME_BUILDFILE
 from pcvs import NAME_BUILDIR
@@ -25,7 +23,6 @@ from pcvs.helpers.exceptions import RunException
 # ###################################
 
 
-@typechecked
 def create_home_dir() -> None:
     """Create a home directory"""
     if not os.path.exists(PATH_HOMEDIR):
@@ -40,7 +37,6 @@ def create_home_dir() -> None:
 # ###################################
 
 
-@typechecked
 def create_or_clean_path(prefix: str, directory: bool = False) -> None:
     """Create a path or cleans it if it already exists.
 
@@ -66,7 +62,6 @@ def create_or_clean_path(prefix: str, directory: bool = False) -> None:
 
 
 @contextmanager
-@typechecked
 def cwd(path: str) -> Iterator[str]:
     """Change the working directory.
 
@@ -83,7 +78,6 @@ def cwd(path: str) -> Iterator[str]:
         os.chdir(oldpwd)
 
 
-@typechecked
 def copy_file(src: str, dest: str) -> None:
     """Copy a source file into a destination directory.
 
@@ -104,7 +98,6 @@ def copy_file(src: str, dest: str) -> None:
 # ##########################
 
 
-@typechecked
 def get_lockfile_name(f: str) -> str:
     """From a file to mutex, return the file lock name associated with it.
 
@@ -123,7 +116,6 @@ def get_lockfile_name(f: str) -> str:
     return os.path.join(path, filename + ".lck")
 
 
-@typechecked
 def unlock_file(f: str) -> None:
     """Remove lock from a directory.
 
@@ -147,7 +139,6 @@ def unlock_file(f: str) -> None:
             io.console.warning("Issue unlocking {}: {}".format(lf_name, e))
 
 
-@typechecked
 def lock_file(
     f: str, reentrant: bool = False, timeout: int | None = None, force: bool = True
 ) -> bool:
@@ -180,7 +171,6 @@ def lock_file(
     return locked
 
 
-@typechecked
 def trylock_file(f: str, reentrant: bool = False) -> bool:
     """Try to lock a file (used in lock_file).
 
@@ -225,7 +215,6 @@ def trylock_file(f: str, reentrant: bool = False) -> bool:
         return False
 
 
-@typechecked
 def is_locked(f: str) -> bool:
     """Is the given file locked somewhere else ?
 
@@ -245,7 +234,6 @@ def is_locked(f: str) -> bool:
     return False
 
 
-@typechecked
 def get_lock_owner(f: str) -> tuple[str, int]:
     """The lock file will contain the process ID owning the lock. This function
     returns it.
@@ -262,7 +250,6 @@ def get_lock_owner(f: str) -> tuple[str, int]:
         return s[0], int(s[1])
 
 
-@typechecked
 def program_timeout(sig: int, ft: FrameType | None) -> None:  # pylint: disable=unused-argument
     """Timeout handler, called when a SIGALRM is received.
 
@@ -279,7 +266,6 @@ def program_timeout(sig: int, ft: FrameType | None) -> None:  # pylint: disable=
 # ###################################
 
 
-@typechecked
 def check_valid_program(
     p: str,
     succ: Callable | None = None,
@@ -323,7 +309,6 @@ def check_valid_program(
     return res
 
 
-@typechecked
 def find_buildir_from_prefix(path: str) -> str:
     """Find the build directory from the ``path`` prefix.
 
@@ -344,7 +329,6 @@ def find_buildir_from_prefix(path: str) -> str:
     return path
 
 
-@typechecked
 def start_autokill(timeout: int | None = None) -> None:
     """Initialize a new time to automatically stop the
     current process once time is expired.
@@ -359,7 +343,6 @@ def start_autokill(timeout: int | None = None) -> None:
         signal.alarm(timeout)
 
 
-@typechecked
 def str_dict_as_envvar(d: dict[str, str]) -> str:
     """Convert a dict to a list of shell-compliant variable strings.
 
@@ -377,33 +360,28 @@ def str_dict_as_envvar(d: dict[str, str]) -> str:
     # return "\n".join(["{}='{}'".format(i, d[i]) for i in sorted(d.keys())])
 
 
-@typechecked
 def check_is_buildir(p: str) -> bool:
     if not os.path.isdir(p):
         return False
     return NAME_BUILDFILE in os.listdir(p)
 
 
-@typechecked
 def check_is_archive(f: str) -> bool:
     if not os.path.isfile(f):
         return False
     return os.path.basename(f).startswith("pcvsrun_")
 
 
-@typechecked
 def check_is_build_or_archive(x: str) -> bool:
     return check_is_buildir(x) or check_is_archive(x)
 
 
-@typechecked
 def list_valid_buildirs_in_dir(p: str) -> list[str]:
     return [
         os.path.join(root, d) for root, dirs, _ in os.walk(p) for d in dirs if check_is_buildir(d)
     ]
 
 
-@typechecked
 def list_valid_archive_in_dir(p: str) -> list[str]:
     return [
         os.path.join(root, f) for root, _, files in os.walk(p) for f in files if check_is_archive(f)

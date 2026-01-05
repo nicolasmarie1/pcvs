@@ -6,8 +6,6 @@ import tempfile
 from typing import Any
 from typing import Iterable
 
-from typeguard import typechecked
-
 import pcvs
 from pcvs import io
 from pcvs import testing
@@ -25,7 +23,6 @@ from pcvs.testing.test import Test
 # appearing in this list will be considered as the main language
 
 
-@typechecked
 def detect_compiler(build_info: dict) -> list[str] | None:
     """
     Determine compilers to use for a target file (or list of files).
@@ -56,7 +53,6 @@ def detect_compiler(build_info: dict) -> list[str] | None:
     return None
 
 
-@typechecked
 def extract_compilers_envs() -> list[str]:
     """Extract compilers environment."""
     envs = []
@@ -65,7 +61,6 @@ def extract_compilers_envs() -> list[str]:
     return envs
 
 
-@typechecked
 def extract_compiler_config(
     compiler: str | None, variants: list[str]
 ) -> tuple[str | None, list[str], list[str], bool]:
@@ -103,7 +98,6 @@ def extract_compiler_config(
     )
 
 
-@typechecked
 def build_job_deps(deps_node: dict[str, Any], pkg_label: str, pkg_prefix: str) -> list[str]:
     """
     Build the dependency list from a given dependency YAML node.
@@ -126,7 +120,6 @@ def build_job_deps(deps_node: dict[str, Any], pkg_label: str, pkg_prefix: str) -
     return deps
 
 
-@typechecked
 def build_pm_deps(deps_node: dict[str, Any]) -> list[PManager]:
     """Build the dependency list from a given YAML node.
 
@@ -139,7 +132,6 @@ def build_pm_deps(deps_node: dict[str, Any]) -> list[PManager]:
     return pm.identify(deps_node.get("package_manager", {}))
 
 
-@typechecked
 class TEDescriptor:
     """A Test Descriptor (named TD, TE or TED), maps a test program
     representation, as defined by a root node in a single test files.

@@ -7,7 +7,6 @@ from enum import IntEnum
 from typing import Any
 from typing import Generator
 
-from typeguard import typechecked
 from typing_extensions import Self
 
 from pcvs import io
@@ -16,7 +15,6 @@ from pcvs.testing.test import Test
 from pcvs.testing.teststate import TestState
 
 
-@typechecked
 class Job(Test):
     """Map a real job representation within a bank."""
 
@@ -58,7 +56,6 @@ class Job(Test):
         return self.to_json()
 
 
-@typechecked
 class Run:
     """Depict a given run -> Git commit"""
 
@@ -202,7 +199,6 @@ class Run:
         return json_dict
 
 
-@typechecked
 class Series:
     """TODO:"""
 
@@ -305,7 +301,6 @@ class Series:
         # self._repo.gc()
 
 
-@typechecked
 class Bank:
     """Bank view from Python API"""
 

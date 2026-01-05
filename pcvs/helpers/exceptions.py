@@ -1,9 +1,6 @@
 from typing import Any
 
-from typeguard import typechecked
 
-
-@typechecked
 class PCVSException(Exception):
     """Generic PCVS error (custom errors will inherit of this)."""
 

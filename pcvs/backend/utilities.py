@@ -5,7 +5,6 @@ from typing import Any
 from click import BadArgumentUsage
 from rich.table import Column
 from ruamel.yaml import YAML
-from typeguard import typechecked
 
 from pcvs import io
 from pcvs.backend import run
@@ -24,7 +23,6 @@ from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.testing.tedesc import TEDescriptor
 
 
-@typechecked
 def locate_scriptpaths(output: str | None = None) -> list[str]:
     """
     Path lookup to find all 'list_of_tests' script within a given prefix.
@@ -42,7 +40,6 @@ def locate_scriptpaths(output: str | None = None) -> list[str]:
     return scripts
 
 
-@typechecked
 def compute_scriptpath_from_testname(testname: str, output: str | None = None) -> str:
     """
     Locate the proper 'list_of_tests.sh' according to a fully-qualified test name.
@@ -59,7 +56,6 @@ def compute_scriptpath_from_testname(testname: str, output: str | None = None) -
     return os.path.join(buildir, "test_suite", prefix, "list_of_tests.sh")
 
 
-@typechecked
 def get_logged_output(prefix: str, testname: str) -> str:
     """
     Get job output from the given archive/build path.
@@ -85,7 +81,6 @@ def get_logged_output(prefix: str, testname: str) -> str:
     return s
 
 
-@typechecked
 def process_check_configs() -> dict[str, int]:
     """Analyse available configurations.
 
@@ -115,7 +110,6 @@ def process_check_configs() -> dict[str, int]:
     return errors
 
 
-@typechecked
 def process_check_profiles() -> dict[str, int]:
     """
     Analyse availables profiles and check their correctness.
@@ -149,7 +143,6 @@ def process_check_profiles() -> dict[str, int]:
     return errors
 
 
-@typechecked
 def process_check_directory(directory: str, pf_name: str = "default.yml") -> dict[str, int]:
     """
     Analyze a directory to ensure defined test files are valid.
@@ -231,7 +224,6 @@ def process_check_directory(directory: str, pf_name: str = "default.yml") -> dic
     # TODO: format and return errors
 
 
-@typechecked
 class BuildSystem:
     """
     Manage a generic build system discovery service.
@@ -283,7 +275,6 @@ class BuildSystem:
             YAML(typ="safe").dump(self._stream, fh)
 
 
-@typechecked
 class AutotoolsBuildSystem(BuildSystem):
     """Derived BuildSystem targeting Autotools projects."""
 
@@ -298,7 +289,6 @@ class AutotoolsBuildSystem(BuildSystem):
         self._stream[name]["build"]["autotools"]["params"] = ""
 
 
-@typechecked
 class CMakeBuildSystem(BuildSystem):
     """Derived BuildSystem targeting CMake projects."""
 
@@ -310,7 +300,6 @@ class CMakeBuildSystem(BuildSystem):
         self._stream[name]["build"]["files"] = os.path.join(self._root, "CMakeLists.txt")
 
 
-@typechecked
 class MakefileBuildSystem(BuildSystem):
     """Derived BuildSystem targeting Makefile-based projects."""
 
@@ -322,7 +311,6 @@ class MakefileBuildSystem(BuildSystem):
         self._stream[name]["build"]["files"] = os.path.join(self._root, "Makefile")
 
 
-@typechecked
 def process_discover_directory(path: str, override: bool = False, force: bool = False) -> None:
     """
     Path discovery to detect & initialize build systems found.

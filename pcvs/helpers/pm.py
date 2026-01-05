@@ -1,10 +1,7 @@
 from abc import ABC
 from abc import abstractmethod
 
-from typeguard import typechecked
 
-
-@typechecked
 class PManager(ABC):
     """generic Package Manager"""
 
@@ -30,7 +27,6 @@ class PManager(ABC):
         """install specified packages"""
 
 
-@typechecked
 class SpackManager(PManager):
     """handles Spack package manager"""
 
@@ -65,7 +61,6 @@ class SpackManager(PManager):
         """Load spack."""
 
 
-@typechecked
 class ModuleManager(PManager):
     """handles Module package manager"""
 
@@ -98,7 +93,6 @@ class ModuleManager(PManager):
         """Load module."""
 
 
-@typechecked
 def identify(pm_node: dict) -> list[PManager]:
     """identifies where
 

@@ -30,13 +30,11 @@ from rich.style import Style
 from rich.table import Column
 from rich.table import Table
 from rich.theme import Theme
-from typeguard import typechecked
 
 import pcvs
 from pcvs.testing.teststate import TestState
 
 
-@typechecked
 class SpecialChar:
     """
     Class mapping special char display.
@@ -79,7 +77,6 @@ class SpecialChar:
             self.sep_h = "-"
 
 
-@typechecked
 class Verbosity(enum.IntEnum):
     """
     Enum to map a verbosity level to a more
@@ -107,7 +104,6 @@ class Verbosity(enum.IntEnum):
         return self.name
 
 
-@typechecked
 class PCVSConsole:
     """
     Main interface to print information to users.

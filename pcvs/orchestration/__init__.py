@@ -1,8 +1,6 @@
 import queue
 from queue import Queue
 
-from typeguard import typechecked
-
 from pcvs import io
 from pcvs.backend import session
 from pcvs.backend.metaconfig import GlobalConfig
@@ -16,13 +14,11 @@ from pcvs.testing.test import Test
 from pcvs.testing.teststate import TestState
 
 
-@typechecked
 def global_stop(e: Exception) -> None:
     Orchestrator.stop()
     raise e
 
 
-@typechecked
 class Orchestrator:
     """The job orchestrator, managing test processing through the whole test base.
 

@@ -33,7 +33,6 @@ from typing import Any
 
 import click
 from ruamel.yaml import YAML
-from typeguard import typechecked
 
 from pcvs import io
 from pcvs.backend.config import Config
@@ -44,7 +43,6 @@ from pcvs.helpers.storage import ConfigScope
 from pcvs.helpers.validation import ValidationScheme
 
 
-@typechecked
 class ConfigFile:
     """
     Handle configuration file.
@@ -194,7 +192,6 @@ class ConfigFile:
         self._check()
 
 
-@typechecked
 class YmlConfigFile(ConfigFile):
     """
     A Yaml File Configuration.
@@ -275,7 +272,6 @@ class YmlConfigFile(ConfigFile):
         return Config(self._details)
 
 
-@typechecked
 class Profile(YmlConfigFile):
     """A profile represents the most complete object the user can provide.
 
@@ -384,7 +380,6 @@ STD_CONFIG_KINDS = [
 ]
 
 
-@typechecked
 def get_conf(cd: ConfigDesc) -> ConfigFile:
     """Get Appropriate ConfigFile Object from a :class:`~pcvs.helpers.storage.ConfigDesc`."""
     assert cd is not None

@@ -1,7 +1,6 @@
 import os
 
 from click.shell_completion import CompletionItem
-from typeguard import typechecked
 
 from pcvs import io
 from pcvs.backend import bank as pvBank
@@ -16,7 +15,6 @@ except ImportError:
     import click  # type: ignore
 
 
-@typechecked
 def compl_list_banks(
     ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
 ) -> list[CompletionItem]:
@@ -33,7 +31,6 @@ def compl_list_banks(
     return [CompletionItem(elt[0], help=elt[1]) for elt in array if incomplete in elt[0]]
 
 
-@typechecked
 def compl_bank_projects(
     ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
 ) -> list[CompletionItem]:
@@ -61,7 +58,6 @@ def compl_bank_projects(
     short_help="Persistent data repository management",
 )
 @click.pass_context
-@typechecked
 def bank(ctx: click.Context) -> None:  # pylint: disable=unused-argument
     """Bank entry-point."""
 
@@ -71,7 +67,6 @@ def bank(ctx: click.Context) -> None:  # pylint: disable=unused-argument
     short_help="List known repositories",
 )
 @click.pass_context
-@typechecked
 def bank_list(ctx: click.Context) -> None:  # pylint: disable=unused-argument
     """List known repositories, stored under ``PATH_BANK``."""
     io.console.print_header("Bank List")
@@ -99,7 +94,6 @@ def bank_list(ctx: click.Context) -> None:  # pylint: disable=unused-argument
     help="Display bank location",
 )
 @click.pass_context
-@typechecked
 def bank_show(
     ctx: click.Context, name: str, is_path: bool  # pylint: disable=unused-argument
 ) -> None:
@@ -129,7 +123,6 @@ def bank_show(
     type=click.Path(exists=False, file_okay=False),
 )
 @click.pass_context
-@typechecked
 def bank_init(
     ctx: click.Context, name: str, path: str | None  # pylint: disable=unused-argument
 ) -> None:
@@ -168,7 +161,6 @@ def bank_init(
     help="Do not ask for confirmation before deletion",
 )
 @click.pass_context
-@typechecked
 def bank_destroy(
     ctx: click.Context, name: str, symlink: bool  # pylint: disable=unused-argument
 ) -> None:
@@ -209,7 +201,6 @@ def bank_destroy(
     help="Use a custom Run() message",
 )
 @click.pass_context
-@typechecked
 def bank_save_run(
     ctx: click.Context, name: str, path: str, msg: str | None  # pylint: disable=unused-argument
 ) -> None:
@@ -248,7 +239,6 @@ def bank_save_run(
     help="Select only a subset of each runs based on provided prefix",
 )
 @click.pass_context
-@typechecked
 def bank_load(
     ctx: click.Context, name: str, prefix: str  # pylint: disable=unused-argument
 ) -> None:

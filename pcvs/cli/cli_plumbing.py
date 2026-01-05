@@ -1,7 +1,5 @@
 import sys
 
-from typeguard import typechecked
-
 from pcvs.backend.bank import Bank
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.cli.cli_bank import compl_list_banks
@@ -36,7 +34,6 @@ except ImportError:
     help="read from file instead of stdin",
 )
 @click.pass_context
-@typechecked
 def resolve(
     ctx: click.Context, file: str, bankname: str | None  # pylint: disable=unused-argument
 ) -> None:

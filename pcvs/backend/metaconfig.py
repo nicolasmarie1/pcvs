@@ -3,7 +3,6 @@ from typing import Any
 
 from ruamel.yaml import YAML
 from ruamel.yaml import YAMLError
-from typeguard import typechecked
 
 import pcvs
 from pcvs import NAME_BUILDIR
@@ -30,7 +29,6 @@ COMPILER_EXTENSION_CONFIG = {
 }
 
 
-@typechecked
 class MetaConfig(Config):
     """
     Root configuration object.
@@ -240,7 +238,6 @@ class MetaConfig(Config):
         return None
 
 
-@typechecked
 class GlobalConfig:
     """
     A static class to store a Global version of Metaconfig.

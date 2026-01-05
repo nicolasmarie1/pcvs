@@ -2,8 +2,6 @@ import random
 from typing import Any
 from typing import Iterable
 
-from typeguard import typechecked
-
 from pcvs.backend.session import list_alive_sessions
 from pcvs.backend.session import SessionState
 from pcvs.helpers import utils
@@ -12,7 +10,6 @@ from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.testing.test import Test
 
 
-@typechecked
 class Report:
     """
     Map a Report interface, to handle request from frontends.
@@ -260,7 +257,6 @@ class Report:
         return self.__dict__.items()
 
 
-@typechecked
 def upload_buildir_results(
     data_manager: Report, buildir: str  # pylint: disable=unused-argument
 ) -> None:

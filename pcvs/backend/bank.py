@@ -4,7 +4,6 @@ import tempfile
 from typing import Any
 
 from ruamel.yaml import YAML
-from typeguard import typechecked
 
 from pcvs import dsl
 from pcvs import io
@@ -16,7 +15,6 @@ from pcvs.helpers.exceptions import CommonException
 from pcvs.orchestration.publishers import BuildDirectoryManager
 
 
-@typechecked
 class Bank(dsl.Bank):
     """
     Representation of a PCVS result datastore.
@@ -252,7 +250,6 @@ class Bank(dsl.Bank):
         return len(self.list_projects())
 
 
-@typechecked
 def init_banklink(name: str, path: str) -> bool:
     """
     Create a new bank and store it to the global system.
@@ -287,7 +284,6 @@ def init_banklink(name: str, path: str) -> bool:
     return True
 
 
-@typechecked
 def rm_banklink(name: str) -> None:
     """
     Remove a bank from the global management system.
@@ -299,7 +295,6 @@ def rm_banklink(name: str) -> None:
     write_banks(banks)
 
 
-@typechecked
 def list_banks() -> dict[str, str]:
     """
     Read Banks.
@@ -315,7 +310,6 @@ def list_banks() -> dict[str, str]:
     return banks
 
 
-@typechecked
 def write_banks(banks: dict[str, str]) -> None:
     """
     Write banks.

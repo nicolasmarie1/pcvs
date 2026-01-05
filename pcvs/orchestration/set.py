@@ -2,8 +2,6 @@ import enum
 from typing import Any
 from typing import Iterable
 
-from typeguard import typechecked
-
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers import communications
 from pcvs.testing.test import Test
@@ -38,7 +36,6 @@ class ExecMode(enum.IntEnum):
     BATCH = enum.auto()
 
 
-@typechecked
 class Set:
     """Gather multiple jobs to be scheduled.
 

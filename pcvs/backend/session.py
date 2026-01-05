@@ -10,7 +10,6 @@ from ruamel.yaml import YAML
 from ruamel.yaml.constructor import Constructor
 from ruamel.yaml.main import yaml_object
 from ruamel.yaml.representer import RoundTripRepresenter
-from typeguard import typechecked
 from typing_extensions import Self
 
 from pcvs import io
@@ -19,14 +18,12 @@ from pcvs import PATH_SESSION
 yml = YAML()
 
 
-@typechecked
 def session_file_hash(session_infos: dict) -> str:
     return hashlib.sha1(
         "{}:{}".format(session_infos["path"], session_infos["started"]).encode()
     ).hexdigest()
 
 
-@typechecked
 def store_session_to_file(infos: dict) -> str:
     """Save a new session into the session file (in HOME dir).
 
@@ -48,7 +45,6 @@ def store_session_to_file(infos: dict) -> str:
     return shash
 
 
-@typechecked
 def update_session_from_file(sid: str, update: dict) -> bool:
     """Update data from a running session from the global file.
 
@@ -79,7 +75,6 @@ def update_session_from_file(sid: str, update: dict) -> bool:
     return False
 
 
-@typechecked
 def remove_session_from_file(sid: str) -> bool:
     """clear a session from logs.
 
@@ -95,7 +90,6 @@ def remove_session_from_file(sid: str) -> bool:
     return False
 
 
-@typechecked
 def list_alive_sessions() -> dict[str, dict]:
     """Load and return the complete dict from session.yml file
 
@@ -118,7 +112,6 @@ def list_alive_sessions() -> dict[str, dict]:
     return all_sessions
 
 
-@typechecked
 def main_detached_session(sid: str, user_func: Callable, *args: tuple, **kwargs: dict) -> int:
     """Main function processed when running in detached mode.
 
@@ -159,7 +152,6 @@ def main_detached_session(sid: str, user_func: Callable, *args: tuple, **kwargs:
     return ret
 
 
-@typechecked
 @yaml_object(yml)
 class SessionState(IntEnum):
     """Enum of possible Session states."""
@@ -204,7 +196,6 @@ class SessionState(IntEnum):
         return self.name
 
 
-@typechecked
 class Session:
     """Object representing a running validation (detached or not).
 
