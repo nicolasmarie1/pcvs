@@ -556,7 +556,7 @@ def capture_exception(
     :return: function handler to manage exception
     """
 
-    def inner_function(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
+    def inner_function(func: Callable[[...], Any]) -> Callable[[...], Any]:  # type: ignore
         """wrapper for inner function using try/except to avoid crashing
 
         :param func: function to wrap

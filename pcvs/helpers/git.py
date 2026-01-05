@@ -170,25 +170,22 @@ class GitByGeneric(ABC):
         """
         utils.unlock_file(self._lockname)
 
-    def _is_locked(self):
+    def _is_locked(self) -> bool:
         """Locked repo checker
 
         :return: true if the file is locked, false otherwise
-        :rtype: boolean
         """
-        utils.is_locked(self._lockname)
+        return utils.is_locked(self._lockname)
 
-    def set_identity(self, authname: str, authmail: str, commname: str, commmail: str) -> None:
+    def set_identity(
+        self, authname: str | None, authmail: str | None, commname: str | None, commmail: str | None
+    ) -> None:
         """Identities to be used if a commit is created.
 
         :param authname: author's name
-        :type authname: str
         :param authmail: author's email
-        :type authmail: str
         :param commname: Committer's name
-        :type commname: str
         :param commmail: Committer's email
-        :type commmail: str
         """
         self._authname = authname if authname else get_current_username()
         self._authmail = authmail if authmail else get_current_usermail()
@@ -203,7 +200,7 @@ class GitByGeneric(ABC):
         """
         return self._head
 
-    def set_head(self, branch_name: str) -> Branch:
+    def set_head(self, branch_name: str) -> None:
         """Move the repo HEAD (used when no default ref is provided)"""
         self._head = Branch(self, branch_name)
 
@@ -420,11 +417,13 @@ class GitByAPI(GitByGeneric):
 
     def new_branch(self, name: str, cid: Reference | None = None) -> Branch:
         assert name is not None
-        if not cid:
-            cid = self.revparse(Branch(self, name="master")).cid
+        if cid is None:
+            real_cid = self.revparse(Branch(self, name="master")).cid
+        else:
+            real_cid = self.revparse(cid).cid
 
         assert name not in self._repo.branches.local
-        self._repo.branches.local.create(name, cid)
+        self._repo.branches.local.create(name, real_cid)
         return Branch(self, name=name)
 
     def set_branch(self, branch: Branch, commit: Reference) -> None:
@@ -522,14 +521,17 @@ class GitByAPI(GitByGeneric):
         assert not rev or isinstance(rev, Reference)
 
         if since is None:
-            since = datetime.now().timestamp()
+            since = datetime.now()
 
         if until is None:
-            until = 0
+            until = datetime.fromtimestamp(0)
 
         for c in self.iterate_over(rev):
             pygit_obj = c.cid
-            if pygit_obj.commit_time <= since and pygit_obj.commit_time >= until:
+            if (
+                pygit_obj.commit_time <= since.timestamp()
+                and pygit_obj.commit_time >= until.timestamp()
+            ):
                 res.append(self.__obj_to_commit(pygit_obj))
         return res
 
@@ -916,35 +918,29 @@ def get_current_username() -> str:
     """Get the git username.
 
     :return: git username
-    :rtype: str
     """
     try:
         u = request_git_attr("user.name")
         if u is None:
             u = getpass.getuser()
+        return u
     except Exception:
         pass
-    finally:
-        if u is None:
-            u = "anonymous"
 
-    return u
+    return "anonymous"
 
 
 def get_current_usermail() -> str:
     """Get the git user mail.
 
     :return: git user mail
-    :rtype: str
     """
+    m = None
     try:
         m = request_git_attr("user.email")
-        # if m is None:
-        #    m = "{}@{}".format(get_current_username(), socket.getfqdn())
+        if m is not None:
+            return m
     except Exception:
         pass
-    finally:
-        if m is None:
-            m = "anonymous@notset"
 
-    return m
+    return "anonymous@notset"

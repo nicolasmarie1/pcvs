@@ -81,11 +81,11 @@ except ImportError:
 @click.pass_context
 def convert(
     ctx: click.Context,  # pylint: disable=unused-argument
-    input_file: click.Path,
+    input_file: str,
     kind: str,
-    template: click.Path,
-    scheme: click.Path,
-    out: click.Path,
+    template: str | None,
+    scheme: str | None,
+    out: str | None,
     stdout: bool,
     skip_unknown: bool,
     in_place: bool,

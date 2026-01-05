@@ -9,7 +9,7 @@ from typing import Callable
 from ruamel.yaml import YAML
 from ruamel.yaml.constructor import Constructor
 from ruamel.yaml.main import yaml_object
-from ruamel.yaml.representer import Representer
+from ruamel.yaml.representer import RoundTripRepresenter
 from typeguard import typechecked
 from typing_extensions import Self
 
@@ -170,7 +170,7 @@ class SessionState(IntEnum):
     ERROR = 3
 
     @classmethod
-    def to_yaml(cls, representer: Representer, data: Self) -> Any:
+    def to_yaml(cls, representer: RoundTripRepresenter, data: Self) -> Any:
         """Convert a Test.State to a valid YAML representation.
 
         A new tag is created: 'Session.State' as a scalar (str).
