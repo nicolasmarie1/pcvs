@@ -24,7 +24,7 @@ except ImportError:
     nargs=-1,
     required=False,
     type=click.Path(exists=True),
-    help="The list of path to query for build folder/archive and add them to the report.",
+    # help="The list of path to query for build folder/archive and add them to the report.",
 )
 @click.pass_context
 def cli_report(ctx: click.Context, path_list: list[str]) -> int:

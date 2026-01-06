@@ -148,7 +148,7 @@ def cli_bank_init(
     required=True,
     type=str,
     shell_complete=compl_list_banks,
-    help="The name of the bank to delete",
+    # help="The name of the bank to delete",
 )
 @click.option(
     "-s",
@@ -190,14 +190,14 @@ def cli_bank_destroy(
     required=True,
     type=str,
     shell_complete=compl_list_banks,
-    help="The bank to save the run to.",
+    # help="The bank to save the run to.",
 )
 @click.argument(
     "path",
     nargs=1,
     required=True,
     type=click.Path(exists=True),
-    help="The path to the build directory.",
+    # help="The path to the build directory.",
 )
 @click.option(
     "--message",
@@ -233,7 +233,7 @@ def cli_bank_save_run(
     required=True,
     type=str,
     shell_complete=compl_list_banks,
-    help="The name of the project@bank to load the tests from.",
+    # help="The name of the project@bank to load the tests from.",
 )
 @click.option(
     "-s",
