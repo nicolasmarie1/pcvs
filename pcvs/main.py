@@ -4,7 +4,7 @@ from importlib.metadata import version
 
 # flake8: noqa: E402
 # pylint: disable=wrong-import-position
-if version("pcvs").find("dirty") != -1:
+if version("pcvs") is not None and version("pcvs").find("dirty") != -1:
     from typeguard import install_import_hook
 
     install_import_hook("pcvs")
