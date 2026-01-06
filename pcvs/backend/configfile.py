@@ -70,6 +70,8 @@ class ConfigFile:
         Lower representation (str) -> upper representation (yml).
 
         This function only make sense when considering it's overrides.
+
+        :param raw: The content of the config file as a str.
         """
         self._raw = raw
 
@@ -78,6 +80,8 @@ class ConfigFile:
         Upper representation (yml) -> lower representation (str).
 
         This function only make sense when considering it's overrides.
+
+        :return: The content of the config file as a str.
         """
         return self._raw
 
@@ -152,8 +156,6 @@ class ConfigFile:
         Open the current configuration for edition.
 
         After eddition, the new file is loaded, check and then written to disk.
-
-        :raises Exception: Something occurred during the edition or at the validation of the edited file.
         """
         assert self.exist
         self._load_from_disk()
@@ -298,6 +300,7 @@ class Profile(YmlConfigFile):
         """
         Initialize a profile.
 
+        :param config_desc: The config Descriptor for the profile file.
         :param cl: A ConfigLocator Object used to locat config specify by Profile.
         """
         assert config_desc.kind == ConfigKind.PROFILE

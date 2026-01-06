@@ -49,18 +49,16 @@ class DataRepresentation:
         self.rootree: dict[str, dict[str, Any]] = {}
 
     def __insert_in_tree(self, test: Test, node: dict[str, Any], depth: list[str]) -> None:
-        """Insert the given test to the given subtree.
+        """
+        Insert the given test to the given subtree.
 
         This function can be called recursively. depth being the list of node
         names where the Test() should be inserted. The 'node' maps to the
         current node level.
 
         :param test: the test to insert
-        :type test: class:`Test`
         :param node: a global tree intermediate node
-        :type node: dict
         :param depth: list of node names to walk through
-        :type depth: list
         """
         assert "__metadata" in node.keys()
 
@@ -80,12 +78,11 @@ class DataRepresentation:
             self.__insert_in_tree(test, node["__elems"][depth[0]], depth[1:])
 
     def insert_session(self, sid: str, session_data: dict[str, Any]) -> None:
-        """Insert a new session into the tree.
+        """
+        Insert a new session into the tree.
 
         :param sid: the session id, will be the data key
-        :type sid: str
         :param session_data: session basic infos (buildpath, state)
-        :type session_data: dict
         """
 
         # if the SID already exist, a dummy one is generated.
@@ -107,27 +104,24 @@ class DataRepresentation:
         )
 
     def close_session(self, sid: str, session_data: dict[str, Any]) -> None:
-        """Update the tree when the targeted session is completed.
+        """
+        Update the tree when the targeted session is completed.
 
         :param sid: targeted session id
-        :type sid: str
         :param session_data: session infos (state)
-        :type session_data: dict
         """
         assert sid in self.rootree
         self.rootree[sid]["state"] = session_data["state"]
 
     def insert_test(self, sid: str, test: Test) -> bool:
-        """Insert a new test.
+        """
+        Insert a new test.
 
         This test is bound to a session.
 
         :param sid: session id
-        :type sid: str
         :param test: test to insert
-        :type test: class:`Test`
         :return: a boolean, True if test has been successfully inserted
-        :rtype: bool
         """
         # first, insert the test in the hierarchy
         label = test.label
@@ -154,64 +148,58 @@ class DataRepresentation:
 
     @property
     def session_ids(self) -> list[str]:
-        """Get list of registered session ids.
+        """
+        Get list of registered session ids.
 
         :return: the list of know session ids
-        :rtype: list
         """
         return list(self.rootree.keys())
 
     def get_tag_cnt(self, sid: str) -> int:
-        """Get the number of tag for a given session.
+        """
+        Get the number of tag for a given session.
 
         :param sid: session id
-        :type sid: str
         :return: number of tags
-        :rtype: int
         """
         return len(self.rootree[sid]["tags"]["__elems"].keys())
 
     def get_label_cnt(self, sid: str) -> int:
-        """Get the number of labels for a given session.
+        """
+        Get the number of labels for a given session.
 
         :param sid: session id
-        :type sid: str
         :return: number of labels
-        :rtype: int
         """
         return len(self.rootree[sid]["fs-tree"]["__elems"].keys())
 
     def get_test_cnt(self, sid: str) -> int:
-        """Get the number of tests for a given session.
+        """
+        Get the number of tests for a given session.
 
         :param sid: session id
-        :type sid: str
         :return: number of tests
-        :rtype: int
         """
         return sum(self.rootree[sid]["fs-tree"]["__metadata"]["count"].values())
 
     def get_root_path(self, sid: str) -> str:
-        """For a session, get the build path where data are stored.
+        """
+        For a session, get the build path where data are stored.
 
         :param sid: session id
-        :type sid: str
         :return: build path
-        :rtype: str
         """
         path = self.rootree[sid]["path"]
         assert isinstance(path, str)
         return path
 
     def get_token_content(self, sid: str, token: str) -> Any:
-        """Advanced function to access partial data tree.
+        """
+        Advanced function to access partial data tree.
 
         :param sid: session id
-        :type sid: str
         :param token: subtree name to access to
-        :type token: str
         :return: the whole data tree segment, empty dict if not found
-        :rtype: dict
         """
         if token not in self.rootree[sid]:
             return {}
@@ -219,12 +207,11 @@ class DataRepresentation:
         return self.rootree[sid][token]
 
     def extract_tests_under(self, node: dict[str, Any]) -> list[str]:
-        """Retrieve all tests undef a given data tree subnode.
+        """
+        Retrieve all tests undef a given data tree subnode.
 
         :param node: data subnode
-        :type node: dict
         :return: list of tests under this subnode
-        :rtype: list(class:`Test`)
         """
         assert "__elems" in node.keys()
         elements = node["__elems"]
@@ -240,10 +227,10 @@ class DataRepresentation:
         assert False
 
     def get_sessions(self) -> list[dict[str, Any]]:
-        """Get the list of current known sessions.
+        """
+        Get the list of current known sessions.
 
         :return: a dict mapping to session infos.
-        :rtype: list of dicts
         """
         return [
             {

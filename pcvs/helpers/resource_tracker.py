@@ -1,8 +1,32 @@
+"""Module for resource tracking."""
+
+
 class ResourceTracker:
+    """
+    A resource tracker that track resources usage of tests.
+
+    The resources 'used' by tests are:
+        - the number of jobs use to run make for build job.
+        - the number of nodes, processes (mpi) & threads (omp)
+            that the runtime of the test use.
+
+    A resource is represented as a list of int,
+    eaches representing a number of resources at it's level.
+    It is usually a list of two elements representing: [nb_nodes, nb_threads_per_node].
+    note: there can be any number of elements.
+
+    The resource tracker, considering a resource, representing the available hardware,
+    will handle  allocation of resource representing the job allocation.
+
+    The main purpose of this class is to have a smart way to handle parallel tests execution
+    that have any resources requirements while tracking overall usage of a cluster to avoid surcharging
+    the cluster scheduler (like slurm).
+    """
 
     alloc_tracking_counter: int = 1
 
     def __init__(self, dims_values: list[int]):
+        """Initialize a resources allocator."""
         self.dim = len(dims_values)
         if self.dim == 0:
             self.resource = 0
@@ -12,6 +36,7 @@ class ResourceTracker:
                 self.resources.append(ResourceTracker(dims_values[1:]))
 
     def alloc(self, allocation: list[int]) -> int:
+        """Make an allocation in the resources allocator."""
         alloc_dim = len(allocation)
         if alloc_dim > self.dim:
             return 0
@@ -22,6 +47,7 @@ class ResourceTracker:
         return 0
 
     def do_alloc(self, allocation: list[int], alloc_tracking_id: int) -> bool:
+        """Inner allocation function."""
         alloc_dim = len(allocation)
         if alloc_dim < self.dim:
             for resource in self.resources:
@@ -48,6 +74,7 @@ class ResourceTracker:
         assert False
 
     def free(self, alloc_tracking_id: int) -> None:
+        """Free an allocation."""
         if self.dim == 0:
             if self.resource == alloc_tracking_id:
                 self.resource = 0
@@ -56,6 +83,7 @@ class ResourceTracker:
                 resource.free(alloc_tracking_id)
 
     def __repr__(self) -> str:
+        """Representer."""
         if self.dim == 0:
             return str(self.resource)
         return repr(self.resources)

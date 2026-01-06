@@ -53,10 +53,9 @@ def print_version(
 
     This is used as an option formatter, PCVS is not event loaded yet.
 
-    :param value: whether -v was pass and we should print the value.
-    :type value: bool
     :param ctx: Click Context.
-    :type ctx: :class:`Click.Context`
+    :param param: The click Parameter that is being completed.
+    :param value: whether -v was pass and we should print the value.
     """
     if not value or ctx.resilient_parsing:
         return
@@ -193,19 +192,19 @@ def cli(
     pcoll.invoke_plugins(Plugin.Step.START_AFTER)
 
 
-cli.add_command(cli_config.config)
-cli.add_command(cli_run.run)
-cli.add_command(cli_bank.bank)
-cli.add_command(cli_session.session)
-cli.add_command(cli_utilities.exec_cli)
-cli.add_command(cli_utilities.check)
-cli.add_command(cli_utilities.clean)
-cli.add_command(cli_utilities.discover)
+cli.add_command(cli_config.cli_config)
+cli.add_command(cli_run.cli_run)
+cli.add_command(cli_bank.cli_bank)
+cli.add_command(cli_session.cli_session)
+cli.add_command(cli_utilities.cli_exec)
+cli.add_command(cli_utilities.cli_check)
+cli.add_command(cli_utilities.cli_clean)
+cli.add_command(cli_utilities.cli_scan)
 # cli.add_command(cli_gui.gui)
-cli.add_command(cli_report.report)
-cli.add_command(cli_remote_run.remote_run)
+cli.add_command(cli_report.cli_report)
+cli.add_command(cli_remote_run.cli_remote_run)
 # cli.add_command(cli_plumbing.resolve)
-cli.add_command(cli_convert.convert)
+cli.add_command(cli_convert.cli_convert)
 cli.add_command(cli_graph.cli_graph)
 
 

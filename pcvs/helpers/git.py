@@ -8,6 +8,7 @@ from typing import Any
 from typing import Iterable
 
 import sh
+from typing_extensions import Self
 
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import GitException
@@ -54,9 +55,13 @@ class Commit(Reference):
         self.meta = metadata
 
     def get_info(self) -> dict[str, Any]:
-        """Return commit metadata stored as a dict.
+        """
+        Return commit metadata stored as a dict.
 
-        It may contains extra infos compared to what a commit usually contains"""
+        It may contains extra infos compared to what a commit usually contains
+
+        :return: The data attached to the commit object when initialized.
+        """
         return self.meta
 
 
@@ -70,34 +75,30 @@ class Tree(Reference):
         self.children = children
 
     @classmethod
-    def as_root(cls, repo, hdl, children=[]):
+    def as_root(cls, repo: Any, hdl: Any, children: list = []) -> Self:
         """Create a Tree and attach it with the git-specific handler (if any)
 
         :param repo: the repo handle
-        :type repo: Any
         :param hdl: the git-specific root handle
-        :type hdl: Any
         :param children: Any prebuild children for this root node
-        :type children: Any
         :return: the created Tree object
-        :rtype: Tree
         """
-        cls.hdl = hdl
+        cls.hdl = hdl  # type: ignore
         return cls(repo=repo, tid=None, prefix="", children=children)
 
 
 class Blob(Tree):
     """Maps a Git 'blob' object, dedicated to hold data ("leaves" in Git trees)"""
 
-    def __init__(self, repo, tid, prefix="", data=""):
+    def __init__(self, repo, tid, prefix: str = "", data: str = ""):
         super().__init__(repo, tid, prefix, children=[])
-        self.data = data
+        self.data: bytes = data
 
-    def __str__(self):
-        """Stringify data contained in blob.
+    def __str__(self) -> str:
+        """
+        Stringify data contained in blob.
 
         :returns: the decoded data
-        :rtype: bytes
         """
         return self.data.decode()
 
@@ -130,37 +131,34 @@ class GitByGeneric(ABC):
 
     @abstractmethod
     def open(self, bare: bool = True) -> None:
-        """Open the repo, with appropriate method.
+        """
+        Open the repo, with appropriate method.
 
         :param bare: true by default, manage or bare repo.
-        :type bare: boolean
         """
 
-    def set_path(self, prefix):
+    def set_path(self, prefix: str):
         """
         Associate a new directory to this bank.
 
         :param prefix: the prefix locating the Git repo
-        :type prefix: str
         """
         self._path = prefix
         self._lockname = os.path.join(prefix, ".pcvs")
 
-    def _trylock(self):
+    def _trylock(self) -> bool:
         """
         Lock the current repository (NON-BLOCKING)
 
         :return: true if the file is locked, false otherwise
-        :rtype: boolean
         """
         return utils.trylock_file(self._lockname)
 
-    def _lock(self):
+    def _lock(self) -> bool:
         """
         Lock the current repository (BLOCKING)
 
         :return: true if the file is locked, false otherwise
-        :rtype: boolean
         """
         return utils.lock_file(self._lockname)
 
@@ -196,7 +194,6 @@ class GitByGeneric(ABC):
         """Get the current repo's HEAD (used when no default)
 
         :returns: a ref to the HEAD as a branch
-        :rtype: Branch
         """
         return self._head
 
@@ -240,19 +237,22 @@ class GitByGeneric(ABC):
 
     @abstractmethod
     def get_tree(self, tree: Reference | None = None, prefix: str = "") -> Blob | Tree | None:
-        """Retrieve data associated with a given prefix. A tree can used
+        """
+        Retrieve data associated with a given prefix. A tree can used
         to set which ref should be used.
 
-        :param[in] tree: the ref from where get the data
-        :param[in] prefix: the unique prefix associated with data
+        :param tree: the ref from where get the data
+        :param prefix: the unique prefix associated with data
         """
 
     @abstractmethod
     def insert_tree(self, prefix: str, data: Any, root: Tree | None = None) -> Tree:
-        """Create a new tree mapping a prefix filled with 'data'.
+        """
+        Create a new tree mapping a prefix filled with 'data'.
 
-        :param[in] prefix: the prefix under Git tree.
-        :param[in] data: the data to store.
+        :param prefix: the prefix under Git tree.
+        :param data: the data to store.
+        :param root: the root tree  to insert the data in.
         """
 
     @abstractmethod
@@ -273,11 +273,8 @@ class GitByGeneric(ABC):
         The list can be shrunk with a start & end
 
         :param rev: the revision to extract commit from
-        :type rev: Any
         :param since: the oldest commit should be newer than this date
-        :type since: date
         :param until: the newest commit should be older than this date
-        :type until: date
         """
 
     @abstractmethod
@@ -292,15 +289,10 @@ class GitByGeneric(ABC):
         """Create a commit from changes.
 
         :param tree: the changes tree to store as a commit
-        :type tree: Any
         :param msg: the commit msg
-        :type msg: str
-        :timestamp: a commit date (current if not provided)
-        :type: int
+        :param timestamp: a commit date (current if not provided)
         :param parent: the parent commit
-        :type parent: Any
         :param orphan: flag to create a dangling commit (=no-parent)
-        :type orphan: boolean
         """
 
     @abstractmethod
@@ -309,7 +301,6 @@ class GitByGeneric(ABC):
         Convert a revision (tag, branch, commit) to a regular reference.
 
         :param rev: Reference
-        :type rev: Reference
         """
 
     @abstractmethod
@@ -318,15 +309,14 @@ class GitByGeneric(ABC):
         oldest).
 
         :param ref: the starting point
-        :type ref: Reference
         """
 
     @abstractmethod
     def list_files(self, rev: Reference | None = None, prefix: str = "") -> list[str]:
         """For a given revision, list files (not only changed ones).
 
-        :param rev: the revision
-        :type rev: Reference
+        :param rev: the reference
+        :param prefix: the prefix
         """
 
     @abstractmethod
@@ -341,16 +331,17 @@ class GitByGeneric(ABC):
         depending on the Git method used (lazy resolution).
 
         :param ref: the revision
-        :type ref: Reference
         """
 
-    def _set_or_head(self, rev):
-        """Return a valid revision to be used
+    def _set_or_head(self, rev: Reference) -> Reference:
+        """
+        Return a valid revision to be used
 
         If rev is not set, return the default HEAD repo.
 
         :param rev: the revision to use or replace if not set
-        :type rev: Reference"""
+        :return: The reference or head.
+        """
         return rev if rev else self._head
 
 
@@ -584,7 +575,9 @@ class GitByAPI(GitByGeneric):
 
         return root
 
-    def __insert_path(self, treebuild, path: list[str], data: Any):
+    def __insert_path(
+        self, treebuild: pygit2.TreeBuilder, path: list[str], data: Any
+    ) -> pygit2.Oid:
         """Associate an object to a given tag (=path).
 
         The result is stored into the parent subtree (treebuild). The path is an
@@ -597,13 +590,9 @@ class GitByAPI(GitByGeneric):
         create the real blob object.
 
         :param treebuild: the parent Oid where this association will be stored
-        :type treebuild: :class:`Pygit2.TreeBuilder`
         :param path: the subpath where to store the object
-        :type path: list of str
-        :param obj: the actual data to store
-        :type obj: Any
+        :param data: the actual data to store
         :return: the actual parent id
-        :rtype: :class:`Pygit2.Oid`
         """
         repo = self._repo
 
@@ -867,6 +856,9 @@ def elect_handler(prefix: str | None = None) -> GitByGeneric:
     wheels. Older versions are relying on regular Git commands (as wheels are
     not provided for Python3.6 and older & building pygit2 requires specific
     libgit2 version to be installed, hardening the installation process)
+
+    :param prefix: the git handle prefix.
+    :return: The Git object representation with the correct handle.
     """
     if HAS_PYGIT2:
         git_handle = GitByAPI(prefix)
@@ -876,13 +868,11 @@ def elect_handler(prefix: str | None = None) -> GitByGeneric:
     return git_handle
 
 
-def request_git_attr(k) -> str:
+def request_git_attr(k: str) -> str:
     """Get a git configuration.
 
     :param k: parameter to get
-    :type k: str
     :return: a git configuration
-    :rtype: str
     """
     try:
         git_conf = {}
@@ -899,13 +889,11 @@ def request_git_attr(k) -> str:
     return None
 
 
-def generate_data_hash(data) -> str:
+def generate_data_hash(data: str) -> str:
     """Hash data with git protocol.
 
     :param data: data to hash
-    :type data: str
     :return: hashed data
-    :rtype: str
     """
     c = hashlib.md5()
     if not isinstance(data, bytes):

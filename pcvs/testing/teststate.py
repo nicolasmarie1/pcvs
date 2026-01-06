@@ -40,18 +40,18 @@ class TestState(IntEnum):
     ERR_OTHER = 8
 
     def __str__(self) -> str:
-        """Stringify to return the label.
+        """
+        Stringify to return the label.
 
         :return: the enum name
-        :rtype: str
         """
         return self.name
 
     def __repr__(self) -> str:
-        """Enum representation a tuple (name, value).
+        """
+        Repr of TestState.
 
-        :return: a tuple mapping the enum.
-        :rtype: tuple
+        :return: a string of a tuple mapping the enum.
         """
         return f"({self.name}, {self.value})"
 

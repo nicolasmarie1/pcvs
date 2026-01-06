@@ -54,8 +54,6 @@ Lint PCVS:
     - git config --global --add safe.directory "$(ccc_home -u mpc)/mpc_pre_commit/pre_commit_hooks/pre-commit-hooks/.git"
     - pre-commit install --install-hooks
     - pre-commit run --all-files
-    # TODO: fix mypy test when running in a tox env with installed pcvs
-    # - mypy --config-file ./mypy.ini ./pcvs
 
 Build Doc:
   <<: *scope

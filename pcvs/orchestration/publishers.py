@@ -44,9 +44,7 @@ class ResultFile:
         Initialize a new pair of output files.
 
         :param filepath: path where files will be located.
-        :type filepath: str
         :param filename: prefix filename
-        :type filename: str
         """
         self._fileprefix: str = filename
         self._path: str = filepath
@@ -94,11 +92,8 @@ class ResultFile:
         Save a new job to this instance.
 
         :param job_id: job id
-        :type job_id: str
         :param data: metadata
-        :type data: dict
         :param output: raw output
-        :type output: bytes
         """
         assert isinstance(data, dict)
         assert "result" in data.keys()
@@ -170,11 +165,12 @@ class ResultFile:
         this function returns a list of class:`Test`.
 
         :param job_id: job id, defaults to None
-        :type job_id: int, optional
         :param name: test name (full), defaults to None
-        :type name: str, optional
         :return: A list of class:`Test`
-        :rtype: list
+        :raises PublisherException.UnknownJobError: When a job has no id nor name.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         if (job_id is None and name is None) or (job_id is not None and name is not None):
             raise PublisherException.UnknownJobError(f"{job_id}", name)
@@ -210,7 +206,6 @@ class ResultFile:
         Current rawdata size
 
         :return: length of the rawdata file.
-        :rtype: int
         """
         return self._sz
 
@@ -220,7 +215,6 @@ class ResultFile:
         Get the number of jobs in this handler.
 
         :return: job count
-        :rtype: int
         """
         return self._cnt
 
@@ -230,7 +224,6 @@ class ResultFile:
         Getter to the build prefix
 
         :return: build prefix
-        :rtype: str
         """
         return self._fileprefix
 
@@ -240,7 +233,6 @@ class ResultFile:
         Getter to the actual metadata file name
 
         :return: filename
-        :rtype: str
         """
         return "{}.json".format(self._fileprefix)
 
@@ -251,7 +243,6 @@ class ResultFile:
 
 
         :return: file name
-        :rtype: str
         """
         return "{}.bz2".format(self._fileprefix)
 
@@ -276,8 +267,7 @@ class ResultFileManager:
         """
         initialize a default dict view with targeted statuses.
 
-        :return: _description_
-        :rtype: _type_
+        :return: The default initialized dict.
         """
         ret: dict[str, list] = {}
         # TODO: replate str by real type
@@ -356,12 +346,9 @@ class ResultFileManager:
         Initialize a new instance to manage results in a build directory.
 
         :param prefix: result directory, defaults to "."
-        :type prefix: str, optional
         :param per_file_max_ent: max number of tests per output file, defaults
             t(o unlimited (0)
-        :type per_file_max_ent: int, optional
         :param per_file_max_sz: max size (bytes) for a single file, defaults to unlimited
-        :type per_file_max_sz: int, optional
         """
         self._current_file = None
         self._outdir: str = prefix
@@ -375,11 +362,8 @@ class ResultFileManager:
             Internal function: populate a file if found in dest dir.
 
             :param path: file to load
-            :type path: str
             :param default: default value if file not found
-            :type default: Any
             :return: the dict mapping the data
-            :rtype: dict
             """
             if os.path.isfile(path):
                 with open(path, "r") as fh:
@@ -427,7 +411,10 @@ class ResultFileManager:
         function also updates view & maps accordingly.
 
         :param job: the job element to store
-        :type job: class:`Test`
+        :raises PublisherException.AlreadyExistJobError: The saved job have the same id as an already existing job.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         job_id = job.jid
         if job_id in self._mapdata.keys():
@@ -471,10 +458,12 @@ class ResultFileManager:
 
         If such ID does not exist, it will return None.
 
-        :param job_id: _description_
-        :type job_id: _type_
-        :return: _description_
-        :rtype: List[Test]
+        :param job_id: The job id of the job.
+        :return: The job object if found.
+        :raises CommonException.UnclassifiableError: if more than one jobs is found.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         if job_id not in self._mapdata_rev:
             return None
@@ -506,10 +495,7 @@ class ResultFileManager:
         """
         Iterate over every job stored into this build directory.
 
-        :return: an iterable of Tests
-        :rtype: List of tests
         :yield: Test
-        :rtype: Iterator[Test]
         """
         for hdl in self._opened_files.values():
             yield from hdl.content
@@ -521,9 +507,7 @@ class ResultFileManager:
         As multiple matches could occur, this function return a list of class:`Test`
 
         :param name: the test name
-        :type name: str
         :return: the actual list of test, empty if no one is found
-        :rtype: list
         """
         ret = []
         for hdl in self._opened_files.values():
@@ -535,7 +519,6 @@ class ResultFileManager:
         Initialize a new view for this result manager.
 
         :param name: the view name
-        :type name: str
         """
         self._viewdata.setdefault(name, {})
 
@@ -544,9 +527,7 @@ class ResultFileManager:
         Initialize a single item within a view.
 
         :param view: the view name (created if not exist)
-        :type view: str
         :param item: the item
-        :type item: str
         """
         if view not in self._viewdata:
             self.register_view(view)
@@ -582,7 +563,6 @@ class ResultFileManager:
         Returns available views for the current instance.
 
         :return: the views
-        :rtype: dict
         """
         return self._viewdata
 
@@ -592,7 +572,6 @@ class ResultFileManager:
         Returns available views from the current instance.
 
         :return: the maps
-        :rtype: dict
         """
         return self._mapdata
 
@@ -602,7 +581,6 @@ class ResultFileManager:
         Returns the total number of jobs from that directory (=run).
 
         :return: number of jobs
-        :rtype: int
         """
         return len(self._mapdata_rev.keys())
 
@@ -611,9 +589,7 @@ class ResultFileManager:
         Comnvert a job ID into its class:`Test` representation.
 
         :param job_id: job id
-        :type job_id: int
         :return: the associated Test object or None if not found
-        :rtype: class:`Test` or None
         """
         if job_id not in self._mapdata_rev:
             return None
@@ -641,7 +617,6 @@ class ResultFileManager:
         Returns the status view provided by PCVS.
 
         :return: a view
-        :rtype: dict
         """
         status = self._viewdata["status"]
         assert isinstance(status, dict)
@@ -653,7 +628,6 @@ class ResultFileManager:
         Get the tags view provided by PCVS.
 
         :return: a view
-        :rtype: dict
         """
         tags = self._viewdata["tags"]
         assert isinstance(tags, dict)
@@ -665,7 +639,6 @@ class ResultFileManager:
         Get the tree view, provided by default.
 
         :return: a view
-        :rtype: dict
         """
         tree = self._viewdata["tree"]
         assert isinstance(tree, dict)
@@ -676,9 +649,7 @@ class ResultFileManager:
         Get a subset of the 'tree' view. Any LABEL/subtree combination is valid.
 
         :param subtree: the prefix to look for
-        :type subtree: str
         :return: the dict mapping tests to the request
-        :rtype: dict
         """
         if subtree not in self._viewdata["tree"]:
             return None
@@ -723,7 +694,10 @@ class BuildDirectoryManager:
         PCVS build directory.
 
         :param build_dir: the build dir, defaults to "."
-        :type build_dir: str, optional
+        :raises CommonException.NotFoundError: when the build_dir does not exist.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         if not os.path.isdir(build_dir):
             raise CommonException.NotFoundError(
@@ -753,7 +727,6 @@ class BuildDirectoryManager:
         directory. This function implies storing a new execution.
 
         :param per_file_max_sz: max file size, defaults to unlimited
-        :type per_file_max_sz: int, optional
         """
         resdir = os.path.join(self._path, pcvs.NAME_BUILD_RESDIR)
         if not os.path.exists(resdir):
@@ -767,7 +740,6 @@ class BuildDirectoryManager:
         Getter to the result handler, for direct access
 
         :return: the result handler
-        :rtype: class:`ResultFileManager`
         """
         assert self._results is not None
         return self._results
@@ -778,7 +750,6 @@ class BuildDirectoryManager:
         Get the build directory prefix
 
         :return: the build path
-        :rtype: str
         """
         return self._archive_path if self._archive_path else self._path
 
@@ -791,7 +762,6 @@ class BuildDirectoryManager:
         directory. This function implies all previous results be be cleared off.
 
         :param reuse: keep previously generated YAML test-files, defaults to False
-        :type reuse: bool, optional
         """
         if not reuse:
             self.clean(pcvs.NAME_BUILD_SCRATCH)
@@ -815,7 +785,6 @@ class BuildDirectoryManager:
         If not found, this function may return None
 
         :return: the session ID
-        :rtype: str
         """
         assert self._config is not None
         assert "sid" in self._config["validation"]
@@ -833,7 +802,6 @@ class BuildDirectoryManager:
         Load config stored onto disk & populate the current instance.
 
         :return: the loaded config
-        :rtype: class:`MetaConfig`
         """
         with open(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN), "r") as fh:
             self._config = MetaConfig(YAML(typ="safe").load(fh))
@@ -849,7 +817,6 @@ class BuildDirectoryManager:
         Save the config & store it directly into the build directory.
 
         :param config: config
-        :type config: class:`MetaConfig`
         """
         assert isinstance(config, MetaConfig)
         self._config = config
@@ -864,7 +831,6 @@ class BuildDirectoryManager:
         Return the configuration associated with the current build directory
 
         :return: config struct
-        :rtype: class:`MetaConfig`
         """
         assert self._config is not None
         return self._config
@@ -895,13 +861,13 @@ class BuildDirectoryManager:
         be copied to the final archive.
 
         :param rel_filename: the filepath, relative to build dir.
-        :type rel_filename: str
         :param data: data to be saved into the target file, defaults to ""
-        :type data: Any, optional
         :param directory: is it a directory to save, defaults to False
-        :type directory: bool, optional
         :param export: should the target be also exported in final archive, defaults to False
-        :type export: bool, optional
+        :raises CommonException.UnclassifiableError: When the extras that should be saved are not found.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         if os.path.isabs(rel_filename):
             raise CommonException.UnclassifiableError(
@@ -933,6 +899,8 @@ class BuildDirectoryManager:
         Please not this function will erase anything not relative to PCVS. As an
         argument, one may specify a specific prefix to be removed. Paths should
         relative to root build directory.
+
+        :param prefix: The prefix ro be removed.
         """
         assert utils.check_is_buildir(self._path)
         if prefix:
@@ -965,9 +933,11 @@ class BuildDirectoryManager:
         This archive will be stored in the root directory..
 
         :param timestamp: file suffix, defaults to current timestamp
-        :type timestamp: Datetime, optional
         :return: the archive path name
-        :rtype: str
+        :raises CommonException.NotFoundError: When extras files does not exist.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
 
         # ensure all results are flushed away before creating the archive
@@ -1022,9 +992,7 @@ class BuildDirectoryManager:
             been loaded (as no output directory has been configured).
 
         :param archive_path: _description_
-        :type archive_path: _type_
         :return: _description_
-        :rtype: _type_
         """
         archive = tarfile.open(archive_path, mode="r:gz")
 
@@ -1053,7 +1021,6 @@ class BuildDirectoryManager:
         Returns where third-party artifacts must be stored
 
         :return: the scratch directory
-        :rtype: str
         """
         return self._scratch
 

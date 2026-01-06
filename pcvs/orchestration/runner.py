@@ -152,7 +152,8 @@ class RunnerAdapter(threading.Thread):
     def local_exec(self, jobs: Set) -> None:
         """Execute the Set and jobs within it.
 
-        :raises Exception: Something occurred while running a test"""
+        :param jobs: A Set of jobs to run.
+        """
         io.console.nodebug("{}: [LOCAL] Set start".format(self.ident))
         for _job in jobs.content:
             job: Test = _job

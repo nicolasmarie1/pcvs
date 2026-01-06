@@ -40,7 +40,7 @@ except ImportError:
     help="Run jobs concurrently",
 )
 @click.pass_context
-def remote_run(
+def cli_remote_run(
     ctx: click.Context,  # pylint: disable=unused-argument
     buildir: str,
     ctx_path: str,

@@ -104,6 +104,8 @@ class Run:
         """
         Get the previous run from the Series (the first commit of the branch),
             or None of the is the first run of the Series.
+
+        :return: The previous run in the current series.
         """
         assert self._repo is not None and self._cid is not None
         runs = self._repo.get_parents(self._cid)
@@ -141,6 +143,7 @@ class Run:
         Get the job object corresponding to jobname.
 
         :param jobname: the name of the job to retrieve from the run.
+        :return: The job if found.
         """
         res = Job()
         assert self._repo is not None
@@ -380,7 +383,6 @@ class Bank:
         `master` branch is not a valid project.
 
         :return: A list of available projects
-        :rtype: list of str
         """
         projects = []
         for elt in self._repo.branches():

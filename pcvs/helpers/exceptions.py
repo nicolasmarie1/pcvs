@@ -22,10 +22,10 @@ class PCVSException(Exception):
         super().__init__("{} - {}".format(type(self).__name__, reason))
 
     def __str__(self) -> str:
-        """Stringify an exception for pretty-printing.
+        """
+        Stringify an exception for pretty-printing.
 
         :return: the string.
-        :type: str
         """
         name_msg = super().__str__() + "\n"
         help_msg = f"{self._help_msg}\n" if self._help_msg else ""
@@ -46,7 +46,6 @@ class PCVSException(Exception):
         Stringify the debug infos. These infos are stored as a dict initially.
 
         :return: a itemized string.
-        :rtype: str
         """
         if self._dbg_info == {}:
             return ""

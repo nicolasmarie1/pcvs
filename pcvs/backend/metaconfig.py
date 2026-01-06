@@ -177,7 +177,8 @@ class MetaConfig(Config):
         """
         Specific initialize for validation config.
 
-        :param conf: validation block to initialize
+        :param conf: The configuration to initialize
+        :return: The initialized configuration.
         """
         self.setdefault("validation", conf)
 
@@ -231,7 +232,8 @@ class MetaConfig(Config):
         """
         Manipulate the internal MetaConfig() node to load unexportable data.
 
-        :param k: value to get
+        :param k: key to get the associated value
+        :return: valude associated to key k
         """
         if k in self.__internal_config:
             return self.__internal_config[k]

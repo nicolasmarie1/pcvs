@@ -22,11 +22,13 @@ from click.shell_completion import CompletionItem
 def compl_session_token(
     ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
 ) -> list:
-    """Session name completion function.
+    """
+    Session name completion function.
 
     :param ctx: Click context
-    :param args: the option/argument requesting completion.
+    :param param: the option/argument requesting completion.
     :param incomplete: the user input
+    :return: the completed session token
     """
 
     sessions = pvSession.list_alive_sessions()
@@ -112,7 +114,7 @@ def print_sessions(sessions: dict[str, dict]) -> None:
     help="List detached sessions",
 )
 @click.pass_context
-def session(
+def cli_session(
     ctx: click.Context,  # pylint: disable=unused-argument
     ack: str,
     ack_all: bool,

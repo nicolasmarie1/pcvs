@@ -41,9 +41,12 @@ class ValidationScheme:
         Create a new ValidationScheme instance based on a given model.
 
         During initialisation the file scheme is loaded from disk.
-        :param name: name
-        :raises SchemeError: file is not found OR unable to load
-        the YAML scheme file.
+
+        :param schema_name: Name of the schema that will be loaded for validation.
+        :raises ValidationException.InvalidSchemeError: file is not found OR unable to load the YAML scheme file.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         self.schema_name = schema_name
         self.schema: Any = None  # the content of the schema
@@ -60,9 +63,7 @@ class ValidationScheme:
         Validate a given datastructure (dict) agasint the loaded scheme.
 
         :param content: json to validate
-        :type content: dict
         :param filepath: the path of the file content come from
-        :type filepath: str
         :raises FormatError: data are not valid
         :raises SchemeError: issue while applying scheme
         """

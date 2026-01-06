@@ -138,7 +138,7 @@ class Report:
         Get per-session status infos
 
         :param sid: Session id to extract info from.
-        :param filter: optional status to filter in, defaults to None
+        :param status_filter: optional status to filter in, defaults to None
         :return: A dict of statuses (or a single list if the filter is used)
         """
         assert sid in self._sessions
@@ -262,7 +262,8 @@ def upload_buildir_results(
 ) -> None:
     """Upload a whole test-suite from disk to the server data model.
 
-    :param buildir: the build directory
+    :param data_manager: The report data manager.
+    :param buildir: the build directory.
     """
     # TODO: That would be cool to dev the real stuff,
     # before making interface that use function that never existed.

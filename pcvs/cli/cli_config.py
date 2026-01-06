@@ -51,8 +51,7 @@ def compl_list_user_configs(
     name="config",
     short_help="Manage Configurations",
 )
-@click.pass_context
-def config(ctx: click.Context) -> None:  # pylint: disable=unused-argument
+def cli_config() -> None:  # pylint: disable=unused-argument
     """
     The 'config' command helps user to manage configurations.
     Their is multiples KIND of configurations:
@@ -83,7 +82,7 @@ def config(ctx: click.Context) -> None:  # pylint: disable=unused-argument
     """
 
 
-@config.command(
+@cli_config.command(
     name="list",
     short_help="List available configuration blocks",
 )
@@ -96,7 +95,9 @@ def config(ctx: click.Context) -> None:  # pylint: disable=unused-argument
     # help="Token in the form scope[:kind] or kind",
 )
 @click.pass_context
-def config_list(ctx: click.Context, token: str | None) -> None:  # pylint: disable=unused-argument
+def cli_config_list(
+    ctx: click.Context, token: str | None  # pylint: disable=unused-argument
+) -> None:
     """
     List available configurations on the system.
 
@@ -126,7 +127,7 @@ def config_list(ctx: click.Context, token: str | None) -> None:  # pylint: disab
         io.console.print(f"{i + 1}. {str(sc).upper()}: {ConfigLocator().get_storage_dir(sc)}")
 
 
-@config.command(
+@cli_config.command(
     name="show",
     short_help="Show detailed view of the selected configuration",
 )
@@ -138,7 +139,7 @@ def config_list(ctx: click.Context, token: str | None) -> None:  # pylint: disab
     # help="Token in the form [scope:[kind:]]label",
 )
 @click.pass_context
-def config_show(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
+def cli_config_show(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
     """
     Prints a detailed description of this configuration block, labeled NAME
     and belonging to the KIND kind.
@@ -150,7 +151,7 @@ def config_show(ctx: click.Context, token: str) -> None:  # pylint: disable=unus
     configfile.get_conf(cd).display()
 
 
-@config.command(
+@cli_config.command(
     name="create",
     short_help="Create/Clone a configuration block",
 )
@@ -178,7 +179,7 @@ def config_show(ctx: click.Context, token: str) -> None:  # pylint: disable=unus
     help="Directly open the created config block in $EDITOR",
 )
 @click.pass_context
-def config_create(
+def cli_config_create(
     ctx: click.Context,  # pylint: disable=unused-argument
     token: str,
     clone: str | None,
@@ -227,7 +228,7 @@ def config_create(
         conf.edit()
 
 
-@config.command(
+@cli_config.command(
     name="destroy",
     short_help="Remove a config block",
 )
@@ -244,7 +245,7 @@ def config_create(
     help="Do not ask for confirmation before deletion",
 )
 @click.pass_context
-def config_destroy(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
+def cli_config_destroy(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
     """
     Erase from disk a previously created configuration block.
 
@@ -259,7 +260,7 @@ def config_destroy(ctx: click.Context, token: str) -> None:  # pylint: disable=u
     configfile.get_conf(cd).delete()
 
 
-@config.command(
+@cli_config.command(
     name="edit",
     short_help="edit the config block",
 )
@@ -270,7 +271,7 @@ def config_destroy(ctx: click.Context, token: str) -> None:  # pylint: disable=u
     shell_complete=compl_list_user_configs,
 )
 @click.pass_context
-def config_edit(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
+def cli_config_edit(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
     """
     Open the file with $EDITOR for direct modifications. The configuration is
     then validated to ensure consistency.
@@ -288,7 +289,7 @@ def config_edit(ctx: click.Context, token: str) -> None:  # pylint: disable=unus
     configfile.get_conf(cd).edit()
 
 
-@config.command(
+@cli_config.command(
     name="import",
     short_help="Import config from a file",
 )
@@ -314,7 +315,7 @@ def config_edit(ctx: click.Context, token: str) -> None:  # pylint: disable=unus
     help="Erase any previously existing config.",
 )
 @click.pass_context
-def config_import(
+def cli_config_import(
     ctx: click.Context,  # pylint: disable=unused-argument
     token: str,
     in_file: TextIO,
@@ -341,7 +342,7 @@ def config_import(
     conf.flush_to_disk()
 
 
-@config.command(
+@cli_config.command(
     name="export",
     short_help="Export config into a file",
 )
@@ -359,7 +360,7 @@ def config_import(
     default=sys.stdout,
 )
 @click.pass_context
-def config_export(
+def cli_config_export(
     ctx: click.Context, token: str, out_file: TextIO  # pylint: disable=unused-argument
 ) -> None:
     """

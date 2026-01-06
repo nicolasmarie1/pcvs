@@ -382,7 +382,6 @@ class ReportApplication(App):
         Currently, a model is a derived class from BuildDirectoryManager
 
         :param model: the model used to access resources
-        :type model: ReportModel
         """
         if io.console is None:
             io.init(color=True, verbose=10)
@@ -399,9 +398,7 @@ def start_app(p: list[str]) -> int:  # pylint: disable=unused-argument
     Handle to start a new Textual application.
 
     :param p: profile, defaults to None
-    :type p: list of config files, optional
     :return: A return code from Textual Application
-    :rtype: int
     """
     app: ReportApplication = ReportApplication(ReportModel(p))
     app.run()

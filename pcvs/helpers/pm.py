@@ -9,7 +9,6 @@ class PManager(ABC):
         """constructor for PManager object
 
         :param spec: specifications for this Package Manager, defaults to None
-        :type spec: str, optional
         """
 
     @abstractmethod
@@ -17,9 +16,7 @@ class PManager(ABC):
         """Get specified packages for this manager
 
         :param load: True to load the package
-        :type load: bool
         :param install: True to install the package
-        :type install: bool
         """
 
     @abstractmethod
@@ -34,7 +31,6 @@ class SpackManager(PManager):
         """constructor for SpackManager object
 
         :param spec: specifications for Spack manager
-        :type spec: str
         """
         super().__init__(spec)
         self.spec = spec
@@ -43,11 +39,8 @@ class SpackManager(PManager):
         """get the commands to install the specified package
 
         :param load: load the specified package, defaults to True
-        :type load: bool, optional
         :param install: install the specified package, defaults to True
-        :type install: bool, optional
         :return: command to install/load the package
-        :rtype: str
         """
         s = []
         if install:
@@ -68,7 +61,6 @@ class ModuleManager(PManager):
         """constructor for Module package manager
 
         :param spec: specifications for Module manager
-        :type spec: str
         """
         super().__init__(spec)
         self.spec = spec
@@ -77,11 +69,8 @@ class ModuleManager(PManager):
         """get the command to install the specified package
 
         :param load: load the specified package, defaults to True
-        :type load: bool, optional
         :param install: install the specified package, defaults to False
-        :type install: bool, optional
         :return: command to install/load the package
-        :rtype: str
         """
         s = ""
         # 'install' does not mean anything here
@@ -96,10 +85,8 @@ class ModuleManager(PManager):
 def identify(pm_node: dict) -> list[PManager]:
     """identifies where
 
-    :param pm_node: [description]
-    :type pm_node: [type]
-    :return: [description]
-    :rtype: [type]
+    :param pm_node: pm node
+    :return: list of package manager
     """
     ret: list[PManager] = []
     if "spack" in pm_node:

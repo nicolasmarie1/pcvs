@@ -92,7 +92,7 @@ except ImportError:
     required=False,
 )
 @click.pass_context
-def exec_cli(
+def cli_exec(
     ctx: click.Context,
     output: str,
     argument: str,
@@ -209,7 +209,7 @@ def exec_cli(
     help="Custom profile to use when checking pcvs.setup scripts",
 )
 @click.pass_context
-def check(
+def cli_check(
     ctx: click.Context,  # pylint: disable=unused-argument
     directory: str | None,
     encoding: bool,
@@ -318,7 +318,7 @@ def check(
     nargs=-1,
 )
 @click.pass_context
-def clean(
+def cli_clean(
     ctx: click.Context,  # pylint: disable=unused-argument
     force: bool,
     fake: bool,
@@ -407,7 +407,7 @@ def clean(
     default=False,
 )
 @click.pass_context
-def discover(
+def cli_scan(
     ctx: click.Context, path: str, create: bool, force: bool  # pylint: disable=unused-argument
 ) -> None:
     """Discover & integrate new benchmarks to PCVS format."""

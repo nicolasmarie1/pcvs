@@ -34,7 +34,7 @@ except ImportError:
     help="read from file instead of stdin",
 )
 @click.pass_context
-def resolve(
+def cli_resolve(
     ctx: click.Context, file: str, bankname: str | None  # pylint: disable=unused-argument
 ) -> None:
 

@@ -24,12 +24,15 @@ except ImportError:
     nargs=-1,
     required=False,
     type=click.Path(exists=True),
+    help="The list of path to query for build folder/archive and add them to the report.",
 )
 @click.pass_context
-def report(ctx: click.Context, path_list: list[str]) -> int:
-    """Start a webserver to browse result during or after execution.
+def cli_report(ctx: click.Context, path_list: list[str]) -> int:
+    """
+    Start a webserver to browse result during or after execution.
 
-    Listens by default to http://localhost:5000/"""
+    Listens by default to http://localhost:5000/
+    """
     if not path_list:
         path_list = [os.getcwd()]
     inputs = []

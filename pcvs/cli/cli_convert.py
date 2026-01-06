@@ -79,7 +79,7 @@ except ImportError:
     ),
 )
 @click.pass_context
-def convert(
+def cli_convert(
     ctx: click.Context,  # pylint: disable=unused-argument
     input_file: str,
     kind: str,

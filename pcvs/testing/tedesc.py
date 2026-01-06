@@ -27,7 +27,7 @@ def detect_compiler(build_info: dict) -> list[str] | None:
     """
     Determine compilers to use for a target file (or list of files).
 
-    :param array_of_files: list of files to identify
+    :param build_info: the build configuration section of the test description.
     :return: the chosen compilers
     """
     detect: list = []
@@ -67,8 +67,9 @@ def extract_compiler_config(
     """
     Build resource to compile based on language and variants involved.
 
-    :param lang: target compiler name
-    :param variants: list of enabled variants
+    :param compiler: target compiler name
+    :param variants: list of enabled variants for the compiler.
+    :raises IncompleteError: When the provided compiler is defined in the profile.
     :return: the program, its args and env modifiers (in that order)
     """
     if compiler is None or compiler not in GlobalConfig.root["compiler"]["compilers"]:
@@ -179,10 +180,9 @@ class TEDescriptor:
         Constructor method.
 
         :param name: the TE name
-        :param node: the TE YAML content.
+        :param nodecontent: the TE YAML content.
         :param label: the user dir label.
         :param subprefix: relative path between user dir & current TE testfile
-        :raises TDFormatError: Unproper YAML TE format (sanity check)
         """
         self._te_name: str = name
         self._skipped: bool = name.startswith(".")
@@ -244,6 +244,8 @@ class TEDescriptor:
         If a binary name is already defined by the test, use it.
         If a program name is given, use it.
         If none are defined, use the test name.
+
+        :return: The name of the file outputted by the compiler.
         """
         if "binary" in self._build.get("sources", {}):
             binary_name = self._build["sources"]["binary"]
@@ -361,6 +363,7 @@ class TEDescriptor:
         """
         How to create build tests from a collection of source files.
 
+        :raises TestExpressionError: When no compilers can be detected for the provided file.
         :return: the command to be used, env to be imported & nb threads to run the test.
         """
         compilers = detect_compiler(self._build)
@@ -517,7 +520,7 @@ class TEDescriptor:
         """
         Generate compilation tests.
 
-        :return: a list of generated compilation tests.
+        :yield: a list of generated compilation tests.
         """
         job_deps = []
 
@@ -570,7 +573,8 @@ class TEDescriptor:
         """
         Generate runtime tests.
 
-        :return: a list of generated runtime tests.
+        :param series: The series of combinations for the test.
+        :yield: a list of generated runtime tests.
         """
         te_job_deps = build_job_deps(self._run, self._te_label, self._te_subtree)
         te_mod_deps = build_pm_deps(self._run)
@@ -641,7 +645,8 @@ class TEDescriptor:
 
         This function will process a YAML node and, through a generator, will
         create each test coming from it.
-        :return: All generated tests from one test description.
+
+        :yield: All generated tests from one test description.
         """
         # if this TE does not lead to a single test, skip now
         if self._skipped:

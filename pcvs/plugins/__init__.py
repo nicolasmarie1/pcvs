@@ -59,7 +59,6 @@ class Plugin:
             """Stringify a Step as a printable string
 
             :return: a printable string according to the step
-            :rtype: str
             """
             return self.name
 
@@ -109,7 +108,7 @@ class Collection:
         reached.
 
         :param name: the plugin name.
-        :type name: str"""
+        """
         for _, plugins in self._plugins.items():
             for plname, plugin in plugins.items():
                 if name.lower() == plname:
@@ -120,14 +119,21 @@ class Collection:
                     return
         io.console.warn("Unable to find a plugin named '{}'".format(name))
 
-    def invoke_plugins(self, step: Plugin.Step, method: str = "run", *args, **kwargs):  # type: ignore
-        """Load the appropriate plugin, given a step
+    def invoke_plugins(
+        self, step: Plugin.Step, method: str = "run", *args: list, **kwargs: dict
+    ) -> Any:
+        """
+        Load the appropriate plugin, given a step.
 
         :param step: the step to target
-        :type step: :class:`Plugin.Step`
+        :param method: the name of the method to call in the plugin module (default to run).
+        :param args: variadic arguments to pass to the plugin
+        :param kwargs: variadic arguments to pass to the plugin
         :raises PluginException.BadStepError: wrong Step value
         :return: the same return value as returned by the ``run()`` plugin method.
-        :rtype: Any
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         if step not in list(Plugin.Step):
             raise PluginException.BadStepError(f"Invalid step: '{step}'")
@@ -147,9 +153,8 @@ class Collection:
         """Check if a given pass is enabled.
 
         :param step: the pass
-        :type step: :class:`Step`
+        :param method: the name of the method to call in the plugin (default to run).
         :return: True if defined, False otherwise
-        :rtype: bool
         """
         if self._enabled[step] is None:
             return False
@@ -166,10 +171,8 @@ class Collection:
         """Count the number of possible plugins for a given step.
 
         :param step: the step to check
-        :type step: str
-
         :return: the number of plugins
-        :rtype: int"""
+        """
         if step not in self._plugins:
             return -1
 
@@ -198,7 +201,7 @@ class Collection:
         """Based on a filepath (as a module dir), load plugins contained in it.
 
         :param modpath: valid python filepath
-        :type modpath: str
+        :param activate: should the plugin be activated.
         """
         io.console.debug(f"Registering plugin by path: {modpath}")
         # the content is added to "pcvs-contrib" module
@@ -214,8 +217,9 @@ class Collection:
 
         mod must be a valid PYTHON module name.
 
-        :param mod: module name
-        :type mod: str
+        :param name: the module name to load
+        :param mod: the python module object
+        :param activate: Should the plugin be activated.
         """
         for _, the_class in inspect.getmembers(mod, inspect.isclass):
             if issubclass(the_class, Plugin) and the_class is not Plugin:
@@ -234,7 +238,7 @@ class Collection:
         directory must be layout'd as a PYTHON package.
 
         :param pkgpath: prefix path
-        :type pkgpath: str
+        :param activate: Should the plugin be activated.
         """
         path = os.path.join(os.path.abspath(pkgpath), "..")
         pkgname = os.path.basename(pkgpath)
@@ -247,8 +251,11 @@ class Collection:
         """Based on a package name, load any plugin defined into it.
 
         :param pkgname: package name, valid under current PYTHON env.
-        :type pkgname: str
+        :param activate: Should the plugin be activated.
         :raises PluginException.LoadError: Error while importing the package
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         mod = importlib.import_module(pkgname)
         for _, name, _ in pkgutil.iter_modules(mod.__path__, mod.__name__ + "."):

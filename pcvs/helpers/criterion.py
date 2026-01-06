@@ -92,6 +92,13 @@ class Criterion:
         Currently, only scalar items or dict (=> sequence) are allowed.
         Will raise an exception in case of inconsistency (Maybe this should be
         managed in another way through the error handling)
+
+        :param input_values: The values the will be parsed to generate this criterion value list.
+        :raises CommonException.UnclassifiableError: When there is an error in the semantic of the provided yaml file.
+        :return: The expanded value list.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         if input_values is None:
             return None
@@ -139,6 +146,8 @@ class Criterion:
 
         This is used to refine overridden per-TE criterion according to
         system-wide's
+
+        :param other: An other criterion object to build the intersection of.
         """
         assert isinstance(other, Criterion)
         assert self._name == other.name
@@ -157,6 +166,8 @@ class Criterion:
         Is the current set of values empty
         May lead to errors, as it may indicates no common values has been
         found between user and system specifications
+
+        :return: True if the value set is empty.
         """
         assert self._expanded
         return self._values is None or len(self._values) == 0
@@ -249,7 +260,9 @@ class Criterion:
         network layer. But once the test has to be built, the term will change
         depending on the runtime carrying it, the value may be different from
         a runtime to another
+
         :param val: string with aliases to be replaced
+        :return: The aliased value.
         """
         return self._alias[val] if val in self._alias else val
 
@@ -260,7 +273,7 @@ class Criterion:
         """
         Converts a sequence (as a string) to a valid list of values.
 
-        :param dic: dictionary to take the values from
+        :param node: dictionary to take the values from
         :param s: start (can be overridden by ``from`` in ``dic``), defaults to -1
         :param e: end (can be overridden by ``to`` in ``dic``), defaults to -1
         :return: list of values
@@ -276,6 +289,9 @@ class Criterion:
             :param val: the string-based number to convert
             :raises CommonException.BadTokenError: val is not a number
             :return: the number
+
+            # noqa: DAR401
+            # noqa: DAR402
             """
             if not isinstance(val, int) or not isinstance(val, float):
                 try:
@@ -397,8 +413,9 @@ class Combination:
     """
     A combination maps the actual concretization from multiple criterion.
 
-    For a given set of criterion, a Combination carries, for each kind, its
-    associated value in order to generate the appropriate test
+    Given a set of criterion, each having a list of values.
+    A combination carrie, for each criterions one of it's value.
+    This represent a set of value that bind a list of criterion to one specific test value.
     """
 
     def __init__(self, crit_desc: dict[str, Criterion], comb: dict, resources: list[int] | None):
@@ -409,7 +426,8 @@ class Combination:
 
         :param crit_desc: dict of criterions (=their full description)
             represented in the current combination.
-        :param dict_comb: actual combination dict (k=criterion name, v=actual value)
+        :param comb: actual combination dict (k=criterion name, v=actual value)
+        :param resources: The resources used when running the job with this specific combination.
         """
         self._criterions = crit_desc
         self._combination = comb
@@ -421,6 +439,7 @@ class Combination:
 
         :param k: value to retrieve
         :param dflt: default value if k is not a valid key
+        :return: The combination value of the criterion with name k, or default value.
         """
         if k not in self._combination:
             return dflt
@@ -439,6 +458,8 @@ class Combination:
         Translate the actual combination in a pretty-format string.
 
         This is mainly used to generate actual test names
+
+        :return: A stringify version of the combination.
         """
         c = self._criterions
         string = []
@@ -459,6 +480,8 @@ class Combination:
            system-scope and program-scope elements)
         2. a runtime argument
         3. a program-level argument (through custom-made iterators)
+
+        :return: (environment variables, wrapper argument, program argument)
         """
         args = []
         envs = []

@@ -36,7 +36,6 @@ class Orchestrator:
     :type _manager: :class:`Manager`
     :ivar _maxconcurrent: Max number of sets started at the same time.
     :type _maxconcurrent: int
-
     """
 
     def __init__(self) -> None:
@@ -64,7 +63,6 @@ class Orchestrator:
         """Append a new job to be scheduled.
 
         :param job: job to append
-        :type job: :class:`Test`
         """
         self._manager.add_job(job)
 
@@ -221,7 +219,7 @@ class Orchestrator:
         """Start the orchestrator.
 
         :param s: container owning the run.
-        :type s: :class:`Session`
+        :return: The exist code of the session.
         """
         # pre-actions done only once
         return self.start_run(s, restart=False)  # type: ignore

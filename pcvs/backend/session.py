@@ -27,7 +27,8 @@ def session_file_hash(session_infos: dict) -> str:
 def store_session_to_file(infos: dict) -> str:
     """Save a new session into the session file (in HOME dir).
 
-    :param c: session infos to store
+    :param infos: session infos to store
+    :raises IOError: When the session file can't be written to disk.
     :return: the sid associated to new create session id.
     """
     global yml
@@ -40,7 +41,7 @@ def store_session_to_file(infos: dict) -> str:
     try:
         with open(session_file, "x") as fh:
             yml.dump(infos, fh)
-    except Exception as e:
+    except IOError as e:
         raise e
     return shash
 
@@ -113,7 +114,8 @@ def list_alive_sessions() -> dict[str, dict]:
 
 
 def main_detached_session(sid: str, user_func: Callable, *args: tuple, **kwargs: dict) -> int:
-    """Main function processed when running in detached mode.
+    """
+    Main function processed when running in detached mode.
 
     This function is called by Session.run_detached() and is launched from
     cloned process (same global env, new main function).
@@ -124,6 +126,8 @@ def main_detached_session(sid: str, user_func: Callable, *args: tuple, **kwargs:
     :param user_func: the Python function used as the new main()
     :param args: user_func() arguments
     :param kwargs: user_func() arguments
+
+    :return: The return of the ``user_func`` function.
     """
 
     # When calling a subprocess, the parent is attached to its child
@@ -293,7 +297,7 @@ class Session:
 
         Arguments are for user function only.
         :param args: user function positional arguments
-        :param kwargs user function keyword-based arguments.
+        :param kwargs: user function keyword-based arguments.
 
         :return: the Session id created for this run.
         """

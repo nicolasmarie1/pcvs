@@ -77,9 +77,7 @@ class Set:
 
         See Set.ExecMode for more information.
 
-
         :return: The current exec mode
-        :rtype: class:`Set.ExecMode`
         """
         return self._execmode
 
@@ -89,15 +87,13 @@ class Set:
         Init the exec mode after the Set is created.
 
         :param v: Desired Execution mode
-        :type v: class:`ExecMode`
         """
         self._execmode = v
 
     def add(self, jobs: Test | list[Test]) -> None:
         """Add a job or a list of jobs to the current Set.
 
-        :param l: a single or a list of jobs
-        :type l: :class:`Test` or List[:class:`Test`]
+        :param jobs: a single or a list of jobs
         """
         if not isinstance(jobs, list):
             jobs = [jobs]
@@ -114,7 +110,6 @@ class Set:
         """check is the set is empty (contains no jobs)
 
         :return: True if there is no jobs
-        :rtype: bool
         """
         return self._size <= 0
 
@@ -123,7 +118,6 @@ class Set:
         """Getter to size property.
 
         :return: Set size
-        :rtype: int
         """
         return self._size
 
@@ -132,7 +126,6 @@ class Set:
         """Getter to id property.
 
         :return: Set id
-        :rtype: int
         """
         return self._id
 
@@ -141,7 +134,6 @@ class Set:
         """Getter to dim property (largest dimension of a single job)
 
         :return: Set dim
-        :rtype: int
         """
         if self._size <= 0:
             return 0
@@ -158,7 +150,6 @@ class Set:
         """check is the Set is complete and can be flushed down to the manager.
 
         :return: True if all jobs have been completed.
-        :rtype: bool
         """
         return self._completed
 

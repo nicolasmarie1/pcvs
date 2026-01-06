@@ -63,7 +63,7 @@ class Test:
         :param comb: Criterion expanded combination for this specific test.
         :param wd: Test working directory.
         :param resources: Resources consumed by the test (cpu_cores / nodes),
-          scheduler heuristic to avoid running to much jobs in scheduler that badly scale (like slurm).
+            scheduler heuristic to avoid running to much jobs in scheduler that badly scale (like slurm).
         :param environment: Environment variables used when running the test.
         :param te_name: Test name.
         :param label: Test label.
@@ -73,7 +73,7 @@ class Test:
         :param metrics: Dictionary of regexs to get data from test output, stored in test results.
         :param tags: Tets tags, used to filter test execution and console output of test stdout/stderr.
         :param artifacts: Artifacts (files) that will be saved in test data after test run,
-          a dict mapping artifact name in test data to files names to read from the disks.
+            a dict mapping artifact name in test data to files names to read from the disks.
         :param validation: Validation configuration. Contain some to all of the following:
 
           - expected exit code
@@ -734,6 +734,7 @@ class Test:
         """
         Serialize the whole Test as a JSON object.
 
+        :param strstate: if test state should be serialised to string
         :return: a JSON dict mapping the test
         """
         output = self.output_info
@@ -778,7 +779,7 @@ class Test:
         """
         Import test object from minimal JSON.
 
-        :param json: the imported json as raw str.
+        :param jsonstr: the imported json as raw str.
         """
         assert isinstance(jsonstr, str)
         jsonobj = json.loads(jsonstr)
@@ -789,7 +790,8 @@ class Test:
         """
         Import test object from full JSON.
 
-        :param json: the json used to set this Test as dict.
+        :param test_json: the json used to set this Test as dict.
+        :param filepath: the path of the file the json come from.
         """
         assert isinstance(test_json, dict)
         self.res_scheme.validate(test_json, filepath)
@@ -883,6 +885,7 @@ class Test:
         :param name: the TE name it is originated
         :param suffix: the extra suffix
         :param combination: the combination str.
+        :return: The full qualified test name.
         """
         assert label
         assert subtree
@@ -908,7 +911,6 @@ def generate_local_variables(label: str, subprefix: str) -> tuple[str, str, str,
 
     :param label: name of the object used to generate paths
     :param subprefix: path to the subdirectories in the base path
-    :raises CommonException.NotFoundError: the label is not recognized as to bevalidated
     :return: paths for PCVS working tree
     """
     if subprefix is None:

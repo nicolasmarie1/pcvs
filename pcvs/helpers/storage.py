@@ -204,6 +204,7 @@ class ConfigLocator:
 
     @classmethod
     def __get_local_path(cls, path: str, subpath: str = NAME_CONFIGDIR) -> str:
+        """Compute LOCAL Scope, get the first .pcvs directory in upper folders."""
         cur = path
         parent = "/"
         while not os.path.isdir(os.path.join(cur, subpath)):
@@ -337,6 +338,7 @@ class ConfigLocator:
     def __get_existing_config(
         self, file_name: Path, kind: ConfigKind, scope: ConfigScope | None
     ) -> ConfigDesc | str:
+        """Get a config, the config file must exist."""
         exist_config: ConfigDesc | None = self.find_config(file_name, kind, scope)
         if exist_config is None:
             return f"Config '{kind}:{file_name}' does not exist !"
@@ -345,6 +347,7 @@ class ConfigLocator:
     def __get_may_exist_config(
         self, file_name: Path, kind: ConfigKind, scope: ConfigScope
     ) -> ConfigDesc | str:
+        """Get a config, the config file may exist."""
         # search for config
         may_exist_config: ConfigDesc | None = self.find_config(file_name, kind, scope)
         if may_exist_config is not None:
@@ -356,6 +359,7 @@ class ConfigLocator:
     def __get_not_existing_config(
         self, file_name: Path, kind: ConfigKind, scope: ConfigScope
     ) -> ConfigDesc | str:
+        """Get a config, the config file should not exist."""
         config_path: Path = self.get_storage_path(file_name, kind, scope)
         should_not_exist_config: ConfigDesc = ConfigDesc(config_path.stem, config_path, kind, scope)
         if should_not_exist_config.exist:

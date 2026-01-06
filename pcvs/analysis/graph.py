@@ -36,7 +36,7 @@ def get_status_series(
     :param show: do we try to show the graphs to the user directly, (need PyQt5).
     :param extension: format/file extension to use when saving the graphs.
     :param limit: nb max of run in the series to query
-      (use :py:obj:`sys.maxsize` for no limit).
+        (use :py:obj:`sys.maxsize` for no limit).
     """
     status_data = analysis.generate_series_trend(series, limit)
     xlabels = []

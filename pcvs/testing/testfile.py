@@ -155,6 +155,7 @@ class TestFile:
         This allows reusability (by loading only once).
 
         :param data: the YAML-formatted input stream.
+        :raises YamlError: When the yaml cannot be loaded.
         """
         assert self._label is not None and self._prefix is not None
         source, _, build, _ = testing.test.generate_local_variables(self._label, self._prefix)

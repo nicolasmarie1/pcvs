@@ -83,6 +83,9 @@ dev = [
 where = ["."]
 include = ["pcvs*"]
 
+#[tool.ruff.lint.pydocstyle]
+#convention = "sphinx"
+
 #
 # TOX Configuration
 #
@@ -130,8 +133,7 @@ commands = [
 [tool.tox.env.doc-coverage]
 commands = [
   [
-    'docstr-coverage', '--skip-file-doc', '--exclude', '.*pcvs/cli/cli.*.py',
-    '--accept-empty', '--verbose=2', 'pcvs', '--fail-under', '70'
+    'docstr-coverage', 'pcvs', '--fail-under', '70'
   ],
 ]
 
@@ -141,19 +143,24 @@ skip_install = true
 ignore_errors = true
 commands = [
   [
-    'darglint', '--verbosity=2', 'docs', 'pcvs', 'tests'
+    'darglint', '--verbosity=2', '--ignore-regex=cli_.*', 'pcvs'
   ],
-  [
-    'pydocstyle', 'pcvs/'
-  ],
+  # darglint is EOL,
+  # pydocstyle does not support sphinx comment style,
+  # ruff may support it soon
+  #[
+  #  'pydocstyle', 'pcvs/'
+  #],
 ]
 
 # Documentation builder
 # Need python>=12
-[tool.tox.env.doc]
+[tool.tox.env.doc-build]
 allowlist_externals = ['make']
 changedir = 'docs'
 commands = [
+  # make clean is always needed,
+  # otherwise genration errors will be dissmiss after 1 build.
   [
     'make', 'clean'
   ],

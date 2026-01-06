@@ -41,7 +41,11 @@ def iterate_dirs(
     :param ctx: Click Context
     :param param: The param targeting the function
     :param value: The value given by the user:
+    :raises click.BadArgumentUsage: Error when parsing user directory.
     :return: properly formatted dict of user directories, keys are labels.
+
+    # noqa: DAR401
+    # noqa: DAR402
     """
     dirs: dict[str, str] = {}
     if value is None:  # if not specified
@@ -81,6 +85,7 @@ def compl_list_dirs(
     :param ctx: Click context
     :param param: the option/argument requesting completion.
     :param incomplete: the user input
+    :return: the completed list of directory.
     """
     obj = click.Path(exists=True, dir_okay=True, file_okay=False)
     return obj.shell_complete(ctx, param, incomplete)
@@ -103,8 +108,11 @@ def handle_build_lockfile(exc: Exception | None = None) -> None:
     This function will automatically forward the raising exception to the next
     handler.
 
-    :raises Exception: Any exception triggering this handler
     :param exc: The raising exception.
+    :raises Exception: Any exception triggering this handler
+
+    # noqa: DAR401
+    # noqa: DAR402
     """
     if (
         GlobalConfig.root
@@ -125,7 +133,7 @@ def parse_tags(filters: str) -> dict[str, bool]:
     Parse filters to generate tags set.
 
     :param filters: a comma separated list of tag name,
-      with ! before names to exclude them.
+        with ! before names to exclude them.
     :return: dict of tag and if their are included / excluded.
     """
     tags = {}
@@ -311,7 +319,7 @@ def parse_tags(filters: str) -> dict[str, bool]:
 @io.capture_exception(Exception)
 @io.capture_exception(Exception, handle_build_lockfile)
 @io.capture_exception(KeyboardInterrupt, handle_build_lockfile)
-def run(
+def cli_run(
     ctx: click.Context,
     profilename: str | None,
     output: str | None,

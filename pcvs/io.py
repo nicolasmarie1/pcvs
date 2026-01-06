@@ -60,7 +60,6 @@ class SpecialChar:
         Initialize a new char handler depending on utf support
 
         :param utf_support: support for utf encoding, defaults to True
-        :type utf_support: bool, optional
         """
         if not utf_support:
             self.copy = "(c)"
@@ -99,7 +98,6 @@ class Verbosity(enum.IntEnum):
         Convert object to human-readable string
 
         :return: a verbosity as printable string
-        :rtype: str
         """
         return self.name
 
@@ -119,9 +117,7 @@ class PCVSConsole:
         Any other argument is considered a base class options.
 
         :param color: should the console use color.
-        :type color: bool
         :param verbose: verbosity level of the console.
-        :type verbosity: int
         """
         self._progress: Progress | None = None
         self._singletask: TaskID | None = None
@@ -179,7 +175,6 @@ class PCVSConsole:
         Get the path to the logging file.
 
         :return: the logging file
-        :rtype: str
         """
         return os.path.abspath(self._debugfile.name)
 
@@ -189,7 +184,6 @@ class PCVSConsole:
         Get the path where the Console output is logged (disabled by default).
 
         :return: the file path
-        :rtype: str
         """
         return os.path.abspath(self._stdout.file.name)
 
@@ -338,9 +332,13 @@ class PCVSConsole:
     # Others
 
     def _get_display_table(self, include_jobs: bool = False) -> Table:
-        """Get the table to display for live update.
+        """
+        Get the table to display for live update.
 
         Include the progress bar, may include the job view table.
+
+        :param include_jobs: should the list of jobs be added to the progress table.
+        :return: Return the built table.
         """
         table = Table.grid(expand=True)
         if include_jobs:
@@ -370,10 +368,15 @@ class PCVSConsole:
         return table
 
     def _insert_job_table(self, state: TestState, test_label: str, test_subtree: str) -> None:
-        """Insert a job in the job data table.
+        """
+        Insert a job in the job data table.
 
-        This job table is display is the one displayed when running
-        on low verbosity level or at the end of the run.
+        This job table is display when running on low verbosity level
+        or at the end of the run.
+
+        :param state: The exit state of the test
+        :param test_label: The label of the test
+        :param test_subtree: The sub directory of the test
         """
         self.job_summary_data_table.setdefault(test_label, {})
         self.job_summary_data_table[test_label].setdefault(
@@ -390,6 +393,12 @@ class PCVSConsole:
         If Verbosity level is equal or above Verbosity.DETAILED, print each tests.
         Otherwise, print a summary block.
         Optionally print raw test result content.
+
+        :param status: The status line indicating test information
+        :param state: The status of the printed test
+        :param tlabel: The label of the test.
+        :param tsubtree: Thr sub directory of the test
+        :param content: stdout/stderr of the test, if specify
         """
         # Update Job data table state.
         self._insert_job_table(state, tlabel, tsubtree)
@@ -433,9 +442,7 @@ class PCVSConsole:
         """Print a progress bar using click.
 
         :param it: iterable on which the progress bar has to iterate
-        :type it: Iterable
         :return: a click progress bar (iterable)
-        :rtype: Iterable
         """
         return track(
             it,
@@ -452,9 +459,7 @@ class PCVSConsole:
         Return the encoding supported by this session for the given key.
 
         :param k: the key as defined by SpecialChar
-        :type k: str
         :return: the associated printable sequence
-        :rtype: str
         """
         char = getattr(self._chars, k)
         assert isinstance(char, str)
@@ -549,6 +554,7 @@ def capture_exception(
 
     :param e_type: errors to be caught
     :param user_func: Optional, a function to call to manage the exception
+    :param doexit: Optional, should pcvs exit after printing the error
     :return: function handler to manage exception
     """
 
@@ -556,21 +562,16 @@ def capture_exception(
         """wrapper for inner function using try/except to avoid crashing
 
         :param func: function to wrap
-        :type func: function
         :return: wrapper
-        :rtype: function
         """
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs) -> Any:  # type: ignore
+        def wrapper(*args: list, **kwargs: dict) -> Any:
             """functools wrapping function
 
             :param args: arguments forwarded to wrapped func
-            :type args: list
             :param kwargs: arguments forwarded  to wrapped func
-            :type kwargs: dict
             :return: result of wrapped function
-            :rtype: Any
             """
             try:
                 return func(*args, **kwargs)

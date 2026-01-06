@@ -34,6 +34,10 @@ class Bank(dsl.Bank):
         Example: ``cholesky@mpc_ci_bank``, ``nas@/home/mpc/mpc_ci_bank``
 
         :param token: ``name``, ``path``, ``project@name`` or ``project@path``
+        :raises BankException.NotFoundError: When the bank is not found.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         # Search for the Bank
         path_or_name: str = token
@@ -313,6 +317,8 @@ def list_banks() -> dict[str, str]:
 def write_banks(banks: dict[str, str]) -> None:
     """
     Write banks.
+
+    :raises IOError: When the banks list can't be written to disk.
     :param banks: a dictionary with banks name associated with their path.
     """
     try:

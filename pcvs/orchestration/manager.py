@@ -27,9 +27,7 @@ class Manager:
         Initialize  a Job Manager.
 
         :param max_nodes: max number of nodes allowed to schedule.
-        :type max_nodes: int
         :param publisher: requested publisher by the orchestrator
-        :type publisher: :class:`ResultFileManager`
         """
         self._comman = GlobalConfig.root.get_internal("comman")
         self._plugin = GlobalConfig.root.get_internal("pColl")
@@ -52,7 +50,6 @@ class Manager:
         """Get max number of nodes.
 
         :return: the max nb nodes
-        :rtype: int
         """
         return self._max_nodes
 
@@ -68,7 +65,6 @@ class Manager:
             save the test dependency rules and count it.
 
         :param job: The job to append
-        :type job: :class:`Test`
         """
         # if test is not know yet, add + increment
         if job.jid not in self.jobs:
@@ -89,9 +85,7 @@ class Manager:
         """Access to a particular counter.
 
         :param tag: a specific counter to target, defaults to "total"
-        :type tag: str
         :return: a count
-        :rtype: int
         """
         return self._count[tag] if tag in self._count else 0
 
@@ -123,13 +117,13 @@ class Manager:
         The 'chain' argument contains list of "already-seen" dependency, helping
         to detect circular deps.
 
-        :raises UndefDependencyError: a depname does not have a related object
-        :raises CircularDependencyError: a circular dep is detected from this
-            job.
-        :param job: the job to resolve
-        :type job: :class:`Test`
-        :param chain: list of already-seen jobs during this walkthrough
-        :type chain: list
+        :raises OrchestratorException.UndefDependencyError: a depname does not have a related object
+        :raises OrchestratorException.CircularDependencyError: a circular dep is detected from this job.
+        :param job: the job to resolve.
+        :param seen_deps: list of already-seen jobs dependency during this walk, to avoid infinite loop.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         seen_deps.append(job.name)
         for depname in job.job_depnames:
@@ -174,7 +168,6 @@ class Manager:
         """Return the number of jobs remaining to be executed.
 
         :return: a number of jobs
-        :rtype: int
         """
         return self._count["total"] - self._count["executed"]
 
@@ -203,9 +196,7 @@ class Manager:
         """Extract one or more jobs, ready to be run.
 
         :param resources_tracker: job resource tracker.
-        :type resources_tracker: list[int]
         :return: A set of jobs
-        :rtype: :class:`Set`
         """
         the_set = None
         self._plugin.invoke_plugins(Plugin.Step.SCHED_SET_BEFORE)
@@ -295,10 +286,10 @@ class Manager:
         job.display()
 
     def merge_subset(self, subset: Set) -> None:
-        """After completion, process the Set to publish test results.
+        """
+        After completion, process the Set to publish test results.
 
-        :param set: the set handling jobs during the scheduling.
-        :type set: :class:`Set`
+        :param subset: the set handling jobs during the scheduling.
         """
         for job in subset.content:
             assert job.state == TestState.EXECUTED

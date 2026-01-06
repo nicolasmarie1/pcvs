@@ -16,8 +16,8 @@ DATA_MANAGER = None
 def create_app(report: Report) -> Flask:
     """Start and run the Flask application.
 
+    :param report: The report manager that contain tests info for the flask app.
     :return: the application
-    :rtype: :class:`Flask`
     """
     global DATA_MANAGER
     DATA_MANAGER = report
@@ -30,7 +30,6 @@ def create_app(report: Report) -> Flask:
         """Provide the about-us page.
 
         :return: webpage content
-        :rtype: str
         """
         return render_template("tbw.html")
 
@@ -39,7 +38,6 @@ def create_app(report: Report) -> Flask:
         """Provide the doc page.
 
         :return: webpage content
-        :rtype: str
         """
         return render_template("tbw.html")
 
@@ -50,7 +48,6 @@ def create_app(report: Report) -> Flask:
         """Provide the main page.
 
         :return: webpage content
-        :rtype: str
         """
         if "json" in request.args.get("render", []):
             return jsonify(list(DATA_MANAGER.session_infos()))  # type: ignore
@@ -61,9 +58,7 @@ def create_app(report: Report) -> Flask:
         """Provide the per-session main page
 
         :param sid: session id
-        :type sid: str
         :return: page content
-        :rtype: str
         """
         if sid not in DATA_MANAGER.session_ids:
             abort(404)
@@ -95,7 +90,6 @@ def create_app(report: Report) -> Flask:
         """Provide the archive comparison interface.
 
         :return: webpage content
-        :rtype: str
         """
         return render_template("tbw.html")
 
@@ -110,10 +104,9 @@ def create_app(report: Report) -> Flask:
 
         Providing a GET ``render`` to ``json`` returns the raw JSON version.
 
+        :param sid: The session id.
         :param selection: which listing to target
-        :type selection: str
         :return: web content
-        :rtype: str
         """
         if "json" in request.args.get("render", []):
             out = []
@@ -136,10 +129,9 @@ def create_app(report: Report) -> Flask:
 
         Providing a GET ``render`` to ``json`` returns the raw JSON version.
 
+        :param sid: The session id.
         :param selection: which view to target
-        :type selection: str
         :return: web response
-        :rtype: str
         """
         out = []
         request_item = request.args.get("name", None)
@@ -176,10 +168,10 @@ def create_app(report: Report) -> Flask:
 
     @app.route("/submit/session_init", methods=["POST"])
     def submit_new_session() -> tuple[str, int]:
-        """Entry point to receive new session request.
+        """
+        Entry point to receive new session request.
 
-        :return: OK
-        :rtype: HTTP request
+        :return: HTTP request status (massage, code)
         """
         json_session = request.get_json()
         sid = json_session["sid"]
@@ -189,19 +181,19 @@ def create_app(report: Report) -> Flask:
 
     @app.route("/submit/session_fini", methods=["POST"])
     def submit_end_session() -> tuple[str, int]:
-        """Entry point to request a session end.
+        """
+        Entry point to request a session end.
 
-        :return: OK
-        :rtype: HTTP request
+        :return: HTTP request status (massage, code)
         """
         return "OK!", 200
 
     @app.route("/submit/test", methods=["POST"])
     def submit() -> tuple[str, int]:
-        """Entry point to receive test data.
+        """
+        Entry point to receive test data.
 
-        :return: OK
-        :rtype: HTTP request
+        :return: HTTP request status (massage, code)
         """
         json_str = request.get_json()
 
@@ -219,12 +211,11 @@ def create_app(report: Report) -> Flask:
 
     @app.errorhandler(404)
     def page_not_found(e: int) -> str:  # pylint: disable=unused-argument
-        """404 Not found page handler.
+        """
+        404 Not found page handler.
 
         :param e: the caught error, only 404 here
-        :type e: int
         :return: web content
-        :rtype: str
         """
         return render_template("404.html")
 
@@ -236,7 +227,7 @@ def start_server(report: Report) -> int:
 
     A random port is picked if the default is already in use.
     :param report: The model to be used.
-    :type report: Report
+    :return: 0 (app.run does not send a return code).
     """
     app = create_app(report)
     app.run(host="0.0.0.0", port=int(os.getenv("PCVS_REPORT_PORT", str(5000))), debug=True)

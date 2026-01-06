@@ -41,9 +41,7 @@ def create_or_clean_path(prefix: str, directory: bool = False) -> None:
     """Create a path or cleans it if it already exists.
 
     :param prefix: prefix of the path to create
-    :type prefix: os.path, str
     :param directory: True if the path is a directory, defaults to False
-    :type directory: bool, optional
     """
     if not os.path.exists(prefix):
         if directory:
@@ -63,10 +61,11 @@ def create_or_clean_path(prefix: str, directory: bool = False) -> None:
 
 @contextmanager
 def cwd(path: str) -> Iterator[str]:
-    """Change the working directory.
+    """
+    Change the working directory.
 
     :param path: new working directory
-    :type path: os.path, str
+    :yield: The new current working directory.
     """
     if not os.path.isdir(path):
         os.mkdir(path)
@@ -82,9 +81,7 @@ def copy_file(src: str, dest: str) -> None:
     """Copy a source file into a destination directory.
 
     :param src: source file to copy.
-    :type src: str
     :param dest: destination directory, may not exist yet.
-    :type dest: str
     """
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     try:
@@ -104,7 +101,7 @@ def get_lockfile_name(f: str) -> str:
     For instance for /a/b.yml, the lock file name will be /a/.b.yml.lck
 
     :param f: the file to mutex
-    :type f: str
+    :return: The full path to the file.
     """
     path = os.path.dirname(f)
     filename = os.path.basename(f)
@@ -120,7 +117,6 @@ def unlock_file(f: str) -> None:
     """Remove lock from a directory.
 
     :param f: file locking the directory
-    :type f: os.path
     """
     lf_name = get_lockfile_name(f)
     try:
@@ -142,19 +138,18 @@ def unlock_file(f: str) -> None:
 def lock_file(
     f: str, reentrant: bool = False, timeout: int | None = None, force: bool = True
 ) -> bool:
-    """Try to lock a directory.
+    """
+    Try to lock a directory.
 
     :param f: name of lock
-    :type f: os.path
-    :param reentrant: True if this process may have locked this file before,
-        defaults to False
-    :type reentrant: bool, optional
+    :param reentrant: True if this process may have locked this file before, defaults to False
     :param timeout: time before timeout, defaults to None
-    :type timeout: int (seconds), optional
-    :raises LockException.TimeoutError: timeout is reached before the directory
-        is locked
+    :param force: Unlock the file if it is locked.
+    :raises CommonException.TimeoutError: timeout is reached before the directory is locked
     :return: True if the file is reached, False otherwise
-    :rtype: bool
+
+    # noqa: DAR401
+    # noqa: DAR402
     """
     if io.console:
         io.console.debug("Attempt locking {}".format(f))
@@ -172,15 +167,12 @@ def lock_file(
 
 
 def trylock_file(f: str, reentrant: bool = False) -> bool:
-    """Try to lock a file (used in lock_file).
+    """
+    Try to lock a file (used in lock_file).
 
     :param f: name of lock
-    :type f: os.path
-    :param reentrant: True if this process may have locked this file before,
-        defaults to False
-    :type reentrant: bool, optional
+    :param reentrant: True if this process may have locked this file before, defaults to False
     :return: True if the file is reached, False otherwise
-    :rtype: bool
     """
     lockfile_name = get_lockfile_name(f)
 
@@ -219,9 +211,7 @@ def is_locked(f: str) -> bool:
     """Is the given file locked somewhere else ?
 
     :param f: the file to test
-    :type f: str
     :return: a boolean indicating whether the lock is hold or not.
-    :rtype: bool
     """
     lf_name = get_lockfile_name(f)
     try:
@@ -235,13 +225,11 @@ def is_locked(f: str) -> bool:
 
 
 def get_lock_owner(f: str) -> tuple[str, int]:
-    """The lock file will contain the process ID owning the lock. This function
-    returns it.
+    """
+    The lock file will contain the process ID owning the lock. This function returns it.
 
     :param f: the original file to mutex
-    :type f: str
     :return: the process ID
-    :rtype: int
     """
     lf_name = get_lockfile_name(f)
     with open(lf_name, "r") as fh:
@@ -251,11 +239,15 @@ def get_lock_owner(f: str) -> tuple[str, int]:
 
 
 def program_timeout(sig: int, ft: FrameType | None) -> None:  # pylint: disable=unused-argument
-    """Timeout handler, called when a SIGALRM is received.
+    """
+    Timeout handler, called when a SIGALRM is received.
 
     :param sig: signal number
-    :type sig: int
+    :param ft: frame type
     :raises CommonException.TimeoutError: timeout is reached
+
+    # noqa: DAR401
+    # noqa: DAR402
     """
     assert sig == signal.SIGALRM
     raise CommonException.TimeoutError("Timeout reached")
@@ -275,16 +267,14 @@ def check_valid_program(
     """Check if p is a valid program, using the ``which`` function.
 
     :param p: program to check
-    :type p: str
     :param succ: function to call in case of success, defaults to None
-    :type succ: optional
     :param fail: function to call in case of failure, defaults to None
-    :type fail: optional
     :param raise_on_fail: Raise an exception in case of failure, defaults to True
-    :type raise_on_fail: bool, optional
     :raises RunException.ProgramError: p is not a valid program
     :return: True if p is a program, False otherwise
-    :rtype: bool
+
+    # noqa: DAR401
+    # noqa: DAR402
     """
     assert p
     try:
@@ -313,10 +303,11 @@ def find_buildir_from_prefix(path: str) -> str:
     """Find the build directory from the ``path`` prefix.
 
     :param path: path to search the build directory from
-    :type path: os.path, str
     :raises CommonException.NotFoundError: the build directory is not found
     :return: the path of the build directory
-    :rtype: os.path
+
+    # noqa: DAR401
+    # noqa: DAR402
     """
     # three scenarios:
     # - path = $PREFIX (being a buildir) -> use as build dir
@@ -334,7 +325,6 @@ def start_autokill(timeout: int | None = None) -> None:
     current process once time is expired.
 
     :param timeout: value in seconds before the autokill will be raised
-    :type timeout: positive integer
     """
     if isinstance(timeout, int):
         io.console.print_item("Setting timeout to {} second(s)".format(timeout))
@@ -349,9 +339,7 @@ def str_dict_as_envvar(d: dict[str, str]) -> str:
     The final result is a regular multiline str, each line being an entry.
 
     :param d: the dict containing env vars to serialize
-    :type d: dict
     :return: the str, containing multiple lines, each of them being a var.
-    :rtype: str
     """
     env_array = []
     for name, value in sorted(d.items()):
