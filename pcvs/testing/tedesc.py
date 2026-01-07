@@ -692,7 +692,7 @@ class TEDescriptor:
             # for program-level iterators, count number of possibilities
             debug_yaml["program"] = {}
             for k, v in self._program_criterion.items():
-                debug_yaml["program"][k] = list(v.values)
+                debug_yaml["program"][k] = list(v.values)  # type: ignore
 
         return debug_yaml
 

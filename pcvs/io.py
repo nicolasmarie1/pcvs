@@ -566,7 +566,7 @@ def capture_exception(
         """
 
         @functools.wraps(func)
-        def wrapper(*args: list | None, **kwargs: dict | None) -> Any:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             """functools wrapping function
 
             :param args: arguments forwarded to wrapped func

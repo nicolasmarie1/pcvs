@@ -4,7 +4,6 @@ import pprint
 import re
 import sys
 from typing import Any
-from typing import Match
 
 import click
 from ruamel.yaml import YAML
@@ -13,6 +12,11 @@ from ruamel.yaml import YAMLError
 import pcvs
 from pcvs import io
 from pcvs.helpers.exceptions import CommonException
+
+try:
+    from typing import Match
+except ImportError:
+    from typing_extensions import Match
 
 desc_dict: dict = {}
 

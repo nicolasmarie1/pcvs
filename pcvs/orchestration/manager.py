@@ -208,6 +208,7 @@ class Manager:
                 jobman=self,
                 max_job_limit=int(self._count["total"] / self._concurrent_level),
             )
+            assert isinstance(the_set, Set)
         else:
             the_set = self.__default_create_subset(resources_tracker)
         end = time.time()

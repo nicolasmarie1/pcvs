@@ -33,8 +33,8 @@ try:
     from rich import box
 
     click.rich_click.SHOW_ARGUMENTS = True
-    click.rich_click.STYLE_COMMANDS_PANEL_BOX = box.SIMPLE
-    click.rich_click.STYLE_OPTIONS_PANEL_BOX = box.SIMPLE
+    click.rich_click.STYLE_COMMANDS_PANEL_BOX = box.SIMPLE  # type: ignore
+    click.rich_click.STYLE_OPTIONS_PANEL_BOX = box.SIMPLE  # type: ignore
 except ImportError:
     import click  # type: ignore
 

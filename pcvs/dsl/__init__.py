@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 from enum import IntEnum
 from typing import Any
-from typing import Generator
+from typing import Iterable
 
 from typing_extensions import Self
 
@@ -121,7 +121,7 @@ class Run:
         return "{}".format(d)
 
     @property
-    def jobs(self) -> Generator[Job]:
+    def jobs(self) -> Iterable[Job]:
         """Iterate over jobs present in the Run."""
         assert self._repo is not None
         for file in self._repo.list_files(rev=self._cid):

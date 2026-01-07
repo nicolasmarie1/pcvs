@@ -329,7 +329,7 @@ class Criterion:
                 values.append(0)
             start = math.ceil(start ** (1 / of))
             end = math.floor(end ** (1 / of))
-            for i in range(start, end + 1):
+            for i in range(start, end + 1):  # type: ignore
                 values.append(i**of)
         else:
             io.console.warn("failure in Criterion sequence!")

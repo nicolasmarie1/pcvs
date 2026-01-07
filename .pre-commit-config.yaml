@@ -109,7 +109,7 @@ repos:
           - --disable=missing-module-docstring,missing-class-docstring,missing-function-docstring # TODO: write doc strings and remove this line
           - --disable=too-many-ancestors # class declaration issues
           - --disable=too-many-instance-attributes,too-few-public-methods,too-many-public-methods # class methods issues
-          - --disable=too-many-arguments,too-many-positional-arguments # function arguments issues
+          - --disable=too-many-arguments #,too-many-positional-arguments # <- wait for pylint upgrade to use # function arguments issues
           - --disable=too-many-nested-blocks,too-many-branches,too-many-locals,too-many-statements,too-many-return-statements # function code issues
           - --disable=no-else-return,no-else-raise,no-else-continue # this just prevent writing easy to understand code
           - --disable=consider-using-f-string,consider-using-with # not always possible
@@ -121,6 +121,7 @@ repos:
           - --disable=global-variable-not-assigned,global-statement
           - --disable=broad-exception-caught
           - --disable=fixme
+          - --disable=invalid-name # inconsistent check, TODO: remove when different pylint version agree with each others
 
         language: 'system'
         types: ['python']

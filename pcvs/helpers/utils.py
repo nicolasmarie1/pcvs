@@ -4,10 +4,10 @@ import shutil
 import signal
 import socket
 import time
-from collections.abc import Callable
 from contextlib import contextmanager
 from shutil import SameFileError
 from types import FrameType
+from typing import Callable
 from typing import Iterator
 
 from pcvs import io

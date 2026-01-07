@@ -57,7 +57,10 @@ dev = [
   "darglint",
   "pydocstyle",
   "flake8",
-  "pylint",
+  # 3.2.8 add too-many-positional-arguments check
+  # leading to uknown argument in prior version of pylint
+  # need to wait for inti to update pip repo to upgrade
+  "pylint<=3.2.7",
   "pytest",
   "coverage",
   "docstr-coverage",

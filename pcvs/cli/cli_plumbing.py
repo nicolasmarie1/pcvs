@@ -21,6 +21,7 @@ except ImportError:
     "--bank",
     "bankname",
     shell_complete=compl_list_banks,
+    required=True,
     default=None,
     help="explicit bank name to use.",
 )
@@ -35,7 +36,7 @@ except ImportError:
 )
 @click.pass_context
 def cli_resolve(
-    ctx: click.Context, file: str, bankname: str | None  # pylint: disable=unused-argument
+    ctx: click.Context, file: str, bankname: str  # pylint: disable=unused-argument
 ) -> None:
 
     if file:
