@@ -90,7 +90,7 @@ class Tree(Reference):
 class Blob(Tree):
     """Maps a Git 'blob' object, dedicated to hold data ("leaves" in Git trees)"""
 
-    def __init__(self, repo, tid, prefix: str = "", data: str = ""):
+    def __init__(self, repo, tid, prefix: str = "", data: bytes = b""):
         super().__init__(repo, tid, prefix, children=[])
         self.data: bytes = data
 
@@ -333,7 +333,7 @@ class GitByGeneric(ABC):
         :param ref: the revision
         """
 
-    def _set_or_head(self, rev: Reference) -> Reference:
+    def _set_or_head(self, rev: Reference | None) -> Reference:
         """
         Return a valid revision to be used
 
@@ -437,12 +437,13 @@ class GitByAPI(GitByGeneric):
         o = self._repo.revparse_single(rev.name)
         return self.__obj_to_commit(o)
 
-    def get_tree(self, tree: Reference | None = None, prefix: str = "") -> Blob | Tree | None:
+    def get_tree(self, tree: Reference | Any | None = None, prefix: str = "") -> Blob | Tree | None:
         assert not tree or isinstance(tree, Reference)
         rev = self._set_or_head(tree)
 
         tree = None
         if isinstance(rev, Branch):
+            assert self._repo is not None
             tree = self._repo.revparse_single(rev.name).tree
         elif isinstance(rev, Commit):
             tree = rev.cid.tree
