@@ -58,32 +58,33 @@ Lint PCVS:
 Build Doc:
   <<: *scope
   stage: Documentation
+  allow_failure: true
   script:
     # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
-    #- tox -e doc
+    # - tox -e doc
     - cd docs
+    # TODO: install sphinx>=8.2.23 with python>=12
     - make clean && make html
 
 Lint Doc:
   <<: *scope
-  # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
   stage: Documentation
   allow_failure: true
   script:
-    #- tox -e doc-lint
+    # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating
+    # - tox -e doc-lint
     # TODO: install darglint on inti with spack organizer
-    # - darglint --verbosity=2 docs pcvs tests
-    - pydocstyle pcvs/
+    - darglint --verbosity=2 --ignore-regex=cli_.* pcvs
 
 Test Doc:
   <<: *scope
-  # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
   stage: Documentation
   allow_failure: true
   script:
-    #- tox -e doc-coverage
+    # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating
+    # - tox -e doc-coverage
     # TODO: install docstr-coverage on inti with spack organizer
-    - docstr-coverage --skip-file-doc --exclude '.*pcvs/cli/cli.*.py' --accept-empty --verbose=2 pcvs --fail-under 70
+    - docstr-coverage pcvs --fail-under 70
 
 Deploy Doc:
   only:
