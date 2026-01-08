@@ -747,7 +747,7 @@ class Test:
                 "label": self._label,
                 "subtree": self._subtree,
                 "suffix": self._suffix,
-                "comb": self._comb_str,
+                "comb": self._comb.get_combinations() if self._comb is not None else None,
             },
             "exec": self._execmd,
             "result": {
@@ -803,7 +803,8 @@ class Test:
             self._label = test_json["id"].get("label", "")
             self._subtree = test_json["id"].get("subtree", "")
             self._suffix = test_json["id"].get("suffix", "")
-            self._comb = Combination({}, test_json["id"].get("comb", {}), None)
+            comb_dict = test_json["id"].get("comb")
+            self._comb = Combination({}, comb_dict, None) if comb_dict is not None else None
 
         self._execmd = test_json.get("exec", "")
 
