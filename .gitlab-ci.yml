@@ -8,11 +8,6 @@ before_script:
   - spack load "python@${VERSION}" sqlite@3.46.0 py-pysocks@1.7.1 py-setuptools py-wheel
   - source "$(ccc_home -W -u mpc)/pcvs_env/python_${SUB_VERSION}_venv/bin/activate"
   - export LD_LIBRARY_PATH="$(ccc_home -W -u mpc)/pcvs_env/libgit2/build/"
-  # pre-commit setup:
-  - export PATH=$PATH:"$(ccc_home -u mpc)/mpc_pre_commit/bin"
-  - export PIP_FIND_LINKS="$(ccc_home -W -u mpc)/pcvs_env/python_${SUB_VERSION}_mirror"
-  - export PIP_NO_INDEX=1
-  - export PIP_NO_BUILD_ISOLATION=1
 
 
 variables:
@@ -26,25 +21,14 @@ variables:
     - web
 
 stages:
-#  - Installation
   - PCVS
   - Documentation
   - Deploy
-
-# pcvs is installed for testing via tox, no need to install it.
-#Install PCVS:
-#    <<: *scope
-#    stage: Installation
-#    script:
-#    - pip install '.[dev]'
-#    - pcvs --version
 
 Coverage PCVS:
   <<: *scope
   stage: PCVS
   script:
-    # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
-    #- tox -e pcvs-coverage
     - module load mpi
     - coverage erase
     - coverage run --source=./pcvs -m pytest ./tests/pcvs
@@ -54,8 +38,10 @@ Lint PCVS:
   <<: *scope
   stage: PCVS
   script:
-    # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
-    #- tox -e pcvs-lint
+    - PATH=$PATH:"$(ccc_home -u mpc)/mpc_pre_commit/bin"
+    - PIP_FIND_LINKS="$(ccc_home -W -u mpc)/pcvs_env/python_${SUB_VERSION}_mirror"
+    - PIP_NO_INDEX=1
+    - PIP_NO_BUILD_ISOLATION=1
     - cd ${CI_PROJECT_DIR}
     - intify_pre_commit.sh .pre-commit-config.yaml
     - git add .pre-commit-config.yaml
@@ -68,10 +54,7 @@ Build Doc:
   stage: Documentation
   allow_failure: true
   script:
-    # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating test
-    # - tox -e doc
     - cd docs
-    # TODO: install sphinx>=8.2.23 with python>=12
     - make clean && make html
 
 Lint Doc:
@@ -79,9 +62,6 @@ Lint Doc:
   stage: Documentation
   allow_failure: true
   script:
-    # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating
-    # - tox -e doc-lint
-    # TODO: install darglint on inti with spack organizer
     - darglint --verbosity=2 --ignore-regex=cli_.* pcvs
 
 Test Doc:
@@ -89,9 +69,6 @@ Test Doc:
   stage: Documentation
   allow_failure: true
   script:
-    # TODO: when tox is fixed on inti (tox>=4.21) use tox instead of duplicating
-    # - tox -e doc-coverage
-    # TODO: install docstr-coverage on inti with spack organizer
     - docstr-coverage pcvs --fail-under 70
 
 Deploy Doc:
