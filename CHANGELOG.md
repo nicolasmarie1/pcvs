@@ -21,13 +21,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/)
 ### Changed
 
 - **Config**
-  - Profiles should now be split in theirs respectives configs files.
-    A profile is now just a list of the diferents configs to use. (**Breaking change**)
+  - Profiles should now be split in theirs respective configs files.
+    A profile is now just a list of the different configs to use. (**Breaking change**)
   - Remove profile command, profiles are now a type of configs.(**Breaking change**)
   - Update defaults configs and defaults profiles.
 
 - **CLI**
-  - change run-filter and print-filter behaviour. There are now order dependants.
+  - change run-filter and print-filter behavior. There are now order dependents.
 
 ## Fixed
 
