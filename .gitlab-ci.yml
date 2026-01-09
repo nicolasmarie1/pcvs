@@ -1,0 +1,9 @@
+# This file redirects towards the right pipeline to execute
+---
+include:
+  - local: '/.gitlab/ci/ci-disabled.yml'
+    rules:
+      - if: '$CI_MERGE_REQUEST_LABELS =~ "/CI::Disabled/"'
+  - local: '/.gitlab/ci/ci.yml'
+    rules:
+      - if: '$CI_MERGE_REQUEST_LABELS !~ "/CI::Disabled/"'
