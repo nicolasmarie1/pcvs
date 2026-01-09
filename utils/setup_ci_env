@@ -50,6 +50,7 @@ do
 	source "python_${sub_ver}_venv/bin/activate"
 	mkdir -p "python_${sub_ver}_mirror"
 	pushd pcvs
+	pip download setuptools -d "../python_${sub_ver}_mirror"
 	pip download '.[dev]' -d "../python_${sub_ver}_mirror"
 	export C_INCLUDE_PATH="$(realpath ../libgit2/build/include/):$(realpath ../libgit2/include/)"
 	export LIBRARY_PATH=$(realpath ../libgit2/build/) # add this path to LD_LIBRARY_PATH at runtime
