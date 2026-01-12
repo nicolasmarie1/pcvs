@@ -5,6 +5,7 @@ Used to query information for Analysis from a finished pcvs run through the dsl 
 """
 
 from abc import ABC
+from datetime import datetime
 from typing import Any
 
 from pcvs.dsl import Bank
@@ -41,7 +42,7 @@ class SimpleAnalysis(BaseAnalysis):
         series: Series,
         limit: int,
         # date -> job_name -> (base_name, state, time)
-    ) -> dict[str, dict[str, tuple[str, TestState, float]]]:
+    ) -> dict[datetime, dict[str, tuple[str, TestState, float]]]:
         """
         Get series information.
 

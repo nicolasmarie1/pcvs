@@ -30,7 +30,7 @@ except ImportError:
     "-t",
     "--types",
     "graph_types",
-    required=True,
+    required=False,
     type=click.Choice(["rate", "duration", "all"]),
     default=["all"],
     multiple=True,
@@ -53,6 +53,7 @@ except ImportError:
     "-s",
     "--show",
     "show",
+    required=False,
     is_flag=True,
     default=False,
     help="Show the images instead/in addition of saving themes. (Default when --path is not specify)",
@@ -77,8 +78,8 @@ except ImportError:
 def cli_graph(
     ctx: click.Context,  # pylint: disable=unused-argument
     bank_name: str,
-    graph_types: set[str],
-    path: str,
+    graph_types: tuple[str, ...],
+    path: str | None,
     show: bool,
     extension: str,
     limit: int,
@@ -97,14 +98,14 @@ def cli_graph(
         raise click.BadArgumentUsage(f"'{bank_name}' project does not exist")
     simple_analysis = analysis.SimpleAnalysis(bank)
 
-    graph_types = set(graph_types)
-    if "all" in graph_types:
-        graph_types = set(["rate", "duration"])
+    graph_types_set: set = set(graph_types)
+    if "all" in graph_types_set:
+        graph_types_set = set(["rate", "duration"])
 
-    io.console.debug(f"graph types: {graph_types}")
+    io.console.debug(f"graph types: {graph_types_set}")
 
-    if "rate" in graph_types:
+    if "rate" in graph_types_set:
         graph.get_status_series(simple_analysis, series, path, show, extension, limit)
 
-    if "duration" in graph_types:
+    if "duration" in graph_types_set:
         graph.get_time_series(simple_analysis, series, path, show, extension, limit)

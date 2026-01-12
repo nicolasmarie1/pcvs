@@ -339,8 +339,10 @@ class Bank:
         self._repo.open()
 
     def disconnect(self) -> None:
-        if self._repo.is_open():
-            self._repo.close()
+        # can happen is the object is destroy before the constructor is called ...
+        if self._repo is not None:
+            if self._repo.is_open():
+                self._repo.close()
 
     def new_series(self, series_name: str) -> Series:
         assert series_name is not None

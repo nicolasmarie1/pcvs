@@ -15,6 +15,7 @@ Used by :class:`~pcvs.cli.cli_graph` to draw graph from the command line.
 """
 
 import os
+from datetime import datetime
 
 from matplotlib import pyplot as plt
 
@@ -25,7 +26,12 @@ from pcvs.testing.teststate import TestState
 
 
 def get_status_series(
-    analysis: SimpleAnalysis, series: Series, path: str, show: bool, extension: str, limit: int
+    analysis: SimpleAnalysis,
+    series: Series,
+    path: str | None,
+    show: bool,
+    extension: str,
+    limit: int,
 ) -> None:
     """
     get_status_series: create a test state graph.
@@ -93,10 +99,10 @@ def get_status_series(
 
 def _get_time_series(
     jobs_base_name: str,
-    # testname -> ([rundate -> index], [rundate -> duration])
+    # testname -> ([index], [duration])
     jobs: dict[str, tuple[list[int], list[float | None]]],
-    dates: list[str],
-    path: str,
+    dates: list[datetime],
+    path: str | None,
     show: bool,
     extension: str,
 ) -> None:
@@ -107,9 +113,9 @@ def _get_time_series(
         job_spec: str = job_name[len(jobs_base_name) + 1 :]
         if not job_spec:
             job_spec = "default"  # no criterions
-        ax.plot(job_data["indexes"], job_data["times"], label=job_spec, marker="+")  # type: ignore
+        ax.plot(job_data[0], job_data[1], label=job_spec, marker="+")  # type: ignore
     ax.xaxis.set_ticks(range(len(dates)))
-    ax.xaxis.set_ticklabels(dates)
+    ax.xaxis.set_ticklabels(map(str, dates))
 
     ax.set_title(jobs_base_name)
     ax.set_xlabel("Test Date")
@@ -127,7 +133,12 @@ def _get_time_series(
 
 
 def get_time_series(
-    analysis: SimpleAnalysis, series: Series, path: str, show: bool, extension: str, limit: int
+    analysis: SimpleAnalysis,
+    series: Series,
+    path: str | None,
+    show: bool,
+    extension: str,
+    limit: int,
 ) -> None:
     """
     get_time_series: create a test time graph.
@@ -141,13 +152,13 @@ def get_time_series(
         limit).
     """
     # rundate -> jobname -> (basename, teststatus, testduration)
-    all_time_data: dict[str, dict[str, tuple[str, TestState, float]]] = (
+    all_time_data: dict[datetime, dict[str, tuple[str, TestState, float]]] = (
         analysis.generate_series_infos(series, limit)
     )
-    # basename -> name -> ([rundate -> index], [rundate -> duration])
+    # basename -> name -> ([index], [duration])
     group_jobs: dict[str, dict[str, tuple[list[int], list[float | None]]]] = {}
     # base_name -> [rundate]
-    group_dates: dict[str, list[str]] = {}
+    group_dates: dict[str, list[datetime]] = {}
 
     # -> move struct from: date -> job_nape -> (basename, state, time)
     #                  to: jobgroup -> job -> (index, time)
