@@ -58,6 +58,8 @@ def print_sessions(sessions: dict[str, dict]) -> None:
     table.add_column("Location", justify="left")
 
     for sk, sv in sessions.items():
+        assert sk is not None
+        assert sv is not None
         s = pvSession.Session()
         s.load_from(sk, sv)
         status = "Broken"
@@ -116,7 +118,7 @@ def print_sessions(sessions: dict[str, dict]) -> None:
 @click.pass_context
 def cli_session(
     ctx: click.Context,  # pylint: disable=unused-argument
-    ack: str,
+    ack: str | None,
     ack_all: bool,
     list_sessions: bool,
 ) -> None:
