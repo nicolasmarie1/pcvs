@@ -17,6 +17,8 @@ try:
 except ImportError:
     import click  # type: ignore
 
+from click.utils import LazyFile
+
 
 def compl_list_scope_kind(
     ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
@@ -361,7 +363,7 @@ def cli_config_import(
 )
 @click.pass_context
 def cli_config_export(
-    ctx: click.Context, token: str, out_file: TextIO  # pylint: disable=unused-argument
+    ctx: click.Context, token: str, out_file: LazyFile  # pylint: disable=unused-argument
 ) -> None:
     """
     Export a new configuration block to a YAML file named OUT_FILE.
