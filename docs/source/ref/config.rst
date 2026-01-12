@@ -13,17 +13,125 @@ which are:
 * machine
 * runtime
 
-One of each configuration are used to build a profile.
+One of each configuration are used to build a **profile**.
 The profile is the top level configuration used to run pcvs.
 
 Scope
 -----
 
-PCVS allows 3 scopes :
+PCVS allows 3 scopes:
 
-* **global** for everyone on the machine having access to the PCVS installation
-* **user** accessible from everywhere for the corresponding user
-* **local** accessible only from a directory
+* **local** accessible only from a specific ``.pcvs`` folder.
+    The **local** folder is defined as the first ``.pcvs`` folder found walking up
+    the file system tree from the execution directory of pcvs.
+* **user** accessible from everywhere for the corresponding user, store in ``~/.pcvs``
+* **global** for everyone on the machine having access to the PCVS installation.
+    **global** configuration are read only, they are stored in the pcvs installation and
+    override at each pcvs install. This scope is used to ship default configurations
+    that can be used directly or as template for creating your own configuration in user or local scope.
+
+Command usage
+-------------
+
+To list existing configurations, use the command:
+
+.. code-block:: bash
+
+    $ pcvs config list
+
+To create a config, one can use the command:
+
+.. code-block:: bash
+
+    $ pcvs config create user:example_profile
+
+By default, the new create configuration will contain the default configuration block for your configuration type.
+To copy from an other configuration block, use:
+
+.. code-block:: bash
+
+    $ pcvs config create --clone global:compiler:gcc user:compiler:mygcc
+
+This configuration is fully customizable with any text editor, to edit the configuration, use the command:
+
+.. code-block:: bash
+
+    $ pcvs config edit profile:example_profile
+
+To export or import configuration, use the command:
+
+.. code-block:: bash
+
+    $ pcvs config export profile:default --output test.yml
+    $ pcvs config import user:profile:default_copy --source test.yml
+
+To delete a configuration, use the command:
+
+.. code-block:: bash
+
+    $ pcvs config destroy <configuration_name>
+
+
+Files architecture
+------------------
+
+For each storage scope, configurations are stored in files in a tree like structure
+and can be edited manually for automation.
+
+.. warning::
+
+    When edited manually, pcvs will not be able to check and validate your configuration.
+    Using ``pcvs config edit`` is preferred.
+
+.. code-block::
+
+    ~/.pcvs
+    ├── compiler
+    │   ├── default.yml
+    │   ├── gcc.yml
+    │   └── mpi.yml
+    ├── criterion
+    │   ├── default.yml
+    │   └── mpi.yml
+    ├── group
+    │   ├── common.yml
+    │   └── default.yml
+    ├── machine
+    │   ├── default.yml
+    │   └── slurm.yml
+    ├── plugin
+    │   ├── default.py
+    │   └── mpi.py
+    ├── profile
+    │   ├── default.yml
+    │   ├── gcc.yml
+    │   └── mpi.yml
+    └── runtime
+        ├── default.yml
+        └── mpi.yml
+
+
+.. _profile-scope:
+
+Profile
+-------
+
+A PCVS **profile** is the root configuration block that link all configurations together
+and need to be provided to pcvs to run a test suite.
+A profile contain 5 references, to one of each of the configuration types.
+It will look like that:
+
+.. code-block:: yaml
+
+    compiler: local:gcc
+    criterion: global:default
+    group: default
+    machine: mycluster.yml
+    runtime: default
+
+**Scopes** can be optionally provided.
+If not provided, all scope are check in order **local** -> **user** -> **global**.
+File extensions are optionnals.
 
 Configuration description
 -------------------------

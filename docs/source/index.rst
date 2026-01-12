@@ -71,7 +71,6 @@ frameworks).
 
    ref/test-file
    ref/config
-   ref/profile
    ref/bank
    ref/session
    ref/utils
