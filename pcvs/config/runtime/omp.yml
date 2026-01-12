@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/runtime-scheme.yml
+---
+program: mpirun
+criterions:
+  n_omp:
+    option: "OMP_NUM_THREADS="
+    numeric: true
+    position: "after"
+    type: "environment"
+
+plugin: "omp"

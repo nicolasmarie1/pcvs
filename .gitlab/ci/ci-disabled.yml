@@ -1,0 +1,21 @@
+# This file is meant to provide a failing test when the CI is disabled
+# The idea is too prevent one from merging a none tested request
+---
+stages:
+  - CI DISABLED
+
+# Run only on merge request
+workflow:
+  name: 'CI Disabled: preventing merge of $CI_MERGE_REQUEST_TITLE'
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# We want to fail fast to prevent merge
+CI Disabled:
+  stage: 'CI DISABLED'
+  variables:
+    GIT_STRATEGY: 'none'  # Do not clone or fetch
+    GIT_CHECKOUT: false  # Do not checkout
+  script:
+    - echo "CI is disabled! This job fails to prevent merge. If you want a regular workflow, remove CI::Disabled."
+    - exit 1

@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/runtime-scheme.yml
+---
+program: mpirun
+criterions:
+  n_mpi:
+    option: "-n"
+    numeric: true
+    type: "argument"
+    position: "after"
+plugin: "mpi"

@@ -3,38 +3,55 @@ import os
 import pprint
 import re
 import sys
+from typing import Any
 
 import click
 from ruamel.yaml import YAML
+from ruamel.yaml import YAMLError
 
 import pcvs
 from pcvs import io
 from pcvs.helpers.exceptions import CommonException
 
-desc_dict = dict()
+try:
+    from typing import Match
+except ImportError:
+    from typing_extensions import Match
+
+desc_dict: dict = {}
 
 
-def separate_key_and_value(s: str, c: str) -> tuple:
-    """helper to split the key and value from a string"""
+def separate_key_and_value(s: str, c: str) -> tuple[str, Any]:
+    """
+    Helper to split the key and value from a string.
+
+    :param s: the string to split.
+    :param c: the char to split the string with.
+    :return: a tuple of the separated key and value.
+    """
     array = s.split(c)
     if len(array) > 1:
         k = array[0]
         v = "".join(array[1:])
-
         if v.lower() == "true":
-            v = True
-        elif v.lower() == "false":
-            v = False
-
+            return (k, True)
+        if v.lower() == "false":
+            return (k, False)
         return (k, v)
-    else:
-        return (s, None)
+    return (s, None)
 
 
-def set_with(data, klist, val, append=False):
-    """Add a value to a n-depth dict where the depth is declared as
+def set_with(data: dict, klist: list, val: Any, append: bool = False) -> None:
+    """
+    Add a value to a n-depth dict where the depth is declared as
     a list of intermediate keys. the 'append' flag indicates if the given
     'value' should be appended or replace the original content
+
+    :param data: the tree dict to append
+    :param klist: the list of key used to walk down the tree dict.
+    :param val: the value to set at the end of the walk.
+    :param append: should the value be append to a list instead of replacing the dict value.
+    :raises TypeError: When the end of the walk is not a list and append is True.
     """
     # Just in case intermediate keys do not exist
     for key in klist[:-1]:
@@ -44,7 +61,7 @@ def set_with(data, klist, val, append=False):
     if append:
         # if the key doe not exist, create the list
         if klist[-1] not in data:
-            data[klist[-1]] = list()
+            data[klist[-1]] = []
         # if it exists and is not a list ==> complain!
         elif not isinstance(data[klist[-1]], list):
             raise TypeError("fail")
@@ -55,10 +72,14 @@ def set_with(data, klist, val, append=False):
         data[klist[-1]] = val
 
 
-def flatten(dd, prefix="") -> dict:
-    """make the n-depth dict 'dd' a "flat" version, where the successive keys
-    are chained in a tuple. for instance:
-    {'a': {'b': {'c': value}}} --> {('a', 'b', 'c'): value}
+def flatten(dd: Any, prefix: str = "") -> dict:
+    """
+    Make the n-depth dict 'dd' a "flat" version, where the successive key are chained in a tuple.
+    for instance: {'a': {'b': {'c': value}}} --> {('a', 'b', 'c'): value}
+
+    :param dd: the dict to flatten
+    :param prefix: a prefix to append to the key
+    :return: The flatten dict.
     """
     return (
         {
@@ -71,22 +92,24 @@ def flatten(dd, prefix="") -> dict:
     )
 
 
-def compute_new_key(k, m) -> str:
-    """replace in 'k' any pattern found in 'm'.
-    'k' is a string with placeholders, while 'm' is a match result with groups
-    named after placeholders.
+def compute_new_key(k: str, m: Match) -> str:
+    """
+    Replace in 'k' any pattern found in 'm'.
+    'k' is a string with placeholders, while 'm' is a match result with groups named after placeholders.
     This function will also expand the placeholder if 'call:' token is used to
     execute python code on the fly (complex transformation)
-    """
 
+    :param k: The str to replace.
+    :param m: the match result ro replace in str.
+    :return: The new computed key.
+    """
     # basic replace the whole string with any placeholder
     for elt in m.groupdict().keys():
         k = k.replace(".", "||").replace("<" + elt + ">", m.group(elt))
-
     return k
 
 
-def check_if_key_matches(key, ref_array) -> tuple:
+def check_if_key_matches(key: str, ref_array: dict) -> tuple[bool, list[str]]:
     """list all matches for the current key in the new YAML description."""
     # for each key to be replaced.
     # WARNING: no order!
@@ -107,14 +130,12 @@ def check_if_key_matches(key, ref_array) -> tuple:
             else:
                 dest_k = []
             return (True, dest_k)
-        else:  # the key does not exist
-            pass
     return (False, [])
 
 
-def process(data, ref_array=None, warn_if_missing=True) -> dict:
+def process(data: dict, ref_array: dict | None = None, warn_if_missing: bool = True) -> dict:
     """Process YAML dict 'data' and return a transformed dict"""
-    output = dict()
+    output: dict = {}
 
     # desc_dict['second'] is set to contain all keys
     # by opposition to desc_dict['first'] containing modifiers
@@ -168,28 +189,37 @@ def process(data, ref_array=None, warn_if_missing=True) -> dict:
     return output
 
 
-def process_modifiers(data):
-    """applies rules in-place for the data dict.
-    Rules are present in the desc_dict['first'] sub-dict."""
-    if "first" in desc_dict.keys():
+def process_modifiers(data: dict) -> dict:
+    """
+    Applies rules in-place for the data dict.
+    Rules are present in the desc_dict['first'] sub-dict.
+
+    :param data: the data to be process by the converter.
+    :return: The processed data or itself if their is no process to do.
+    """
+    if "first" in desc_dict:
         # do not warn for missing keys in that case (incomplete)
         return process(data, desc_dict["first"], warn_if_missing=False)
-    else:
-        return data
+    return data
 
 
-def replace_placeholder(tmp, refs) -> dict:
+def replace_placeholder(tmp: dict, refs: dict) -> dict:
     """
     The given TMP should be a dict, where keys contain placeholders, wrapped
     with "<>". Each placeholder will be replaced (i.e. key will be changed) by
-    the associated value in refs."""
+    the associated value in refs.
 
-    final = dict()
+    :param tmp: the dict of place holder to replace.
+    :param refs: the values to replace the place older with.
+    :return: The dict after place older replace.
+    """
+
+    final: dict = {}
     for old, new in tmp.items():
         if old.startswith("__"):
             continue
 
-        replacement = []
+        replacement: list = []
         for elt in old.split("."):
             insert = False
             for valid_k in refs.keys():
@@ -203,10 +233,33 @@ def replace_placeholder(tmp, refs) -> dict:
     return final
 
 
-def convert(input_file, kind, template, scheme, out, stdout, skip_unknown, in_place) -> None:
+def convert(
+    input_file: str,
+    kind: str,
+    template: str | None,
+    scheme: str | None,
+    out: str | None,
+    stdout: bool,
+    skip_unknown: bool,
+    in_place: bool,
+) -> None:
     """
     Process the conversion from one YAML format to another.
     Conversion specifications are described by the SCHEME file.
+
+    :param input_file: The name of the input file to convert. ('-' for stdin).
+    :param kind: The kind of conversion to execute profile/configuration.
+    :param template: YAML file containing aliases for conversion.
+    :param scheme: The yaml scheme to convert against.
+    :param out: the output file for the result after the conversion.
+    :param stdout: Should stdout be use as output.
+    :param skip_unknown: Skip unknown key.
+    :param in_place: Set output to be the input file (override out).
+    :raises click.BadOptionUsage: When multiple conflicting output options are used.
+    :raises CommonException.IOError: When we fail to load the template file.
+
+    # noqa: DAR401
+    # noqa: DAR402
     """
     kind = kind.lower()
     io.console.print_header("YAML Conversion")
@@ -240,21 +293,22 @@ def convert(input_file, kind, template, scheme, out, stdout, skip_unknown, in_pl
             io.console.print_item("Load template file: {}".format(template))
             stream = open(template, "r").read() + stream
         data_to_convert = YAML(typ="safe").load(stream)
-    except YAML.composer.ComposerError as e:
-        raise CommonException.IOError(e, template) from e
+    except YAMLError as e:
+        raise CommonException.IOError(str(e), template) from e
 
     # load the scheme
-    if not scheme:
-        scheme = open(os.path.join(pcvs.PATH_INSTDIR, "converter/convert.json"))
-    io.console.print_item("Load scheme file: {}".format(scheme.name))
-    tmp = json.load(scheme)
+    if scheme is None:
+        scheme = "converter/convert.json"
+    schemefile = open(os.path.join(pcvs.PATH_INSTDIR, scheme))
+    io.console.print_item("Load scheme file: {}".format(schemefile.name))
+    tmp = json.load(schemefile)
 
     # if modifiers are declared, replace token with regexes
     if "__modifiers" in tmp.keys():
         desc_dict["first"] = replace_placeholder(tmp["__modifiers"], tmp["__tokens"])
     desc_dict["second"] = replace_placeholder(tmp, tmp["__tokens"])
 
-    io.console.info(["Conversion list {old_key -> new_key):", f"{tmp}"])
+    io.console.info("Conversion list {old_key -> new_key):\n{tmp}")
 
     # first, "flattening" the original array: {(1, 2, 3): "val"}
     data_to_convert = flatten(data_to_convert, kind)
@@ -275,12 +329,12 @@ def convert(input_file, kind, template, scheme, out, stdout, skip_unknown, in_pl
     # remove template key from the output to avoid polluting the caller
     io.console.print_item("Pruning templates from the final data")
     invalid_nodes = [k for k in final_data.keys() if k.startswith("pcvst_")]
-    io.console.info(["Prune the following:", "{}".format(pprint.pformat(invalid_nodes))])
+    io.console.info("Prune the following:\n{}".format(pprint.pformat(invalid_nodes)))
 
     for x in invalid_nodes + ["pcvs_missing"]:
         final_data.pop(x, None)
 
-    io.console.info(["Final layout:", "{}".format(pprint.pformat(final_data))])
+    io.console.info("Final layout:\n{}".format(pprint.pformat(final_data)))
 
     if stdout:
         f = sys.stdout

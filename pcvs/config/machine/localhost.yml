@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/machine-scheme.yml
+---
+name: "localhost"
+nodes: 1
+cores_per_node: 16
+concurrent_run: 4

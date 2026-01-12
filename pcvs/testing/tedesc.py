@@ -3,16 +3,19 @@ import os
 import re
 import shutil
 import tempfile
+from typing import Any
+from typing import Iterable
 
 import pcvs
 from pcvs import io
 from pcvs import testing
+from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers import pm
 from pcvs.helpers.criterion import Criterion
 from pcvs.helpers.criterion import Series
 from pcvs.helpers.exceptions import ProfileException
 from pcvs.helpers.exceptions import TestException
-from pcvs.helpers.system import GlobalConfig
+from pcvs.helpers.pm import PManager
 from pcvs.testing.test import Test
 
 # now return the first valid language, according to settings
@@ -20,25 +23,37 @@ from pcvs.testing.test import Test
 # appearing in this list will be considered as the main language
 
 
-def detect_compiler(array_of_files) -> str:
+def detect_compiler(build_info: dict) -> list[str] | None:
     """
     Determine compilers to use for a target file (or list of files).
 
-    :param array_of_files: list of files to identify
+    :param build_info: the build configuration section of the test description.
     :return: the chosen compilers
     """
-    detect = []
-    for f in array_of_files:
+    detect: list = []
+
+    # match compiler type with user defined language
+    if "sources" in build_info and "lang" in build_info["sources"]:
+        for compiler_type in build_info["sources"]["lang"]:
+            for comp_name, compiler in GlobalConfig.root["compiler"]["compilers"].items():
+                if "type" in compiler and compiler["type"] == compiler_type:
+                    detect.append(comp_name)
+                    break
+    if len(detect) > 0:
+        return detect
+    # detect compiler from file extension
+    for f in build_info["files"]:
         for comp_name, compiler in GlobalConfig.root["compiler"]["compilers"].items():
-            if compiler["extension"] and re.search(compiler["extension"], f):
+            if "extension" in compiler and re.search(compiler["extension"], f):
                 detect.append(comp_name)
                 break
-        else:
-            detect.append(None)
-    return detect
+    if len(detect) > 0:
+        return detect
+    # fail to detect compiler
+    return None
 
 
-def extract_compilers_envs():
+def extract_compilers_envs() -> list[str]:
     """Extract compilers environment."""
     envs = []
     for _, compiler in GlobalConfig.root["compiler"]["compilers"].items():
@@ -46,24 +61,24 @@ def extract_compilers_envs():
     return envs
 
 
-def extract_compiler_config(lang, variants):
+def extract_compiler_config(
+    compiler: str | None, variants: list[str]
+) -> tuple[str | None, list[str], list[str], bool]:
     """
     Build resource to compile based on language and variants involved.
 
-    :param lang: target compiler name
-    :type lang: str
-    :param variants: list of enabled variants
-    :type variants: list
+    :param compiler: target compiler name
+    :param variants: list of enabled variants for the compiler.
+    :raises IncompleteError: When the provided compiler is defined in the profile.
     :return: the program, its args and env modifiers (in that order)
-    :rtype: tuple
     """
-    if not lang or lang not in GlobalConfig.root["compiler"]["compilers"]:
+    if compiler is None or compiler not in GlobalConfig.root["compiler"]["compilers"]:
         raise ProfileException.IncompleteError(
             reason="Unknown compiler, not defined into Profile",
-            dbg_info={"lang": lang, "list": GlobalConfig.root["compiler"]["compilers"].keys()},
+            dbg_info={"compiler": compiler, "list": GlobalConfig.root["compiler"]["compilers"]},
         )
 
-    config = GlobalConfig.root["compiler"]["compilers"][lang]
+    config = GlobalConfig.root["compiler"]["compilers"][compiler]
     for v in variants:
         if v in config["variants"]:
             for k, v in config["variants"][v].items():
@@ -84,7 +99,7 @@ def extract_compiler_config(lang, variants):
     )
 
 
-def build_job_deps(deps_node, pkg_label, pkg_prefix):
+def build_job_deps(deps_node: dict[str, Any], pkg_label: str, pkg_prefix: str) -> list[str]:
     """
     Build the dependency list from a given dependency YAML node.
 
@@ -96,14 +111,9 @@ def build_job_deps(deps_node, pkg_label, pkg_prefix):
             ["list_of_test_name"]
 
     :param deps_node: the TE/job YAML node.
-    :type deps_node: dict
     :param pkg_label: the label where this TE is from (to compute depnames)
-    :type pkg_label: str
     :param pkg_prefix: the subtree where this TE is from (to compute depnames)
-    :type pkg_prefix: str or NoneType
-
     :return: a list of dependencies, either as depnames or PManager objects
-    :rtype: list
     """
     deps = []
     for d in deps_node.get("depends_on", []):
@@ -111,16 +121,14 @@ def build_job_deps(deps_node, pkg_label, pkg_prefix):
     return deps
 
 
-def build_pm_deps(deps_node):
+def build_pm_deps(deps_node: dict[str, Any]) -> list[PManager]:
     """Build the dependency list from a given YAML node.
 
     This only initialize package-manager oriented deps. For job deps, see
     ``build_job_deps``
 
     :param deps_node: contains package_manager YAML information
-    :type deps_node: str
     :return: a list of PM objects, one for each entry
-    :rtype: List[:class:`PManager`]
     """
     return pm.identify(deps_node.get("package_manager", {}))
 
@@ -134,80 +142,74 @@ class TEDescriptor:
     (providing on which MPI processes to run it, for instance).
 
     :ivar _te_name: YAML root node name, part of its unique id
-    :type _te_name: str
+    :vartype _te_name: str
     :ivar _te_label: which user directory this TE is coming from
-    :type _te_label: str
+    :vartype _te_label: str
     :ivar _te_subtree: subprefix, relative to label, where this TE is located
-    :type _te_subtree: str or NoneType
+    :vartype _te_subtree: str or NoneType
     :ivar _full_name: fully-qualified te-name
-    :type _full_name: str
+    :vartype _full_name: str
     :ivar _srcdir: absolute path pointing to the YAML testfile dirname
-    :type _srcdir: str
+    :vartype _srcdir: str
     :ivar _buildir: absolute path pointing to build equivalent of _srcdir
-    :type _buildir: str
+    :vartype _buildir: str
     :ivar _skipped: flag if this TE should be unfolded to tests or not
-    :type _skipped: bool
+    :vartype _skipped: bool
     :ivar _effective_cnt: number of tests created by this single TE
-    :type _effective_cnt: int
+    :vartype _effective_cnt: int
     :ivar _program_criterion: extra criterion defined by the TE
-    :type _program_criterion: :class:`Criterion`
+    :vartype _program_criterion: :class:`Criterion`
     :ivar others: used yaml node references.
     """
 
+    _sys_crit: dict[str, Criterion]
+    _base_it: str
+
     @classmethod
-    def init_system_wide(cls, base_criterion_name):
+    def init_system_wide(cls, base_criterion_name: str) -> None:
         """
         Initialize system-wide information (to shorten accesses).
 
         :param base_criterion_name: iterator name used as scheduling resource.
-        :type base_criterion_name: str
         """
         cls._sys_crit = GlobalConfig.root.get_internal("crit_obj")
         cls._base_it = base_criterion_name
 
-    def __init__(self, name, node, label, subprefix):
+    def __init__(self, name: str, nodecontent: dict, label: str, subprefix: str) -> None:
         """
         Constructor method.
 
         :param name: the TE name
-        :type name: str
-        :param node: the TE YAML content.
-        :type node: str
+        :param nodecontent: the TE YAML content.
         :param label: the user dir label.
-        :type label: str
         :param subprefix: relative path between user dir & current TE testfile
-        :type subprefix: str or NoneType
-
-        :raises TDFormatError: Unproper YAML TE format (sanity check)
         """
-        if not isinstance(node, dict):
-            raise TestException.TestExpressionError(node)
+        self._te_name: str = name
+        self._skipped: bool = name.startswith(".")
+        self._te_label: str = label
+        self._te_subtree: str = subprefix
 
-        self._te_name = name
-        self._skipped = name.startswith(".")
-        self._te_label = label
-        self._te_subtree = subprefix
-
-        _, self._srcdir, _, self._buildir = testing.generate_local_variables(label, subprefix)
+        _, self._srcdir, _, self._buildir = testing.test.generate_local_variables(label, subprefix)
         # before doing anything w/ node:
         # arregate the 'group' definitions with the TE
         # to get all the fields in their final form
-        if "group" in node and node["group"] in GlobalConfig.root["group"].keys():
-            tmp = GlobalConfig.root["group"][node["group"]]
-            tmp.update(node)
-            node = tmp
+        if "group" in nodecontent and nodecontent["group"] in GlobalConfig.root["group"].keys():
+            tmp = GlobalConfig.root["group"][nodecontent["group"]]
+            tmp.update(nodecontent)
+            nodecontent = tmp
+        # io.console.debug(f"test-descriptor: {nodecontent}")
+
         # load from descriptions
-        self._build = node.get("build", {})
-        self._run = node.get("run", {})
-        self._validation = node.get("validate", {})
-        self._build_validation = self._build.get("validate", {})
-        self._artifacts = node.get("artifact", {})
-        self._metrics = node.get("metrics", {})
-        self._attributes = node.get("attributes", {})
-        self._template = node.get("group", {})
-        self._debug = self._te_name + ":\n"
-        self._effective_cnt = 0
-        self._tags = node.get("tag", [])
+        self._build: dict = nodecontent.get("build", {})
+        self._run: dict = nodecontent.get("run", {})
+        self._validation: dict = nodecontent.get("validate", {})
+        self._build_validation: dict = self._build.get("validate", {})
+        self._artifacts: dict = nodecontent.get("artifact", {})
+        self._metrics: dict = nodecontent.get("metrics", {})
+        self._attributes: dict = nodecontent.get("attributes", {})
+        self._debug: str = self._te_name + ":\n"
+        self._effective_cnt: int = 0
+        self._tags: list[str] = nodecontent.get("tag", [])
 
         path_prefix = self._buildir
         if self.get_attr("path_resolution", True) is False:
@@ -232,34 +234,41 @@ class TEDescriptor:
         # compute local criterions relatively to system-wide's
         self._configure_criterions()
         # apply retro-compatibility w/ old syntax
-        self._compatibility_support(node.get("_compat", None))
+        # TODO: verify that we can remove this without breaking
+        # self._compatibility_support(nodecontent.get("_compat", None))
 
-    def get_binary_name(self):
+    def get_binary_name(self) -> str:
         """
         Get the binary name for the file at the output of the compiler.
 
         If a binary name is already defined by the test, use it.
         If a program name is given, use it.
         If none are defined, use the test name.
+
+        :return: The name of the file outputted by the compiler.
         """
         if "binary" in self._build.get("sources", {}):
-            return self._build["sources"]["binary"]
+            binary_name = self._build["sources"]["binary"]
+            assert isinstance(binary_name, str)
+            return binary_name
         if "program" in self._run:
-            return self._run["program"]
+            program_name = self._run["program"]
+            assert isinstance(program_name, str)
+            return program_name
         return self._te_name
 
-    def get_attr(self, name, dflt=None):
+    def get_attr(self, name: str, dflt: Any = None) -> Any:
         if name in self._attributes:
             return self._attributes[name]
         else:
             return dflt
 
-    def _compatibility_support(self, compat):
-        """Convert tricky keywords from old syntax too complex to be handled
+    def _compatibility_support(self, compat: dict | None) -> None:
+        """
+        Convert tricky keywords from old syntax too complex to be handled
         by the automatic converter.
 
         :param compat: dict of complex keyword extracted from old syntax.
-        :param compat: dict or NoneType
         """
         if compat is None:
             return
@@ -298,8 +307,9 @@ class TEDescriptor:
         if "vars" in self._build.get("cmake", {}):
             self._build["cmake"]["args"] = self._build["cmake"]["vars"]
 
-    def _configure_criterions(self):
-        """Prepare the list of components this TE will be built against.
+    def _configure_criterions(self) -> None:
+        """
+        Prepare the list of components this TE will be built against.
 
         It consists in intersecting system-wide criterions and their
         definitions with this overridden criterion by this TE. The result is then
@@ -314,12 +324,18 @@ class TEDescriptor:
             self._criterion = self._sys_crit
         else:
             te_keys = self._run["iterate"].keys()
-            tmp = {}
+            test_crits = {}
             # browse declared criterions (system-wide)
             for k_sys, v_sys in self._sys_crit.items():
+                # if we do note inherite from this criterion, skip it
+                if (
+                    "inherite" in self._run["iterate"]
+                    and k_sys not in self._run["iterate"]["inherite"]
+                ):
+                    continue
                 # if key is overridden by the test
                 if k_sys in te_keys:
-                    cur_criterion = copy.deepcopy(v_sys)
+                    cur_criterion: Criterion = copy.deepcopy(v_sys)
                     cur_criterion.override(self._run["iterate"][k_sys])
 
                     if cur_criterion.is_discarded():
@@ -327,35 +343,38 @@ class TEDescriptor:
                     # merge manually some definitions made by
                     # runtime, as some may be required to expand values:
 
+                    # expand according to te-values or system values if not defined
                     cur_criterion.expand_values(v_sys)
+                    # limit redefinition of criterion values to system scope.
                     cur_criterion.intersect(v_sys)
                     if cur_criterion.is_empty():
                         self._skipped = True
                     else:
-                        tmp[k_sys] = cur_criterion
+                        test_crits[k_sys] = cur_criterion
                 else:  # key is not overridden
-                    tmp[k_sys] = v_sys
+                    test_crits[k_sys] = v_sys
 
-            self._criterion = tmp
+            self._criterion = test_crits
             # now build program iterators
             for _, elt in self._program_criterion.items():
                 elt.expand_values()
 
-    def __build_from_sources(self):
-        """How to create build tests from a collection of source files.
-
-        :return: the command to be used.
-        :rtype: str
+    def __build_from_sources(self) -> tuple[str, list[str], int]:
         """
-        compilers = detect_compiler(self._build["files"])
-        if len(compilers) < 1 or compilers[0] is None:
+        How to create build tests from a collection of source files.
+
+        :raises TestExpressionError: When no compilers can be detected for the provided file.
+        :return: the command to be used, env to be imported & nb threads to run the test.
+        """
+        compilers = detect_compiler(self._build)
+        if compilers is None:
             raise TestException.TestExpressionError(
                 self._build["files"], f"Unable to dect compilers for files: {self._build['files']}"
             )
 
         compiler = compilers[0]
 
-        compiler_config = extract_compiler_config(compiler, self._build.get("variants", {}))
+        compiler_config = extract_compiler_config(compiler, self._build.get("variants", []))
         program, args, envs, valid = compiler_config
         if not valid:
             io.console.warn(f"Compiler program '{program}' not found for test '{self.name}'")
@@ -376,11 +395,11 @@ class TEDescriptor:
         )
         return (command, envs, 1)
 
-    def __build_from_makefile(self):
-        """How to create build tests from a Makefile.
+    def __build_from_makefile(self) -> tuple[str, list[str], int]:
+        """
+        How to create build tests from a Makefile.
 
-        :return: the command to be used.
-        :rtype: str
+        :return: the command to be used, env to be imported & nb threads to run the test.
         """
         command = ["make"]
         basepath = self._srcdir
@@ -404,11 +423,11 @@ class TEDescriptor:
 
         return (" ".join(command), envs, jobs)
 
-    def __build_from_cmake(self):
-        """How to create build tests from a CMake project.
+    def __build_from_cmake(self) -> tuple[str, list[str], int]:
+        """
+        How to create build tests from a CMake project.
 
-        :return: the command to be used.
-        :rtype: str
+        :return: the command to be used, env to be imported & nb threads to run the test.
         """
         command = ["cmake"]
         if "files" in self._build:
@@ -430,11 +449,11 @@ class TEDescriptor:
         envs += tmp[1]
         return (" && ".join([" ".join(command), next_command]), envs, tmp[2])
 
-    def __build_from_autotools(self):
-        """How to create build tests from a Autotools-based project.
+    def __build_from_autotools(self) -> tuple[str, list[str], int]:
+        """
+        How to create build tests from a Autotools-based project.
 
-        :return: the command to be used.
-        :rtype: str
+        :return: the command to be used, env to be imported & nb threads to run the test.
         """
         command = []
         configure_path = ""
@@ -462,10 +481,12 @@ class TEDescriptor:
         envs += tmp[1]
         return (" && ".join([" ".join(command), next_command]), envs, tmp[2])
 
-    def __build_from_user_script(self):
-        command = []
-        env = []
+    def __build_from_user_script(self) -> tuple[str, list[str], int]:
+        """
+        How to create build tests from a user script.
 
+        :return: the command to be used, env to be imported & nb threads to run the test.
+        """
         command = self._build["custom"].get("program", "echo")
         # args not relevant as cflags/ldflags can be used instead
         env = self._build["custom"].get("envs", [])
@@ -479,11 +500,11 @@ class TEDescriptor:
         )
         return (full_cmd, env, 1)
 
-    def __build_exec_process(self):
-        """Drive compilation command generation based on TE format.
+    def __build_exec_process(self) -> tuple[str, list[str], int]:
+        """
+        Drive compilation command generation based on Test format.
 
-        :return: the command to be used.
-        :rtype: str
+        :return: the command to be used, env to be imported & nb threads to run the test.
         """
         if "autotools" in self._build:
             return self.__build_from_autotools()
@@ -495,8 +516,12 @@ class TEDescriptor:
             return self.__build_from_user_script()
         return self.__build_from_sources()
 
-    def __construct_compil_tests(self):
-        """Meta-function steering compilation tests."""
+    def __construct_compil_tests(self) -> Iterable[Test]:
+        """
+        Generate compilation tests.
+
+        :yield: a list of generated compilation tests.
+        """
         job_deps = []
 
         # ensure consistency when 'files' node is used
@@ -520,8 +545,9 @@ class TEDescriptor:
         tags = ["compilation"] + self._tags
 
         command, env, jobs = self.__build_exec_process()
-        wrapper = GlobalConfig.root["runtime"].get("compiling", {}).get("wrapper", "")
-        command = f"{wrapper} {command}"
+        wrapper = GlobalConfig.root["runtime"].get("compiling", {}).get("wrapper", None)
+        if wrapper:
+            command = f"{wrapper} {command}"
         assert jobs is not None
 
         # count number of built tests
@@ -543,8 +569,13 @@ class TEDescriptor:
             validation=self._build_validation,
         )
 
-    def __construct_runtime_tests(self, series):
-        """Generate tests to be run by the runtime command."""
+    def __construct_runtime_tests(self, series: Series) -> Iterable[Test]:
+        """
+        Generate runtime tests.
+
+        :param series: The series of combinations for the test.
+        :yield: a list of generated runtime tests.
+        """
         te_job_deps = build_job_deps(self._run, self._te_label, self._te_subtree)
         te_mod_deps = build_pm_deps(self._run)
 
@@ -608,11 +639,14 @@ class TEDescriptor:
             )
 
     @io.capture_exception(Exception, doexit=True)
-    def construct_tests(self):
-        """Construct a collection of tests (build & run) from a given TE.
+    def construct_tests(self) -> Iterable[Test]:
+        """
+        Construct a collection of tests (build & run) from a given TE.
 
         This function will process a YAML node and, through a generator, will
         create each test coming from it.
+
+        :yield: All generated tests from one test description.
         """
         # if this TE does not lead to a single test, skip now
         if self._skipped:
@@ -637,17 +671,17 @@ class TEDescriptor:
                 series = Series({**self._criterion, **self._program_criterion})
             yield from self.__construct_runtime_tests(series)
 
-    def get_debug(self):
-        """Build information debug for the current TE.
+    def get_debug(self) -> dict:
+        """
+        Build information debug for the current TE.
 
         :return: the debug info
-        :rtype: dict
         """
         # if the current TE did not lead to a single test, skip now
         if self._skipped:
             return {}
 
-        debug_yaml = {}
+        debug_yaml: dict[str, list | dict[str, list]] = {}
 
         # count actual tests built
         if self._run:
@@ -656,25 +690,25 @@ class TEDescriptor:
                 debug_yaml[k] = list(v.values)
 
             # for program-level iterators, count number of possibilities
-            debug_yaml["program"] = dict()
+            debug_yaml["program"] = {}
             for k, v in self._program_criterion.items():
-                debug_yaml["program"][k] = list(v.values)
+                debug_yaml["program"][k] = list(v.values)  # type: ignore
 
         return debug_yaml
 
     @property
-    def name(self):
-        """Getter to the current TE name.
+    def name(self) -> str:
+        """
+        Getter to the current TE name.
 
         :return: te_name
-        :rtype: str
         """
         return self._te_name
 
-    def __repr__(self):
-        """Internal TE representation, for auto-dumping.
+    def __repr__(self) -> str:
+        """
+        Internal TE representation, for auto-dumping.
 
         :return: the node representation.
-        :rtype: str
         """
         return repr(self._build) + repr(self._run) + repr(self._validation)

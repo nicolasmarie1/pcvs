@@ -6,102 +6,120 @@ from pcvs import io
 from pcvs import NAME_BUILDFILE
 from pcvs import NAME_RUN_CONFIG_FILE
 from pcvs.backend import bank as pvBank
-from pcvs.backend import profile as pvProfile
 from pcvs.backend import run as pvRun
 from pcvs.backend import session as pvSession
+from pcvs.backend.configfile import Profile as pvProfile
+from pcvs.backend.metaconfig import GlobalConfig
+from pcvs.backend.metaconfig import MetaConfig
 from pcvs.cli import cli_bank
-from pcvs.cli import cli_profile
 from pcvs.helpers import exceptions
-from pcvs.helpers import system
 from pcvs.helpers import utils
+from pcvs.helpers.storage import ConfigDesc
+from pcvs.helpers.storage import ConfigKind
+from pcvs.helpers.storage import ConfigLocator
 
 try:
     import rich_click as click
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
+
+from click.shell_completion import CompletionItem
 
 
-def iterate_dirs(ctx, param, value) -> dict:  # pylint: disable=unused-argument
+def iterate_dirs(
+    ctx: click.Context,  # pylint: disable=unused-argument
+    param: click.Parameter,  # pylint: disable=unused-argument
+    value: tuple[str, ...],
+) -> dict[str, str] | None:
     """Validate directories provided by users & format them correctly.
 
     Set the default label for a given path if not specified & Configure default
     directories if none was provided.
 
     :param ctx: Click Context
-    :type ctx: :class:`Click.Context`
-    :param param: The arg targeting the function
-    :type param: str
+    :param param: The param targeting the function
     :param value: The value given by the user:
-    :type value: List[str] or str
+    :raises click.BadArgumentUsage: Error when parsing user directory.
     :return: properly formatted dict of user directories, keys are labels.
-    :rtype: dict
+
+    # noqa: DAR401
+    # noqa: DAR402
     """
-    list_of_dirs = dict()
-    if not value:  # if not specified
+    dirs: dict[str, str] = {}
+    if value is None:  # if not specified
         return None
-    else:  # once specified
-        err_msg = ""
-        for d in value:
-            if ":" in d:  # split under LABEL:PATH semantics
-                [label, testpath] = d.split(":")
-                testpath = os.path.abspath(testpath)
-            else:  # otherwise, LABEL = dirname
-                testpath = os.path.abspath(d)
-                label = os.path.basename(testpath)
 
-            # if label already used for a different path
-            if label in list_of_dirs.keys() and testpath != list_of_dirs[label]:
-                err_msg += "- '{}': Used more than once\n".format(label.upper())
-            elif not os.path.isdir(testpath):
-                err_msg += "- '{}': No such directory\n".format(testpath)
-            # else, add it
-            else:
-                list_of_dirs[label] = testpath
-        if len(err_msg):
-            raise click.BadArgumentUsage(
-                "\n".join(
-                    [
-                        "While parsing user directories:",
-                        "{}".format(err_msg),
-                        "please see '--help' for more information",
-                    ]
-                )
+    err_msg = ""
+    for d in value:
+        testpath = os.path.abspath(d)
+        label = os.path.basename(testpath)
+
+        # if label already used for a different path
+        if label in dirs and testpath != dirs[label]:
+            err_msg += "- '{}': Used more than once\n".format(label.upper())
+        elif not os.path.isdir(testpath):
+            err_msg += "- '{}': No such directory\n".format(testpath)
+        # else, add it
+        else:
+            dirs[label] = testpath
+    if len(err_msg) > 0:
+        raise click.BadArgumentUsage(
+            "\n".join(
+                [
+                    "While parsing user directories:",
+                    "{}".format(err_msg),
+                    "please see '--help' for more information",
+                ]
             )
-    return list_of_dirs
+        )
+    return dirs
 
 
-def compl_list_dirs(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
+def compl_list_dirs(
+    ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
+) -> list[CompletionItem]:
     """directory completion function.
 
     :param ctx: Click context
-    :type ctx: :class:`Click.Context`
-    :param args: the option/argument requesting completion.
-    :type args: str
+    :param param: the option/argument requesting completion.
     :param incomplete: the user input
-    :type incomplete: str
+    :return: the completed list of directory.
     """
     obj = click.Path(exists=True, dir_okay=True, file_okay=False)
-    obj.shell_complete(ctx, args, incomplete)
+    return obj.shell_complete(ctx, param, incomplete)
 
 
-def handle_build_lockfile(exc=None):
+def compl_list_profiles(
+    ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
+) -> list[str]:
+    """All profiles name completion function."""
+    return [
+        elt.full_name
+        for elt in ConfigLocator().list_configs(kind=ConfigKind.PROFILE)
+        if incomplete in elt.full_name
+    ]
+
+
+def handle_build_lockfile(exc: Exception | None = None) -> None:
     """Remove the file lock in build dir if the application stops abruptly.
 
     This function will automatically forward the raising exception to the next
     handler.
 
-    :raises Exception: any exception triggering this handler
     :param exc: The raising exception.
-    :type exc: Exception
+    :raises Exception: Any exception triggering this handler
+
+    # noqa: DAR401
+    # noqa: DAR402
     """
     if (
-        system.GlobalConfig.root
-        and "validation" in system.GlobalConfig.root
-        and "output" in system.GlobalConfig.root["validation"]
+        GlobalConfig.root
+        and "validation" in GlobalConfig.root
+        and "output" in GlobalConfig.root["validation"]
     ):
-        prefix = os.path.join(system.GlobalConfig.root["validation"]["output"], NAME_BUILDFILE)
+        prefix = os.path.join(GlobalConfig.root["validation"]["output"], NAME_BUILDFILE)
         if utils.is_locked(prefix):
             if utils.get_lock_owner(prefix)[1] == os.getpid():
                 utils.unlock_file(prefix)
@@ -110,18 +128,23 @@ def handle_build_lockfile(exc=None):
         raise exc
 
 
-def parse_tags(filters: str) -> dict[list[str]]:
-    """Parse input to generate tags set."""
-    allow_tags = []
-    deny_tags = []
+def parse_tags(filters: str) -> dict[str, bool]:
+    """
+    Parse filters to generate tags set.
+
+    :param filters: a comma separated list of tag name,
+        with ! before names to exclude them.
+    :return: dict of tag and if their are included / excluded.
+    """
+    tags = {}
     for f in filters.split(","):
         if len(f) == 0:
             continue
         if f[0] == "!":
-            deny_tags.append(f[1:])
+            tags[f[1:]] = False
         else:
-            allow_tags.append(f)
-    return {"allow": allow_tags, "deny": deny_tags}
+            tags[f] = True
+    return tags
 
 
 @click.command(
@@ -133,17 +156,10 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "--profile",
     "profilename",
     default=None,
-    shell_complete=cli_profile.compl_list_token,
+    shell_complete=compl_list_profiles,
     type=str,
     show_envvar=True,
     help="Existing and valid profile supporting this run",
-)
-@click.option(
-    "--profile-path",
-    "profilepath",
-    default=None,
-    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
-    help="Path to and Existing and valid profile for this run. (override -p if defined)",
 )
 @click.option(
     "-o",
@@ -160,13 +176,13 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "settings_file",
     default=None,
     show_envvar=True,
-    type=click.File("r"),
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
     help="Invoke file gathering validation options",
 )
 @click.option(
     "--detach",
     "detach",
-    default=None,
+    default=False,
     is_flag=True,
     show_envvar=True,
     help="Run the validation asynchronously (WIP)",
@@ -175,7 +191,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "-f/-F",
     "--override/--no-override",
     "override",
-    default=None,
+    default=False,
     is_flag=True,
     show_envvar=True,
     help="Allow to reuse an already existing output directory",
@@ -192,7 +208,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "-a",
     "--anonymize",
     "anon",
-    default=None,
+    default=False,
     is_flag=True,
     help="Purge the results from sensitive data (HOME, USER...)",
 )
@@ -225,7 +241,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "enable_report",
     show_envvar=True,
     is_flag=True,
-    default=None,
+    default=False,
     help="Attach a webview server to the current session run.",
 )
 @click.option(
@@ -240,7 +256,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "--generate-only",
     "generate_only",
     is_flag=True,
-    default=None,
+    default=False,
     help="Rebuild the test-base, populating resources for `pcvs exec`",
 )
 @click.option(
@@ -257,7 +273,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "--successful",
     "only_success",
     is_flag=True,
-    default=None,
+    default=False,
     help="Return non-zero exit code if a single test has failed",
 )
 @click.option(
@@ -265,6 +281,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "--spack-recipe",
     "spack_recipe",
     type=str,
+    default=None,
     multiple=True,
     help="Build test-suites based on Spack recipes",
 )
@@ -282,7 +299,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "print_filter",
     type=str,
     default="",
-    help="Filter test output based on tags",
+    help="Filter test output based on a list of tags.",
 )
 @click.option(
     "-R",
@@ -290,7 +307,7 @@ def parse_tags(filters: str) -> dict[list[str]]:
     "run_filter",
     type=str,
     default="",
-    help="Filter which tests are run based on tags",
+    help="Filter which tests are run based on a list of tags.",
 )
 @click.argument(
     "dirs",
@@ -302,29 +319,28 @@ def parse_tags(filters: str) -> dict[list[str]]:
 @io.capture_exception(Exception)
 @io.capture_exception(Exception, handle_build_lockfile)
 @io.capture_exception(KeyboardInterrupt, handle_build_lockfile)
-def run(
-    ctx,
-    profilename,
-    profilepath,
-    output,
-    detach,
-    override,
-    anon,
-    settings_file,
-    generate_only,
-    spack_recipe,
-    print_policy,
-    print_filter,
-    run_filter,
-    simulated,
-    bank,
-    msg,
-    dup,
-    dirs,
-    enable_report,
-    report_addr,
-    only_success,
-    timeout,
+def cli_run(
+    ctx: click.Context,
+    profilename: str | None,
+    output: str | None,
+    settings_file: str | None,
+    detach: bool,
+    override: bool,
+    simulated: bool,
+    anon: bool,
+    bank: str | None,
+    msg: str | None,
+    dup: str | None,
+    enable_report: bool,
+    report_addr: str | None,
+    generate_only: bool,
+    timeout: int | None,
+    only_success: bool,
+    spack_recipe: tuple[str, ...] | None,
+    print_policy: str | None,
+    print_filter: str,
+    run_filter: str,
+    dirs: dict[str, str],  # see callback function for type infos
 ) -> None:
     """
     Execute a validation suite from a given PROFILE.
@@ -332,6 +348,10 @@ def run(
     By default the current directory is scanned to find test-suites to run.
     May also be provided as a list of directories as described by tests
     found in DIRS.
+
+    Warning: Tags filters are order sensitive, a test with 'compiler' and 'test' tags
+    will be filter out by '!test,compiler' but included by 'compiler,!test'.
+    (The first tag in the filter to match a tag in the test rule).
     """
 
     io.console.info("PRE-RUN: start")
@@ -339,8 +359,8 @@ def run(
     if output is not None:
         output = os.path.abspath(output)
 
-    global_config = system.MetaConfig()
-    system.GlobalConfig.root = global_config
+    global_config = MetaConfig()
+    GlobalConfig.root = global_config
     global_config.set_internal("pColl", ctx.obj["plugins"])
 
     # then init the configuration
@@ -349,7 +369,8 @@ def run(
         detect = os.path.join(os.getcwd(), NAME_RUN_CONFIG_FILE)
         settings_file = detect if os.path.isfile(detect) else None
     io.console.debug("PRE-RUN: load settings from local file: {}".format(settings_file))
-    val_cfg = global_config.bootstrap_validation_from_file(settings_file)
+    global_config.bootstrap_validation_from_file(settings_file)
+    val_cfg = global_config["validation"]
 
     # save 'run' parameters into global configuration
     val_cfg.set_ifdef("datetime", datetime.now())
@@ -403,7 +424,7 @@ def run(
                 raise exceptions.RunException.InProgressError(
                     path=val_cfg["output"],
                     lockfile=buildfile,
-                    owner_pid=utils.get_lock_owner(buildfile),
+                    owner_pid=str(utils.get_lock_owner(buildfile)),
                 )
 
     elif not os.path.exists(val_cfg["output"]):
@@ -424,27 +445,14 @@ def run(
                 "--duplicate", "{} is not a valid build directory!".format(val_cfg["reused_build"])
             ) from fnfe
     else:
-        pf = None
-        if profilepath:
-            io.console.info(f"PRE-RUN: Profile lookup: {profilepath}")
-            pf = pvProfile.Profile(profilepath=profilepath)
-        else:
-            # otherwise create own settings command block
-            io.console.info("PRE-RUN: Profile lookup: {val_cfg['default_profile']}")
-            (scope, _, label) = utils.extract_infos_from_token(
-                val_cfg["default_profile"], maxsplit=2
-            )
-            pf = pvProfile.Profile(label, scope)
-            if not pf.is_found():
-                raise click.BadOptionUsage(
-                    "--profile", f"Profile '{val_cfg['default_profile']}' not found"
-                )
-        pf.load_from_disk()
-        pf.check()
+        cl: ConfigLocator = ConfigLocator()
+        cd: ConfigDesc = cl.parse_full_raise(
+            val_cfg["default_profile"], kind=ConfigKind.PROFILE, should_exist=True
+        )
+        pf = pvProfile(cd, cl)
 
         val_cfg.set_ifdef("pf_name", pf.full_name)
-        val_cfg.set_ifdef("pf_hash", pf.get_unique_id())
-        global_config.bootstrap_from_profile(pf.dump(), pf.full_name)
+        global_config.bootstrap_from_profile(pf)
 
     the_session = pvSession.Session(val_cfg["datetime"], val_cfg["output"])
     the_session.register_callback(callback=pvRun.process_main_workflow)
@@ -453,7 +461,6 @@ def run(
     if val_cfg["background"]:
         sid = the_session.run_detached(the_session)
         print("Session successfully started, ID {}".format(sid))
-
     else:
         sid = the_session.run(the_session)
         utils.unlock_file(buildfile)

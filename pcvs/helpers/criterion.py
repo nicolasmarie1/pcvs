@@ -1,315 +1,245 @@
+"""
+Criterion Modules:
+
+- Criterion:
+    A criterion represent a test parameter (command line argument or environment variables)
+    and the different values that the parameter will takes when running the test. (-n=1, -n=2, ...)
+    Their can be multiples criterions per tests. (-n=[1, 8], -N=[1, 8])
+
+- Combinations:
+    One or multiples criterions are expanded into combinations.
+    One combination contain one value for each criterion such as (-n=1, -N=2, ...).
+    For each combination their will be a run of the test with the argument at the value of the combination.
+    A Combination may be valid or invalid. (-n=1 & -N=2 is an invalid combination).
+    Combination are vallidated by plugins.
+
+- Series:
+    A Series (of combination), represent all the valid Combinations that the test will be run with.
+"""
+
 import itertools
 import math
 import os
+from typing import Any
+from typing import ItemsView
+from typing import Iterable
+
+from typing_extensions import Self
 
 from pcvs import io
+from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.helpers.exceptions import CommonException
-from pcvs.helpers.system import GlobalConfig
+from pcvs.plugins import Collection
 from pcvs.plugins import Plugin
 
 
-class Combination:
-    """A combination maps the actual concretization from multiple criterion.
-
-    For a given set of criterion, a Combination carries, for each kind, its
-    associated value in order to generate the appropriate test
-    """
-
-    def __init__(self, crit_desc, dict_comb, resources: list[int]):
-        """Build a combination from two components:
-        - the actual combination dict
-        - the dict of criterions
-
-        :param crit_desc: dict of criterions (=their full description)
-            represented in the current combination.
-        :type crit_desc: dict
-        :param dict_comb: actual combination dict (k=criterion name, v=actual
-            value)
-        :type dict_comb: dict
-        """
-        self._criterions = crit_desc
-        self._combination = dict_comb
-        self._resources = resources
-
-    def get(self, k, dflt=None):
-        """Retrieve the actual value for a given combination element
-        :param k: value to retrieve
-        :type k: str
-        :param dflt: default value if k is not a valid key
-        :type: object
-        """
-        if k not in self._combination:
-            return dflt
-        return self._combination[k]
-
-    def items(self):
-        """Get the combination dict.
-
-        :return: the whole combination dict.
-        :rtype: dict
-        """
-        return self._combination.items()
-
-    def translate_to_str(self):
-        """Translate the actual combination in a pretty-format string.
-        This is mainly used to generate actual test names
-        """
-        c = self._criterions
-        string = list()
-        # each combination is built following: 'defined-prefix+value'
-        for n in sorted(self._combination.keys()):
-            subtitle = c[n].subtitle
-            if subtitle is None:
-                subtitle = f"{n}"
-
-            string.append(subtitle + str(self._combination[n]).replace(" ", "-"))
-        return "_".join(string)
-
-    def translate_to_command(self):
-        """Translate the actual combination is tuple of three elements, based
-        on the representation of each criterion in the test semantic. It builds
-        tokens to provide to properly build the test command. It can
-        either be:
-
-        1. an environment variable to export before the test to run (gathering
-           system-scope and program-scope elements)
-        2. a runtime argument
-        3. a program-level argument (through custom-made iterators)
-        """
-        args = []
-        envs = []
-        params = []
-        # for each elt, where k is the criterion name, v is the actual value
-        for k_elt, v_elt in self._combination.items():
-            c = self._criterions[k_elt]
-            # concretize_value() gathers both criterion label & value according
-            # to specs (before, after, aliasing...)
-            value = c.concretize_value(v_elt)
-
-            if c.is_env():
-                envs.append(value)
-            elif c.is_local():
-                params.append(value)
-            else:
-                args.append(value)
-        return (envs, args, params)
-
-    def get_combinations(self):
-        """Translate the combination into a dictionary.
-
-        :return: configuration in the shape of a python dict
-        :rtype: dict
-        """
-        return self._combination
-
-    @property
-    def resources(self):
-        return self._resources
-
-    def __repr__(self):
-        return repr(self.__dict__)
-
-    def __rich_repr__(self):
-        return self.__dict__.items()
-
-
-class Series:
-    """A series ties a test expression (TEDescriptor) to the possible values
-    which can be taken for each criterion to build test sets.
-    A series can be seen as the Combination generator for a given TEDescriptor
-    """
-
-    @classmethod
-    def register_sys_criterion(cls, system_criterion):
-        """copy/inherit the system-defined criterion (shortcut to global config)"""
-        cls.sys_iterators = system_criterion
-
-    def __init__(self, dict_of_criterion):
-        """Build a series, by extracting the list of values.
-        Note that here, the dict also contains program-based criterions
-        :param dict_of_criterion: values to build the series with
-        :type dict_of_criterion: dict"""
-        self._values = list()
-        self._keys = list()
-        # this has to be saved, need to be forwarded to each combination
-        self._dict = dict_of_criterion
-        for name, node in dict_of_criterion.items():
-            assert isinstance(node, Criterion)
-            assert name == node.name
-            self._values.append(node.values)
-            self._keys.append(node.name)
-
-    def generate(self):
-        """Generator to build each combination"""
-        for combination in itertools.product(*self._values):
-            d = {self._keys[i]: val for i, val in enumerate(combination)}
-            if not valid_combination(d):
-                continue
-            resources: list[int] = get_resources(d)
-            yield Combination(self._dict, d, resources)
-
-    def __repr__(self):
-        return repr(self.__dict__)
-
-    def __rich_repr__(self):
-        return self.__dict__.items()
-
-
 class Criterion:
-    """A Criterion is the representation of a component each program
-    (i.e. test binary) should be run against. A criterion comes with a range of
-    possible values, each leading to a different test"""
+    """
+    A Criterion is the representation of a component (i.e. parameter)
+    each program (i.e. test binary) should be run against.
+    A criterion comes with a range of possible values, each leading to a different test.
+    """
 
-    def __init__(self, name, description, local=False, numeric=False):
-        """Initialize a criterion from its YAML/dict description
-        :param name: name of the criterion
-        :type name: str
-        :param description: description of the criterion
-        :type description: str
-        :param local: True if the criterion is local, default to False
-        :type local: bool
+    def __init__(
+        self, name: str, description: dict[str, Any], local: bool = False, numeric: bool = False
+    ):
+        """
+        Initialize a criterion from its YAML/dict description.
+
+        :param name: name of the criterion (eg: n_mpi)
+        :param description: description of the criterion from configuration, include:
+
+            - numeric: :py:obj:`bool`, is the criterion numeric
+            - option: :py:obj:`str`, what is the option of the criterion (eg: -N)
+            - position: :py:obj:`str`, 'after' or 'before' is the criterion option before or after it's value
+            - aliases: :py:obj:`list[str]`, aliases names for the criterion
+            - type: :py:obj:`str`, 'argument' or 'environment'
+            - local: :py:obj:`bool`, if the criterion a parameter,
+                should the criterion be a parameter of the test or a parameter of the wrapper
+            - subtitle: :py:obj:`str`, the str that will be used with the current value to name the test
+
+        :param local: True if the criterion is a parameter on the test binary,
+                      False if it is a parameter to the wrapper,
+                      default to False, is override by local in description.
         :param numeric: True if the criterion is numeric, default to False
-        :type: numeric: bool"""
+        """
         self._name = name
-        if description is None:
-            self._values = None
-            return
+        self._input_values: list[int | float | str | dict[str, Any]] | None
+        self._values: set[int | float | str] | None
 
-        self._numeric = description.get("numeric", numeric)
-        self._prefix = description.get("option", "")
-        self._after = description.get("position", "after") == "after"
-        self._alias = description.get("aliases", {})
-        self._is_env = description.get("type", "argument") == "environment"
+        self._numeric: bool = description.get("numeric", numeric)
+        self._prefix: str = description.get("option", "")
+        self._after: bool = description.get("position", "after") == "after"
+        self._alias: dict[str, str] = description.get("aliases", {})
+        self._is_env: bool = description.get("type", "argument") == "environment"
         # this should be only set by per-TE criterion definition
-        self._local = description.get("local", local)
-        self._str = description.get("subtitle", None)
-        self._values = description.get("values", [])
-        self._expanded = False
+        self._local: bool = description.get("local", local)
+        self._subtitle: str = description.get("subtitle", name)
         # Sanity check
-        self.sanitize_values()
+        self._input_values = self.__sanitize_values(description.get("values", []))
+        self._values = None
+        self._expanded: bool = False
 
-    def sanitize_values(self):
+    def __sanitize_values(
+        self,
+        input_values: (
+            list[int | float | str | dict[str, Any]] | dict[str, Any] | int | float | str | None
+        ),
+    ) -> list[int | float | str | dict[str, Any]] | None:
         """
         Check for any inconsistent values in the current Criterion.
 
         Currently, only scalar items or dict (=> sequence) are allowed.
         Will raise an exception in case of inconsistency (Maybe this should be
         managed in another way through the error handling)
+
+        :param input_values: The values the will be parsed to generate this criterion value list.
+        :raises CommonException.UnclassifiableError: When there is an error in the semantic of the provided yaml file.
+        :return: The expanded value list.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
-        if self.is_discarded():
-            return
-        if not isinstance(self._values, list):
-            self._values = [self._values]
-        for v in self._values:
-            if isinstance(v, list):
-                raise CommonException.UnclassifiableError(
-                    reason="list elements should be scalar OR dict", dbg_info={"element": v}
-                )
-            if isinstance(v, dict):
-                for key in v.keys():
-                    assert key in ["op", "of", "from", "to"]
+        if input_values is None:
+            return None
+        if isinstance(input_values, (int, float, str, dict)):
+            input_values = [input_values]
+        if isinstance(input_values, list):
+            for v in input_values:
+                if not isinstance(v, (int, float, str, dict)):
+                    raise CommonException.UnclassifiableError(
+                        reason="Criterion: list elements should be an int, float, str or dict.",
+                        dbg_info={"element": v},
+                    )
+                if isinstance(v, dict):
+                    for key in v.keys():
+                        if key not in ["op", "of", "from", "to"]:
+                            raise CommonException.UnclassifiableError(
+                                reason="Criterion: invlide sequence operation.",
+                                dbg_info={"element": str(v)},
+                            )
+        else:
+            raise CommonException.UnclassifiableError(
+                reason="Criterion: should be, a int, float or string, a list (of int, float or str) or a dict.",
+                dbg_info={"element": input_values},
+            )
+        return input_values
 
     # only allow overriding values (for now)
 
-    def override(self, desc):
+    def override(self, desc: dict[str, Any]) -> None:
         """
         Replace the value of the criterion using a descriptor containing the
         said value
 
-        :param desc: descriptor supposedly containing a ``value`` entry
-        :type desc: dict
+        :param desc: descriptor supposedly containing a ``values`` entry
         """
-        if "values" in desc:
-            self._values = desc["values"]
-            self._expanded = False
-            self.sanitize_values()
+        assert "values" in desc
+        self._input_values = self.__sanitize_values(desc["values"])
+        self._values = None
+        self._expanded = False
 
-    def intersect(self, other):
-        """Update the calling Criterion with the intersection of the current
+    def intersect(self, other: Self) -> None:
+        """
+        Update the calling Criterion with the intersection of the current
         range of possible values with the one given as a parameters.
 
         This is used to refine overridden per-TE criterion according to
-        system-wide's"""
+        system-wide's
+
+        :param other: An other criterion object to build the intersection of.
+        """
         assert isinstance(other, Criterion)
         assert self._name == other.name
+        assert self._expanded
+        assert other.expanded
 
         # None is special value meaning, discard this criterion because
         # irrelevant
         if self._values is None or other.values is None:
             self._values = None
         else:
-            self._values = set(self._values).intersection(other.values)
+            self._values = self._values.intersection(other.values)
 
-    def is_empty(self):
-        """Is the current set of values empty
+    def is_empty(self) -> bool:
+        """
+        Is the current set of values empty
         May lead to errors, as it may indicates no common values has been
-        found between user and system specifications"""
-        return self._values is not None and len(self._values) == 0
+        found between user and system specifications
 
-    def is_discarded(self):
+        :return: True if the value set is empty.
+        """
+        assert self._expanded
+        return self._values is None or len(self._values) == 0
+
+    def is_discarded(self) -> bool:
         """Should this criterion be ignored from the current TE generaiton ?"""
-        return self._values is None
+        return self._input_values is None
 
-    def is_local(self):
+    def is_local(self) -> bool:
         """Is the criterion local ? (program-scoped)"""
         return self._local
 
-    def is_env(self):
+    def is_env(self) -> bool:
         """Is this criterion targeting a component used as an env var ?"""
         return self._is_env
 
     @property
-    def values(self):
-        """Get the ``value`` attribute of this criterion.
+    def values(self) -> set[int | float | str]:
+        """
+        Get the ``value`` attribute of this criterion.
 
         :return: values of this criterion
-        :rtype: list
         """
+        assert self._expanded
+        assert isinstance(self._values, set)
         return self._values
 
-    def __len__(self):
-        """Return the number of values this criterion holds.
+    def __len__(self) -> int:
+        """
+        Return the number of values this criterion holds.
 
         :return: the value list count
-        :rtype: int
         """
+        assert self._expanded
+        assert self._values is not None
         return len(self._values)
 
     @property
-    def name(self):
-        """Get the ``name`` attribute of this criterion.
+    def name(self) -> str:
+        """
+        Get the ``name`` attribute of this criterion.
 
         :return: name of this criterion
-        :rtype: str
         """
         return self._name
 
     @property
-    def subtitle(self):
-        """Get the ``subtitle`` attribute of this criterion.
+    def subtitle(self) -> str:
+        """
+        Get the ``subtitle`` attribute of this criterion.
 
         :return: subtitle of this criterion
-        :rtype: str
         """
-        return self._str
+        return self._subtitle
 
     @property
-    def numeric(self):
-        """Get the ``numeric`` attribute of this criterion.
+    def numeric(self) -> bool:
+        """
+        Return if this criterion a numeric criterion (or a string iterator).
 
         :return: numeric of this criterion
-        :rtype: str
         """
         return self._numeric
 
-    def concretize_value(self, val=""):
-        """Return the exact string mapping this criterion, according to the
-        specification. (is it aliased ? should the option be put before/after
-        the value?...)
+    def concretize_value(self, val: str = "") -> str:
+        """
+        Return the exact string mapping this criterion, according to the specification.
+        (is it aliased ? should the option be put before/after the value?...)
+
         :param val: value to add with prefix
-        :type val: str
         :return: values with aliases replaced
-        :rtype: str"""
+        """
         # replace value with alias (if defined)
         val = str(self.aliased_value(val))
         # put value before of after the defined prefix
@@ -319,8 +249,9 @@ class Criterion:
         # ==> is_env()
         return elt
 
-    def aliased_value(self, val):
-        """Check if the given value has an alias for the current criterion.
+    def aliased_value(self, val: str) -> str:
+        """
+        Check if the given value has an alias for the current criterion.
         An alias is the value replacement to use instead of the one defined by
         test configuration. This allows to split test logic from runtime
         semantics.
@@ -329,35 +260,38 @@ class Criterion:
         network layer. But once the test has to be built, the term will change
         depending on the runtime carrying it, the value may be different from
         a runtime to another
-        :param val: string with aliases to be replaced"""
+
+        :param val: string with aliases to be replaced
+        :return: The aliased value.
+        """
         return self._alias[val] if val in self._alias else val
 
     @staticmethod
-    def __convert_sequence_to_list(node, s=-1, e=-1):
-        """converts a sequence (as a string) to a valid list of values
+    def __convert_sequence_to_list(
+        node: dict[str, str | int | float], s: int = -1, e: int = -1
+    ) -> list[int | float]:
+        """
+        Converts a sequence (as a string) to a valid list of values.
 
-        :param dic: dictionary to take the values from
-        :type dic: dict
-        :param s: start (can be overridden by ``from`` in ``dic``), defaults to
-            -1
-        :type s: int, optional
+        :param node: dictionary to take the values from
+        :param s: start (can be overridden by ``from`` in ``dic``), defaults to -1
         :param e: end (can be overridden by ``to`` in ``dic``), defaults to -1
-        :type e: int, optional
         :return: list of values
-        :rtype: list
         """
 
-        values = []
+        values: list[int | float] = []
 
         # these must be integers
-        def _convert_sequence_item_to_int(val):
-            """helper to convert a string-formatted number to a valid repr.
+        def _convert_sequence_item_to_int(val: str | int | float) -> int | float:
+            """
+            Helper to convert a string-formatted number to a valid repr.
 
             :param val: the string-based number to convert
-            :type val: str
             :raises CommonException.BadTokenError: val is not a number
             :return: the number
-            :rtype: int() or float()
+
+            # noqa: DAR401
+            # noqa: DAR402
             """
             if not isinstance(val, int) or not isinstance(val, float):
                 try:
@@ -367,8 +301,7 @@ class Criterion:
                     else:
                         return n
                 except ValueError as ve:
-                    raise CommonException.BadTokenError(val) from ve
-
+                    raise ve
             else:
                 return val
 
@@ -376,10 +309,11 @@ class Criterion:
         end = _convert_sequence_item_to_int(node.get("to", e))
         of = _convert_sequence_item_to_int(node.get("of", 1))
 
-        op = node.get("op", "seq").lower()
+        op = str(node.get("op", "seq")).lower()
 
         if op in ["seq", "arithmetic", "ari"]:
-            values = range(start, end + 1, of)
+            assert isinstance(start, int) and isinstance(end, int) and isinstance(of, int)
+            values = list(range(start, end + 1, of))
         elif op in ["mul", "geometric", "geo"]:
             if start == 0:
                 values.append(0)
@@ -392,10 +326,10 @@ class Criterion:
                     cur *= of
         elif op in ["pow", "powerof"]:
             if of == 0:
-                values.append()
+                values.append(0)
             start = math.ceil(start ** (1 / of))
             end = math.floor(end ** (1 / of))
-            for i in range(start, end + 1):
+            for i in range(start, end + 1):  # type: ignore
                 values.append(i**of)
         else:
             io.console.warn("failure in Criterion sequence!")
@@ -403,63 +337,235 @@ class Criterion:
         return values
 
     @property
-    def expanded(self):
+    def expanded(self) -> bool:
         return self._expanded
 
     @property
-    def min_value(self):
-        assert self.expanded
+    def min_value(self) -> int | float | str:
+        assert self._expanded
+        assert self._values is not None
         return min(self._values)
 
     @property
-    def max_value(self):
-        assert self.expanded
+    def max_value(self) -> int | float | str:
+        assert self._expanded
+        assert self._values is not None
         return max(self._values)
 
-    def expand_values(self, reference=None):
-        """Browse values for the current criterion and make it ready to
-        generate combinations"""
-        values = []
+    def expand_values(self, reference: Self | None = None) -> None:
+        """Browse values for the current criterion and make it ready to generate combinations."""
         start = 0
         end = 100
 
         if self.expanded:
             return
-        if reference:
+        if self._input_values is None:
+            self._values = None
+            self._expanded = True
+            return
+        if reference is not None:
             assert isinstance(reference, Criterion)
             if not reference.expanded:
                 reference.expand_values()
-            start = reference.min_value
-            end = reference.max_value
 
-        io.console.crit_debug("Expanding {self.name}: {self._values}")
+            if not reference.is_discarded():
+                ref_min = reference.min_value
+                ref_max = reference.max_value
+
+                assert isinstance(ref_min, int)
+                assert isinstance(ref_max, int)
+
+                start = ref_min
+                end = ref_max
+
+        io.console.crit_debug("Expanding {self.name}: {self._input_values}")
+        values: set[int | float | str] = set()
         if self._numeric is True:
-            for v in self._values:
-
-                if isinstance(v, dict):
-                    values += self.__convert_sequence_to_list(v, s=start, e=end)
-                elif isinstance(v, (int, float, str)):
-                    values.append(v)
+            for v in self._input_values:
+                if isinstance(v, (int, float)):
+                    values.add(v)
+                elif isinstance(v, dict):
+                    for v in self.__convert_sequence_to_list(v, s=start, e=end):
+                        assert isinstance(v, (int, float))
+                        values.add(v)
                 else:
                     raise TypeError(
-                        "Only accept int or sequence (as string) as values for numeric iterators"
+                        "Only accept int, float or sequence (as string) as values for numeric iterators"
                     )
         else:
-            values = self._values
-        # now ensure values are unique
-        self._values = set(values)
+            for v in self._input_values:
+                assert isinstance(v, (int, float, str))
+                values.add(v)
+
+        self._values = values
         self._expanded = True
         io.console.crit_debug(f"EXPANDED {self.name}: {self._values}")
         # TODO: handle criterion dependency (ex: n_mpi: ['n_node * 2'])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self.__dict__)
 
-    def __rich_repr__(self):
+    def __rich_repr__(self) -> Iterable[tuple[str, Any]]:
         return self.__dict__.items()
 
 
-def initialize_from_system():
+class Combination:
+    """
+    A combination maps the actual concretization from multiple criterion.
+
+    Given a set of criterion, each having a list of values.
+    A combination carrie, for each criterions one of it's value.
+    This represent a set of value that bind a list of criterion to one specific test value.
+    """
+
+    def __init__(self, crit_desc: dict[str, Criterion], comb: dict, resources: list[int] | None):
+        """
+        Build a combination from two components:
+        - the actual combination dict
+        - the dict of criterions
+
+        :param crit_desc: dict of criterions (=their full description)
+            represented in the current combination.
+        :param comb: actual combination dict (k=criterion name, v=actual value)
+        :param resources: The resources used when running the job with this specific combination.
+        """
+        self._criterions = crit_desc
+        self._combination = comb
+        self._resources = resources
+
+    def get(self, k: str, dflt: Any = None) -> Any:
+        """
+        Retrieve the actual value for a given combination element.
+
+        :param k: value to retrieve
+        :param dflt: default value if k is not a valid key
+        :return: The combination value of the criterion with name k, or default value.
+        """
+        if k not in self._combination:
+            return dflt
+        return self._combination[k]
+
+    def items(self) -> ItemsView:
+        """
+        Get the combination dict.
+
+        :return: the whole combination dict.
+        """
+        return self._combination.items()
+
+    def translate_to_str(self) -> str:
+        """
+        Translate the actual combination in a pretty-format string.
+
+        This is mainly used to generate actual test names
+
+        :return: A stringify version of the combination.
+        """
+        c = self._criterions
+        string = []
+        # each combination is built following: 'defined-prefix+value'
+        for n in sorted(self._combination.keys()):
+            subtitle = c[n].subtitle
+            string.append(subtitle + str(self._combination[n]).replace(" ", "-"))
+        return "_".join(string)
+
+    def translate_to_command(self) -> tuple[list[str], list[str], list[str]]:
+        """
+        Translate the actual combination is tuple of three elements, based
+        on the representation of each criterion in the test semantic. It builds
+        tokens to provide to properly build the test command. It can
+        either be:
+
+        1. an environment variable to export before the test to run (gathering
+           system-scope and program-scope elements)
+        2. a runtime argument
+        3. a program-level argument (through custom-made iterators)
+
+        :return: (environment variables, wrapper argument, program argument)
+        """
+        args = []
+        envs = []
+        params = []
+        # for each elt, where k is the criterion name, v is the actual value
+        for k_elt, v_elt in self._combination.items():
+            c = self._criterions[k_elt]
+            # concretize_value() gathers both criterion label & value according
+            # to specs (before, after, aliasing...)
+            value = c.concretize_value(str(v_elt))
+
+            if c.is_env():
+                envs.append(value)
+            elif c.is_local():
+                params.append(value)
+            else:
+                args.append(value)
+        return (envs, args, params)
+
+    def get_combinations(self) -> dict[str, Any]:
+        """
+        Translate the combination into a dictionary.
+
+        :return: configuration in the shape of a python dict
+        """
+        return self._combination
+
+    @property
+    def resources(self) -> list[int] | None:
+        return self._resources
+
+    def __repr__(self) -> str:
+        return repr(self.__dict__)
+
+    def __rich_repr__(self) -> Iterable[tuple[Any, Any]]:
+        return self.__dict__.items()
+
+
+class Series:
+    """
+    A series ties a test expression (:class:`TEDescriptor`) to the possible values
+    which can be taken for each criterion to build test sets.
+    A series can be seen as the Combination generator for a given :class:`TEDescriptor`
+    """
+
+    # TODO: delete if unused
+    # @classmethod
+    # def register_sys_criterion(cls, system_criterion):
+    #    """copy/inherit the system-defined criterion (shortcut to global config)"""
+    #    cls.sys_iterators = system_criterion
+
+    def __init__(self, dict_of_criterion: dict[str, Criterion]):
+        """
+        Build a series, by extracting the list of values.
+        Note that here, the dict also contains program-based criterions.
+        :param dict_of_criterion: values to build the series with
+        """
+        self._values: list[set[int | float | str]] = []
+        self._keys: list[str] = []
+        # this has to be saved, need to be forwarded to each combination
+        self._dict: dict[str, Criterion] = dict_of_criterion  # type: ignore
+        for name, node in dict_of_criterion.items():
+            assert isinstance(node, Criterion)
+            assert name == node.name
+            self._values.append(node.values)
+            self._keys.append(node.name)
+
+    def generate(self) -> Iterable[Combination]:
+        """Generator to build each combination"""
+        for combination in itertools.product(*self._values):
+            d = {self._keys[i]: val for i, val in enumerate(combination)}
+            if not valid_combination(d):
+                continue
+            resources: list[int] | None = get_resources(d)
+            yield Combination(self._dict, d, resources)
+
+    def __repr__(self) -> str:
+        return repr(self.__dict__)
+
+    def __rich_repr__(self) -> Iterable[tuple[Any, Any]]:
+        return self.__dict__.items()
+
+
+def initialize_from_system() -> None:
     """Initialise system-wide criterions
 
     TODO: Move this function elsewhere."""
@@ -510,13 +616,14 @@ def initialize_from_system():
     GlobalConfig.root.set_internal("comb_cnt", comb_cnt)
 
 
-first = True
+# pylint for python3.10 and pylint for python3.12 does not agree on if this should be snake case or upper case ...
+first = True  # pylint: disable=invalid-name
 
 
-def load_plugin():
+def load_plugin() -> None:
     rt = GlobalConfig.root["runtime"]
     val = GlobalConfig.root["validation"]
-    pCollection = GlobalConfig.root.get_internal("pColl")
+    p_collection = GlobalConfig.root.get_internal("pColl")
 
     if "plugin" in rt:
         # Temporary, for compatibility with older buold base64 encoded profile. -- start
@@ -536,7 +643,7 @@ def load_plugin():
         with open(rt["pluginfile"], "w", encoding="utf-8") as fh:
             fh.write(plugin_code)
         try:
-            pCollection.register_plugin_by_file(rt["pluginfile"], activate=True)
+            p_collection.register_plugin_by_file(rt["pluginfile"], activate=True)
         except SyntaxError:
             io.console.critical(
                 "Profile plugin encoded in base64, "
@@ -545,14 +652,15 @@ def load_plugin():
                 "or by using `pcvs edit -p`"
             )
     elif "defaultplugin" in rt:
-        pCollection.activate_plugin(rt["defaultplugin"])
+        p_collection.activate_plugin(rt["defaultplugin"])
 
 
-def get_plugin():
+def get_plugin() -> Collection:
     """Get the current validation plugin for the run."""
     global first
     rt = GlobalConfig.root["runtime"]
     plugin = GlobalConfig.root.get_internal("pColl")
+    assert isinstance(plugin, Collection)
 
     if first and ("plugin" in rt or "defaultplugin" in rt):
         first = not first
@@ -561,15 +669,14 @@ def get_plugin():
     return plugin
 
 
-def valid_combination(dic):
-    """Check if dict is a valid criterion combination .
+def valid_combination(dic: dict[str, int | float | str]) -> bool:
+    """
+    Check if dict is a valid criterion combination.
 
     :param dic: dict to check
-    :type dic: dict
     :return: True if dic is a valid combination
-    :rtype: bool
     """
-    ret = get_plugin().invoke_plugins(
+    ret: bool | None = get_plugin().invoke_plugins(
         Plugin.Step.TEST_EVAL, config=GlobalConfig.root, combination=dic
     )
 
@@ -580,8 +687,10 @@ def valid_combination(dic):
     return ret
 
 
-def get_resources(dic) -> list[int] | None:
+def get_resources(dic: dict[str, int | float | str]) -> list[int] | None:
     """Get the resources needed for a job."""
-    return get_plugin().try_invoke_plugins(
+    res = get_plugin().try_invoke_plugins(
         Plugin.Step.TEST_EVAL, method="get_resources", combination=dic
     )
+    assert res is None or isinstance(res, list)
+    return res

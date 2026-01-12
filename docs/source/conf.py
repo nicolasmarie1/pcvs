@@ -38,6 +38,7 @@ with open(os.path.join("../../version.txt"), encoding="utf-8") as fh:
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinx.ext.apidoc",
     "sphinx.ext.autodoc",
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
@@ -366,3 +367,18 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 # intersphinx_mapping = {'https://docs.python.org/': None}
+
+# API doc configuration
+apidoc_modules = [
+    {
+        "path": "../../pcvs",
+        "destination": "api/",
+        "separate_modules": True,
+    },
+]
+
+# document __init__ function of class
+autoclass_content = "both"
+
+# mock import to avoid textual modules to be reuse in pcvs doc
+autodoc_mock_imports = ["textual"]

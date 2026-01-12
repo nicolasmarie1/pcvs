@@ -1,18 +1,18 @@
 import os
 import sys
 
-from pcvs import graph
+from pcvs import analysis
 from pcvs import io
+from pcvs.analysis import graph
 from pcvs.backend import bank as pvBank
 from pcvs.cli import cli_bank
-from pcvs.dsl import analysis
 
 try:
     import rich_click as click
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
 
 
 @click.command(
@@ -30,7 +30,7 @@ except ImportError:
     "-t",
     "--types",
     "graph_types",
-    required=True,
+    required=False,
     type=click.Choice(["rate", "duration", "all"]),
     default=["all"],
     multiple=True,
@@ -53,6 +53,7 @@ except ImportError:
     "-s",
     "--show",
     "show",
+    required=False,
     is_flag=True,
     default=False,
     help="Show the images instead/in addition of saving themes. (Default when --path is not specify)",
@@ -75,8 +76,14 @@ except ImportError:
 )
 @click.pass_context
 def cli_graph(
-    ctx, bank_name, graph_types, path, show, extension, limit
-):  # pylint: disable=unused-argument
+    ctx: click.Context,  # pylint: disable=unused-argument
+    bank_name: str,
+    graph_types: tuple[str, ...],
+    path: str | None,
+    show: bool,
+    extension: str,
+    limit: int,
+) -> None:
     if path is None:
         show = True
     else:
@@ -91,14 +98,14 @@ def cli_graph(
         raise click.BadArgumentUsage(f"'{bank_name}' project does not exist")
     simple_analysis = analysis.SimpleAnalysis(bank)
 
-    graph_types = set(graph_types)
-    if "all" in graph_types:
-        graph_types = ["rate", "duration"]
+    graph_types_set: set = set(graph_types)
+    if "all" in graph_types_set:
+        graph_types_set = set(["rate", "duration"])
 
-    io.console.debug(f"graph types: {graph_types}")
+    io.console.debug(f"graph types: {graph_types_set}")
 
-    if "rate" in graph_types:
+    if "rate" in graph_types_set:
         graph.get_status_series(simple_analysis, series, path, show, extension, limit)
 
-    if "duration" in graph_types:
+    if "duration" in graph_types_set:
         graph.get_time_series(simple_analysis, series, path, show, extension, limit)

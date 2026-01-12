@@ -1,0 +1,78 @@
+stages:
+  - PCVS
+  - Documentation
+  - Deploy
+
+.prepare_env:
+  before_script:
+    - SUB_VERSION=$(echo ${VERSION} | sed 's/[0-9].\([0-9]*\).[0-9]*/\1/g')
+    - echo "Running for python ${SUB_VERSION} (${VERSION})."
+    - source "$(ccc_home -W -u mpc)/pcvs_env/spack/share/spack/setup-env.sh"
+    - spack env activate "pcvs_env_${SUB_VERSION}"
+    - spack load "python@${VERSION}" sqlite@3.46.0 py-pysocks@1.7.1 py-setuptools py-wheel
+    - source "$(ccc_home -W -u mpc)/pcvs_env/python_${SUB_VERSION}_venv/bin/activate"
+    - export LD_LIBRARY_PATH="$(ccc_home -W -u mpc)/pcvs_env/libgit2/build/"
+
+Coverage PCVS:
+  stage: PCVS
+  extends: ['.prepare_env']
+  script:
+    - module load mpi
+    - coverage erase
+    - coverage run --source=./pcvs -m pytest ./tests/pcvs
+    - coverage report --precision=2 --fail-under=50 --sort=-miss
+
+Lint PCVS:
+  stage: PCVS
+  extends: ['.prepare_env']
+  script:
+    - PATH=$PATH:"$(ccc_home -u mpc)/mpc_pre_commit/bin"
+    - export PIP_FIND_LINKS="$(ccc_home -W -u mpc)/pcvs_env/python_${SUB_VERSION}_mirror"
+    - export PIP_NO_INDEX=1
+    - export PIP_NO_BUILD_ISOLATION=1
+    - cd ${CI_PROJECT_DIR}
+    - intify_pre_commit.sh .pre-commit-config.yaml
+    - git add .pre-commit-config.yaml
+    - git config --global --add safe.directory "$(ccc_home -u mpc)/mpc_pre_commit/pre_commit_hooks/pre-commit-hooks/.git"
+    - pre-commit install --install-hooks
+    - pre-commit run --all-files
+
+Build Doc:
+  stage: Documentation
+  extends: ['.prepare_env']
+  rules:
+    - if: '$RUN_DOC == "true"'
+  script:
+    - cd docs
+    - make clean && make html
+
+Lint Doc:
+  stage: Documentation
+  extends: ['.prepare_env']
+  rules:
+    - if: '$RUN_DOC == "true"'
+  script:
+    - darglint --verbosity=2 --ignore-regex=cli_.* pcvs
+
+Test Doc:
+  stage: Documentation
+  extends: ['.prepare_env']
+  rules:
+    - if: '$RUN_DOC == "true"'
+  script:
+    - docstr-coverage pcvs --fail-under 70
+
+Deploy Doc:
+  stage: Deploy
+  extends: ['.prepare_env']
+  rules:
+    - if: '$SUB_VERSION == "12" && $CI_COMMIT_BRANCH == "devel"'
+  pages: true
+
+  script:
+    - cd docs && make html
+  after_script:
+    - mv docs/build/html/ ./public/
+  artifacts:
+    paths:
+      - public

@@ -5,21 +5,23 @@ import os
 import shutil
 import tarfile
 import tempfile
-from typing import Dict
+from bz2 import BZ2File
+from typing import Any
 from typing import Iterable
-from typing import List
 from typing import Optional
 
 from ruamel.yaml import YAML
+from typing_extensions import Self
 
 import pcvs
 from pcvs import io
+from pcvs.backend.metaconfig import GlobalConfig
+from pcvs.backend.metaconfig import MetaConfig
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import CommonException
 from pcvs.helpers.exceptions import PublisherException
-from pcvs.helpers.system import GlobalConfig
-from pcvs.helpers.system import MetaConfig
 from pcvs.testing.test import Test
+from pcvs.testing.teststate import TestState
 
 
 class ResultFile:
@@ -37,20 +39,18 @@ class ResultFile:
 
     MAGIC_TOKEN = "PCVS-START-RAW-OUTPUT"
 
-    def __init__(self, filepath, filename):
+    def __init__(self, filepath: str, filename: str):
         """
         Initialize a new pair of output files.
 
         :param filepath: path where files will be located.
-        :type filepath: str
         :param filename: prefix filename
-        :type filename: str
         """
-        self._fileprefix = filename
-        self._path = filepath
-        self._cnt = 0
-        self._sz = 0
-        self._data = {}
+        self._fileprefix: str = filename
+        self._path: str = filepath
+        self._cnt: int = 0
+        self._sz: int = 0
+        self._data: dict[str, Any] = {}
 
         prefix = os.path.join(filepath, filename)
 
@@ -65,10 +65,10 @@ class ResultFile:
             pass
 
         # no way to have a bz2 be opened R/W at once ? seems not :(
-        self._rawout = bz2.open(self._rawdata_file, "a")
+        self._rawout: BZ2File | None = bz2.open(self._rawdata_file, "a")
         self._rawout_reader = bz2.open(self._rawdata_file, "r")
 
-    def close(self):
+    def close(self) -> None:
         """
         Close the current instance (flush to disk)
         """
@@ -77,7 +77,7 @@ class ResultFile:
             self._rawout.close()
             self._rawout = None
 
-    def flush(self):
+    def flush(self) -> None:
         """
         Sync cache with disk
         """
@@ -87,16 +87,13 @@ class ResultFile:
         if self._rawout:
             self._rawout.flush()
 
-    def save(self, job_id, data, output):
+    def save(self, job_id: str, data: dict[str, Any], output: bytes) -> None:
         """
         Save a new job to this instance.
 
         :param job_id: job id
-        :type job_id: int
         :param data: metadata
-        :type data: dict
         :param output: raw output
-        :type output: bytes
         """
         assert isinstance(data, dict)
         assert "result" in data.keys()
@@ -106,6 +103,7 @@ class ResultFile:
         if len(output) > 0:
             # we consider the raw cursor to always be at the end of the file
             # maybe lock the following to be atomic ?
+            assert isinstance(self._rawout, BZ2File)
             start = self._rawout.tell()
             length = self._rawout.write(self.MAGIC_TOKEN.encode("utf-8"))
             length += self._rawout.write(output)
@@ -117,7 +115,7 @@ class ResultFile:
 
         data["result"]["output"] = insert
 
-        assert job_id not in self._data.keys()
+        assert job_id not in self._data
         self._data[job_id] = data
         self._cnt += 1
         self._sz = max(start + length, self._sz + len(json.dumps(data)))
@@ -125,7 +123,7 @@ class ResultFile:
         if self._cnt % 10 == 0:
             self.flush()
 
-    def load(self):
+    def load(self) -> None:
         """
         Load job data from disk to populate the cache.
         """
@@ -133,10 +131,10 @@ class ResultFile:
             # when reading metadata_file,
             # convert string-based keys to int (as managed by Python)
             content = json.load(fh)
-            self._data = {k: v for k, v in content.items()}
+            self._data = dict(content.items())
 
     @property
-    def content(self):
+    def content(self) -> Iterable[Test]:
         for _, data in self._data.items():
             elt = Test()
             elt.from_json(data, self._metadata_file)
@@ -144,10 +142,11 @@ class ResultFile:
             offset = data["result"]["output"]["offset"]
             length = data["result"]["output"]["length"]
             if offset >= 0 and length > 0:
-                elt.encoded_output = self.extract_output(offset, length)
+                # TODO: remove re-encode to re-decode later ...
+                elt.b64_output = self.extract_output(offset, length)
             yield elt
 
-    def extract_output(self, offset, length) -> str:
+    def extract_output(self, offset: int, length: int) -> str:
         assert offset >= 0
         assert length > 0
 
@@ -155,11 +154,10 @@ class ResultFile:
         rawout = self._rawout_reader.read(length).decode("utf-8")
 
         if not rawout.startswith(self.MAGIC_TOKEN):
-            raise PublisherException.BadMagicTokenError()
-
+            raise PublisherException.BadMagicTokenError("Internal Error.")
         return rawout[len(self.MAGIC_TOKEN) :]
 
-    def retrieve_test(self, job_id=None, name=None) -> List[Test]:
+    def retrieve_test(self, job_id: str | None = None, name: str | None = None) -> list[Test]:
         """
         Find jobs based on its id or name and return associated Test object.
 
@@ -167,14 +165,15 @@ class ResultFile:
         this function returns a list of class:`Test`.
 
         :param job_id: job id, defaults to None
-        :type job_id: int, optional
         :param name: test name (full), defaults to None
-        :type name: str, optional
         :return: A list of class:`Test`
-        :rtype: list
+        :raises PublisherException.UnknownJobError: When a job has no id nor name.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         if (job_id is None and name is None) or (job_id is not None and name is not None):
-            raise PublisherException.UnknownJobError(job_id, name)
+            raise PublisherException.UnknownJobError(f"{job_id}", name)
 
         lookup_table = []
         if job_id is not None:
@@ -196,66 +195,61 @@ class ResultFile:
 
             eltt = Test()
             eltt.from_json(elt, "internal, this should not fail")
-            eltt.encoded_output = rawout
+            eltt.b64_output = rawout
             res.append(eltt)
 
         return res
 
     @property
-    def size(self):
+    def size(self) -> int:
         """
         Current rawdata size
 
         :return: length of the rawdata file.
-        :rtype: int
         """
         return self._sz
 
     @property
-    def count(self):
+    def count(self) -> int:
         """
         Get the number of jobs in this handler.
 
         :return: job count
-        :rtype: int
         """
         return self._cnt
 
     @property
-    def prefix(self):
+    def prefix(self) -> str:
         """
         Getter to the build prefix
 
         :return: build prefix
-        :rtype: str
         """
         return self._fileprefix
 
     @property
-    def metadata_prefix(self):
+    def metadata_prefix(self) -> str:
         """
         Getter to the actual metadata file name
 
         :return: filename
-        :rtype: str
         """
         return "{}.json".format(self._fileprefix)
 
     @property
-    def rawdata_prefix(self):
+    def rawdata_prefix(self) -> str:
         """
         Getter to the actual rawdata file name
 
 
         :return: file name
-        :rtype: str
         """
         return "{}.bz2".format(self._fileprefix)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self.__dict__)
 
-    def __rich_repr__(self):
+    def __rich_repr__(self) -> Iterable[tuple[str, Any]]:
         return self.__dict__.items()
 
 
@@ -269,31 +263,31 @@ class ResultFileManager:
     file_format = "jobs-{}"
 
     @classmethod
-    def _ret_state_split_dict(cls):
+    def _ret_state_split_dict(cls) -> dict[str, list]:
         """
         initialize a default dict view with targeted statuses.
 
-        :return: _description_
-        :rtype: _type_
+        :return: The default initialized dict.
         """
-        ret = {}
-        ret.setdefault(str(Test.State.SUCCESS), [])
-        ret.setdefault(str(Test.State.FAILURE), [])
-        ret.setdefault(str(Test.State.SOFT_TIMEOUT), [])
-        ret.setdefault(str(Test.State.HARD_TIMEOUT), [])
-        ret.setdefault(str(Test.State.ERR_DEP), [])
-        ret.setdefault(str(Test.State.ERR_OTHER), [])
+        ret: dict[str, list] = {}
+        # TODO: replate str by real type
+        ret.setdefault(str(TestState.SUCCESS), [])
+        ret.setdefault(str(TestState.FAILURE), [])
+        ret.setdefault(str(TestState.SOFT_TIMEOUT), [])
+        ret.setdefault(str(TestState.HARD_TIMEOUT), [])
+        ret.setdefault(str(TestState.ERR_DEP), [])
+        ret.setdefault(str(TestState.ERR_OTHER), [])
         return ret
 
     def discover_result_files(self) -> None:
         """
         Load existing results from prefix.
         """
-        jobs = list(
-            filter(
-                lambda x: x.startswith("jobs-") and x.endswith(".json"), os.listdir(self._outdir)
-            )
-        )
+        jobs: list[str] = []
+        for f in os.listdir(self._outdir):
+            if f.startswith("jobs-") and f.endswith(".json"):
+                jobs.append(f)
+
         if len(jobs) > 0:
             curfile = None
             for f in list(map(lambda x: os.path.join(self._outdir, x), jobs)):
@@ -345,47 +339,46 @@ class ResultFileManager:
                     self.register_view_item("tree", name)
                     self._viewdata["tree"][name][state].append(job_id)
 
-    def __init__(self, prefix=".", per_file_max_ent=0, per_file_max_sz=0) -> None:
+    def __init__(
+        self, prefix: str = ".", per_file_max_ent: int = 0, per_file_max_sz: int = 0
+    ) -> None:
         """
         Initialize a new instance to manage results in a build directory.
 
         :param prefix: result directory, defaults to "."
-        :type prefix: str, optional
         :param per_file_max_ent: max number of tests per output file, defaults
             t(o unlimited (0)
-        :type per_file_max_ent: int, optional
         :param per_file_max_sz: max size (bytes) for a single file, defaults to unlimited
-        :type per_file_max_sz: int, optional
         """
         self._current_file = None
-        self._outdir = prefix
-        self._opened_files: Dict[ResultFile] = {}
+        self._outdir: str = prefix
+        self._opened_files: dict[str, ResultFile] = {}
 
         map_filename = os.path.join(prefix, "maps.json")
         view_filename = os.path.join(prefix, "views.json")
 
-        def preload_if_exist(path, default) -> dict:
+        def preload_if_exist(path: str, default: dict[str, Any]) -> dict[str, Any]:
             """
             Internal function: populate a file if found in dest dir.
 
             :param path: file to load
-            :type path: str
             :param default: default value if file not found
-            :type default: Any
             :return: the dict mapping the data
-            :rtype: dict
             """
             if os.path.isfile(path):
                 with open(path, "r") as fh:
                     try:
-                        return json.load(fh)
+                        json_dict = json.load(fh)
+                        assert isinstance(json_dict, dict)
+                        return json_dict
                     except Exception:
                         return {}
             else:
                 return default
 
         self._mapdata = preload_if_exist(map_filename, {})
-        self._mapdata_rev = {}
+        # TODO: split mapdata_rev into 2 dicts
+        self._mapdata_rev: dict[str, str | Test] = {}
         self._viewdata = preload_if_exist(
             view_filename,
             {
@@ -409,7 +402,7 @@ class ResultFileManager:
 
         self.register_view("tree")
 
-    def save(self, job: Test):
+    def save(self, job: Test) -> None:
         """
         Add a new job to be saved to the result directory.
 
@@ -418,20 +411,24 @@ class ResultFileManager:
         function also updates view & maps accordingly.
 
         :param job: the job element to store
-        :type job: class:`Test`
+        :raises PublisherException.AlreadyExistJobError: The saved job have the same id as an already existing job.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         job_id = job.jid
         if job_id in self._mapdata.keys():
             raise PublisherException.AlreadyExistJobError(job.name)
 
         # create a new file if the current one is 'large' enough
+        assert self._current_file is not None
         if (self._current_file.size >= self._max_size and self._max_size) or (
             self._current_file.count >= self._max_entries and self._max_entries
         ):
             self.create_new_result_file()
 
         # save info to file
-        self._current_file.save(job_id, job.to_json(), job.encoded_output)
+        self._current_file.save(job_id, job.to_json(), job.b64_output_bytes)
 
         # register this location from the map-id table
         self._mapdata_rev[job_id] = self._current_file.prefix
@@ -455,20 +452,24 @@ class ResultFileManager:
                 self.register_view_item("tree", name)
                 self._viewdata["tree"][name][state].append(job_id)
 
-    def retrieve_test(self, job_id) -> Optional[Test]:
+    def retrieve_test(self, job_id: str) -> Optional[Test]:
         """
         Build the Test object mapped to the given job id.
 
         If such ID does not exist, it will return None.
 
-        :param job_id: _description_
-        :type job_id: _type_
-        :return: _description_
-        :rtype: List[Test]
+        :param job_id: The job id of the job.
+        :return: The job object if found.
+        :raises CommonException.UnclassifiableError: if more than one jobs is found.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         if job_id not in self._mapdata_rev:
             return None
+        assert self._current_file is not None
         filename = self._mapdata_rev[job_id]
+        assert isinstance(filename, str)
         handler = None
         if filename == self._current_file.metadata_prefix:
             handler = self._current_file
@@ -483,7 +484,7 @@ class ResultFileManager:
             if len(res) > 1:
                 raise CommonException.UnclassifiableError(
                     reason="Given info leads to more than one job",
-                    dbg_info={"data": job_id, "matches": res},
+                    dbg_info={"data": job_id, "matches": str(res)},
                 )
             else:
                 return res[0]
@@ -494,47 +495,39 @@ class ResultFileManager:
         """
         Iterate over every job stored into this build directory.
 
-        :return: an iterable of Tests
-        :rtype: List of tests
         :yield: Test
-        :rtype: Iterator[Test]
         """
         for hdl in self._opened_files.values():
             yield from hdl.content
 
-    def retrieve_tests_by_name(self, name) -> List[Test]:
+    def retrieve_tests_by_name(self, name: str) -> list[Test]:
         """
         Locate a test by its name.
 
         As multiple matches could occur, this function return a list of class:`Test`
 
         :param name: the test name
-        :type name: str
         :return: the actual list of test, empty if no one is found
-        :rtype: list
         """
         ret = []
         for hdl in self._opened_files.values():
             ret += hdl.retrieve_test(name=name)
         return ret
 
-    def register_view(self, name) -> None:
+    def register_view(self, name: str) -> None:
         """
         Initialize a new view for this result manager.
 
         :param name: the view name
-        :type name: str
         """
         self._viewdata.setdefault(name, {})
 
-    def register_view_item(self, view, item) -> None:
+    def register_view_item(self, view: str, item: str) -> None:
         """
         Initialize a single item within a view.
 
         :param view: the view name (created if not exist)
-        :type view: str
         :param item: the item
-        :type item: str
         """
         if view not in self._viewdata:
             self.register_view(view)
@@ -565,43 +558,38 @@ class ResultFileManager:
             json.dump(self._viewdata, fh)
 
     @property
-    def views(self):
+    def views(self) -> dict:
         """
         Returns available views for the current instance.
 
         :return: the views
-        :rtype: dict
         """
         return self._viewdata
 
     @property
-    def maps(self):
+    def maps(self) -> dict:
         """
         Returns available views from the current instance.
 
         :return: the maps
-        :rtype: dict
         """
         return self._mapdata
 
     @property
-    def total_cnt(self):
+    def total_cnt(self) -> int:
         """
         Returns the total number of jobs from that directory (=run).
 
         :return: number of jobs
-        :rtype: int
         """
         return len(self._mapdata_rev.keys())
 
-    def map_id(self, job_id):
+    def map_id(self, job_id: str) -> Test | None:
         """
         Comnvert a job ID into its class:`Test` representation.
 
         :param job_id: job id
-        :type job_id: int
         :return: the associated Test object or None if not found
-        :rtype: class:`Test` or None
         """
         if job_id not in self._mapdata_rev:
             return None
@@ -624,49 +612,52 @@ class ResultFileManager:
             return None
 
     @property
-    def status_view(self):
+    def status_view(self) -> dict:
         """
         Returns the status view provided by PCVS.
 
         :return: a view
-        :rtype: dict
         """
-        return self._viewdata["status"]
+        status = self._viewdata["status"]
+        assert isinstance(status, dict)
+        return status
 
     @property
-    def tags_view(self):
+    def tags_view(self) -> dict:
         """
         Get the tags view provided by PCVS.
 
         :return: a view
-        :rtype: dict
         """
-        return self._viewdata["tags"]
+        tags = self._viewdata["tags"]
+        assert isinstance(tags, dict)
+        return tags
 
     @property
-    def tree_view(self):
+    def tree_view(self) -> dict:
         """
         Get the tree view, provided by default.
 
         :return: a view
-        :rtype: dict
         """
-        return self._viewdata["tree"]
+        tree = self._viewdata["tree"]
+        assert isinstance(tree, dict)
+        return tree
 
-    def subtree_view(self, subtree):
+    def subtree_view(self, subtree: str) -> dict | None:
         """
         Get a subset of the 'tree' view. Any LABEL/subtree combination is valid.
 
         :param subtree: the prefix to look for
-        :type subtree: str
         :return: the dict mapping tests to the request
-        :rtype: dict
         """
         if subtree not in self._viewdata["tree"]:
             return None
-        return self._viewdata["tree"][subtree]
+        subtree = self._viewdata["tree"][subtree]
+        assert isinstance(subtree, dict)
+        return subtree
 
-    def finalize(self):
+    def finalize(self) -> None:
         """
         Flush & close the current manager.
 
@@ -679,10 +670,10 @@ class ResultFileManager:
         for f in self._opened_files.values():
             f.close()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self.__dict__)
 
-    def __rich_repr__(self):
+    def __rich_repr__(self) -> Iterable[tuple[str, Any]]:
         return self.__dict__.items()
 
 
@@ -694,7 +685,7 @@ class BuildDirectoryManager:
     past, present or future executions.
     """
 
-    def __init__(self, build_dir="."):
+    def __init__(self, build_dir: str = "."):
         """
         Initialize a new instance.
 
@@ -703,7 +694,10 @@ class BuildDirectoryManager:
         PCVS build directory.
 
         :param build_dir: the build dir, defaults to "."
-        :type build_dir: str, optional
+        :raises CommonException.NotFoundError: when the build_dir does not exist.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         if not os.path.isdir(build_dir):
             raise CommonException.NotFoundError(
@@ -711,20 +705,20 @@ class BuildDirectoryManager:
                 dbg_info={"build prefix": build_dir},
             )
 
-        self._path = build_dir
-        self._extras = list()
-        self._results = None
-        self._archive_path = None
-        self._config = None
-        self._scratch = os.path.join(build_dir, pcvs.NAME_BUILD_SCRATCH)
-        old_archive_dir = os.path.join(build_dir, pcvs.NAME_BUILD_ARCHIVE_DIR)
+        self._path: str = build_dir
+        self._extras: list[str] = []
+        self._results: ResultFileManager | None = None
+        self._archive_path: str | None = None
+        self._config: MetaConfig | None = None
+        self._scratch: str = os.path.join(build_dir, pcvs.NAME_BUILD_SCRATCH)
+        old_archive_dir: str = os.path.join(build_dir, pcvs.NAME_BUILD_ARCHIVE_DIR)
 
         open(os.path.join(self._path, pcvs.NAME_BUILDFILE), "w").close()
 
         if not os.path.isdir(old_archive_dir):
             os.makedirs(old_archive_dir)
 
-    def init_results(self, per_file_max_sz=0):
+    def init_results(self, per_file_max_sz: int = 0) -> None:
         """
         Initialize the result handler.
 
@@ -733,7 +727,6 @@ class BuildDirectoryManager:
         directory. This function implies storing a new execution.
 
         :param per_file_max_sz: max file size, defaults to unlimited
-        :type per_file_max_sz: int, optional
         """
         resdir = os.path.join(self._path, pcvs.NAME_BUILD_RESDIR)
         if not os.path.exists(resdir):
@@ -742,26 +735,25 @@ class BuildDirectoryManager:
         self._results = ResultFileManager(prefix=resdir, per_file_max_sz=per_file_max_sz)
 
     @property
-    def results(self):
+    def results(self) -> ResultFileManager:
         """
         Getter to the result handler, for direct access
 
         :return: the result handler
-        :rtype: class:`ResultFileManager`
         """
+        assert self._results is not None
         return self._results
 
     @property
-    def prefix(self):
+    def prefix(self) -> str:
         """
         Get the build directory prefix
 
         :return: the build path
-        :rtype: str
         """
         return self._archive_path if self._archive_path else self._path
 
-    def prepare(self, reuse=False):
+    def prepare(self, reuse: bool = False) -> None:
         """
         Prepare the dir for a new run.
 
@@ -770,7 +762,6 @@ class BuildDirectoryManager:
         directory. This function implies all previous results be be cleared off.
 
         :param reuse: keep previously generated YAML test-files, defaults to False
-        :type reuse: bool, optional
         """
         if not reuse:
             self.clean(pcvs.NAME_BUILD_SCRATCH)
@@ -787,57 +778,52 @@ class BuildDirectoryManager:
         self.save_extras(pcvs.NAME_BUILD_SCRATCH, directory=True, export=False)
 
     @property
-    def sid(self) -> Optional[int]:
+    def sid(self) -> str:
         """
         Return the run ID as per configured with the current build directory.
 
         If not found, this function may return None
 
         :return: the session ID
-        :rtype: int
         """
-        if "sid" in self._config["validation"]:
-            return self._config["validation"]["sid"]
-        return None
+        assert self._config is not None
+        assert "sid" in self._config["validation"]
+        sid = self._config["validation"]["sid"]
+        assert isinstance(sid, str)
+        return sid
 
-    def load_config(self):
+    @sid.setter
+    def sid(self, sid: str) -> None:
+        assert self._config is not None
+        self._config["validation"]["sid"] = sid
+
+    def load_config(self) -> MetaConfig:
         """
         Load config stored onto disk & populate the current instance.
 
         :return: the loaded config
-        :rtype: class:`MetaConfig`
         """
         with open(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN), "r") as fh:
             self._config = MetaConfig(YAML(typ="safe").load(fh))
 
         return self._config
 
-    def use_as_global_config(self):
+    def use_as_global_config(self) -> None:
+        assert self._config is not None
         GlobalConfig.root = self._config
 
-    def save_config(self, config) -> None:
+    def save_config(self, config: MetaConfig) -> None:
         """
         Save the config & store it directly into the build directory.
 
         :param config: config
-        :type config: class:`MetaConfig`
         """
-        if not isinstance(config, MetaConfig):
-            config = MetaConfig(config)
+        assert isinstance(config, MetaConfig)
         self._config = config
-        with open(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN), "w") as fh:
+        with open(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN), "w", encoding="utf-8") as fh:
             h = YAML(typ="safe")
-            h.default_flow_style = None
-            h.dump(config.dump_for_export(), fh)
-
-    def get_config(self) -> dict:
-        """
-        Return the loaded configuration for the current build directory.
-
-        :return: a dict representantion of yaml config
-        :rtype: dict
-        """
-        return self._config
+            h.default_flow_style = False
+            h.dump(config.to_dict(), fh)
 
     @property
     def config(self) -> MetaConfig:
@@ -845,11 +831,11 @@ class BuildDirectoryManager:
         Return the configuration associated with the current build directory
 
         :return: config struct
-        :rtype: class:`MetaConfig`
         """
+        assert self._config is not None
         return self._config
 
-    def add_cache_entry(self, idx=0):
+    def add_cache_entry(self, idx: int = 0) -> str:
         d = os.path.join(self._path, pcvs.NAME_BUILD_CONTEXTDIR, str(idx))
 
         if os.path.exists(d):
@@ -859,10 +845,12 @@ class BuildDirectoryManager:
 
         return d
 
-    def get_cache_entry(self, idx=0):
+    def get_cache_entry(self, idx: int = 0) -> str:
         return os.path.join(self._path, pcvs.NAME_BUILD_CONTEXTDIR, str(idx))
 
-    def save_extras(self, rel_filename, data="", directory=False, export=False) -> None:
+    def save_extras(
+        self, rel_filename: str, data: str = "", directory: bool = False, export: bool = False
+    ) -> None:
         """
         Register a specific build-relative path, to be saved into the directory.
 
@@ -873,13 +861,13 @@ class BuildDirectoryManager:
         be copied to the final archive.
 
         :param rel_filename: the filepath, relative to build dir.
-        :type rel_filename: str
         :param data: data to be saved into the target file, defaults to ""
-        :type data: Any, optional
         :param directory: is it a directory to save, defaults to False
-        :type directory: bool, optional
         :param export: should the target be also exported in final archive, defaults to False
-        :type export: bool, optional
+        :raises CommonException.UnclassifiableError: When the extras that should be saved are not found.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         if os.path.isabs(rel_filename):
             raise CommonException.UnclassifiableError(
@@ -903,7 +891,7 @@ class BuildDirectoryManager:
         if export:
             self._extras.append(rel_filename)
 
-    def clean(self, *args) -> None:
+    def clean(self, prefix: str) -> None:
         """
         Prepare the build directory for a new execution by removing anything not
         relevant for a new run.
@@ -911,19 +899,16 @@ class BuildDirectoryManager:
         Please not this function will erase anything not relative to PCVS. As an
         argument, one may specify a specific prefix to be removed. Paths should
         relative to root build directory.
+
+        :param prefix: The prefix ro be removed.
         """
         assert utils.check_is_buildir(self._path)
-
-        def proper_clean(p):
-            if os.path.isfile(p) or os.path.islink(p):
-                os.remove(p)
-            elif os.path.isdir(p):
-                shutil.rmtree(p)
-
-        if args:
-            for p in args:
-
-                proper_clean(os.path.join(self._path, p))
+        if prefix:
+            path = os.path.join(self._path, prefix)
+            if os.path.isfile(path) or os.path.islink(path):
+                os.remove(path)
+            elif os.path.isdir(path):
+                shutil.rmtree(path)
         else:
             for f in os.listdir(self._path):
                 current = os.path.join(self._path, f)
@@ -941,16 +926,18 @@ class BuildDirectoryManager:
             if utils.check_is_archive(current):
                 shutil.move(current, os.path.join(self._path, pcvs.NAME_BUILD_ARCHIVE_DIR, f))
 
-    def create_archive(self, timestamp=None) -> str:
+    def create_archive(self, timestamp: datetime.datetime | None = None) -> str:
         """
         Generate an archive for the build directory.
 
         This archive will be stored in the root directory..
 
         :param timestamp: file suffix, defaults to current timestamp
-        :type timestamp: Datetime, optional
         :return: the archive path name
-        :rtype: str
+        :raises CommonException.NotFoundError: When extras files does not exist.
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
 
         # ensure all results are flushed away before creating the archive
@@ -962,7 +949,7 @@ class BuildDirectoryManager:
         archive_file = os.path.join(self._path, "pcvsrun_{}.tar.gz".format(str_timestamp))
         archive = tarfile.open(archive_file, mode="w:gz")
 
-        def __relative_add(path, recursive=False):
+        def __relative_add(path: str, recursive: bool = False) -> None:
             archive.add(
                 path,
                 arcname=os.path.join(
@@ -977,7 +964,7 @@ class BuildDirectoryManager:
         __relative_add(os.path.join(self._path, pcvs.NAME_BUILD_CONF_FN))
         __relative_add(os.path.join(self._path, pcvs.NAME_DEBUG_FILE))
 
-        not_found_files = list()
+        not_found_files = []
         for p in self._extras:
             if not os.path.exists(p):
                 not_found_files.append(p)
@@ -986,14 +973,14 @@ class BuildDirectoryManager:
         if len(not_found_files) > 0:
             raise CommonException.NotFoundError(
                 reason="Extra files to be stored to archive do not exist",
-                dbg_info={"Failed paths": not_found_files},
+                dbg_info={"Failed paths": str(not_found_files)},
             )
 
         archive.close()
         return archive_file
 
     @classmethod
-    def load_from_archive(cls, archive_path):
+    def load_from_archive(cls, archive_path: str) -> Self:
         """
         Populate the instance from an archive.
 
@@ -1005,9 +992,7 @@ class BuildDirectoryManager:
             been loaded (as no output directory has been configured).
 
         :param archive_path: _description_
-        :type archive_path: _type_
         :return: _description_
-        :rtype: _type_
         """
         archive = tarfile.open(archive_path, mode="r:gz")
 
@@ -1020,9 +1005,9 @@ class BuildDirectoryManager:
         hdl = BuildDirectoryManager(build_dir=os.path.join(path, d[0]))
         hdl.load_config()
         hdl._archive_path = archive_path
-        return hdl
+        return hdl  # type: ignore
 
-    def finalize(self):
+    def finalize(self) -> None:
         """
         Close & release the current instance.
 
@@ -1031,17 +1016,16 @@ class BuildDirectoryManager:
         self.results.finalize()
 
     @property
-    def scratch_location(self):
+    def scratch_location(self) -> str:
         """
         Returns where third-party artifacts must be stored
 
         :return: the scratch directory
-        :rtype: str
         """
         return self._scratch
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self.__dict__)
 
-    def __rich_repr__(self):
+    def __rich_repr__(self) -> Iterable[tuple[str, Any]]:
         return self.__dict__.items()

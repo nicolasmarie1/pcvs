@@ -5,7 +5,7 @@ from random_word import RandomWords
 
 from pcvs.dsl import Bank
 from pcvs.dsl import Run
-from pcvs.testing.test import Test
+from pcvs.testing.test import TestState
 
 MAX = 100
 group = ["MPI", "OpenMP", "Others"]
@@ -39,10 +39,10 @@ for i in range(0, MAX):
         n = randint(0, 100)
 
         print(thr, n)
-        state = Test.State.SUCCESS if n > thr else Test.State.FAILURE
+        state = TestState.SUCCESS if n > thr else TestState.FAILURE
 
-        cnt_succ += 1 if state == Test.State.SUCCESS else 0
-        cnt_fail += 1 if state == Test.State.FAILURE else 0
+        cnt_succ += 1 if state == TestState.SUCCESS else 0
+        cnt_fail += 1 if state == TestState.FAILURE else 0
 
         d[long_name] = {
             "id": {
@@ -66,5 +66,5 @@ for i in range(0, MAX):
 
     r.update_flatdict(d)
     series.commit(
-        r, metadata={"cnt": {str(Test.State.SUCCESS): cnt_succ, str(Test.State.FAILURE): cnt_fail}}
+        r, metadata={"cnt": {str(TestState.SUCCESS): cnt_succ, str(TestState.FAILURE): cnt_fail}}
     )

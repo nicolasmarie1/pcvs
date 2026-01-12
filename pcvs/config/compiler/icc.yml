@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/compiler-scheme.yml
+---
+compilers:
+  cc:
+    program: "icc"
+    type: "cc"
+    variants: &openmp
+      openmp:
+        args: ["-fopenmp"]
+  cxx:
+    program: "icpc"
+    type: "cxx"
+    variants: *openmp
+  fc:
+    program: "ifort"
+    type: "fortran"
+    variants: *openmp

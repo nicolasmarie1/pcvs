@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/group-scheme.yml
+---
+GRPMPI:
+  run:
+    iterate:
+      inherite: ["n_mpi", "n_node", "n_core"]
+GRPMPI_NOTHREADS:
+  run:
+    iterate:
+      inherite: ["n_mpi", "n_node"]
+GRPOMP:
+  run:
+    iterate:
+      inherite: ["n_omp", "n_core"]
+GRPSERIAL:
+  run:
+    iterate:
+      inherite: []
