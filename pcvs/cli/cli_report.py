@@ -20,23 +20,25 @@ except ImportError:
     short_help="Manage PCVS result reporting interface",
 )
 @click.argument(
-    "path_list",
+    "paths",
     nargs=-1,
     required=False,
     type=click.Path(exists=True),
     # help="The list of path to query for build folder/archive and add them to the report.",
 )
 @click.pass_context
-def cli_report(ctx: click.Context, path_list: list[str]) -> int:
+def cli_report(ctx: click.Context, paths: tuple[str, ...]) -> int:
     """
     Start a webserver to browse result during or after execution.
 
     Listens by default to http://localhost:5000/
     """
-    if not path_list:
-        path_list = [os.getcwd()]
+    if paths is None or len(paths) == 0:
+        paths_list = [os.getcwd()]
+    else:
+        paths_list = list(paths)
     inputs = []
-    for prefix in path_list:
+    for prefix in paths_list:
         # if a dir is given BU does not point to a valid build dir,
         # attempt to resolve it.
         # Note that files are always kept, it ensure to the user to

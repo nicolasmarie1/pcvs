@@ -5,7 +5,6 @@ from typing import Iterable
 
 from textual import on
 from textual.app import App
-from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Container
 from textual.containers import Grid
@@ -303,7 +302,7 @@ class FilterScreen(ModalScreen[list[TestState]]):
     cbs: list[Checkbox] = []
     include_states: list[TestState] = TestState.all_states()
 
-    def compose(self) -> ComposeResult:
+    def compose(self) -> Iterable[Widget]:
         """Radio selection for job filtering."""
         with VerticalScroll(id="filter_screen"):
             for t in TestState.all_states():

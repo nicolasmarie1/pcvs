@@ -11,7 +11,7 @@ class ReportModel(Report):
         active_hdl: BuildDirectoryManager | None = None
         for path in build_paths:
             hdl = self.add_session(path)
-            if not active_hdl:
+            if active_hdl is None:
                 active_hdl = hdl
         assert active_hdl is not None
         self.active_hdl: BuildDirectoryManager = hdl
