@@ -45,8 +45,8 @@ To create a config, one can use the command:
 
     $ pcvs config create user:example_profile
 
-By default, the new create configuration will contain the default configuration block for your configuration type.
-To copy from an other configuration block, use:
+By default, the new configuration will contain the default configuration block for your configuration type.
+To copy from another configuration block, use:
 
 .. code-block:: bash
 
@@ -139,7 +139,7 @@ Configuration description
 Compilers configuration
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The compiler node describes how to use a compiler, it include the following nodes:
+The compiler node describes how to use a compiler, it includes the following nodes:
 * ``program``: the name of the program to execute
 * ``envs``: the env to export at build time for that compiler, useful if you are using a Makefile
 * ``extension``: the source code extension match by the compilers.
@@ -238,7 +238,7 @@ description can contain any node present in the Configuration basic blocks (CF
 Example
 +++++++
 
-The following example allow you to disable the ``n_omp`` criterion of the group ``GRPMPI``.
+The following example allows disabling the ``n_omp`` criterion of the group ``GRPMPI``.
 
 .. code-block:: yaml
 
@@ -264,7 +264,7 @@ Runtime configuration
 ^^^^^^^^^^^^^^^^^^^^^
 ``program`` specify a wrapper for runtime tests, such as ``mpirun`` for example.
 The ``compiling.wrapper`` specify a wrapper for test compilation.
-It can be use to run the compilation on an other node using ``srun`` for example.
+It can be used to run the compilation on another node using ``srun`` for example.
 
 The ``criterions`` node contains arguments passed to the launching command.
 For example, if ``prterun`` takes the "-np" argument, which corresponds
@@ -301,5 +301,5 @@ The plugin configuration is a python plugin with a function to filter valid crit
 
 .. warning::
    When cloning a plugin with ``pcvs create --clone`` make sure to rename the
-   Class in the plugin. Otherwise only one of the 2 plugins with the same name
+   Class in the plugin. Otherwise, only one of the 2 plugins with the same name
    will be loaded.
