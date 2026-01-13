@@ -102,7 +102,7 @@ def compl_list_profiles(
     ]
 
 
-def handle_build_lockfile(exc: Exception | None = None) -> None:
+def handle_build_lockfile(exc: Exception | KeyboardInterrupt | None = None) -> None:
     """Remove the file lock in build dir if the application stops abruptly.
 
     This function will automatically forward the raising exception to the next

@@ -82,15 +82,17 @@ class Verbosity(enum.IntEnum):
     convenient label.
 
     * COMPACT: compact way, jobs are displayed packed per input YAML file.
-    * DETAILED: each job will output result on a one-line manner
-    * INFO: DETAILED & INFO messages will be logged
-    * DEBUG: DETAILED & INFO & DEBUG messages will be logged
+    * DETAILED: each job will output result on a one-line manner.
+    * INFO: DETAILED & INFO messages will be logged.
+    * LOG: DETAILED & INFO & LOG messages will be logged.
+    * DEBUG: DETAIL, INFO, LOG & DEBUG messages, with more infos in stack traces.
     """
 
     COMPACT = 0
     DETAILED = 1
     INFO = 2
-    DEBUG = 3
+    LOG = 3
+    DEBUG = 4
     NB_LEVELS = enum.auto()
 
     def __str__(self) -> str:
@@ -124,13 +126,14 @@ class PCVSConsole:
         self._live: Live | None = None
 
         self._color = color
-        self._verbose = Verbosity(min(Verbosity.NB_LEVELS - 1, verbose))
+        self._verbosity = Verbosity(min(Verbosity.NB_LEVELS - 1, verbose))
         self._debugfile = open(os.path.join(".", pcvs.NAME_DEBUG_FILE), "w", encoding="utf-8")
         self.job_summary_data_table: dict[str, dict[str, dict[str, int]]] = {}
         # https://rich.readthedocs.io/en/stable/appendix/colors.html#appendix-colors
         theme = Theme(
             {
                 "debug": Style(color="white"),
+                "log": Style(color="white"),
                 "info": Style(color="bright_white"),
                 "warning": Style(color="yellow", bold=True),
                 "danger": Style(color="red", bold=True),
@@ -206,82 +209,71 @@ class PCVSConsole:
     # Verbosity
 
     @property
-    def verbose(self) -> int:
+    def verbosity(self) -> int:
         """Return the Verbosity level."""
-        return self._verbose
+        return self._verbosity
 
-    @verbose.setter
-    def verbose(self, v: Verbosity) -> None:
+    @verbosity.setter
+    def verbosity(self, v: Verbosity) -> None:
         """Set Verbosity level."""
-        self._verbose = v
-
-    def verb_level(self, level: Verbosity) -> bool:
-        """Return True if Verbosity level is <level> or above."""
-        return self._verbose >= level
-
-    @property
-    def verb_compact(self) -> bool:
-        """Return True if Verbosity level is COMPACT or above."""
-        return self.verb_level(Verbosity.COMPACT)
-
-    @property
-    def verb_detailed(self) -> bool:
-        """Return True if Verbosity level is DETAILED or above."""
-        return self.verb_level(Verbosity.DETAILED)
-
-    @property
-    def verb_info(self) -> bool:
-        """Return True if Verbosity level is INFO or above."""
-        return self.verb_level(Verbosity.INFO)
-
-    @property
-    def verb_debug(self) -> bool:
-        """Return True if Verbosity level is DEBUG or above."""
-        return self.verb_level(Verbosity.DEBUG)
+        self._verbosity = v
 
     # Standard printers
 
     def nodebug(self, fmt: str) -> None:
-        """Do nothing, place holder to remove debug statement without deleting lines."""
+        """Do nothing, place holder to remove debug print without deleting lines."""
 
     def debug(self, fmt: str) -> None:
-        """Print & log debug."""
+        """Print debug."""
         self._loghdl.debug(fmt)
-        if self._verbose >= Verbosity.DEBUG:
-            self._stdout.print(f"[debug]\\[debug]: {fmt}[/debug]", soft_wrap=True)
+        if self._verbosity >= Verbosity.DEBUG:
+            self._stdout.print(f"[debug]\\[debug] {fmt}[/debug]", soft_wrap=True)
+
+    def log(self, fmt: str) -> None:
+        """Print log."""
+        self._loghdl.debug(fmt)
+        if self._verbosity >= Verbosity.LOG:
+            self._stdout.print(f"[debug]\\[log] {fmt}[/debug]", soft_wrap=True)
 
     def info(self, fmt: str) -> None:
-        """Print & log info."""
+        """Print info."""
         self._loghdl.info(fmt)
-        if self._verbose >= Verbosity.INFO:
-            self._stdout.print(f"[info]\\[info]: {fmt}[/info]", soft_wrap=True)
+        if self._verbosity >= Verbosity.INFO:
+            self._stdout.print(f"[info]\\[info] {fmt}[/info]", soft_wrap=True)
 
     def warning(self, fmt: str) -> None:
-        """Print & log warning."""
+        """Print warning."""
         self._loghdl.warning(fmt)
-        self._stderr.print(f"[warning]\\[warning]: {fmt}[/warning]", soft_wrap=True)
+        self._stderr.print(f"[warning]\\[warning] {fmt}[/warning]", soft_wrap=True)
 
     def warn(self, fmt: str) -> None:
         """Short for warning."""
         self.warning(fmt)
 
     def error(self, fmt: str) -> None:
-        """Print a log error messages."""
+        """Print an error messages."""
         self._loghdl.error(fmt)
-        self._stderr.print(f"[danger]\\[error]: {fmt}[/danger]", soft_wrap=True)
+        self._stderr.print(f"[danger]\\[error] {fmt}[/danger]", soft_wrap=True)
 
     def critical(self, fmt: str) -> None:
         """Print a log critical error then exit."""
         self._loghdl.critical(fmt)
-        self._stderr.print(f"[danger]\\[CRITICAL]: {fmt}[/danger]", soft_wrap=True)
+        self._stderr.print(f"[danger]\\[CRITICAL] {fmt}[/danger]", soft_wrap=True)
         sys.exit(42)
 
     def exception(self, e: Exception) -> None:
         """Print exceptions."""
-        if self._verbose >= Verbosity.DEBUG:
+        self._stderr.print("\n")
+        if self._verbosity >= Verbosity.DEBUG:
             self._stderr.print_exception(word_wrap=True, show_locals=True, extra_lines=16)
+        elif self._verbosity >= Verbosity.LOG:
+            self._stderr.print_exception(extra_lines=3)
         else:
-            self._stderr.print_exception(extra_lines=0)
+            self._stderr.print(
+                "[warning]\\[Exception] Stack trace hidden, to get a stack trace, "
+                "look at 'pcvs-debug-*.log' or rerun pcvs with '-vvv' or '-d'.[/warning]"
+            )
+        self._stderr.print(f"[danger]\\[Exception] {e}[/danger]", soft_wrap=True)
         self._loghdl.exception(e)
 
     def crit_debug(self, fmt: str) -> None:
@@ -406,7 +398,7 @@ class PCVSConsole:
         assert self._progress is not None
         assert self._singletask is not None
         self._progress.advance(self._singletask)
-        if self.verb_detailed:
+        if self.verbosity >= Verbosity.DETAILED:
             # Print the test status line.
             self._stdout.print(status)
             if content:
@@ -414,7 +406,7 @@ class PCVSConsole:
                 self._stdout.out(content)
         # Update the table/progressbar display.
         assert self._live is not None
-        self._live.update(self._get_display_table(not self.verb_detailed))
+        self._live.update(self._get_display_table(self._verbosity <= Verbosity.COMPACT))
 
     def print_job_summary(self) -> None:
         """Print the job view table once."""
@@ -579,11 +571,6 @@ def capture_exception(
                 if user_func is None:
                     assert console is not None
                     console.exception(e)
-                    console.error(f"[red bold]Exception: {e}[/]")
-                    console.error(
-                        f"[red bold]See '{pcvs.NAME_DEBUG_FILE}'"
-                        f" or rerun with -vv for more details[/]"
-                    )
                     if doexit:
                         sys.exit(1)
                 else:

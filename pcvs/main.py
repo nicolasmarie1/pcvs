@@ -157,7 +157,8 @@ def cli(
 ) -> None:
     """PCVS main program."""
     ctx.ensure_object(dict)
-    ctx.obj["verbose"] = verbose if not debug else 10
+    verbose = 5 if debug else verbose
+    ctx.obj["verbose"] = verbose
     ctx.obj["color"] = color
     ctx.obj["encode"] = encoding
     ctx.obj["tui"] = tui

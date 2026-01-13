@@ -8,7 +8,7 @@ class PCVSException(Exception):
         self,
         reason: str,
         help_msg: str | None = None,
-        dbg_info: dict[str, str | None] = {},
+        dbg_info: dict[str, str | None] | None = None,
     ):
         """
         Constructor for generic errors.
@@ -17,8 +17,10 @@ class PCVSException(Exception):
         :param help_msg: a help message for the user
         :param dbg_info: a list of additional debug info
         """
+        self._name = type(self).__name__
+        self._reason = reason
         self._help_msg = help_msg
-        self._dbg_info = dbg_info
+        self._dbg_info: dict[str, str | None] = dbg_info if dbg_info is not None else {}
         super().__init__("{} - {}".format(type(self).__name__, reason))
 
     def __str__(self) -> str:
@@ -27,11 +29,13 @@ class PCVSException(Exception):
 
         :return: the string.
         """
-        name_msg = super().__str__() + "\n"
-        help_msg = f"{self._help_msg}\n" if self._help_msg else ""
-        dbg_msg = "Additional notes:\n" + self.__dbg_str() + "\n" if self._dbg_info != {} else ""
-        cause_msg = f"From:\n{self.__cause__}" if self.__cause__ is not None else ""
-        return f"{name_msg}{help_msg}{dbg_msg}{cause_msg}"
+        name_msg = f"{self._name}: {self._reason}" + "\n"
+        help_msg = f"    Help: {self._help_msg}\n" if self._help_msg else ""
+        dbg_info = f"    Additional notes:\n{self.__dbg_str()}\n" if self._dbg_info != {} else ""
+        from_msg = (
+            f"    From previous error:\n{self.__cause__}" if self.__cause__ is not None else ""
+        )
+        return f"{name_msg}{help_msg}{dbg_info}{from_msg}"
 
     def add_dbg(self, name: str, info: str) -> None:
         """Add debug info to the current exception."""
@@ -50,7 +54,7 @@ class PCVSException(Exception):
         if self._dbg_info == {}:
             return ""
         w = max(len(k) for k in self._dbg_info.keys())
-        return "\n".join([f"- {k:<{w}}: {v}" for k, v in self._dbg_info.items()])
+        return "\n".join([f"      - {k:<{w}}: {v}" for k, v in self._dbg_info.items()])
 
 
 class CommonException(PCVSException):
@@ -123,24 +127,22 @@ class ValidationException(PCVSException):
         def __init__(self, file: str, content: str):
             """Updated Constructor"""
             super().__init__(reason="Fail to load the following yaml")
-            self.add_dbg("file_path", file)
-            self.add_dbg("raw_yaml", content)
+            self.add_dbg("yaml file path", file)
+            self.add_dbg("raw yaml", content)
 
     class SetupError(PCVSException):
         """An error ocured when run pcvs.setup file."""
 
         def __init__(self, file: str):
             super().__init__(reason="Fail to run the following setup file")
-            self.add_dbg("file_path", file)
+            self.add_dbg("setup file path", file)
 
     class FormatError(PCVSException):
         """The content does not comply the required format (schemes)."""
 
         def __init__(self, reason: str = "Invalid format"):
             """Updated constructor"""
-            super().__init__(
-                reason=reason,
-            )
+            super().__init__(reason=reason)
 
     class WrongTokenError(PCVSException):
         """A unknown token is found in valided content"""
@@ -171,12 +173,8 @@ class ValidationException(PCVSException):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
-                help_msg="\n".join(
-                    [
-                        "Provided schemes should be static. If code haven't be",
-                        "changed, please report this error.",
-                    ]
-                ),
+                help_msg="Provided schemes should be static. If code haven't been"
+                "changed, please report this error.",
             )
             self.add_dbg("schema", name)
             self.add_dbg("yaml", content)
@@ -199,12 +197,8 @@ class RunException(CommonException):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
-                help_msg="\n".join(
-                    [
-                        "Please Wait for previous executions to complete.",
-                        "You may also use --override or --output to change default build directory",
-                    ]
-                ),
+                help_msg="Please Wait for previous executions to complete."
+                "You may also use --override or --output to change default build directory",
             )
             self.add_dbg("output path", path)
             self.add_dbg("lockfile", lockfile)
@@ -217,13 +211,10 @@ class RunException(CommonException):
             self, rc: int, err: bytes, file: str, reason: str = "A setup script failed to complete"
         ):
             """Updated constructor"""
-            super().__init__(
-                reason=reason,
-                help_msg="\n".join(["Try to run manually the setup script"]),
-            )
-            self.add_dbg("exit code", str(rc))
-            self.add_dbg("error", str(err))
-            self.add_dbg("file", file)
+            super().__init__(reason=reason, help_msg="Try to run manually the setup script")
+            self.add_dbg("script exit code", str(rc))
+            self.add_dbg("script stderr", str(err))
+            self.add_dbg("script file path", file)
 
     class ProgramError(PCVSException):
         """The given program cannot be found."""
@@ -232,13 +223,9 @@ class RunException(CommonException):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
-                help_msg="\n".join(
-                    [
-                        "A program/binary defined in loaded profile cannot",
-                        "be found in $PATH or spack/module. Please report",
-                        "if this is a false warning.",
-                    ]
-                ),
+                help_msg="A program/binary defined in loaded profile cannot"
+                "be found in $PATH or spack/module. Please report"
+                "if this is a false warning.",
             )
 
 

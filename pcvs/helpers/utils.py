@@ -291,10 +291,11 @@ def check_valid_program(
         succ(f"'{basename}' found at '{filepath}'")
 
     if res is False:
+        msg = f"'{p}' not found or not an executable"
         if fail is not None:
-            fail(f"'{p}' not found or not an executable")
+            fail(msg)
         if raise_on_fail:
-            raise RunException.ProgramError(p)
+            raise RunException.ProgramError(msg)
 
     return res
 

@@ -129,7 +129,7 @@ def cli_exec(
             env.update({"PCVS_SHOW_{}".format(e.upper()): "1"})
 
     if ctx.obj["verbose"] > 0:
-        env.update({"PCVS_VERBOSE": "1"})
+        env.update({"PCVS_VERBOSE": ctx.obj["verbose"]})
 
     if gen_list:
         script_path = pvUtils.locate_scriptpaths(output)
