@@ -223,8 +223,8 @@ class RunException(CommonException):
             """Updated constructor"""
             super().__init__(
                 reason=reason,
-                help_msg="A program/binary defined in loaded profile cannot"
-                "be found in $PATH or spack/module. Please report"
+                help_msg="A program/binary defined in loaded profile cannot "
+                "be found in $PATH or spack/module. Please report "
                 "if this is a false warning.",
             )
 
