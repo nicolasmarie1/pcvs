@@ -182,7 +182,7 @@ class Manager:
         if self._comman:
             self._comman.send(job)
         self._count["executed"] += 1
-        if job.state not in self._count:
+        if str(job.state) not in self._count:
             self._count[str(job.state)] = 0
         self._count[str(job.state)] += 1
         assert self._publisher is not None
