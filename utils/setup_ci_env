@@ -18,7 +18,7 @@ git clone https://github.com/cea-hpc/pcvs && (
 
 git clone https://github.com/libgit2/libgit2 && (
 	pushd libgit2
-	git switch --detach "v1.7.2"
+	git switch --detach "v1.9.2"
 	mkdir build
 	pushd build
 	cmake ..
