@@ -15,7 +15,7 @@ dependencies = [
   "sh",
   "rich",
   "rich-click",
-  "pygit2<=1.18",
+  "pygit2<=1.14",
   "textual>=0.29.0",
   "matplotlib",
   "typing-extensions", # needed for backward compat with python10 and python11
@@ -59,7 +59,7 @@ dev = [
   "flake8",
   # 3.2.8 add too-many-positional-arguments check
   # leading to uknown argument in prior version of pylint
-  # need to wait for inti to update pip repo to upgrade
+  # need to wait for inti to update repo to upgrade
   "pylint<=3.2.7",
   "pytest",
   "coverage",
@@ -69,7 +69,7 @@ dev = [
   "isort",
   "black",
   "mypy",
-  "sphinx", #>=8.2.3
+  "sphinx",
   "sphinx-autodoc-typehints",
   "sphinx-rtd-theme>=3",
   "textual-dev",
