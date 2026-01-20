@@ -151,7 +151,7 @@ def process(data: dict, ref_array: dict | None = None, warn_if_missing: bool = T
         #    * the new key alongside with the transformed value as well
         # in the latter case, a split is required to identify key & value
         # an array is returned as a single node can produe multiple new nodes
-        (valid, dest_k) = check_if_key_matches(k, ref_array)
+        valid, dest_k = check_if_key_matches(k, ref_array)
         if valid:
             io.console.info("Processing {}".format(k))
             # An empty array means the key does not exist in the new tree.
@@ -161,13 +161,13 @@ def process(data: dict, ref_array: dict | None = None, warn_if_missing: bool = T
 
             # Process each of the new keys
             for elt_dest_k in dest_k:
-                (final_k, final_v, token) = (elt_dest_k, None, "")
+                final_k, final_v, token = (elt_dest_k, None, "")
                 # src key won't be kept
                 if final_k is None:
                     continue
                 # if a split is required
                 for token in ["|+|", "|=|"]:
-                    (final_k, final_v) = separate_key_and_value(elt_dest_k, token)
+                    final_k, final_v = separate_key_and_value(elt_dest_k, token)
                     # the split() succeeded ? stop
                     if final_v:
                         break

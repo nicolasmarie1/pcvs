@@ -288,8 +288,7 @@ for arg in "$@"; do case $arg in
                 fh_sh.write(test.generate_script(fn_sh))
                 # GlobalConfig.root.get_internal("orchestrator").add_new_job(test)
 
-            fh_sh.write(
-                """
+            fh_sh.write("""
         --list) printf "{list_of_tests}\\n"; exit 0;;
         *) printf "Invalid test-name \'$arg\'\\n"; exit 1;;
         esac
@@ -321,10 +320,7 @@ ${{pcvs_cmd}}
 EOF
         fi
     fi
-    exit $?\n""".format(
-                    list_of_tests="\n".join([t.name for t in self._tests])
-                )
-            )
+    exit $?\n""".format(list_of_tests="\n".join([t.name for t in self._tests])))
 
         self.generate_debug_info()
 
