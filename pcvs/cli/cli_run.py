@@ -53,8 +53,12 @@ def iterate_dirs(
 
     err_msg = ""
     for d in value:
-        testpath = os.path.abspath(d)
-        label = os.path.basename(testpath)
+        if ":" in d:  # split under LABEL:PATH semantics
+            [label, testpath] = d.split(":")
+            testpath = os.path.abspath(testpath)
+        else:  # otherwise, LABEL = dirname
+            testpath = os.path.abspath(d)
+            label = os.path.basename(testpath)
 
         # if label already used for a different path
         if label in dirs and testpath != dirs[label]:
