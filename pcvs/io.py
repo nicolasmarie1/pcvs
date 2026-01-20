@@ -347,8 +347,8 @@ class PCVSConsole:
         table.add_column("Name", justify="left", ratio=10)
         for state in TestState.all_states():
             table.add_column(str(state), justify="right")
-        for label, lvalue in self.job_summary_data_table.items():
-            for subtree, svalue in lvalue.items():
+        for label, lvalue in sorted(self.job_summary_data_table.items()):
+            for subtree, svalue in sorted(lvalue.items()):
                 if sum(svalue.values()) == svalue.get("SUCCESS", 0):
                     colour = "green"
                 elif svalue.get("FAILURE", 0) > 0:
@@ -398,6 +398,8 @@ class PCVSConsole:
         assert self._progress is not None
         assert self._singletask is not None
         self._progress.advance(self._singletask)
+        # always log status to log file
+        self._loghdl.debug(status)
         if self.verbosity >= Verbosity.DETAILED:
             # Print the test status line.
             self._stdout.print(status)

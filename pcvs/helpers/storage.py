@@ -25,10 +25,7 @@ class ConfigScope(Enum):
 
     :var GLOBAL: pcvs installation path
     :var USER: user Home directory
-    :var REPO: current .git repo
     :var LOCAL: current testing directory
-    :var CWD: current working directory
-    :var ABS: user provided absolute path
     """
 
     GLOBAL = 0

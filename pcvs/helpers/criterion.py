@@ -378,7 +378,7 @@ class Criterion:
                 start = ref_min
                 end = ref_max
 
-        io.console.crit_debug("Expanding {self.name}: {self._input_values}")
+        io.console.crit_debug(f"Expanding {self.name}: {self._input_values}")
         values: set[int | float | str] = set()
         if self._numeric is True:
             for v in self._input_values:
