@@ -3,15 +3,18 @@ stages:
   - Documentation
   - Deploy
 
+variables:
+  ENV_DIR: "pcvs_env"
+
 .prepare_env:
   before_script:
     - SUB_VERSION=$(echo ${VERSION} | sed 's/[0-9].\([0-9]*\).[0-9]*/\1/g')
     - echo "Running for python ${SUB_VERSION} (${VERSION})."
-    - source "$(ccc_home -W -u mpc)/pcvs_env/spack/share/spack/setup-env.sh"
+    - source "$(ccc_home -W -u mpc)/${ENV_DIR}/spack/share/spack/setup-env.sh"
     - spack env activate "pcvs_env_${SUB_VERSION}"
     - spack load "python@${VERSION}" sqlite@3.46.0 py-pysocks@1.7.1 py-setuptools py-wheel
-    - source "$(ccc_home -W -u mpc)/pcvs_env/python_${SUB_VERSION}_venv/bin/activate"
-    - export LD_LIBRARY_PATH="$(ccc_home -W -u mpc)/pcvs_env/libgit2/build/"
+    - source "$(ccc_home -W -u mpc)/${ENV_DIR}/python_${SUB_VERSION}_venv/bin/activate"
+    - export LD_LIBRARY_PATH="$(ccc_home -W -u mpc)/${ENV_DIR}/libgit2/build/"
 
 Coverage PCVS:
   stage: PCVS
@@ -27,7 +30,7 @@ Lint PCVS:
   extends: ['.prepare_env']
   script:
     - PATH=$PATH:"$(ccc_home -u mpc)/mpc_pre_commit/bin"
-    - export PIP_FIND_LINKS="$(ccc_home -W -u mpc)/pcvs_env/python_${SUB_VERSION}_mirror"
+    - export PIP_FIND_LINKS="$(ccc_home -W -u mpc)/${ENV_DIR}/python_${SUB_VERSION}_mirror"
     - export PIP_NO_INDEX=1
     - export PIP_NO_BUILD_ISOLATION=1
     - cd ${CI_PROJECT_DIR}

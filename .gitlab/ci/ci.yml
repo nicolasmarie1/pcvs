@@ -31,7 +31,6 @@ python_3.12:
 
 python_3.13:
   extends: ['.run']
-  allow_failure: true
   variables:
     VERSION: "3.13.11"
     RUN_DOC: true
