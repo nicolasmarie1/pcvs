@@ -321,6 +321,11 @@ class PCVSConsole:
         self._stdout.print(panel_box)
         self._loghdl.info("[DISPLAY] BOX %s", panel_box)
 
+    def print_rich(self, to_print: Any) -> None:
+        """Print rich formatted object."""
+        # logging to self._loghdl would be useless as we would just get python object ref.
+        self._stdout.print(to_print)
+
     # Others
 
     def _get_display_table(self, include_jobs: bool = False) -> Table:

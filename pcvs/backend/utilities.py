@@ -106,7 +106,7 @@ def process_check_configs() -> dict[str, int]:
             io.console.debug(str(e))
 
         t.add_row(token, cd.full_name)
-    io.console.print(str(t))
+    io.console.print_rich(t)
     return errors
 
 
@@ -139,7 +139,7 @@ def process_check_profiles() -> dict[str, int]:
             io.console.debug(str(e))
 
         t.add_row(token, cd.full_name)
-    io.console.print(str(t))
+    io.console.print_rich(t)
     return errors
 
 
@@ -219,7 +219,7 @@ def process_check_directory(directory: str, pf_name: str = "default.yml") -> dic
             errors.setdefault(str(err), 0)
             errors[str(err)] += 1
 
-    io.console.print(str(table))
+    io.console.print_rich(table)
     return errors
     # TODO: format and return errors
 
