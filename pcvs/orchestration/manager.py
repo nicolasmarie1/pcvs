@@ -156,13 +156,16 @@ class Manager:
         change: bool = True
         while change:
             change = False
+            to_remove: list[str] = []
             for jid, job in self.jobs.items():
                 if not job.should_run():
                     io.console.debug(f"Filtering test: {job.name}")
                     job.remove_test_from_deps()
-                    self.jobs.pop(jid)
+                    to_remove.append(jid)
                     self._count["total"] -= 1
                     change = True
+            for jid in to_remove:
+                self.jobs.pop(jid)
 
     def get_leftjob_count(self) -> int:
         """Return the number of jobs remaining to be executed.
@@ -235,8 +238,9 @@ class Manager:
         for index, (_, job) in enumerate(self._jobs_cache):
             # test not ready to be run
             if job.state != TestState.WAITING:
-                io.console.warning("Job with wrong state in scheduler, ignoring!")
-                continue
+                io.console.critical(
+                    f"Job: '{job.name}' with wrong state: '{job.state}' in scheduler, STOP!"
+                )
 
             if not job.has_completed_deps():
                 # job has missing dependency
@@ -265,7 +269,7 @@ class Manager:
                     job.alloc_tracking = res
 
             # if job have been selected for schedule (== have passed resources allocation)
-            if job.state != TestState.IN_PROGRESS and pick_job:
+            if pick_job:
                 job.pick()
                 if scheduled_set is None:
                     scheduled_set = Set(execmode=ExecMode.LOCAL)
