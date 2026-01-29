@@ -78,7 +78,7 @@ def extract_compiler_config(
             dbg_info={"compiler": compiler, "list": GlobalConfig.root["compiler"]["compilers"]},
         )
 
-    config = GlobalConfig.root["compiler"]["compilers"][compiler]
+    config = copy.deepcopy(GlobalConfig.root["compiler"]["compilers"][compiler])
     for v in variants:
         if v in config["variants"]:
             for k, v in config["variants"][v].items():
