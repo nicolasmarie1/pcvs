@@ -13,11 +13,9 @@ from typing import IO
 from typing import Iterable
 from typing import Optional
 
-import click
 from rich import box
 from rich.console import Console
 from rich.live import Live
-from rich.logging import RichHandler
 from rich.panel import Panel
 from rich.progress import BarColumn
 from rich.progress import Progress
@@ -127,7 +125,8 @@ class PCVSConsole:
 
         self._color = color
         self._verbosity = Verbosity(min(Verbosity.NB_LEVELS - 1, verbose))
-        self._debugfile = open(os.path.join(".", pcvs.NAME_DEBUG_FILE), "w", encoding="utf-8")
+        # self._debugfile = open(os.path.join(".", pcvs.NAME_DEBUG_FILE), "w", encoding="utf-8")
+        self._debugfile_path = os.path.join(".", pcvs.NAME_DEBUG_FILE)
         self.job_summary_data_table: dict[str, dict[str, dict[str, int]]] = {}
         # https://rich.readthedocs.io/en/stable/appendix/colors.html#appendix-colors
         theme = Theme(
@@ -142,28 +141,26 @@ class PCVSConsole:
         color_system = "auto" if self._color else None
         self._stdout = Console(color_system=color_system, theme=theme)  # type: ignore
         self._stderr = Console(color_system=color_system, theme=theme, stderr=True)  # type: ignore
-        self._debugconsole = Console(
-            color_system=color_system,  # type: ignore
-            theme=theme,
-            file=self._debugfile,
-            markup=self._color,
-        )
 
-        logging.basicConfig(
-            level="DEBUG",
-            format="%(message)s",
-            handlers=[
-                RichHandler(
-                    console=self._debugconsole,
-                    omit_repeated_times=False,
-                    rich_tracebacks=True,
-                    show_level=True,
-                    tracebacks_suppress=[click],
-                    show_path=True,
-                )
-            ],
-        )
+        # logging management for debug file:
+        # Create logger
         self._loghdl: Logger = logging.getLogger("pcvs")
+        self._loghdl.setLevel(logging.DEBUG)
+        # Create formatter
+        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+        # File handler
+        file_handler = logging.FileHandler(self._debugfile_path)
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(formatter)
+        # TODO: replace rich logger with logging
+        # Console handler (optional)
+        # console_handler = logging.StreamHandler()
+        # console_handler.setLevel(logging.INFO)
+        # console_handler.setFormatter(formatter)
+        # Add handlers to logger
+        self._loghdl.addHandler(file_handler)
+        # logger.addHandler(console_handler)
+
         self._chars = SpecialChar(utf_support=self._stdout.encoding.startswith("utf"))
 
         # Activate when needed
@@ -179,7 +176,7 @@ class PCVSConsole:
 
         :return: the logging file
         """
-        return os.path.abspath(self._debugfile.name)
+        return os.path.abspath(self._debugfile_path)
 
     @property
     def outfile(self) -> str:
@@ -194,15 +191,10 @@ class PCVSConsole:
         self._stdout.file = file
         self._stderr.file = file
 
-    def __del__(self) -> None:
-        """Make sure files are closed when stopping PCVS."""
-        if not self._debugfile.closed:
-            self._debugfile.close()
-
     def move_debug_file(self, newdir: str) -> None:
         assert os.path.isdir(newdir)
-        if self._debugfile and os.path.exists(self._debugfile.name):
-            shutil.move(self._debugfile.name, os.path.join(newdir, pcvs.NAME_DEBUG_FILE))
+        if self._debugfile_path and os.path.exists(self._debugfile_path):
+            shutil.move(self._debugfile_path, os.path.join(newdir, pcvs.NAME_DEBUG_FILE))
         else:
             self.warning("No '{}' file found for this Console".format(pcvs.NAME_DEBUG_FILE))
 
