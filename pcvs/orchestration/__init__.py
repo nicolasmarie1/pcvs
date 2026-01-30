@@ -126,10 +126,10 @@ class Orchestrator:
                 if currently_scheduled_count == 0:
                     nb_jobs = self._manager.get_leftjob_count()
                     if nb_jobs > 0:
-                        self._manager.prune_all_jobs_as_non_runnable()
                         io.console.error(
                             f"Job scheduler stuck, fail to schedule {nb_jobs} jobs !!!"
                         )
+                        self._manager.prune_all_jobs_as_non_runnable()
                 # Look for tests completions
                 try:
                     # while queue is not empty

@@ -193,7 +193,8 @@ class Manager:
 
     def prune_all_jobs_as_non_runnable(self) -> None:
         for _, job in self.jobs.items():
-            self.publish_failed_to_run_job(job, Test.DISCARDED_STR, TestState.ERR_OTHER)
+            if job.state == TestState.WAITING:
+                self.publish_failed_to_run_job(job, Test.DISCARDED_STR, TestState.ERR_OTHER)
 
     def create_subset(self, resources_tracker: ResourceTracker) -> Set | None:
         """Extract one or more jobs, ready to be run.
