@@ -235,6 +235,7 @@ class Manager:
         user_sched_job = self._plugin.has_enabled_step(Plugin.Step.SCHED_JOB_EVAL)
 
         assert self._jobs_cache is not None  # self.create_job_cache should be run.
+        to_remove: list[int] = []  # list of index to remove from self._jobs_cache
         for index, (_, job) in enumerate(self._jobs_cache):
             # test not ready to be run
             if job.state != TestState.WAITING:
@@ -249,6 +250,7 @@ class Manager:
             if job.has_failed_dep():
                 # Cannot be scheduled for dep purposes push it to publisher
                 self.publish_failed_to_run_job(job, Test.NOSTART_STR, TestState.ERR_DEP)
+                to_remove.append(index)
                 # Attempt to find another job to schedule
                 continue
 
@@ -274,7 +276,7 @@ class Manager:
                 if scheduled_set is None:
                     scheduled_set = Set(execmode=ExecMode.LOCAL)
                 scheduled_set.add(job)
-                self._jobs_cache.pop(index)
+                to_remove.append(index)
                 # Schedule set should only be of size one to avoid
                 # issue with multiples runner scheduling as multiples
                 # jobs in the same set cannot be scheduled at the same time.
@@ -282,6 +284,9 @@ class Manager:
 
             # Resources exhausted
             break
+
+        for i in reversed(to_remove):
+            del self._jobs_cache[i]
 
         return scheduled_set
 
