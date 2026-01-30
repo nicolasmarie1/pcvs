@@ -302,5 +302,5 @@ class Manager:
             job.extract_metrics()
             job.save_artifacts()
             job.evaluate()
-            self.publish_job(job, publish_args=None)
             job.display()
+            self.publish_job(job, publish_args=None)

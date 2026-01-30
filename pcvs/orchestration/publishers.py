@@ -417,7 +417,7 @@ class ResultFileManager:
         # noqa: DAR402
         """
         job_id = job.jid
-        if job_id in self._mapdata.keys():
+        if job_id in self._mapdata_rev:
             raise PublisherException.AlreadyExistJobError(job.name)
 
         # create a new file if the current one is 'large' enough
