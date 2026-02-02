@@ -36,8 +36,16 @@ license = { text = "CeCILL-C"}
 #license-files = ["COPYING"]
 keywords = ["validation", "hpc", "test-suite"]
 classifiers = [
+  'Development Status :: 5 - Stable',
+
   'Topic :: Software Development :: Quality Assurance',
   'Topic :: Software Development :: Testing',
+
+  'Programming Language :: Python :: 3',
+  'Programming Language :: Python :: 3.10',
+  'Programming Language :: Python :: 3.11',
+  'Programming Language :: Python :: 3.12',
+  'Programming Language :: Python :: 3.13',
 ]
 dynamic = ["version"]
 
@@ -46,7 +54,7 @@ Homepage = "https://pcvs.io"
 Documentation = "https://cea-hpc.github.io/pcvs/"
 Repository = "https://github.com/cea-hpc/pcvs"
 Issues = "https://github.com/cea-hpc/pcvs/issues"
-Changelog = "https://github.com/cea-hpc/pcvs/blob/master/CHANGES"
+Changelog = "https://github.com/cea-hpc/pcvs/blob/master/CHANGELOG.md"
 
 [project.scripts]
 pcvs = "pcvs.main:cli"
