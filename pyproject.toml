@@ -28,7 +28,8 @@ authors = [
   {name = "Nicolas Marie", email = "nicolas.marie@uvsq.fr"},
 ]
 maintainers = [
-# Nobody right now
+  {name = "Nicolas Marie", email = "nicolas.marie@uvsq.fr"},
+  {name = "Hugo TABOADA", email = "hugo.taboada@cea.fr"},
 ]
 description = "A Validation Orchestrator designed by and for software at scale."
 readme = "README.md"
