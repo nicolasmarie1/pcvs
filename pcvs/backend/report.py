@@ -1,51 +1,13 @@
-import os
 import random
-from typing import Dict
+from typing import Any
 from typing import Iterable
-from typing import List
-from typing import Union
 
-from ruamel.yaml import YAML
-
-import pcvs
 from pcvs.backend.session import list_alive_sessions
-from pcvs.backend.session import Session
+from pcvs.backend.session import SessionState
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import CommonException
 from pcvs.orchestration.publishers import BuildDirectoryManager
-from pcvs.webview import create_app
-from pcvs.webview import data_manager
-
-
-def upload_buildir_results(buildir) -> None:
-    """Upload a whole test-suite from disk to the server data model.
-
-    :param buildir: the build directory
-    :type buildir: str
-    """
-
-    # first, need to determine the session ID -> conf.yml
-    with open(os.path.join(buildir, "conf.yml"), "r", encoding="utf-8") as fh:
-        conf_yml = YAML().load(fh)
-
-    sid = conf_yml["validation"]["sid"]
-    dataman = data_manager
-
-    man = BuildDirectoryManager(buildir)
-    dataman.insert_session(
-        sid,
-        {
-            "buildpath": buildir,
-            "state": Session.State.COMPLETED,
-            "dirs": conf_yml["validation"]["dirs"],
-        },
-    )
-    for test in man.results.browse_tests():
-        # FIXME: this function does not exist any more
-        # man.save(test)
-        dataman.insert_test(sid, test)
-
-    dataman.close_session(sid, {"state": Session.State.COMPLETED})
+from pcvs.testing.test import Test
 
 
 class Report:
@@ -55,22 +17,20 @@ class Report:
 
     def __init__(self) -> None:
         """
-        Initialize a new report (no args)
+        Initialize a new report
         """
-        self._sessions = {}
-        self._alive_session_infos = {}
+        self._sessions: dict[str, BuildDirectoryManager] = {}
+        self._alive_session_infos: dict[str, Any] = {}
 
-    def __create_build_handler(self, path) -> BuildDirectoryManager:
+    def __create_build_handler(self, path: str) -> BuildDirectoryManager:
         """
         Initialize a new handler to a build directory.
 
         This object will be used to forward result requests.
 
         :param path: build directory path
-        :type path: str
         :raises NotPCVSRelated: Invalid path is provided
         :return: the actual handler
-        :rtype: BuildDirectoryManager
         """
         if utils.check_is_buildir(path):
             hdl = BuildDirectoryManager(path)
@@ -82,14 +42,12 @@ class Report:
             )
         return hdl
 
-    def add_session(self, path) -> BuildDirectoryManager:
+    def add_session(self, path: str) -> BuildDirectoryManager:
         """
         Insert new session to be managed.
 
         :param path: the build path (root dir)
-        :type path: str
         :return: the session handler
-        :rtype: BuildDirectoryManager
         """
         hdl = self.__create_build_handler(path)
         hdl.load_config()
@@ -111,7 +69,7 @@ class Report:
                 # SID may be recycled
                 # just attribute another number (negative, to make it noticeable)
                 while hdl.sid in self._sessions:
-                    hdl.sid = random.randint(0, 10000) * (-1)
+                    hdl.sid = str(random.randint(0, 10000) * (-1))
 
             elif hdl.sid != sk:
                 # The build directory has been reused since this session ended
@@ -121,39 +79,37 @@ class Report:
             self.add_session(sv["path"])
 
     @property
-    def session_ids(self) -> List[int]:
+    def session_ids(self) -> list[str]:
         """
         Get the list of session ids managed by this instance.
 
         :return: a list of session ids
-        :rtype: list of integers
         """
         return list(self._sessions.keys())
 
-    def dict_convert_list_to_cnt(self, arrays: Dict[str, List[int]]) -> Dict[str, int]:
+    def dict_convert_list_to_cnt(self, arrays: dict[str, list[str]]) -> dict[str, int]:
         """
         Convert dict of arrays to a dict of array lengths.
 
         Used to convert dict of per-status jobs to a summary of them.
 
         :param arrays: the dict of arrays
-        :type arrays: dict
         :return: a summary of given dict
-        :rtype: dict
         """
         return {k: len(v) for k, v in arrays.items()}
 
-    def session_infos(self) -> Iterable[Dict]:
+    def session_infos(self) -> Iterable[dict[str, Any]]:
         """
         Get session metadata for each session currently loaded into the instance.
-        :rtype: Iterator[Dict[str, Any]]
         """
         for sid, sdata in self._sessions.items():
-            counts = self.dict_convert_list_to_cnt(self.single_session_status(sid))
+            status_dict = self.single_session_status(sid)
+            assert isinstance(status_dict, dict)
+            counts = self.dict_convert_list_to_cnt(status_dict)
             state = (
                 self._alive_session_infos[sid]["state"]
                 if sid in self._alive_session_infos
-                else Session.State.COMPLETED
+                else SessionState.COMPLETED
             )
             yield {
                 "sid": sid,
@@ -163,74 +119,67 @@ class Report:
                 "info": sdata.config["validation"].get("message", "No message"),
             }
 
-    def single_session_config(self, sid) -> dict:
+    def single_session_config(self, sid: str) -> dict:
         """
         Get the configuration map from a single session.
 
         :param sid: the session ID
-        :type sid: int
         :return: the configuration node (=conf.yml)
-        :rtype: dict
         """
         assert sid in self._sessions
-        d = self._sessions[sid].get_config()
+        d = self._sessions[sid].config
         d["runtime"]["plugin"] = ""
         return d
 
-    def single_session_status(self, sid, status_filter=None) -> Union[Dict, List]:
+    def single_session_status(
+        self, sid: str, status_filter: str | None = None
+    ) -> dict[str, list[str]] | list[str]:
         """
         Get per-session status infos
 
         :param sid: Session id to extract info from.
-        :type sid: int
-        :param filter: optional status to filter in, defaults to None
-        :type filter: str, optional
+        :param status_filter: optional status to filter in, defaults to None
         :return: A dict of statuses (or a single list if the filter is used)
-        :rtype: dict or list
         """
         assert sid in self._sessions
         statuses = self._sessions[sid].results.status_view
         if status_filter:
             assert status_filter in statuses
-            return statuses[status_filter]
+            status = statuses[status_filter]
+            assert isinstance(status, list)
+            return status
         return statuses
 
-    def single_session_tags(self, sid) -> Dict[str, Dict]:
+    def single_session_tags(self, sid: str) -> dict[str, dict]:
         """
         Get per-session available tags.
 
         Outputs a per-status dict.
 
         :param sid: Session ID
-        :type sid: int
         :return: dict of statuses
-        :rtype: dict
         """
         assert sid in self._sessions
         return self._sessions[sid].results.tags_view
 
-    def single_session_job_cnt(self, sid) -> int:
+    def single_session_job_cnt(self, sid: str) -> int:
         """
         Get per session number of job.
 
         :param sid: the session ID
-        :type sid: int
         :return: The number of jobs (total)
-        :rtype: int
         """
         assert sid in self._sessions
         return self._sessions[sid].results.total_cnt
 
-    def single_session_labels(self, sid) -> Dict[str, Dict]:
+    def single_session_labels(self, sid: str) -> dict[str, dict]:
         """
         Get per-session available labels.
 
         Outputs a per-status dict.
 
         :param sid: Session ID
-        :type sid: int
         :return: dict of statuses
-        :rtype: dict
         """
         assert sid in self._sessions
         labels_info = self._sessions[sid].results.tree_view
@@ -239,33 +188,30 @@ class Report:
             for label in self._sessions[sid].config["validation"]["dirs"].keys()
         }
 
-    def single_session_build_path(self, sid) -> str:
+    def single_session_build_path(self, sid: str) -> str:
         """
         Get build prefix of a given session.
 
         :param sid: session ID
-        :type sid: int
         :return: build path
-        :rtype: str
         """
         assert sid in self._sessions
         return self._sessions[sid].prefix
 
-    def single_session_map_id(self, sid, jid) -> pcvs.testing.test.Test:
+    def single_session_map_id(self, sid: str, jid: str) -> Test | None:
         """
         For a given session id, convert a job it into its relative class:`Test` object.
 
         :param sid: Session ID
-        :type sid: int
         :param jid: Job ID
-        :type jid: int
         :return: the Actual test object
-        :rtype: Test
         """
         assert sid in self._sessions
         return self._sessions[sid].results.map_id(jid)
 
-    def single_session_get_view(self, sid, name, subset=None, summary=False) -> Dict[str, Dict]:
+    def single_session_get_view(
+        self, sid: str, name: str, subset: str | None = None, summary: bool = False
+    ) -> dict[str, dict] | None:
         """
         Get a specific view from a given session.
 
@@ -281,15 +227,10 @@ class Report:
         job ids.
 
         :param sid: Session ID
-        :type sid: int
         :param name: view name
-        :type name: str
         :param subset: only a selection of the view, defaults to None
-        :type subset: str, optional
         :param summary: Should it be summarized, defaults to False
-        :type summary: bool, optional
         :return: the result dict
-        :rtype: dict
         """
         if sid not in self._sessions:
             return None
@@ -309,32 +250,43 @@ class Report:
             return {k: self.dict_convert_list_to_cnt(v) for k, v in d.items()}
         return d
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self.__dict__)
 
-    def __rich_repr__(self):
+    def __rich_repr__(self) -> Iterable[tuple[str, Any]]:
         return self.__dict__.items()
 
 
-def build_static_pages(buildir) -> None:
-    """From a given build directory, generate static pages.
+def upload_buildir_results(
+    data_manager: Report, buildir: str  # pylint: disable=unused-argument
+) -> None:
+    """Upload a whole test-suite from disk to the server data model.
 
-    This can be used only for already run test-suites (no real-time support) and
-    when Flask cannot/don't want to be used.
-
-    :param buildir: the build directory to load
-    :type buildir: str
-    :raises WIPError: Not implemented yet
+    :param data_manager: The report data manager.
+    :param buildir: the build directory.
     """
-    raise CommonException.WIPError()
+    # TODO: That would be cool to dev the real stuff,
+    # before making interface that use function that never existed.
 
+    # first, need to determine the session ID -> conf.yml
+    # with open(os.path.join(buildir, "conf.yml"), "r", encoding="utf-8") as fh:
+    #     conf_yml = YAML().load(fh)
 
-def start_server(report: Report):
-    """Initialize the Flask server, default to 5000.
+    # sid = conf_yml["validation"]["sid"]
+    # dataman = data_manager
 
-    A random port is picked if the default is already in use.
-    :param report: The model to be used.
-    :type report: Report
-    """
-    app = create_app(report)
-    app.run(host="0.0.0.0", port=int(os.getenv("PCVS_REPORT_PORT", str(5000))), debug=True)
+    # man = BuildDirectoryManager(buildir)
+    # dataman.insert_session(
+    #    sid,
+    #    {
+    #        "buildpath": buildir,
+    #        "state": Session.State.COMPLETED,
+    #        "dirs": conf_yml["validation"]["dirs"],
+    #    },
+    # )
+    # for test in man.results.browse_tests():
+    #    # FIXME: this function does not exist any more
+    #    # man.save(test)
+    #    dataman.insert_test(sid, test)
+
+    # dataman.close_session(sid, {"state": Session.State.COMPLETED})

@@ -2,6 +2,6 @@ try:
     # flake8: noqa: F401
     import textual
 
-    textual_avail = True
+    TEXTUAL_AVAIL = True
 except Exception:
-    textual_avail = False
+    TEXTUAL_AVAIL = False

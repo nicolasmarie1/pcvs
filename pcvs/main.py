@@ -1,20 +1,28 @@
 #!/usr/bin/env python3
+
 from importlib.metadata import version
 
+# flake8: noqa: E402
+# pylint: disable=wrong-import-position
+if version("pcvs") is not None and version("pcvs").find("dirty") != -1:
+    from typeguard import install_import_hook
+
+    install_import_hook("pcvs")
+    TYPE_CHECKING = True
+else:
+    TYPE_CHECKING = False
+
 from pcvs import io
-from pcvs.backend import bank
-from pcvs.backend import config
-from pcvs.backend import profile
 from pcvs.cli import cli_bank
 from pcvs.cli import cli_config
 from pcvs.cli import cli_convert
 from pcvs.cli import cli_graph
-from pcvs.cli import cli_profile
 from pcvs.cli import cli_remote_run
 from pcvs.cli import cli_report
 from pcvs.cli import cli_run
 from pcvs.cli import cli_session
 from pcvs.cli import cli_utilities
+from pcvs.helpers import storage
 from pcvs.helpers import utils
 from pcvs.helpers.exceptions import PluginException
 from pcvs.plugins import Collection
@@ -25,28 +33,29 @@ try:
     from rich import box
 
     click.rich_click.SHOW_ARGUMENTS = True
-    click.rich_click.STYLE_COMMANDS_PANEL_BOX = box.SIMPLE
-    click.rich_click.STYLE_OPTIONS_PANEL_BOX = box.SIMPLE
+    click.rich_click.STYLE_COMMANDS_PANEL_BOX = box.SIMPLE  # type: ignore
+    click.rich_click.STYLE_OPTIONS_PANEL_BOX = box.SIMPLE  # type: ignore
 except ImportError:
-    import click
+    import click  # type: ignore
 
-CONTEXT_SETTINGS = dict(
-    help_option_names=["-h", "--help", "-help"],
-    ignore_unknown_options=True,
-    allow_interspersed_args=False,
-    auto_envvar_prefix="PCVS",
-)
+CONTEXT_SETTINGS = {
+    "help_option_names": ["-h", "--help", "-help"],
+    "ignore_unknown_options": True,
+    "allow_interspersed_args": False,
+    "auto_envvar_prefix": "PCVS",
+}
 
 
-def print_version(ctx, param, value):  # pylint: disable=unused-argument
+def print_version(
+    ctx: click.Context, param: click.Parameter, value: bool  # pylint: disable=unused-argument
+) -> None:
     """Print current version.
 
     This is used as an option formatter, PCVS is not event loaded yet.
 
-    :param value: whether -v was pass and we should print the value.
-    :type value: bool
     :param ctx: Click Context.
-    :type ctx: :class:`Click.Context`
+    :param param: The click Parameter that is being completed.
+    :param value: whether -v was pass and we should print the value.
     """
     if not value or ctx.resilient_parsing:
         return
@@ -108,13 +117,6 @@ def print_version(ctx, param, value):  # pylint: disable=unused-argument
     is_flag=True,
     help="Display current version",
 )
-# unused
-# @click.option("-w",
-#               "--width",
-#               "width",
-#               type=int,
-#               default=None,
-#               help="Terminal width (autodetection if omitted")
 @click.option(
     "-P",
     "--plugin-path",
@@ -122,9 +124,15 @@ def print_version(ctx, param, value):  # pylint: disable=unused-argument
     multiple=True,
     type=click.Path(exists=True),
     show_envvar=True,
-    help="Default Plugin path prefix",
+    help="Default Plugin PATH",
 )
-@click.option("-m", "--plugin", "select_plugins", multiple=True)
+@click.option(
+    "-m",
+    "--plugin",
+    "select_plugins",
+    multiple=True,
+    help="Default plugin names to enables.",
+)
 @click.option(
     "-t",
     "--tui",
@@ -136,20 +144,34 @@ def print_version(ctx, param, value):  # pylint: disable=unused-argument
 @click.pass_context
 @io.capture_exception(PluginException.NotFoundError)
 @io.capture_exception(PluginException.LoadError)
-def cli(ctx, verbose, color, encoding, exec_path, plugin_path, select_plugins, tui, debug):
+def cli(
+    ctx: click.Context,
+    verbose: int,
+    color: bool,
+    encoding: bool,
+    exec_path: str | None,
+    plugin_path: tuple[str, ...],
+    select_plugins: tuple[str, ...],
+    tui: bool,
+    debug: bool,
+) -> None:
     """PCVS main program."""
     ctx.ensure_object(dict)
-    ctx.obj["verbose"] = verbose if not debug else 10
+    verbose = 5 if debug else verbose
+    ctx.obj["verbose"] = verbose
     ctx.obj["color"] = color
     ctx.obj["encode"] = encoding
-    ctx.obj["exec"] = exec_path
     ctx.obj["tui"] = tui
 
     # Click specific-related
     ctx.color = color
 
     io.init(color=color, verbose=verbose)
-    utils.set_local_path(ctx.obj["exec"])
+    if TYPE_CHECKING:
+        io.console.debug("Type Checking enable.")
+
+    if exec_path is not None:
+        storage.set_exec_path(exec_path)
 
     utils.create_home_dir()
 
@@ -168,28 +190,22 @@ def cli(ctx, verbose, color, encoding, exec_path, plugin_path, select_plugins, t
 
     pcoll.invoke_plugins(Plugin.Step.START_BEFORE)
 
-    # detections
-    config.init()
-    profile.init()
-    bank.init()
-
     pcoll.invoke_plugins(Plugin.Step.START_AFTER)
 
 
-cli.add_command(cli_config.config)
-cli.add_command(cli_profile.profile)
-cli.add_command(cli_run.run)
-cli.add_command(cli_bank.bank)
-cli.add_command(cli_session.session)
-cli.add_command(cli_utilities.exec_cli)
-cli.add_command(cli_utilities.check)
-cli.add_command(cli_utilities.clean)
-cli.add_command(cli_utilities.discover)
+cli.add_command(cli_config.cli_config)
+cli.add_command(cli_run.cli_run)
+cli.add_command(cli_bank.cli_bank)
+cli.add_command(cli_session.cli_session)
+cli.add_command(cli_utilities.cli_exec)
+cli.add_command(cli_utilities.cli_check)
+cli.add_command(cli_utilities.cli_clean)
+cli.add_command(cli_utilities.cli_scan)
 # cli.add_command(cli_gui.gui)
-cli.add_command(cli_report.report)
-cli.add_command(cli_remote_run.remote_run)
+cli.add_command(cli_report.cli_report)
+cli.add_command(cli_remote_run.cli_remote_run)
 # cli.add_command(cli_plumbing.resolve)
-cli.add_command(cli_convert.convert)
+cli.add_command(cli_convert.cli_convert)
 cli.add_command(cli_graph.cli_graph)
 
 

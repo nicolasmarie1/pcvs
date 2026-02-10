@@ -76,6 +76,14 @@ TextLog {
 	border: solid round $secondary;
 }
 
+#filter_screen {
+	margin: 1 2;
+	padding: 1 2;
+	width: 50h;
+	height: 50h;
+	border: solid round $secondary;
+}
+
 ExitConfirmScreen {
     align: center middle;
 }

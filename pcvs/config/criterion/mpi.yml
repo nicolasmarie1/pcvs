@@ -1,0 +1,5 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/criterion-scheme.yml
+---
+n_mpi:
+  subtitle: n
+  values: [1, 2, 4]

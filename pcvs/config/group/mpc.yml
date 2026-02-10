@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/group-scheme.yml
+---
+GRPMPI:
+  run:
+    iterate:
+      n_omp:
+        values: null
+      net:
+        values: ["default"]
+GRPMPI_NOTHREADS:
+  run:
+    iterate:
+      n_core:
+        values: null
+      n_omp:
+        values: null
+      net:
+        values: ["default"]
+GRPOMP:
+  run:
+    iterate:
+      n_mpi:
+        values: null
+      n_node:
+        values: null
+      n_proc:
+        values: null
+      net:
+        values: ["default"]
+GRPSERIAL:
+  run:
+    iterate:
+      n_mpi:
+        values: null
+      n_node:
+        values: null
+      n_omp:
+        values: null
+      n_core:
+        values: null
+      n_proc:
+        values: null
+      net:
+        values: ["default"]

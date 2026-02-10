@@ -1,20 +1,20 @@
 from pcvs.plugins import Plugin
-from pcvs.testing.test import Test
+from pcvs.testing.teststate import TestState
 
-LOAD_FAILED = False
+load_failed = False
 try:
     from junit_xml import TestCase
     from junit_xml import TestSuite
 except ImportError:
-    LOAD_FAILED = True
+    load_failed = True
 
 
 class JUnit(Plugin):
 
     step = Plugin.Step.SCHED_PUBLISH_WRITE
 
-    def run(self, *args, **kwargs):
-        if LOAD_FAILED:
+    def run(self, *args, **kwargs):  # type: ignore
+        if load_failed:
             raise ImportError("Fail to load junit_xml.")
         data = kwargs.get("data", {})
         out_prefix = kwargs.get("outfile", "./testfile") + ".xml"
@@ -30,13 +30,13 @@ class JUnit(Plugin):
                 elapsed_sec=t["result"]["time"],
             )
 
-            if state == Test.State.FAILURE:
+            if state == TestState.FAILURE:
                 tt.add_failure_info(message="failure", output=t["result"]["output"])
-            elif state == Test.State.ERR_DEP:
+            elif state == TestState.ERR_DEP:
                 tt.add_skipped_info(
                     message="Dependency not satisfied", output=t["result"]["output"]
                 )
-            elif state != Test.State.SUCCESS:
+            elif state != TestState.SUCCESS:
                 tt.add_error_info(
                     message="Unknown error", output=t["result"]["output"], error_type=str(state)
                 )

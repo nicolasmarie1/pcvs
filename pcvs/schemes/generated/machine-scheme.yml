@@ -1,0 +1,105 @@
+type: object
+properties:
+  name:
+    type: string
+  nodes:
+    type: integer
+  cores_per_node:
+    type: integer
+  concurrent_run:
+    type: integer
+  job_manager:
+    type: object
+    properties:
+      mintime:
+        type: integer
+      maxtime:
+        type: integer
+      allocate:
+        type: object
+        properties:
+          program:
+            type: string
+          args:
+            type: string
+          wrapper:
+            type: string
+        additionalProperties: false
+      remote:
+        type: object
+        properties:
+          program:
+            type: string
+          args:
+            type: string
+          wrapper:
+            type: string
+        additionalProperties: false
+      batch:
+        type: object
+        properties:
+          program:
+            type: string
+          args:
+            type: string
+          wrapper:
+            type: string
+        additionalProperties: false
+    additionalProperties: false
+  partitions:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        nodes:
+          type: integer
+        cores_per_node:
+          type: integer
+        concurrent_run:
+          type: integer
+        job_manager:
+          type: object
+          properties:
+            mintime:
+              type: integer
+            maxtime:
+              type: integer
+            allocate:
+              type: object
+              properties:
+                program:
+                  type: string
+                args:
+                  type: string
+                wrapper:
+                  type: string
+              additionalProperties: false
+            remote:
+              type: object
+              properties:
+                program:
+                  type: string
+                args:
+                  type: string
+                wrapper:
+                  type: string
+              additionalProperties: false
+            batch:
+              type: object
+              properties:
+                program:
+                  type: string
+                args:
+                  type: string
+                wrapper:
+                  type: string
+              additionalProperties: false
+          additionalProperties: false
+      additionalProperties: false
+  default_partition:
+    OneOf:
+      - type: string
+      - type: null
+additionalProperties: false

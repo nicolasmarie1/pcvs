@@ -1,11 +1,11 @@
-import pcvs
+from pcvs.converter import yaml_converter
 
 try:
     import rich_click as click
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
 
 
 @click.command(
@@ -79,18 +79,16 @@ except ImportError:
     ),
 )
 @click.pass_context
-def convert(
-    ctx,  # pylint: disable=unused-argument
-    input_file,
-    kind,
-    template,
-    scheme,
-    out,
-    stdout,
-    skip_unknown,
-    in_place,
+def cli_convert(
+    ctx: click.Context,  # pylint: disable=unused-argument
+    input_file: str,
+    kind: str,
+    template: str | None,
+    scheme: str | None,
+    out: str | None,
+    stdout: bool,
+    skip_unknown: bool,
+    in_place: bool,
 ) -> None:
-    """Convert cli"""
-    return pcvs.converter.yaml_converter.convert(
-        input_file, kind, template, scheme, out, stdout, skip_unknown, in_place
-    )
+    """Convert cli."""
+    yaml_converter.convert(input_file, kind, template, scheme, out, stdout, skip_unknown, in_place)

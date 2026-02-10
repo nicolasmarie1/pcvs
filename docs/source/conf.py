@@ -38,6 +38,7 @@ with open(os.path.join("../../version.txt"), encoding="utf-8") as fh:
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinx.ext.apidoc",
     "sphinx.ext.autodoc",
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
@@ -146,7 +147,7 @@ html_theme = "sphinx_rtd_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {"logo_only": True}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
@@ -163,7 +164,7 @@ html_theme = "sphinx_rtd_theme"
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #
-# html_logo = "_static/pcvs_logo.png"
+html_logo = "_static/pcvs_logo.png"
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -366,3 +367,24 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 # intersphinx_mapping = {'https://docs.python.org/': None}
+
+# API doc configuration
+apidoc_modules = [
+    {
+        "path": "../../pcvs",
+        "destination": "api/",
+        "separate_modules": True,
+    },
+]
+
+# document __init__ function of class
+autoclass_content = "both"
+
+# mock import to avoid textual modules to be reuse in pcvs doc
+autodoc_mock_imports = ["textual"]
+
+# remove false positive of "Cannot resolve forward reference in type annotations"
+# TODO remove when sphinx_autodoc_typehints get it's shit toogether
+suppress_warnings = [
+    "sphinx_autodoc_typehints.forward_reference",
+]

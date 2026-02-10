@@ -8,26 +8,25 @@ from click.testing import CliRunner
 
 import pcvs
 from pcvs.backend import run as tested
-from pcvs.helpers.exceptions import RunException
+from pcvs.backend.metaconfig import GlobalConfig
+from pcvs.backend.metaconfig import MetaConfig
 from pcvs.helpers.exceptions import ValidationException
-from pcvs.helpers.system import GlobalConfig
-from pcvs.helpers.system import MetaConfig
 from pcvs.plugins import Collection
 from pcvs.testing.tedesc import TEDescriptor
 
-good_content = """#!/bin/sh
+GOOD_CONTENT = """#!/bin/sh
 echo 'test_node:'
 echo '  build:'
 echo '    sources:'
 echo '      binary: "a.out"'
 """
 
-bad_output = """#!/bin/sh
+BAD_OUTPUT = """#!/bin/sh
 echo "test_node:"
 echo "  unknown_node: 'test'"
 """
 
-bad_script = """#!/bin/sh
+BAD_SCRIPT = """#!/bin/sh
 echo "failure"
 exit 42
 """
@@ -44,7 +43,7 @@ def help_create_setup_file(path, s):
 def mock_config():
     with CliRunner().isolated_filesystem():
         with patch.object(
-            pcvs.helpers.system.GlobalConfig,
+            GlobalConfig,
             "root",
             MetaConfig(
                 {
@@ -66,10 +65,10 @@ def mock_config():
 def test_process_setup_scripts(mock_config):  # pylint: disable=unused-argument,redefined-outer-name
     d = os.path.join(GlobalConfig.root["validation"]["dirs"]["L1"], "subtree")
     f = os.path.join(d, "pcvs.setup")
-    help_create_setup_file(f, good_content)
+    help_create_setup_file(f, GOOD_CONTENT)
     pcvs.io.init()
     with patch("pcvs.testing.tedesc.TEDescriptor") as _:
-        tested.unsafe_process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
+        tested.process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
 
 
 def test_process_bad_setup_script(
@@ -77,11 +76,11 @@ def test_process_bad_setup_script(
 ):  # pylint: disable=unused-argument,redefined-outer-name
     d = os.path.join(GlobalConfig.root["validation"]["dirs"]["L1"], "subtree")
     f = os.path.join(d, "pcvs.setup")
-    help_create_setup_file(f, bad_script)
+    help_create_setup_file(f, BAD_SCRIPT)
     pcvs.io.init()
     try:
-        tested.unsafe_process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
-    except RunException.NonZeroSetupScript:
+        tested.process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
+    except ValidationException.SetupError:
         pass
 
 
@@ -90,10 +89,10 @@ def test_process_wrong_setup_script(
 ):  # pylint: disable=unused-argument,redefined-outer-name
     d = os.path.join(GlobalConfig.root["validation"]["dirs"]["L1"], "subtree")
     f = os.path.join(d, "pcvs.setup")
-    help_create_setup_file(f, bad_output)
+    help_create_setup_file(f, BAD_OUTPUT)
     pcvs.io.init()
     TEDescriptor.init_system_wide("n_node")
     try:
-        tested.unsafe_process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
-    except ValidationException.FormatError:
+        tested.process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
+    except (ValidationException.FormatError, ValidationException.YamlError):
         pass

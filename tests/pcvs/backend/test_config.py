@@ -1,77 +1,22 @@
 import os
-from unittest.mock import patch
+from pathlib import Path
 
-import pytest
-from ruamel.yaml import YAML
+from pcvs.helpers.storage import ConfigKind
+from pcvs.helpers.storage import ConfigScope
 
-import pcvs
-from pcvs import io
-from pcvs.backend import config as tested
-from pcvs.helpers import utils
-from pcvs.helpers.exceptions import ConfigException
+from ..conftest import dummy_fs_with_configlocator_patch
 
 
-@patch("glob.glob", return_value=["/a/b/c/first.yml", "/a/b/c/second.yml"])
-def test_init(mock_glob):  # pylint: disable=unused-argument
-    tested.init()
-    assert len(tested.CONFIG_BLOCKS) == 5
-    for elt in ["compiler", "runtime", "group", "criterion", "machine"]:
-        assert elt in tested.CONFIG_BLOCKS
-
-    for b in tested.CONFIG_BLOCKS:
-        for s in utils.storage_order():
-            node = tested.list_blocks(b, s)
-            assert len(node) == 2
-            assert ("first", "/a/b/c/first.yml") in node
-            assert ("second", "/a/b/c/second.yml") in node
-
-    tested.list_blocks("compiler")
-
-
-@pytest.mark.parametrize("scope", [None, "local", "user", "global"])
-@pytest.mark.parametrize("kind", ["compiler", "runtime", "machine", "criterion", "group"])
-def test_config_init(kind, scope):
-    obj = tested.ConfigurationBlock(kind, "test-name", scope)
-
-    if scope is None:
-        scope = "local"
-    assert obj.scope == scope
-    assert obj.full_name == "{}.{}.{}".format(scope, kind, "test-name")
-    assert obj.short_name == "test-name"
-    assert not obj.is_found()
-    obj.check()
-
-
-def test_config_bad_kind():
-    with pytest.raises(ConfigException.BadTokenError):
-        tested.ConfigurationBlock("bad-kind", "test")
-
-    with pytest.raises(ConfigException.BadTokenError):
-        tested.ConfigurationBlock(None, "test")
-
-
-@pytest.mark.parametrize("kind", ["compiler", "runtime", "machine", "criterion", "group"])
-def test_config_test_runtemplate(kind, capsys):
-    io.init()
-    obj = tested.ConfigurationBlock(kind, "pcvs-pytest", "local")
-    assert not obj.is_found()
-    obj.load_template()
-    obj.flush_to_disk()
-    assert obj.is_found()
-    assert obj.ref_file == os.path.join(utils.STORAGES["local"], kind, "pcvs-pytest.yml")
-    res = obj.dump()
-
-    with open(
-        os.path.join(pcvs.PATH_INSTDIR, "templates/config/{}.default.yml".format(kind)), "r"
-    ) as fh:
-        ref = YAML(typ="safe").load(fh)
-        assert res == ref
-
-    obj.display()
-    stream = capsys.readouterr().out
-    assert "CONFIGURATION DISPLAY" in stream
-    assert "Scope: Local" in stream
-    assert (
-        "Path: {}".format(os.path.join(utils.STORAGES["local"], kind, "pcvs-pytest.yml")) in stream
-    )
-    obj.delete()
+def test_config_scopes():
+    """Check that config are correctly found at the right scope."""
+    with dummy_fs_with_configlocator_patch() as (cl, scopes_to_paths):
+        for k in ConfigKind.all_kinds():
+            for s in ConfigScope.all_scopes():
+                confs = cl.list_configs(k, s)
+                print(f"test: {str(k)}, {str(s)}")
+                assert len(confs) == 1
+                assert confs[0].path == Path(
+                    os.path.join(
+                        scopes_to_paths[s], str(k).lower(), f"default{ConfigKind.get_file_ext(k)}"
+                    )
+                )

@@ -16,6 +16,7 @@ properties:
             OneOf:
             - {type: array, items: {type: string}}
             - {type: string}
+          type: {type: string}
           extension: {type: string}
           variants:
             type: object

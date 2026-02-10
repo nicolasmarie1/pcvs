@@ -1,15 +1,15 @@
 import sys
 
 from pcvs.backend.bank import Bank
+from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.cli.cli_bank import compl_list_banks
-from pcvs.helpers.system import GlobalConfig
 
 try:
     import rich_click as click
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
 
 
 @click.command(
@@ -21,6 +21,7 @@ except ImportError:
     "--bank",
     "bankname",
     shell_complete=compl_list_banks,
+    required=True,
     default=None,
     help="explicit bank name to use.",
 )
@@ -34,7 +35,9 @@ except ImportError:
     help="read from file instead of stdin",
 )
 @click.pass_context
-def resolve(ctx, file, bankname):  # pylint: disable=unused-argument
+def cli_resolve(
+    ctx: click.Context, file: str, bankname: str  # pylint: disable=unused-argument
+) -> None:
 
     if file:
         with open(file, "r") as fh:

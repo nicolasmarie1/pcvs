@@ -1,0 +1,59 @@
+type: object
+properties:
+  fail_on_error:
+    type: boolean
+  default_profile:
+    type: string
+  output:
+    type: string
+  background:
+    type: boolean
+  override:
+    type: boolean
+  dirs:
+    type: object
+    patternProperties:
+      ^.*$:
+        type: string
+  runlog:
+    type: string
+  simulated:
+    type: boolean
+  anonymize:
+    type: boolean
+  target_bank:
+    type: string
+  reused_build:
+    type: string
+  author:
+    type: object
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+  scheduling:
+    type: object
+    properties:
+      model:
+        type: integer
+      sched_on:
+        type: string
+    additionalProperties: false
+  result:
+    type: object
+    properties:
+      log:
+        type: integer
+      logsz:
+        type: integer
+      format:
+        type: array
+        items:
+          type: string
+          enum:
+            - junit
+            - json
+            - yaml
+    additionalProperties: false
+additionalProperties: false

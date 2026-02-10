@@ -1,9 +1,19 @@
 ruamel.yaml
 click>=8.0
+requests
+types-requests
 jsonschema>=3.0.0
 flask
 sh
 rich
+rich-click
+# pygit2<=1.14.1 # do not add pygit2 to the doc build, does not work with github actions
+textual>=0.29.0
+matplotlib
+typing-extensions
+typeguard
+
+sphinx>=8.2.3
 sphinx-rtd-theme
 sphinx-autodoc-typehints
 #furo==2021.11.16

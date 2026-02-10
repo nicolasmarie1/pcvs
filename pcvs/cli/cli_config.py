@@ -1,201 +1,166 @@
 import sys
-
-from ruamel.yaml import YAML
+from pathlib import Path
+from typing import TextIO
 
 from pcvs import io
-from pcvs.backend import config as pvConfig
-from pcvs.helpers import utils
-from pcvs.helpers.exceptions import ConfigException
+from pcvs.backend import configfile
+from pcvs.backend.configfile import ConfigFile
+from pcvs.helpers.storage import ConfigDesc
+from pcvs.helpers.storage import ConfigKind
+from pcvs.helpers.storage import ConfigLocator
+from pcvs.helpers.storage import ConfigScope
 
 try:
     import rich_click as click
 
     click.rich_click.SHOW_ARGUMENTS = True
 except ImportError:
-    import click
+    import click  # type: ignore
+
+from click.utils import LazyFile
 
 
-def compl_list_token(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
-    """config name completion function.
-
-    :param ctx: Click context
-    :type ctx: :class:`Click.Context`
-    :param args: the option/argument requesting completion.
-    :type args: str
-    :param incomplete: the user input
-    :type incomplete: str
-    """
-    pvConfig.init()
-    flat_array = []
-    for kind in pvConfig.CONFIG_BLOCKS:
-        for scope in utils.storage_order():
-            for elt in pvConfig.CONFIG_EXISTING[kind][scope]:
-                flat_array.append(scope + "." + kind + "." + str(elt[0]))
-
-    return [elt for elt in flat_array if incomplete in elt]
+def compl_list_scope_kind(
+    ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
+) -> list[str]:
+    """Config Scope + Kind completion function."""
+    all_name = [f"{str(elt.scope)}:{str(elt.kind)}" for elt in ConfigLocator().list_all_configs()]
+    all_scope_kind_pair = sorted(set(all_name))
+    return [elt for elt in all_scope_kind_pair if incomplete in elt]
 
 
-def compl_list_templates(ctx, args, incomplete) -> list:  # pylint: disable=unused-argument
-    """Config template completion.
+def compl_list_configs(
+    ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
+) -> list[str]:
+    """All configs name completion function."""
+    return [
+        elt.full_name for elt in ConfigLocator().list_all_configs() if incomplete in elt.full_name
+    ]
 
-    :param ctx: Click context
-    :type ctx: :class:`Click.Context`
-    :param args: the option/argument requesting completion.
-    :type args: str
-    :param incomplete: the user input
-    :type incomplete: str"""
-    return [elt for elt in pvConfig.list_templates() if incomplete in elt]
+
+def compl_list_user_configs(
+    ctx: click.Context, param: click.Parameter, incomplete: str  # pylint: disable=unused-argument
+) -> list[str]:
+    """User only configs name completion function."""
+    return [
+        elt.full_name
+        for elt in ConfigLocator().list_all_configs()
+        if incomplete in elt.full_name and elt.scope != ConfigScope.GLOBAL
+    ]
 
 
 @click.group(
     name="config",
-    short_help="Manage Configuration blocks",
+    short_help="Manage Configurations",
 )
-@click.pass_context
-def config(ctx) -> None:  # pylint: disable=unused-argument
-    """The 'config' command helps user to manage configuration basic blocks in
-    order to set up a future validation to process. A basic block is the
-    smallest piece of configuration gathering similar information. Multiple
-    KIND exist:
+def cli_config() -> None:  # pylint: disable=unused-argument
+    """
+    The 'config' command helps user to manage configurations.
+    Their is multiples KIND of configurations:
 
     \b
-    - COMPILER : relative to compiler configuration (CC, CXX, FC...)
-    - RUNTIME  : relative to test execution (MPICC...)
-    - MACHINE  : describes a machine to potentially run validations (nodes...)
-    - CRITERION: defines piec of information to validate on (a.k.a. iterators')
-    - GROUP    : templates used as a convenience to filter out tests globally
-
+    - COMPILER  : relative to compiler configuration (CC, CXX, FC...)
+    - RUNTIME   : relative to test execution (MPICC...)
+    - MACHINE   : describes a machine to potentially run validations (nodes...)
+    - CRITERION : defines pieces of information to validate on (a.k.a. iterators')
+    - GROUP     : templates used as a convenience to filter out tests globally
+    \b
+    - PROFILE   : references for 1 of each of the 5 configurations above, used by `pcvs run`.
+    \b
+    - PLUGIN    : an additional python plugin to filter criterions, specify in the runtime config.
+    \b
     The scope option allows to select at which granularity the command applies:
     \b
-    - LOCAL: refers to the current working directory
-    - USER: refers to the current user HOME directory ($HOME)
-    - GLOBAL: refers to PCVS-rt installation prefix
+    - LOCAL     : refers to the current working directory
+    - USER      : refers to the current user HOME directory ($HOME)
+    - GLOBAL    : refers to PCVS-rt installation prefix
+    \b
+    Run `pcvs config list` to get a list of all configs and the path associated with each scopes.
+    \b
+    The `pcvs config ...` subcommands request a 'token' to reference a configuration.
+    Those tokens are a combination of a config SCOPE, a config KIND and the config name
+    formatted as follow 'scope:kind:name'.
+    (Look at section 'Getting Started' in the documentation to get auto completion !!)
     """
 
 
-def config_list_single_kind(kind, scope) -> None:
-    """Related to 'config list' command, handling a single 'kind' at a time.
-
-    :param kind: config kind
-    :type kind: str
-    :param scope: config scope
-    :type scope: str
-    """
-    # retrieve blocks to print
-    blocks = pvConfig.list_blocks(kind, scope)
-    if not blocks:
-        io.console.print_item("None")
-        return
-    elif scope is None:  # if no scope has been provided by the user
-        for sc in utils.storage_order():
-            # aggregate names for each scope
-            names = sorted([elt[0] for elt in [array for array in blocks[sc]]])
-            if not names:
-                io.console.print_item("[bright_black]{: <6s}: None".format(sc.upper()))
-            else:
-                io.console.print_item("{: <6s}: {}".format(sc.upper(), ", ".join(names)))
-    else:
-        names = sorted([x[0] for x in blocks])
-        io.console.print_item("{: <6s}: {}".format(scope.upper(), ", ".join(names)))
-
-
-@config.command(
+@cli_config.command(
     name="list",
     short_help="List available configuration blocks",
 )
 @click.argument(
-    "token", nargs=1, required=False, type=click.STRING, shell_complete=compl_list_token
-)
-@click.option(
-    "-a",
-    "--all",
-    "all_configs",
-    is_flag=True,
-    default=False,
-    help="Display extra resources (templates, etc.)",
+    "token",
+    nargs=1,
+    required=False,
+    type=str,
+    shell_complete=compl_list_scope_kind,
+    # help="Token in the form scope[:kind] or kind",
 )
 @click.pass_context
-def config_list(ctx, token, all_configs) -> None:  # pylint: disable=unused-argument
-    """List available configurations on the system. The list can be
-    filtered by applying a KIND. Possible values for KIND are documented
-    through the `pcvs config --help` command.
-
-    Additionally, a special KIND value has been added for this command
-    command only: the 'all' keyword, listing all possible configuration files
-    currently registered.
-        'all' is a specific value to list all configurations.
+def cli_config_list(
+    ctx: click.Context, token: str | None  # pylint: disable=unused-argument
+) -> None:
     """
-    (scope, kind, label) = (None, None, None)
-    if token:
-        (scope, kind, label) = utils.extract_infos_from_token(token, pair="left", single="center")
-    if label:
-        io.console.warn("no LABEL required for this command")
+    List available configurations on the system.
 
-    # special cases for 'list' command:
-    # - no 'label' are required (ignored otherwise)
-    # - a special 'all' value is allowed for 'kind' parameter
-    if kind is None or kind.lower() == "all":
-        kinds = pvConfig.CONFIG_BLOCKS
+    The list can be filtered by applying a KIND.
+    Possible values for KIND are documented through the `pcvs config --help` command.
+    """
+    if token is None:
+        scope, kinds = None, ConfigKind.all_kinds()
     else:
-        pvConfig.check_valid_kind(kind)
-        kinds = [kind]
-    utils.check_valid_scope(scope)
+        scope, kind = ConfigLocator().parse_scope_and_kind_raise(token)
+        kinds = [kind] if kind is not None else ConfigKind.all_kinds()
 
     io.console.print_header("Configuration view")
-
     for k in kinds:
-        io.console.print_section("Kind '{}'".format(k.upper()))
-        config_list_single_kind(k, scope)
+        io.console.print_section(f"Kind '{str(k).upper()}'")
+        scopes = [scope] if scope else ConfigScope.all_scopes()
+        for sc in scopes:
+            configs = ConfigLocator().list_configs(k, sc)
+            names = sorted([c.name for c in configs])
+            if len(names) == 0:
+                io.console.print_item(f"[bright_black]{str(sc): <6s}: None")
+            else:
+                io.console.print_item(f"{str(sc): <6s}: {names}")
 
-    if all_configs:
-        io.console.print_section("Available templates to create from (--base option):")
-        io.console.print_item(", ".join([x for x in sorted(pvConfig.list_templates())]))
-
-    # in case verbosity is enabled, add scope paths
-    io.console.info("Scopes are ordered as follows:")
-    for i, scope in enumerate(utils.storage_order()):
-        io.console.info("{}. {}: {}".format(i + 1, scope.upper(), utils.STORAGES[scope]))
+    io.console.print("Scopes are ordered as follows:")
+    for i, sc in enumerate(ConfigScope.all_scopes()):
+        io.console.print(f"{i + 1}. {str(sc).upper()}: {ConfigLocator().get_storage_dir(sc)}")
 
 
-@config.command(
+@cli_config.command(
     name="show",
     short_help="Show detailed view of the selected configuration",
 )
 @click.argument(
     "token",
     nargs=1,
-    type=click.STRING,
-    shell_complete=compl_list_token,
+    type=str,
+    shell_complete=compl_list_configs,
+    # help="Token in the form [scope:[kind:]]label",
 )
 @click.pass_context
-def config_show(ctx, token) -> None:  # pylint: disable=unused-argument
-    """Prints a detailed description of this configuration block, labeled NAME
+def cli_config_show(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
+    """
+    Prints a detailed description of this configuration block, labeled NAME
     and belonging to the KIND kind.
 
     Possible values for KIND are documented
     through the `pcvs config --help` command.
     """
-    (scope, kind, label) = utils.extract_infos_from_token(token)
-
-    block = pvConfig.ConfigurationBlock(kind, label, scope)
-    if block.is_found():
-        block.load_from_disk()
-        block.display()
-    else:
-        sc = scope
-        sc = "any" if sc is None else sc
-        raise click.BadArgumentUsage("No '{}' configuration found at {} level!".format(label, sc))
+    cd: ConfigDesc = ConfigLocator().parse_full_raise(token, should_exist=True)
+    configfile.get_conf(cd).display()
 
 
-@config.command(
+@cli_config.command(
     name="create",
     short_help="Create/Clone a configuration block",
 )
 @click.argument(
     "token",
     nargs=1,
-    type=click.STRING,
-    shell_complete=compl_list_token,
+    type=str,
 )
 @click.option(
     "-c",
@@ -204,16 +169,8 @@ def config_show(ctx, token) -> None:  # pylint: disable=unused-argument
     default=None,
     type=str,
     show_envvar=True,
+    shell_complete=compl_list_configs,
     help="Valid name to copy (may use scope, e.g. global.label)",
-)
-@click.option(
-    "-T",
-    "--base",
-    "base",
-    type=str,
-    default=None,
-    shell_complete=compl_list_templates,
-    help="Specify a template to bootstrap the configuration.",
 )
 @click.option(
     "-i/-I",
@@ -224,10 +181,18 @@ def config_show(ctx, token) -> None:  # pylint: disable=unused-argument
     help="Directly open the created config block in $EDITOR",
 )
 @click.pass_context
-def config_create(ctx, token, clone, base, interactive) -> None:  # pylint: disable=unused-argument
-    """Create a new configuration block for the given KIND. The newly created
-    block will be labeled NAME. It is inherited from a default template. This
-    can be overridden by specifying a CLONE argument.
+def cli_config_create(
+    ctx: click.Context,  # pylint: disable=unused-argument
+    token: str,
+    clone: str | None,
+    interactive: bool,
+) -> None:
+    """
+    Create a new configuration block for the given KIND.
+
+    The newly created block will be labeled NAME.
+    It is inherited from a default template.
+    This can be overridden by specifying a CLONE argument.
 
     The CLONE may be given raw (as a regular label) or prefixed by the scope
     this label is coming from. For instance, the user may pass 'global.mylabel'
@@ -237,45 +202,43 @@ def config_create(ctx, token, clone, base, interactive) -> None:  # pylint: disa
     Possible values for KIND are documented
     through the `pcvs config --help` command.
     """
-    if clone and base:
-        raise click.BadOptionUsage(
-            "--clone/--base", "--clone & --base cannot be used simultaneously."
+    cd: ConfigDesc = ConfigLocator().parse_full_raise(token, should_exist=False)
+
+    if cd.exist:
+        raise click.BadArgumentUsage(f"Configuration '{cd.full_name}' already exists!")
+    if cd.scope == ConfigScope.GLOBAL:
+        raise click.BadArgumentUsage(
+            f"Can't create configuration '{cd.full_name}' in installation scope !"
         )
 
-    (scope, kind, label) = utils.extract_infos_from_token(token)
-
-    copy = pvConfig.ConfigurationBlock(kind, label, scope)
-    if copy.is_found():
-        raise click.BadArgumentUsage("Configuration '{}' already exists!".format(copy.full_name))
+    conf: ConfigFile = configfile.get_conf(cd)
 
     if clone is not None:
-        (c_scope, c_kind, c_label) = utils.extract_infos_from_token(clone, pair="span")
-        if c_kind is not None and c_kind != kind:
-            raise click.BadArgumentUsage("Can only clone from a conf. blocks with the same KIND!")
-        cfg = pvConfig.ConfigurationBlock(kind, c_label, c_scope)
-        if not cfg.is_found():
-            raise click.BadArgumentUsage("There is no such conf.block named '{}'".format(clone))
-        cfg.load_from_disk()
-        copy.clone(cfg)
+        cdc: ConfigDesc = ConfigLocator().parse_full_raise(clone, should_exist=True)
+        if cdc.kind != cd.kind:
+            raise click.BadArgumentUsage("Can only clone from a conf blocks with the same KIND!")
+        conf.from_str(configfile.get_conf(cdc).to_str())
     else:
-        copy.load_template(base)
+        # if base is not specify, copy from default config
+        default_config = ConfigLocator().find_config(Path("default"), cd.kind, ConfigScope.GLOBAL)
+        assert default_config is not None
+        conf.from_str(configfile.get_conf(default_config).to_str())
 
-    copy.check()
+    conf.flush_to_disk()
 
-    copy.flush_to_disk()
     if interactive:
-        copy.edit()
+        conf.edit()
 
 
-@config.command(
+@cli_config.command(
     name="destroy",
     short_help="Remove a config block",
 )
 @click.argument(
     "token",
     nargs=1,
-    type=click.STRING,
-    shell_complete=compl_list_token,
+    type=str,
+    shell_complete=compl_list_user_configs,
 )
 @click.confirmation_option(
     "-f",
@@ -284,24 +247,22 @@ def config_create(ctx, token, clone, base, interactive) -> None:  # pylint: disa
     help="Do not ask for confirmation before deletion",
 )
 @click.pass_context
-def config_destroy(ctx, token) -> None:  # pylint: disable=unused-argument
+def cli_config_destroy(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
     """
     Erase from disk a previously created configuration block.
 
     Possible values for KIND are documented
     through the `pcvs config --help` command.
     """
-    (scope, kind, label) = utils.extract_infos_from_token(token)
-    c = pvConfig.ConfigurationBlock(kind, label, scope)
-    if c.is_found():
-        c.delete()
-    else:
+    cd: ConfigDesc = ConfigLocator().parse_full_raise(token, should_exist=True)
+    if cd.scope == ConfigScope.GLOBAL:
         raise click.BadArgumentUsage(
-            "Configuration '{}' not found!\nPlease check the 'list' command".format(label)
+            f"Can't destroy configuration '{cd.full_name}' in installation scope !"
         )
+    configfile.get_conf(cd).delete()
 
 
-@config.command(
+@cli_config.command(
     name="edit",
     short_help="edit the config block",
 )
@@ -309,18 +270,10 @@ def config_destroy(ctx, token) -> None:  # pylint: disable=unused-argument
     "token",
     nargs=1,
     type=click.STRING,
-    shell_complete=compl_list_token,
-)
-@click.option(
-    "-p",
-    "--edit-plugin",
-    "edit_plugin",
-    is_flag=True,
-    default=False,
-    help="runtime-only: edit plugin code instead of config file",
+    shell_complete=compl_list_user_configs,
 )
 @click.pass_context
-def config_edit(ctx, token, edit_plugin) -> None:  # pylint: disable=unused-argument
+def cli_config_edit(ctx: click.Context, token: str) -> None:  # pylint: disable=unused-argument
     """
     Open the file with $EDITOR for direct modifications. The configuration is
     then validated to ensure consistency.
@@ -328,19 +281,17 @@ def config_edit(ctx, token, edit_plugin) -> None:  # pylint: disable=unused-argu
     Possible values for KIND are documented
     through the `pcvs config --help` command.
     """
-    (scope, kind, label) = utils.extract_infos_from_token(token)
-
-    block = pvConfig.ConfigurationBlock(kind, label, scope)
-    if block.is_found():
-        if edit_plugin:
-            block.edit_plugin()
-        else:
-            block.edit()
-    else:
-        raise click.BadArgumentUsage("Cannot open this configuration: does not exist!")
+    cd: ConfigDesc = ConfigLocator().parse_full_raise(token, should_exist=True)
+    if cd.scope == ConfigScope.GLOBAL:
+        raise click.BadArgumentUsage(
+            f"Can't edit configuration '{cd.full_name}'.\n"
+            "Edit of config in installation scope are disable!\n"
+            "Use config 'create --clone conf name' to clone default configs."
+        )
+    configfile.get_conf(cd).edit()
 
 
-@config.command(
+@cli_config.command(
     name="import",
     short_help="Import config from a file",
 )
@@ -348,7 +299,7 @@ def config_edit(ctx, token, edit_plugin) -> None:  # pylint: disable=unused-argu
     "token",
     nargs=1,
     type=click.STRING,
-    shell_complete=compl_list_token,
+    shell_complete=compl_list_user_configs,
 )
 @click.option(
     "-s",
@@ -366,7 +317,12 @@ def config_edit(ctx, token, edit_plugin) -> None:  # pylint: disable=unused-argu
     help="Erase any previously existing config.",
 )
 @click.pass_context
-def config_import(ctx, token, in_file, force) -> None:  # pylint: disable=unused-argument
+def cli_config_import(
+    ctx: click.Context,  # pylint: disable=unused-argument
+    token: str,
+    in_file: TextIO,
+    force: bool,
+) -> None:
     """
     Import a new configuration block from a YAML file named IN_FILE.
     The configuration is then validated to ensure consistency.
@@ -374,17 +330,21 @@ def config_import(ctx, token, in_file, force) -> None:  # pylint: disable=unused
     Possible values for KIND are documented
     through the `pcvs config --help` command.
     """
-    (scope, kind, label) = utils.extract_infos_from_token(token)
+    cd: ConfigDesc = ConfigLocator().parse_full_raise(token)
+    if cd.scope == ConfigScope.GLOBAL:
+        raise click.BadArgumentUsage(
+            f"Can't import configurations '{cd.full_name}' in installation scope !"
+        )
+    conf: ConfigFile = configfile.get_conf(cd)
+    if conf.exist and not force:
+        raise click.BadArgumentUsage(
+            f"Configuration '{cd.full_name}' already exist! To override existing configuration use '-f'."
+        )
+    conf.from_str(in_file.read())
+    conf.flush_to_disk()
 
-    obj = pvConfig.ConfigurationBlock(kind, label, scope)
-    if not obj.is_found() or force:
-        obj.fill(YAML(typ="safe").load(in_file.read()))
-        obj.flush_to_disk()
-    else:
-        raise ConfigException.AlreadyExistError("{}".format(obj.full_name))
 
-
-@config.command(
+@cli_config.command(
     name="export",
     short_help="Export config into a file",
 )
@@ -392,7 +352,7 @@ def config_import(ctx, token, in_file, force) -> None:  # pylint: disable=unused
     "token",
     nargs=1,
     type=click.STRING,
-    shell_complete=compl_list_token,
+    shell_complete=compl_list_configs,
 )
 @click.option(
     "-o",
@@ -402,18 +362,16 @@ def config_import(ctx, token, in_file, force) -> None:  # pylint: disable=unused
     default=sys.stdout,
 )
 @click.pass_context
-def config_export(ctx, token, out_file):  # pylint: disable=unused-argument
+def cli_config_export(
+    ctx: click.Context, token: str, out_file: LazyFile  # pylint: disable=unused-argument
+) -> None:
     """
     Export a new configuration block to a YAML file named OUT_FILE.
 
     Possible values for KIND are documented
     through the `pcvs config --help` command.
     """
-    (scope, kind, label) = utils.extract_infos_from_token(token)
+    cd: ConfigDesc = ConfigLocator().parse_full_raise(token, should_exist=True)
+    conf: ConfigFile = configfile.get_conf(cd)
 
-    obj = pvConfig.ConfigurationBlock(kind, label, scope)
-    if obj.is_found():
-        obj.load_from_disk()
-        YAML(typ="safe").dump(obj.dump(), out_file)
-    else:
-        raise click.BadArgumentUsage("Config block not found: '{}'".format(token))
+    out_file.write(conf.to_str())

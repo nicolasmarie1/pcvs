@@ -1,0 +1,5 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/criterion-scheme.yml
+---
+n_omp:
+  subtitle: o
+  values: [1, 4, 8]

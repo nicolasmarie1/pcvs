@@ -4,13 +4,15 @@ import pathlib
 from unittest.mock import patch
 
 import pytest
-from click.testing import CliRunner
 from ruamel.yaml import YAML
 
+from pcvs.backend.metaconfig import GlobalConfig
+from pcvs.backend.metaconfig import MetaConfig
 from pcvs.helpers import pm
-from pcvs.helpers import system
+from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.plugins import Collection
 from pcvs.testing import testfile as tested
+from tests.pcvs.conftest import isolated_fs
 
 
 def test_replace_tokens():
@@ -63,7 +65,7 @@ def isolated_yml_test():
             "tag": ["std_1", "constant"],
         }
     }
-    with CliRunner().isolated_filesystem():
+    with isolated_fs():
         path = os.getcwd()
         testdir = "test-dir"
         os.makedirs(testdir)
@@ -74,9 +76,32 @@ def isolated_yml_test():
 
 
 @patch(
-    "pcvs.helpers.system.GlobalConfig.root",
-    system.MetaConfig(
+    "pcvs.backend.metaconfig.GlobalConfig.root",
+    MetaConfig(
         {
+            "compiler": {
+                "compilers": {
+                    "cc": {
+                        "program": "/path/to/cc",
+                        "extension": ".*\\.c",
+                        "variants": {
+                            "openmp": {
+                                "args": "-fopenmp",
+                            },
+                        },
+                    }
+                },
+            },
+            "group": {},
+            "criterion": {
+                "n_mpi": {
+                    "numeric": True,
+                    "values": [1, 2, 4],
+                    "subtitle": "mpi",
+                },
+            },
+            "runtime": {},
+            "machine": {},
             "validation": {
                 "output": "test_output",
                 "dirs": {"keytestdir": "valuetestdir"},
@@ -89,18 +114,20 @@ def isolated_yml_test():
     ),
 )
 @patch.dict(os.environ, {"HOME": "/home/user", "USER": "superuser"})
-@patch("pcvs.testing.tedesc.TEDescriptor", autospec=True)
-def test_TestFile(tedesc, isolated_yml_test):  # pylint: disable=redefined-outer-name
-    def dummydesc():
-        pass
-
-    tedesc.construct_tests = dummydesc
-    testfile = tested.TestFile(
-        os.path.join(isolated_yml_test, "test-dir/pcvs.yml"),
-        os.path.dirname(isolated_yml_test),
-        label="keytestdir",
-        prefix=".",
-    )
-    testfile.process()
-    testfile.generate_debug_info()
-    testfile.flush_sh_file()
+# @patch("pcvs.testing.tedesc.TEDescriptor", autospec=True)
+def test_testfile(isolated_yml_test):  # pylint: disable=redefined-outer-name
+    # orcherstrator use global config to setup, so it need to be added at runtime
+    # after GlobalConfig have already been initialize.
+    with isolated_fs():
+        GlobalConfig.root.set_internal("build_manager", BuildDirectoryManager())
+        # GlobalConfig.root.set_internal("orchestrator", Orchestrator())
+        testfile = tested.TestFile(
+            os.path.join(isolated_yml_test, "test-dir/pcvs.yml"),
+            os.path.dirname(isolated_yml_test),
+            label="keytestdir",
+            prefix=".",
+        )
+        testfile.load_from_file()
+        testfile.process()
+        testfile.generate_debug_info()
+        testfile.flush_sh_file()
