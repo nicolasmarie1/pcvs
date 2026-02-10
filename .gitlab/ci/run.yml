@@ -70,9 +70,8 @@ Deploy Doc:
   stage: Deploy
   extends: ['.prepare_env']
   rules:
-    - if: '$SUB_VERSION == "12" && $CI_COMMIT_BRANCH == "devel"'
+    - if: '$DEPLOY_DOC == "true" && $CI_COMMIT_BRANCH == "devel"'
   pages: true
-
   script:
     - cd docs && make html
   after_script:
