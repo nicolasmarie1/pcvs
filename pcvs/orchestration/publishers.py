@@ -376,6 +376,9 @@ class ResultFileManager:
             else:
                 return default
 
+        # a mapping of already seen job_id & jobs, to avoid collision when saviong to file.
+        self._already_seen: dict[str, Test] = {}
+
         self._mapdata = preload_if_exist(map_filename, {})
         # TODO: split mapdata_rev into 2 dicts
         self._mapdata_rev: dict[str, str | Test] = {}
@@ -417,8 +420,11 @@ class ResultFileManager:
         # noqa: DAR402
         """
         job_id = job.jid
-        if job_id in self._mapdata.keys():
-            raise PublisherException.AlreadyExistJobError(job.name)
+        if job_id in self._already_seen:
+            raise PublisherException.AlreadyExistJobError(
+                f"Job '{job.name}' with job id: {job_id} is already register as '{self._already_seen[job_id].name}'"
+            )
+        self._already_seen[job_id] = job
 
         # create a new file if the current one is 'large' enough
         assert self._current_file is not None

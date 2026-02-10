@@ -28,6 +28,7 @@ from pcvs.helpers import utils
 from pcvs.helpers.communications import GenericServer
 from pcvs.helpers.exceptions import RunException
 from pcvs.helpers.exceptions import ValidationException
+from pcvs.io import Verbosity
 from pcvs.orchestration import Orchestrator
 from pcvs.orchestration.publishers import BuildDirectoryManager
 from pcvs.plugins import Plugin
@@ -190,7 +191,7 @@ def process_main_workflow(the_session: Session) -> int:
     rc = global_config.get_internal("orchestrator").run(the_session)
     assert isinstance(rc, int)
 
-    if io.console.verb_detailed:
+    if io.console.verbosity >= Verbosity.DETAILED:
         io.console.print_header("Execution Summary")
         io.console.print_job_summary()
 

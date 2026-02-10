@@ -94,5 +94,5 @@ def test_process_wrong_setup_script(
     TEDescriptor.init_system_wide("n_node")
     try:
         tested.process_dyn_setup_scripts([("L1", "subtree", "pcvs.setup")])
-    except ValidationException.FormatError:
+    except (ValidationException.FormatError, ValidationException.YamlError):
         pass

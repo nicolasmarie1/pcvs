@@ -2,15 +2,15 @@
  Banks
 #######
 
-Banks save results of sucessives runs and retrieve themes.
+Banks save results of successive runs and retrieve themes.
 They can be used to compare tests durations and test results from run to run
 or to set dynamic validation time based on previous test to automatically catch performance regression.
 
-A bank, contain multiples project, with each project containing multiples pcvs run results.
-The project layer allow using the same bank for differants pcvs run tests suits.
+A bank, contain multiples project, with each project containing multiples PCVS run results.
+The project layer allows using the same bank for different PCVS run tests.
 You can specify a project and a bank together with ``projectname@bankname``.
 Banks are implemented as git repository, where each project is a git branch,
-each pcvs run results is a commit and each unique test result is a file in the git tree.
+each PCVS run results is a commit and each unique test result is a file in the git tree.
 
 .. note::
 
@@ -19,7 +19,7 @@ each pcvs run results is a commit and each unique test result is a file in the g
 Create, Manage or Delete a bank
 ###############################
 
-To Create a bank:
+To Create a bank, use the command:
 
 .. code-block::
 
@@ -29,7 +29,7 @@ To Create a bank:
 
     If the folder already exist and is a valid bank git repository, you can use ``pcvs bank init`` to import it.
 
-To delete a bank:
+To delete a bank, use the command:
 
 .. code-block::
 
@@ -39,14 +39,14 @@ To delete a bank:
 
    The bank in only unlinked by bank destroy, to delete the repository completely, remove the folder containing the bank manually.
 
-To list existing banks:
+To list existing banks, use the command:
 
 .. code-block::
 
     pcvs bank list
 
 
-To show bank, list theirs projects and count theirs saved runs:
+To show a bank, list theirs projects and count theirs saved runs:
 
 .. code-block::
 

@@ -6,6 +6,7 @@ from pcvs.backend import session
 from pcvs.backend.metaconfig import GlobalConfig
 from pcvs.backend.session import Session
 from pcvs.helpers.resource_tracker import ResourceTracker
+from pcvs.io import Verbosity
 from pcvs.orchestration.manager import Manager
 from pcvs.orchestration.runner import RunnerAdapter
 from pcvs.orchestration.set import Set
@@ -14,7 +15,7 @@ from pcvs.testing.test import Test
 from pcvs.testing.teststate import TestState
 
 
-def global_stop(e: Exception) -> None:
+def global_stop(e: Exception | KeyboardInterrupt) -> None:
     Orchestrator.stop()
     raise e
 
@@ -69,13 +70,13 @@ class Orchestrator:
     def compute_deps(self) -> None:
         """Compute tests dependencies and filter tests based on tags."""
         self._manager.resolve_deps()
-        if io.console.verb_debug:
+        if io.console.verbosity >= Verbosity.DEBUG:
             self._manager.print_dep_graph("./graph.dat")
         # filter test that should be run based on tags
         # this need to be done after the deps are computed to avoid
         # removing test dependency that are not tagged
         self._manager.filter_tags()
-        if io.console.verb_debug:
+        if io.console.verbosity >= Verbosity.DEBUG:
             self._manager.print_dep_graph("./graph-filter.dat")
 
     # TODO implement restart so the session does not have
@@ -125,10 +126,10 @@ class Orchestrator:
                 if currently_scheduled_count == 0:
                     nb_jobs = self._manager.get_leftjob_count()
                     if nb_jobs > 0:
-                        self._manager.prune_all_jobs_as_non_runnable()
                         io.console.error(
                             f"Job scheduler stuck, fail to schedule {nb_jobs} jobs !!!"
                         )
+                        self._manager.prune_all_jobs_as_non_runnable()
                 # Look for tests completions
                 try:
                     # while queue is not empty

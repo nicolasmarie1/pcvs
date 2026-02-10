@@ -311,6 +311,7 @@ class Profile(YmlConfigFile):
     def _load_sub_configs(self) -> None:
         """Load sub configurations referenced by plugin."""
         assert self.loaded
+        super()._check()
         for kind in Profile.CONFIGS_KINDS:
             user_token: str = super().config[str(kind).lower()]
             if user_token == "":

@@ -156,13 +156,16 @@ class Manager:
         change: bool = True
         while change:
             change = False
+            to_remove: list[str] = []
             for jid, job in self.jobs.items():
                 if not job.should_run():
                     io.console.debug(f"Filtering test: {job.name}")
                     job.remove_test_from_deps()
-                    self.jobs.pop(jid)
+                    to_remove.append(jid)
                     self._count["total"] -= 1
                     change = True
+            for jid in to_remove:
+                self.jobs.pop(jid)
 
     def get_leftjob_count(self) -> int:
         """Return the number of jobs remaining to be executed.
@@ -182,7 +185,7 @@ class Manager:
         if self._comman:
             self._comman.send(job)
         self._count["executed"] += 1
-        if job.state not in self._count:
+        if str(job.state) not in self._count:
             self._count[str(job.state)] = 0
         self._count[str(job.state)] += 1
         assert self._publisher is not None
@@ -190,7 +193,8 @@ class Manager:
 
     def prune_all_jobs_as_non_runnable(self) -> None:
         for _, job in self.jobs.items():
-            self.publish_failed_to_run_job(job, Test.DISCARDED_STR, TestState.ERR_OTHER)
+            if job.state == TestState.WAITING:
+                self.publish_failed_to_run_job(job, Test.DISCARDED_STR, TestState.ERR_OTHER)
 
     def create_subset(self, resources_tracker: ResourceTracker) -> Set | None:
         """Extract one or more jobs, ready to be run.
@@ -232,11 +236,13 @@ class Manager:
         user_sched_job = self._plugin.has_enabled_step(Plugin.Step.SCHED_JOB_EVAL)
 
         assert self._jobs_cache is not None  # self.create_job_cache should be run.
+        to_remove: list[int] = []  # list of index to remove from self._jobs_cache
         for index, (_, job) in enumerate(self._jobs_cache):
             # test not ready to be run
             if job.state != TestState.WAITING:
-                io.console.warning("Job with wrong state in scheduler, ignoring!")
-                continue
+                io.console.critical(
+                    f"Job: '{job.name}' with wrong state: '{job.state}' in scheduler, STOP!"
+                )
 
             if not job.has_completed_deps():
                 # job has missing dependency
@@ -245,6 +251,7 @@ class Manager:
             if job.has_failed_dep():
                 # Cannot be scheduled for dep purposes push it to publisher
                 self.publish_failed_to_run_job(job, Test.NOSTART_STR, TestState.ERR_DEP)
+                to_remove.append(index)
                 # Attempt to find another job to schedule
                 continue
 
@@ -265,12 +272,12 @@ class Manager:
                     job.alloc_tracking = res
 
             # if job have been selected for schedule (== have passed resources allocation)
-            if job.state != TestState.IN_PROGRESS and pick_job:
+            if pick_job:
                 job.pick()
                 if scheduled_set is None:
                     scheduled_set = Set(execmode=ExecMode.LOCAL)
                 scheduled_set.add(job)
-                self._jobs_cache.pop(index)
+                to_remove.append(index)
                 # Schedule set should only be of size one to avoid
                 # issue with multiples runner scheduling as multiples
                 # jobs in the same set cannot be scheduled at the same time.
@@ -278,6 +285,9 @@ class Manager:
 
             # Resources exhausted
             break
+
+        for i in reversed(to_remove):
+            del self._jobs_cache[i]
 
         return scheduled_set
 
@@ -298,5 +308,5 @@ class Manager:
             job.extract_metrics()
             job.save_artifacts()
             job.evaluate()
-            self.publish_job(job, publish_args=None)
             job.display()
+            self.publish_job(job, publish_args=None)

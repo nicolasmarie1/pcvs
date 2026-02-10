@@ -5,20 +5,18 @@ import os
 import pathlib
 import pprint
 import re
-import tempfile
 from typing import Any
 
 from ruamel.yaml import YAML
 from ruamel.yaml import YAMLError
 
 from pcvs import io
-from pcvs import PATH_INSTDIR
 from pcvs import testing
 from pcvs.backend.metaconfig import GlobalConfig
-from pcvs.converter import yaml_converter
 from pcvs.helpers.exceptions import TestException
 from pcvs.helpers.exceptions import ValidationException
 from pcvs.helpers.validation import ValidationScheme
+from pcvs.io import Verbosity
 from pcvs.plugins import Plugin
 from pcvs.testing import tedesc
 from pcvs.testing.test import Test
@@ -173,48 +171,19 @@ class TestFile:
         with open(os.path.join(curbuild, "pcvs.setup.yml"), "w") as fh:
             YAML(typ="safe").dump(self._raw, fh)
 
-    @io.capture_exception(Exception, doexit=False)
-    def validate(self, allow_conversion: bool = True) -> bool:
+    def validate(self) -> bool:
         """Test file validation"""
         try:
             if self._raw:
                 self.val_scheme.validate(self._raw, filepath=self._in)
             return True
         except ValidationException.WrongTokenError as e:
-            # Issues with replacing @...@ keys
             e.add_dbg("file", self._in)
             raise TestException.TestExpressionError([self._in]) from e
-
         except ValidationException.FormatError as e:
-            # YAML is valid but not following the Scheme
-            # If YAML is invalid, load() functions will failed first
-
-            # At first attempt, YAML are converted.
-            # There is no second chance
-            if not allow_conversion:
-                e.add_dbg("file", self._in)
-                raise e
-
-            tmpfile = tempfile.mkstemp()[1]
-            with open(tmpfile, "w", encoding="utf-8") as fh:
-                YAML(typ="safe").dump(self._raw, fh)
-
-            try:
-                template = os.path.join(PATH_INSTDIR, "templates/config/group-compat.yml")
-                yaml_converter.convert(tmpfile, "te", template, None, None, False, True, True)
-            except Exception as er:
-                io.console.error(f"An error occurred when trying to update file {self._in}.")
-                raise er from e
-
-            with open(tmpfile, "r", encoding="utf-8") as fh:
-                converted_data = YAML(typ="safe").load(fh)
-
-            self._raw = converted_data
-            # I don't understand this type error
-            self.validate(allow_conversion=False)  # type: ignore
-            io.console.warning("\t--> Legacy syntax for: {}".format(self._in))
-            io.console.warning("Please consider updating it with `pcvs_convert -k te`")
-            return False
+            e.add_dbg("file", self._in)
+            raise e
+        return False
 
     @property
     def nb_descs(self) -> int:
@@ -250,7 +219,8 @@ class TestFile:
         # if self._raw is None:
         #     self.load_from_file(self._in)
 
-        self.validate()
+        if not self.validate():
+            return
 
         # main loop, parse each node to register tests
         assert self._raw is not None
@@ -317,8 +287,7 @@ for arg in "$@"; do case $arg in
                 fh_sh.write(test.generate_script(fn_sh))
                 # GlobalConfig.root.get_internal("orchestrator").add_new_job(test)
 
-            fh_sh.write(
-                """
+            fh_sh.write("""
         --list) printf "{list_of_tests}\\n"; exit 0;;
         *) printf "Invalid test-name \'$arg\'\\n"; exit 1;;
         esac
@@ -350,16 +319,13 @@ ${{pcvs_cmd}}
 EOF
         fi
     fi
-    exit $?\n""".format(
-                    list_of_tests="\n".join([t.name for t in self._tests])
-                )
-            )
+    exit $?\n""".format(list_of_tests="\n".join([t.name for t in self._tests])))
 
         self.generate_debug_info()
 
     def generate_debug_info(self) -> None:
         """Dump debug info to the appropriate file for the input object."""
-        if len(self._debug) and io.console.verb_debug:
+        if len(self._debug) and io.console.verbosity >= Verbosity.DEBUG:
             with open(os.path.join(self._path_out, "dbg-pcvs.yml"), "w") as fh:
                 # compute max number of combinations from system iterators
                 sys_cnt = functools.reduce(

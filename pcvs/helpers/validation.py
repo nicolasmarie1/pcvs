@@ -1,4 +1,5 @@
 import os
+import pprint
 from typing import Any
 
 import jsonschema
@@ -64,8 +65,11 @@ class ValidationScheme:
 
         :param content: json to validate
         :param filepath: the path of the file content come from
-        :raises FormatError: data are not valid
-        :raises SchemeError: issue while applying scheme
+        :raises ValidationException.FormatError: data are not valid
+        :raises ValidationException.SchemeError: issue while applying scheme
+
+        # noqa: DAR401
+        # noqa: DAR402
         """
         assert filepath
         if not filepath:
@@ -77,13 +81,13 @@ class ValidationScheme:
         try:
             jsonschema.validate(instance=content, schema=self.schema)
         except jsonschema.exceptions.ValidationError as e:
-            raise ValidationException.FormatError(
-                reason=f"\nFailed to validate input file: '{filepath}'\n"
-                f"Validation against schema '{self.schema_name}'\n"
-                f"Context is: \n {content}\n"
-                f"Schema is: \n {self.schema}\n"
-                f"Validation error message is:\n {e.message}\n"
-            ) from e
+            fe = ValidationException.FormatError(reason="Failed to validate input file.")
+            fe.add_dbg("file path", filepath)
+            fe.add_dbg("validation schema", self.schema_name)
+            fe.add_dbg("YAML validator error", e.message)
+            fe.add_dbg("file content", pprint.pformat(content))
+            fe.add_dbg("raw schema", pprint.pformat(self.schema))
+            raise fe from e
         except jsonschema.exceptions.SchemaError as e:
             raise ValidationException.SchemeError(
                 name=self.schema_name, content=self.schema, error=e

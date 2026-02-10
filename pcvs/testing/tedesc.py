@@ -78,7 +78,7 @@ def extract_compiler_config(
             dbg_info={"compiler": compiler, "list": GlobalConfig.root["compiler"]["compilers"]},
         )
 
-    config = GlobalConfig.root["compiler"]["compilers"][compiler]
+    config = copy.deepcopy(GlobalConfig.root["compiler"]["compilers"][compiler])
     for v in variants:
         if v in config["variants"]:
             for k, v in config["variants"][v].items():
@@ -131,6 +131,16 @@ def build_pm_deps(deps_node: dict[str, Any]) -> list[PManager]:
     :return: a list of PM objects, one for each entry
     """
     return pm.identify(deps_node.get("package_manager", {}))
+
+
+def deepupdate(original: dict, update: dict) -> dict:
+    """Recursively update of a python dictionary."""
+    for key, value in update.items():
+        if isinstance(value, dict):
+            original[key] = deepupdate(original.get(key, {}), value)
+        else:
+            original[key] = value
+    return original
 
 
 class TEDescriptor:
@@ -194,10 +204,10 @@ class TEDescriptor:
         # arregate the 'group' definitions with the TE
         # to get all the fields in their final form
         if "group" in nodecontent and nodecontent["group"] in GlobalConfig.root["group"].keys():
-            tmp = GlobalConfig.root["group"][nodecontent["group"]]
-            tmp.update(nodecontent)
-            nodecontent = tmp
-        # io.console.debug(f"test-descriptor: {nodecontent}")
+            group: dict = GlobalConfig.root["group"][nodecontent["group"]]
+            new_node: dict = copy.deepcopy(group)
+            deepupdate(new_node, nodecontent)
+            nodecontent = new_node
 
         # load from descriptions
         self._build: dict = nodecontent.get("build", {})
@@ -327,7 +337,7 @@ class TEDescriptor:
             test_crits = {}
             # browse declared criterions (system-wide)
             for k_sys, v_sys in self._sys_crit.items():
-                # if we do note inherite from this criterion, skip it
+                # if we do not inherite from this criterion, skip it
                 if (
                     "inherite" in self._run["iterate"]
                     and k_sys not in self._run["iterate"]["inherite"]

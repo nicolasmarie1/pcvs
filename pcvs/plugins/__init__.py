@@ -5,11 +5,15 @@ import os
 import pkgutil
 import sys
 from abc import abstractmethod
+from pathlib import Path
 from types import ModuleType
 from typing import Any
 
 from pcvs import io
 from pcvs.helpers.exceptions import PluginException
+from pcvs.helpers.storage import ConfigKind
+from pcvs.helpers.storage import ConfigLocator
+from pcvs.helpers.storage import ConfigScope
 
 
 class Plugin:
@@ -91,7 +95,12 @@ class Collection:
         try:
             self.register_plugin_by_package("pcvs.plugins.default", activate=True)
             self.register_plugin_by_package("pcvs.plugins.contrib")
-            self.register_plugin_by_package("pcvs.config.plugin")
+            # self.register_plugin_by_package("pcvs.config.plugin")
+            cl = ConfigLocator()
+            for scope in ConfigScope.all_scopes():
+                for p in cl.list_configs(ConfigKind.PLUGIN, scope):
+                    self.register_plugin_by_file(p.path)
+
         except Exception as e:
             raise PluginException("Error while registering plugin.") from e
 
@@ -197,7 +206,7 @@ class Collection:
         if empty:
             io.console.print_item("None")
 
-    def register_plugin_by_file(self, modpath: str, activate: bool = False) -> None:
+    def register_plugin_by_file(self, modpath: Path, activate: bool = False) -> None:
         """Based on a filepath (as a module dir), load plugins contained in it.
 
         :param modpath: valid python filepath
@@ -205,12 +214,12 @@ class Collection:
         """
         io.console.debug(f"Registering plugin by path: {modpath}")
         # the content is added to "pcvs-contrib" module
-        spec = importlib.util.spec_from_file_location("contrib", modpath)
+        spec = importlib.util.spec_from_file_location("contrib", str(modpath))
         assert spec is not None
         mod = importlib.util.module_from_spec(spec)
         assert spec.loader is not None
         spec.loader.exec_module(mod)
-        self.register_plugin_by_module(str(mod), mod, activate)
+        self.register_plugin_by_module(modpath.stem, mod, activate)
 
     def register_plugin_by_module(self, name: str, mod: ModuleType, activate: bool = False) -> None:
         """Based on a module name, load any defined plugin.
@@ -226,7 +235,10 @@ class Collection:
                 step_str = str(the_class.step)
                 io.console.debug(f"Registering plugin '{name}' by module '{mod}' ({step_str})")
                 if self.exist_plugin(name):
-                    io.console.critical(f"A plugin with the name {name} is already register.")
+                    io.console.warning(
+                        f"A plugin with the name {name} is already register, skipping..."
+                    )
+                    return
                 self._plugins[the_class.step][name] = the_class()
                 if activate:
                     self.activate_plugin(name)

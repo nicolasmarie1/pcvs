@@ -53,8 +53,12 @@ def iterate_dirs(
 
     err_msg = ""
     for d in value:
-        testpath = os.path.abspath(d)
-        label = os.path.basename(testpath)
+        if ":" in d:  # split under LABEL:PATH semantics
+            [label, testpath] = d.split(":")
+            testpath = os.path.abspath(testpath)
+        else:  # otherwise, LABEL = dirname
+            testpath = os.path.abspath(d)
+            label = os.path.basename(testpath)
 
         # if label already used for a different path
         if label in dirs and testpath != dirs[label]:
@@ -102,7 +106,7 @@ def compl_list_profiles(
     ]
 
 
-def handle_build_lockfile(exc: Exception | None = None) -> None:
+def handle_build_lockfile(exc: Exception | KeyboardInterrupt | None = None) -> None:
     """Remove the file lock in build dir if the application stops abruptly.
 
     This function will automatically forward the raising exception to the next

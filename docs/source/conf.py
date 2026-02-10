@@ -382,3 +382,9 @@ autoclass_content = "both"
 
 # mock import to avoid textual modules to be reuse in pcvs doc
 autodoc_mock_imports = ["textual"]
+
+# remove false positive of "Cannot resolve forward reference in type annotations"
+# TODO remove when sphinx_autodoc_typehints get it's shit toogether
+suppress_warnings = [
+    "sphinx_autodoc_typehints.forward_reference",
+]

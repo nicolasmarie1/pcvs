@@ -64,7 +64,7 @@ class MpcPlugin(Plugin):
                 f"cpus per nodes\t{n_proc} > {nb_cores_total}"
             )
             return False
-        nb_core_per_proc = (nb_cores * n_node) // n_proc
+        nb_core_per_proc = (nb_cores // n_proc) * n_node
         if n_core is not None and n_core > 1 and n_core > nb_core_per_proc:
             io.console.crit_debug(
                 f"{comb}Ask for more cpus per processes than "

@@ -4,9 +4,11 @@
 
 umask 007
 
-mkdir -p pcvs_env
+env_dir="pcvs_env"
 
-pushd pcvs_env
+mkdir -p "${env_dir}"
+
+pushd "${env_dir}"
 
 #git clone ssh://git@gitlab.ccc.ocre.cea.fr:9422/cea-mpc-team/pcvs && (
 git clone https://github.com/cea-hpc/pcvs && (
@@ -49,13 +51,17 @@ do
 	python -m venv "python_${sub_ver}_venv"
 	source "python_${sub_ver}_venv/bin/activate"
 	mkdir -p "python_${sub_ver}_mirror"
+
 	pushd pcvs
+	# download pcvs packages for pre-commit install
 	pip download setuptools -d "../python_${sub_ver}_mirror"
 	pip download '.[dev]' -d "../python_${sub_ver}_mirror"
 	export C_INCLUDE_PATH="$(realpath ../libgit2/build/include/):$(realpath ../libgit2/include/)"
-	export LIBRARY_PATH=$(realpath ../libgit2/build/) # add this path to LD_LIBRARY_PATH at runtime
-	pip install '.[dev]' --find-links "../python_${sub_ver}_mirror" --no-index --no-build-isolation
+	export LIBRARY_PATH="$(realpath ../libgit2/build/)"
+	pip install '.[dev]'
 	popd
+
+	deactivate # deactivate python env
 
 	spack unload "python@${v}" sqlite@3.46.0 py-pysocks@1.7.1 py-setuptools py-wheel
 	spack env deactivate

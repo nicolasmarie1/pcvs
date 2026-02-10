@@ -129,7 +129,7 @@ def cli_exec(
             env.update({"PCVS_SHOW_{}".format(e.upper()): "1"})
 
     if ctx.obj["verbose"] > 0:
-        env.update({"PCVS_VERBOSE": "1"})
+        env.update({"PCVS_VERBOSE": ctx.obj["verbose"]})
 
     if gen_list:
         script_path = pvUtils.locate_scriptpaths(output)
@@ -233,7 +233,7 @@ def cli_check(
                 ]
             )
         )
-        io.console.print(str(display))
+        io.console.print_rich(display)
         return
 
     if encoding:
@@ -244,7 +244,7 @@ def cli_check(
             if k.startswith("_"):
                 continue
             t.add_row(k, str(getattr(w, k)), str(getattr(wo, k)))
-        io.console.print(str(t))
+        io.console.print_rich(t)
         return
 
     if configs:
@@ -268,7 +268,7 @@ def cli_check(
     if errors:
         for k, v in errors.items():
             table.add_row(str(v), k)
-        io.console.print(str(table))
+        io.console.print_rich(table)
     else:
         io.console.print(
             "{succ} {cg} {succ}".format(
