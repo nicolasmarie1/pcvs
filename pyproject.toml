@@ -37,10 +37,12 @@ license = { text = "CeCILL-C"}
 #license-files = ["COPYING"]
 keywords = ["validation", "hpc", "test-suite"]
 classifiers = [
-  'Development Status :: 5 - Stable',
+  'Development Status :: 5 - Production/Stable',
 
   'Topic :: Software Development :: Quality Assurance',
   'Topic :: Software Development :: Testing',
+
+  'License :: CeCILL-C Free Software License Agreement (CECILL-C)',
 
   'Programming Language :: Python :: 3',
   'Programming Language :: Python :: 3.10',
