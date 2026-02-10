@@ -16,21 +16,25 @@ python_3.10:
   variables:
     VERSION: "3.10.19"
     RUN_DOC: false
+    DEPLOY_DOC: false
 
 python_3.11:
   extends: ['.run']
   variables:
     VERSION: "3.11.14"
     RUN_DOC: false
+    DEPLOY_DOC: false
 
 python_3.12:
   extends: ['.run']
   variables:
     VERSION: "3.12.12"
     RUN_DOC: true
+    DEPLOY_DOC: true
 
 python_3.13:
   extends: ['.run']
   variables:
     VERSION: "3.13.11"
     RUN_DOC: true
+    DEPLOY_DOC: false
