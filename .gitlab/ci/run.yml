@@ -15,6 +15,7 @@ variables:
     - spack load "python@${VERSION}" sqlite@3.46.0 py-pysocks@1.7.1 py-setuptools py-wheel
     - source "$(ccc_home -W -u mpc)/${ENV_DIR}/python_${SUB_VERSION}_venv/bin/activate"
     - export LD_LIBRARY_PATH="$(ccc_home -W -u mpc)/${ENV_DIR}/libgit2/build/"
+    - echo "$SUB_VERSION" "$CI_COMMIT_BRANCH"
 
 Coverage PCVS:
   stage: PCVS
