@@ -6,17 +6,17 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pcvs.plugins package &mdash; PCVS 0.9.0.dev0 documentation</title>
+  <title>pcvs.plugins package &mdash; PCVS 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
     <link rel="shortcut icon" href="../_static/pcvs_favicon.ico"/>
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=c6d8f4ca"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -32,8 +32,9 @@
 
           
           
-          <a href="../index.html" class="icon icon-home">
-            PCVS
+          <a href="../index.html">
+            
+              <img src="../_static/pcvs_logo.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -56,7 +57,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../ref/test-file.html">Validation setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ref/config.html">Configurations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ref/bank.html">Banks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ref/session.html">Sessions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ref/utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ref/examples.html">Input Examples</a></li>
@@ -126,10 +127,7 @@
 <li class="toctree-l4"><a class="reference internal" href="pcvs.plugins.contrib.junit.html#pcvs.plugins.contrib.junit.JUnit"><code class="docutils literal notranslate"><span class="pre">JUnit</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.plugins.contrib.multijobs.html">pcvs.plugins.contrib.multijobs module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcvs.plugins.contrib.multijobs.html#pcvs.plugins.contrib.multijobs.SchedMultiJobs"><code class="docutils literal notranslate"><span class="pre">SchedMultiJobs</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="pcvs.plugins.contrib.multijobs.html">pcvs.plugins.contrib.multijobs module</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="pcvs.plugins.contrib.html#module-pcvs.plugins.contrib">Module contents</a></li>
@@ -137,10 +135,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pcvs.plugins.default.html">pcvs.plugins.default package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pcvs.plugins.default.html#submodules">Submodules</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.plugins.default.validation.html">pcvs.plugins.default.validation module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcvs.plugins.default.validation.html#pcvs.plugins.default.validation.BankValidationPlugin"><code class="docutils literal notranslate"><span class="pre">BankValidationPlugin</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="pcvs.plugins.default.validation.html">pcvs.plugins.default.validation module</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="pcvs.plugins.default.html#module-pcvs.plugins.default">Module contents</a></li>
@@ -153,7 +148,7 @@
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pcvs.plugins" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pcvs.plugins.Collection">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.plugins.</span></span><span class="sig-name descname"><span class="pre">Collection</span></span><a class="reference internal" href="../_modules/pcvs/plugins.html#Collection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.plugins.Collection" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pcvs.plugins.</span></span><span class="sig-name descname"><span class="pre">Collection</span></span><a class="reference internal" href="../_modules/pcvs/plugins.html#Collection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.plugins.Collection" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>The Plugin Manager.</p>
 <p>Consists in a dict of passes, eaching being initialized to None. Only one
@@ -166,7 +161,7 @@ plugin can be set to a given step (the last loaded).</p>
 reached.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – the plugin name.</p>
+<dd class="field-odd"><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the plugin name.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
@@ -191,13 +186,16 @@ reached.</p>
 <dd><p>Check if a given pass is enabled.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>step</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Step</span></code>) – the pass</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>step</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pcvs.plugins.Plugin.Step" title="pcvs.plugins.Plugin.Step"><code class="xref py py-class docutils literal notranslate"><span class="pre">Step</span></code></a></span>) – the pass</p></li>
+<li><p><strong>method</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the name of the method to call in the plugin (default to run).</p></li>
+</ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>True if defined, False otherwise</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>bool</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if defined, False otherwise</p>
 </dd>
 </dl>
 </dd></dl>
@@ -205,21 +203,28 @@ reached.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.plugins.Collection.invoke_plugins">
 <span class="sig-name descname"><span class="pre">invoke_plugins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'run'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/plugins.html#Collection.invoke_plugins"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.plugins.Collection.invoke_plugins" title="Link to this definition"></a></dt>
-<dd><p>Load the appropriate plugin, given a step</p>
+<dd><p>Load the appropriate plugin, given a step.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>step</strong> (<a class="reference internal" href="#pcvs.plugins.Plugin.Step" title="pcvs.plugins.Plugin.Step"><code class="xref py py-class docutils literal notranslate"><span class="pre">Plugin.Step</span></code></a>) – the step to target</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>step</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pcvs.plugins.Plugin.Step" title="pcvs.plugins.Plugin.Step"><code class="xref py py-class docutils literal notranslate"><span class="pre">Step</span></code></a></span>) – the step to target</p></li>
+<li><p><strong>method</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the name of the method to call in the plugin module (default to run).</p></li>
+<li><p><strong>args</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span>) – variadic arguments to pass to the plugin</p></li>
+<li><p><strong>kwargs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – variadic arguments to pass to the plugin</p></li>
+</ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.PluginException.BadStepError" title="pcvs.helpers.exceptions.PluginException.BadStepError"><strong>PluginException.BadStepError</strong></a> – wrong Step value</p>
 </dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>the same return value as returned by the <code class="docutils literal notranslate"><span class="pre">run()</span></code> plugin method.</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Any</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the same return value as returned by the <code class="docutils literal notranslate"><span class="pre">run()</span></code> plugin method.</p>
 </dd>
 </dl>
+<p># noqa: DAR401
+# noqa: DAR402</p>
 </dd></dl>
 
 <dl class="py method">
@@ -228,13 +233,13 @@ reached.</p>
 <dd><p>Count the number of possible plugins for a given step.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>step</strong> (<em>str</em>) – the step to check</p>
+<dd class="field-odd"><p><strong>step</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pcvs.plugins.Plugin.Step" title="pcvs.plugins.Plugin.Step"><code class="xref py py-class docutils literal notranslate"><span class="pre">Step</span></code></a></span>) – the step to check</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>the number of plugins</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the number of plugins</p>
 </dd>
 </dl>
 </dd></dl>
@@ -258,7 +263,10 @@ reached.</p>
 directory must be layout’d as a PYTHON package.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pkgpath</strong> (<em>str</em>) – prefix path</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pkgpath</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – prefix path</p></li>
+<li><p><strong>activate</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Should the plugin be activated.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
@@ -272,7 +280,10 @@ directory must be layout’d as a PYTHON package.</p>
 <dd><p>Based on a filepath (as a module dir), load plugins contained in it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>modpath</strong> (<em>str</em>) – valid python filepath</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modpath</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span>) – valid python filepath</p></li>
+<li><p><strong>activate</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – should the plugin be activated.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
@@ -287,7 +298,11 @@ directory must be layout’d as a PYTHON package.</p>
 <p>mod must be a valid PYTHON module name.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>mod</strong> (<em>str</em>) – module name</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – the module name to load</p></li>
+<li><p><strong>mod</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModuleType</span></code></span>) – the python module object</p></li>
+<li><p><strong>activate</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Should the plugin be activated.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
@@ -301,7 +316,10 @@ directory must be layout’d as a PYTHON package.</p>
 <dd><p>Based on a package name, load any plugin defined into it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pkgname</strong> (<em>str</em>) – package name, valid under current PYTHON env.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pkgname</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – package name, valid under current PYTHON env.</p></li>
+<li><p><strong>activate</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Should the plugin be activated.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.PluginException.LoadError" title="pcvs.helpers.exceptions.PluginException.LoadError"><strong>PluginException.LoadError</strong></a> – Error while importing the package</p>
@@ -310,6 +328,8 @@ directory must be layout’d as a PYTHON package.</p>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
 </dd>
 </dl>
+<p># noqa: DAR401
+# noqa: DAR402</p>
 </dd></dl>
 
 <dl class="py method">
@@ -348,7 +368,7 @@ directory must be layout’d as a PYTHON package.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.plugins.</span></span><span class="sig-name descname"><span class="pre">Plugin</span></span><a class="reference internal" href="../_modules/pcvs/plugins.html#Plugin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.plugins.Plugin" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pcvs.plugins.</span></span><span class="sig-name descname"><span class="pre">Plugin</span></span><a class="reference internal" href="../_modules/pcvs/plugins.html#Plugin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.plugins.Plugin" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Base class to inherit from when implementing a plugin.</p>
 <p>This class should be used by any defined plugin and:</p>
@@ -366,122 +386,122 @@ directory must be layout’d as a PYTHON package.</p>
 <p>constructor method.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/plugins.html#Plugin.Step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.plugins.Plugin.Step" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/plugins.html#Plugin.Step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.plugins.Plugin.Step" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
 <p>Possible pass a plugin can be loaded into.</p>
 <p><code class="docutils literal notranslate"><span class="pre">*_EVAL</span></code> steps describe plugin passes where the function outcome can
 infer with the actual workflow.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.END_AFTER">
-<span class="sig-name descname"><span class="pre">END_AFTER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">18</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.END_AFTER" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">END_AFTER</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">18</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.END_AFTER" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.END_BEFORE">
-<span class="sig-name descname"><span class="pre">END_BEFORE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">17</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.END_BEFORE" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">END_BEFORE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">17</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.END_BEFORE" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.INVALID">
-<span class="sig-name descname"><span class="pre">INVALID</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-1</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.INVALID" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">INVALID</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-1</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.INVALID" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.SCHED_AFTER">
-<span class="sig-name descname"><span class="pre">SCHED_AFTER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_AFTER" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">SCHED_AFTER</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_AFTER" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.SCHED_BEFORE">
-<span class="sig-name descname"><span class="pre">SCHED_BEFORE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">7</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_BEFORE" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">SCHED_BEFORE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">7</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_BEFORE" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.SCHED_JOB_EVAL">
-<span class="sig-name descname"><span class="pre">SCHED_JOB_EVAL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_JOB_EVAL" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">SCHED_JOB_EVAL</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_JOB_EVAL" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.SCHED_PUBLISH_AFTER">
-<span class="sig-name descname"><span class="pre">SCHED_PUBLISH_AFTER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">15</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_PUBLISH_AFTER" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">SCHED_PUBLISH_AFTER</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">15</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_PUBLISH_AFTER" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.SCHED_PUBLISH_BEFORE">
-<span class="sig-name descname"><span class="pre">SCHED_PUBLISH_BEFORE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">13</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_PUBLISH_BEFORE" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">SCHED_PUBLISH_BEFORE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">13</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_PUBLISH_BEFORE" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.SCHED_PUBLISH_WRITE">
-<span class="sig-name descname"><span class="pre">SCHED_PUBLISH_WRITE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">14</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_PUBLISH_WRITE" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">SCHED_PUBLISH_WRITE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">14</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_PUBLISH_WRITE" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.SCHED_SET_AFTER">
-<span class="sig-name descname"><span class="pre">SCHED_SET_AFTER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">11</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_SET_AFTER" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">SCHED_SET_AFTER</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">11</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_SET_AFTER" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.SCHED_SET_BEFORE">
-<span class="sig-name descname"><span class="pre">SCHED_SET_BEFORE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_SET_BEFORE" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">SCHED_SET_BEFORE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_SET_BEFORE" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.SCHED_SET_EVAL">
-<span class="sig-name descname"><span class="pre">SCHED_SET_EVAL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">9</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_SET_EVAL" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">SCHED_SET_EVAL</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">9</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.SCHED_SET_EVAL" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.START_AFTER">
-<span class="sig-name descname"><span class="pre">START_AFTER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.START_AFTER" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">START_AFTER</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.START_AFTER" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.START_BEFORE">
-<span class="sig-name descname"><span class="pre">START_BEFORE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.START_BEFORE" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">START_BEFORE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.START_BEFORE" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.TDESC_AFTER">
-<span class="sig-name descname"><span class="pre">TDESC_AFTER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.TDESC_AFTER" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">TDESC_AFTER</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.TDESC_AFTER" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.TDESC_BEFORE">
-<span class="sig-name descname"><span class="pre">TDESC_BEFORE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.TDESC_BEFORE" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">TDESC_BEFORE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.TDESC_BEFORE" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.TEST_EVAL">
-<span class="sig-name descname"><span class="pre">TEST_EVAL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.TEST_EVAL" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">TEST_EVAL</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.TEST_EVAL" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.TEST_RESULT_EVAL">
-<span class="sig-name descname"><span class="pre">TEST_RESULT_EVAL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">12</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.TEST_RESULT_EVAL" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">TEST_RESULT_EVAL</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">12</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.TEST_RESULT_EVAL" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.TFILE_AFTER">
-<span class="sig-name descname"><span class="pre">TFILE_AFTER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.TFILE_AFTER" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">TFILE_AFTER</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.TFILE_AFTER" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.Step.TFILE_BEFORE">
-<span class="sig-name descname"><span class="pre">TFILE_BEFORE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.Step.TFILE_BEFORE" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">TFILE_BEFORE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.Step.TFILE_BEFORE" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/plugins.html#Plugin.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.plugins.Plugin.run" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/plugins.html#Plugin.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.plugins.Plugin.run" title="Link to this definition"></a></dt>
 <dd><p>To-be-overridden method.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.plugins.Plugin.step">
-<span class="sig-name descname"><span class="pre">step</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-1</span></em><a class="headerlink" href="#pcvs.plugins.Plugin.step" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">step</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-1</span></span><a class="headerlink" href="#pcvs.plugins.Plugin.step" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -500,7 +520,7 @@ infer with the actual workflow.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+    <p>&#169; Copyright 2020-2026, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

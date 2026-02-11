@@ -5,17 +5,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pcvs.helpers.storage &mdash; PCVS 0.9.0.dev0 documentation</title>
+  <title>pcvs.helpers.storage &mdash; PCVS 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
     <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
-      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -29,8 +29,9 @@
 
           
           
-          <a href="../../../index.html" class="icon icon-home">
-            PCVS
+          <a href="../../../index.html">
+            
+              <img src="../../../_static/pcvs_logo.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -53,7 +54,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/bank.html">Banks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
@@ -95,7 +96,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing_extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Self</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
@@ -113,17 +113,13 @@
 
 <div class="viewcode-block" id="ConfigScope">
 <a class="viewcode-back" href="../../../api/pcvs.helpers.storage.html#pcvs.helpers.storage.ConfigScope">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConfigScope</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Storage Scope Enumeration.</span>
 
 <span class="sd">    :var GLOBAL: pcvs installation path</span>
 <span class="sd">    :var USER: user Home directory</span>
-<span class="sd">    :var REPO: current .git repo</span>
 <span class="sd">    :var LOCAL: current testing directory</span>
-<span class="sd">    :var CWD: current working directory</span>
-<span class="sd">    :var ABS: user provided absolute path</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">GLOBAL</span> <span class="o">=</span> <span class="mi">0</span>
@@ -168,7 +164,6 @@
 
 <div class="viewcode-block" id="ConfigKind">
 <a class="viewcode-back" href="../../../api/pcvs.helpers.storage.html#pcvs.helpers.storage.ConfigKind">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConfigKind</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Configuration types.</span>
@@ -247,7 +242,6 @@
 
 <div class="viewcode-block" id="ConfigDesc">
 <a class="viewcode-back" href="../../../api/pcvs.helpers.storage.html#pcvs.helpers.storage.ConfigDesc">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConfigDesc</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;An object to describe a config file.&quot;&quot;&quot;</span>
 
@@ -307,7 +301,6 @@
 
 <div class="viewcode-block" id="ConfigLocator">
 <a class="viewcode-back" href="../../../api/pcvs.helpers.storage.html#pcvs.helpers.storage.ConfigLocator">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConfigLocator</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper to find and list config.&quot;&quot;&quot;</span>
 
@@ -326,6 +319,7 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">__get_local_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subpath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">NAME_CONFIGDIR</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute LOCAL Scope, get the first .pcvs directory in upper folders.&quot;&quot;&quot;</span>
         <span class="n">cur</span> <span class="o">=</span> <span class="n">path</span>
         <span class="n">parent</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span>
         <span class="k">while</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">subpath</span><span class="p">)):</span>
@@ -474,6 +468,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">__get_existing_config</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="n">ConfigKind</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">ConfigScope</span> <span class="o">|</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConfigDesc</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a config, the config file must exist.&quot;&quot;&quot;</span>
         <span class="n">exist_config</span><span class="p">:</span> <span class="n">ConfigDesc</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_config</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">scope</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">exist_config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Config &#39;</span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&#39; does not exist !&quot;</span>
@@ -482,6 +477,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">__get_may_exist_config</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="n">ConfigKind</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">ConfigScope</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConfigDesc</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a config, the config file may exist.&quot;&quot;&quot;</span>
         <span class="c1"># search for config</span>
         <span class="n">may_exist_config</span><span class="p">:</span> <span class="n">ConfigDesc</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_config</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">scope</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">may_exist_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -493,6 +489,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">__get_not_existing_config</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="n">ConfigKind</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">ConfigScope</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConfigDesc</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a config, the config file should not exist.&quot;&quot;&quot;</span>
         <span class="n">config_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_storage_path</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">scope</span><span class="p">)</span>
         <span class="n">should_not_exist_config</span><span class="p">:</span> <span class="n">ConfigDesc</span> <span class="o">=</span> <span class="n">ConfigDesc</span><span class="p">(</span><span class="n">config_path</span><span class="o">.</span><span class="n">stem</span><span class="p">,</span> <span class="n">config_path</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">scope</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">should_not_exist_config</span><span class="o">.</span><span class="n">exist</span><span class="p">:</span>
@@ -575,7 +572,6 @@
 
 <div class="viewcode-block" id="set_exec_path">
 <a class="viewcode-back" href="../../../api/pcvs.helpers.storage.html#pcvs.helpers.storage.set_exec_path">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">set_exec_path</span><span class="p">(</span><span class="n">exec_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set EXEC_PATH.&quot;&quot;&quot;</span>
     <span class="n">ConfigLocator</span><span class="o">.</span><span class="n">EXEC_PATH</span> <span class="o">=</span> <span class="n">exec_path</span></div>
@@ -589,7 +585,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+    <p>&#169; Copyright 2020-2026, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

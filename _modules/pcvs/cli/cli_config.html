@@ -5,17 +5,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pcvs.cli.cli_config &mdash; PCVS 0.9.0.dev0 documentation</title>
+  <title>pcvs.cli.cli_config &mdash; PCVS 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
     <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
-      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -29,8 +29,9 @@
 
           
           
-          <a href="../../../index.html" class="icon icon-home">
-            PCVS
+          <a href="../../../index.html">
+            
+              <img src="../../../_static/pcvs_logo.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -53,7 +54,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/bank.html">Banks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
@@ -93,8 +94,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextIO</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
-
 <span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">configfile</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.configfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigFile</span>
@@ -110,10 +109,11 @@
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">click</span>  <span class="c1"># type: ignore</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">click.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">LazyFile</span>
+
 
 <div class="viewcode-block" id="compl_list_scope_kind">
 <a class="viewcode-back" href="../../../api/pcvs.cli.cli_config.html#pcvs.cli.cli_config.compl_list_scope_kind">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">compl_list_scope_kind</span><span class="p">(</span>
     <span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">param</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">incomplete</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># pylint: disable=unused-argument</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -126,7 +126,6 @@
 
 <div class="viewcode-block" id="compl_list_configs">
 <a class="viewcode-back" href="../../../api/pcvs.cli.cli_config.html#pcvs.cli.cli_config.compl_list_configs">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">compl_list_configs</span><span class="p">(</span>
     <span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">param</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">incomplete</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># pylint: disable=unused-argument</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -139,7 +138,6 @@
 
 <div class="viewcode-block" id="compl_list_user_configs">
 <a class="viewcode-back" href="../../../api/pcvs.cli.cli_config.html#pcvs.cli.cli_config.compl_list_user_configs">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">compl_list_user_configs</span><span class="p">(</span>
     <span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">param</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">incomplete</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># pylint: disable=unused-argument</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -156,9 +154,7 @@
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;config&quot;</span><span class="p">,</span>
     <span class="n">short_help</span><span class="o">=</span><span class="s2">&quot;Manage Configurations&quot;</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
-<span class="nd">@typechecked</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">config</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cli_config</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The &#39;config&#39; command helps user to manage configurations.</span>
 <span class="sd">    Their is multiples KIND of configurations:</span>
@@ -189,7 +185,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
-<span class="nd">@config</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
+<span class="nd">@cli_config</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;list&quot;</span><span class="p">,</span>
     <span class="n">short_help</span><span class="o">=</span><span class="s2">&quot;List available configuration blocks&quot;</span><span class="p">,</span>
 <span class="p">)</span>
@@ -202,8 +198,9 @@
     <span class="c1"># help=&quot;Token in the form scope[:kind] or kind&quot;,</span>
 <span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
-<span class="nd">@typechecked</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">config_list</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cli_config_list</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    List available configurations on the system.</span>
 
@@ -233,7 +230,7 @@
         <span class="n">io</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">sc</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ConfigLocator</span><span class="p">()</span><span class="o">.</span><span class="n">get_storage_dir</span><span class="p">(</span><span class="n">sc</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 
-<span class="nd">@config</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
+<span class="nd">@cli_config</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;show&quot;</span><span class="p">,</span>
     <span class="n">short_help</span><span class="o">=</span><span class="s2">&quot;Show detailed view of the selected configuration&quot;</span><span class="p">,</span>
 <span class="p">)</span>
@@ -245,8 +242,7 @@
     <span class="c1"># help=&quot;Token in the form [scope:[kind:]]label&quot;,</span>
 <span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
-<span class="nd">@typechecked</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">config_show</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cli_config_show</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Prints a detailed description of this configuration block, labeled NAME</span>
 <span class="sd">    and belonging to the KIND kind.</span>
@@ -258,7 +254,7 @@
     <span class="n">configfile</span><span class="o">.</span><span class="n">get_conf</span><span class="p">(</span><span class="n">cd</span><span class="p">)</span><span class="o">.</span><span class="n">display</span><span class="p">()</span>
 
 
-<span class="nd">@config</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
+<span class="nd">@cli_config</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;create&quot;</span><span class="p">,</span>
     <span class="n">short_help</span><span class="o">=</span><span class="s2">&quot;Create/Clone a configuration block&quot;</span><span class="p">,</span>
 <span class="p">)</span>
@@ -286,8 +282,7 @@
     <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Directly open the created config block in $EDITOR&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
-<span class="nd">@typechecked</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">config_create</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cli_config_create</span><span class="p">(</span>
     <span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span>  <span class="c1"># pylint: disable=unused-argument</span>
     <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">clone</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
@@ -336,7 +331,7 @@
         <span class="n">conf</span><span class="o">.</span><span class="n">edit</span><span class="p">()</span>
 
 
-<span class="nd">@config</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
+<span class="nd">@cli_config</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;destroy&quot;</span><span class="p">,</span>
     <span class="n">short_help</span><span class="o">=</span><span class="s2">&quot;Remove a config block&quot;</span><span class="p">,</span>
 <span class="p">)</span>
@@ -353,8 +348,7 @@
     <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not ask for confirmation before deletion&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
-<span class="nd">@typechecked</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">config_destroy</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cli_config_destroy</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Erase from disk a previously created configuration block.</span>
 
@@ -369,7 +363,7 @@
     <span class="n">configfile</span><span class="o">.</span><span class="n">get_conf</span><span class="p">(</span><span class="n">cd</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
 
 
-<span class="nd">@config</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
+<span class="nd">@cli_config</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;edit&quot;</span><span class="p">,</span>
     <span class="n">short_help</span><span class="o">=</span><span class="s2">&quot;edit the config block&quot;</span><span class="p">,</span>
 <span class="p">)</span>
@@ -380,8 +374,7 @@
     <span class="n">shell_complete</span><span class="o">=</span><span class="n">compl_list_user_configs</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
-<span class="nd">@typechecked</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">config_edit</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cli_config_edit</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pylint: disable=unused-argument</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Open the file with $EDITOR for direct modifications. The configuration is</span>
 <span class="sd">    then validated to ensure consistency.</span>
@@ -399,7 +392,7 @@
     <span class="n">configfile</span><span class="o">.</span><span class="n">get_conf</span><span class="p">(</span><span class="n">cd</span><span class="p">)</span><span class="o">.</span><span class="n">edit</span><span class="p">()</span>
 
 
-<span class="nd">@config</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
+<span class="nd">@cli_config</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;import&quot;</span><span class="p">,</span>
     <span class="n">short_help</span><span class="o">=</span><span class="s2">&quot;Import config from a file&quot;</span><span class="p">,</span>
 <span class="p">)</span>
@@ -425,8 +418,7 @@
     <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Erase any previously existing config.&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
-<span class="nd">@typechecked</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">config_import</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cli_config_import</span><span class="p">(</span>
     <span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span>  <span class="c1"># pylint: disable=unused-argument</span>
     <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">in_file</span><span class="p">:</span> <span class="n">TextIO</span><span class="p">,</span>
@@ -453,7 +445,7 @@
     <span class="n">conf</span><span class="o">.</span><span class="n">flush_to_disk</span><span class="p">()</span>
 
 
-<span class="nd">@config</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
+<span class="nd">@cli_config</span><span class="o">.</span><span class="n">command</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;export&quot;</span><span class="p">,</span>
     <span class="n">short_help</span><span class="o">=</span><span class="s2">&quot;Export config into a file&quot;</span><span class="p">,</span>
 <span class="p">)</span>
@@ -471,9 +463,8 @@
     <span class="n">default</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
-<span class="nd">@typechecked</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">config_export</span><span class="p">(</span>
-    <span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_file</span><span class="p">:</span> <span class="n">TextIO</span>  <span class="c1"># pylint: disable=unused-argument</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cli_config_export</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_file</span><span class="p">:</span> <span class="n">LazyFile</span>  <span class="c1"># pylint: disable=unused-argument</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Export a new configuration block to a YAML file named OUT_FILE.</span>
@@ -494,7 +485,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+    <p>&#169; Copyright 2020-2026, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

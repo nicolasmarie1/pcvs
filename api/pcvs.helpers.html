@@ -6,17 +6,17 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pcvs.helpers package &mdash; PCVS 0.9.0.dev0 documentation</title>
+  <title>pcvs.helpers package &mdash; PCVS 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
     <link rel="shortcut icon" href="../_static/pcvs_favicon.ico"/>
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=c6d8f4ca"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -32,8 +32,9 @@
 
           
           
-          <a href="../index.html" class="icon icon-home">
-            PCVS
+          <a href="../index.html">
+            
+              <img src="../_static/pcvs_logo.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -56,7 +57,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../ref/test-file.html">Validation setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ref/config.html">Configurations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ref/bank.html">Banks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ref/session.html">Sessions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ref/utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ref/examples.html">Input Examples</a></li>
@@ -120,69 +121,8 @@
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="pcvs.helpers.communications.html">pcvs.helpers.communications module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.EmbeddedServer"><code class="docutils literal notranslate"><span class="pre">EmbeddedServer</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.EmbeddedServer.recv"><code class="docutils literal notranslate"><span class="pre">EmbeddedServer.recv()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.EmbeddedServer.send"><code class="docutils literal notranslate"><span class="pre">EmbeddedServer.send()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.GenericServer"><code class="docutils literal notranslate"><span class="pre">GenericServer</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.GenericServer.recv"><code class="docutils literal notranslate"><span class="pre">GenericServer.recv()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.GenericServer.send"><code class="docutils literal notranslate"><span class="pre">GenericServer.send()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.RemoteServer"><code class="docutils literal notranslate"><span class="pre">RemoteServer</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.RemoteServer.DEFAULT_SRV_ADDR"><code class="docutils literal notranslate"><span class="pre">RemoteServer.DEFAULT_SRV_ADDR</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.RemoteServer.close_connection"><code class="docutils literal notranslate"><span class="pre">RemoteServer.close_connection()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.RemoteServer.endpoint"><code class="docutils literal notranslate"><span class="pre">RemoteServer.endpoint</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.RemoteServer.open_connection"><code class="docutils literal notranslate"><span class="pre">RemoteServer.open_connection()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.RemoteServer.recv"><code class="docutils literal notranslate"><span class="pre">RemoteServer.recv()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.RemoteServer.retry_pending"><code class="docutils literal notranslate"><span class="pre">RemoteServer.retry_pending()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.communications.html#pcvs.helpers.communications.RemoteServer.send"><code class="docutils literal notranslate"><span class="pre">RemoteServer.send()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="pcvs.helpers.criterion.html">pcvs.helpers.criterion module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Combination"><code class="docutils literal notranslate"><span class="pre">Combination</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Combination.get"><code class="docutils literal notranslate"><span class="pre">Combination.get()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Combination.get_combinations"><code class="docutils literal notranslate"><span class="pre">Combination.get_combinations()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Combination.items"><code class="docutils literal notranslate"><span class="pre">Combination.items()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Combination.resources"><code class="docutils literal notranslate"><span class="pre">Combination.resources</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Combination.translate_to_command"><code class="docutils literal notranslate"><span class="pre">Combination.translate_to_command()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Combination.translate_to_str"><code class="docutils literal notranslate"><span class="pre">Combination.translate_to_str()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion"><code class="docutils literal notranslate"><span class="pre">Criterion</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.aliased_value"><code class="docutils literal notranslate"><span class="pre">Criterion.aliased_value()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.concretize_value"><code class="docutils literal notranslate"><span class="pre">Criterion.concretize_value()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.expand_values"><code class="docutils literal notranslate"><span class="pre">Criterion.expand_values()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.expanded"><code class="docutils literal notranslate"><span class="pre">Criterion.expanded</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.intersect"><code class="docutils literal notranslate"><span class="pre">Criterion.intersect()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.is_discarded"><code class="docutils literal notranslate"><span class="pre">Criterion.is_discarded()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.is_empty"><code class="docutils literal notranslate"><span class="pre">Criterion.is_empty()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.is_env"><code class="docutils literal notranslate"><span class="pre">Criterion.is_env()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.is_local"><code class="docutils literal notranslate"><span class="pre">Criterion.is_local()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.max_value"><code class="docutils literal notranslate"><span class="pre">Criterion.max_value</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.min_value"><code class="docutils literal notranslate"><span class="pre">Criterion.min_value</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.name"><code class="docutils literal notranslate"><span class="pre">Criterion.name</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.numeric"><code class="docutils literal notranslate"><span class="pre">Criterion.numeric</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.override"><code class="docutils literal notranslate"><span class="pre">Criterion.override()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.subtitle"><code class="docutils literal notranslate"><span class="pre">Criterion.subtitle</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Criterion.values"><code class="docutils literal notranslate"><span class="pre">Criterion.values</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Series"><code class="docutils literal notranslate"><span class="pre">Series</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.Series.generate"><code class="docutils literal notranslate"><span class="pre">Series.generate()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.get_plugin"><code class="docutils literal notranslate"><span class="pre">get_plugin()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.get_resources"><code class="docutils literal notranslate"><span class="pre">get_resources()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.initialize_from_system"><code class="docutils literal notranslate"><span class="pre">initialize_from_system()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.load_plugin"><code class="docutils literal notranslate"><span class="pre">load_plugin()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.criterion.html#pcvs.helpers.criterion.valid_combination"><code class="docutils literal notranslate"><span class="pre">valid_combination()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="pcvs.helpers.communications.html">pcvs.helpers.communications module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pcvs.helpers.criterion.html">pcvs.helpers.criterion module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcvs.helpers.exceptions.html">pcvs.helpers.exceptions module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.BankException"><code class="docutils literal notranslate"><span class="pre">BankException</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.exceptions.html#pcvs.helpers.exceptions.BankException.NotFoundError"><code class="docutils literal notranslate"><span class="pre">BankException.NotFoundError</span></code></a></li>
@@ -260,95 +200,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="pcvs.helpers.git.html">pcvs.helpers.git module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.Blob"><code class="docutils literal notranslate"><span class="pre">Blob</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.Branch"><code class="docutils literal notranslate"><span class="pre">Branch</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.Branch.name"><code class="docutils literal notranslate"><span class="pre">Branch.name</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.Commit"><code class="docutils literal notranslate"><span class="pre">Commit</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.Commit.get_info"><code class="docutils literal notranslate"><span class="pre">Commit.get_info()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI"><code class="docutils literal notranslate"><span class="pre">GitByAPI</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.branches"><code class="docutils literal notranslate"><span class="pre">GitByAPI.branches()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.close"><code class="docutils literal notranslate"><span class="pre">GitByAPI.close()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.diff_tree"><code class="docutils literal notranslate"><span class="pre">GitByAPI.diff_tree()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.do_commit"><code class="docutils literal notranslate"><span class="pre">GitByAPI.do_commit()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.gc"><code class="docutils literal notranslate"><span class="pre">GitByAPI.gc()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.get_branch_from_str"><code class="docutils literal notranslate"><span class="pre">GitByAPI.get_branch_from_str()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.get_parents"><code class="docutils literal notranslate"><span class="pre">GitByAPI.get_parents()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.get_tree"><code class="docutils literal notranslate"><span class="pre">GitByAPI.get_tree()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.insert_tree"><code class="docutils literal notranslate"><span class="pre">GitByAPI.insert_tree()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.is_open"><code class="docutils literal notranslate"><span class="pre">GitByAPI.is_open()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.iterate_over"><code class="docutils literal notranslate"><span class="pre">GitByAPI.iterate_over()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.list_commits"><code class="docutils literal notranslate"><span class="pre">GitByAPI.list_commits()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.list_files"><code class="docutils literal notranslate"><span class="pre">GitByAPI.list_files()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.new_branch"><code class="docutils literal notranslate"><span class="pre">GitByAPI.new_branch()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.open"><code class="docutils literal notranslate"><span class="pre">GitByAPI.open()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.revparse"><code class="docutils literal notranslate"><span class="pre">GitByAPI.revparse()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByAPI.set_branch"><code class="docutils literal notranslate"><span class="pre">GitByAPI.set_branch()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI"><code class="docutils literal notranslate"><span class="pre">GitByCLI</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.branches"><code class="docutils literal notranslate"><span class="pre">GitByCLI.branches()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.close"><code class="docutils literal notranslate"><span class="pre">GitByCLI.close()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.diff_tree"><code class="docutils literal notranslate"><span class="pre">GitByCLI.diff_tree()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.do_commit"><code class="docutils literal notranslate"><span class="pre">GitByCLI.do_commit()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.gc"><code class="docutils literal notranslate"><span class="pre">GitByCLI.gc()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.get_branch_from_str"><code class="docutils literal notranslate"><span class="pre">GitByCLI.get_branch_from_str()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.get_parents"><code class="docutils literal notranslate"><span class="pre">GitByCLI.get_parents()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.get_tree"><code class="docutils literal notranslate"><span class="pre">GitByCLI.get_tree()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.insert_tree"><code class="docutils literal notranslate"><span class="pre">GitByCLI.insert_tree()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.is_open"><code class="docutils literal notranslate"><span class="pre">GitByCLI.is_open()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.iterate_over"><code class="docutils literal notranslate"><span class="pre">GitByCLI.iterate_over()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.list_commits"><code class="docutils literal notranslate"><span class="pre">GitByCLI.list_commits()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.list_files"><code class="docutils literal notranslate"><span class="pre">GitByCLI.list_files()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.new_branch"><code class="docutils literal notranslate"><span class="pre">GitByCLI.new_branch()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.open"><code class="docutils literal notranslate"><span class="pre">GitByCLI.open()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.revparse"><code class="docutils literal notranslate"><span class="pre">GitByCLI.revparse()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByCLI.set_branch"><code class="docutils literal notranslate"><span class="pre">GitByCLI.set_branch()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric"><code class="docutils literal notranslate"><span class="pre">GitByGeneric</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.branches"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.branches()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.close"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.close()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.diff_tree"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.diff_tree()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.do_commit"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.do_commit()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.gc"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.gc()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.get_branch_from_str"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.get_branch_from_str()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.get_head"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.get_head()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.get_parents"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.get_parents()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.get_tree"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.get_tree()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.insert_tree"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.insert_tree()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.is_open"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.is_open()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.iterate_over"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.iterate_over()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.list_commits"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.list_commits()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.list_files"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.list_files()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.new_branch"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.new_branch()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.open"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.open()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.revparse"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.revparse()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.set_branch"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.set_branch()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.set_head"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.set_head()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.set_identity"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.set_identity()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.GitByGeneric.set_path"><code class="docutils literal notranslate"><span class="pre">GitByGeneric.set_path()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.Reference"><code class="docutils literal notranslate"><span class="pre">Reference</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.Reference.repo"><code class="docutils literal notranslate"><span class="pre">Reference.repo</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.Tree"><code class="docutils literal notranslate"><span class="pre">Tree</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.Tree.as_root"><code class="docutils literal notranslate"><span class="pre">Tree.as_root()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.elect_handler"><code class="docutils literal notranslate"><span class="pre">elect_handler()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.generate_data_hash"><code class="docutils literal notranslate"><span class="pre">generate_data_hash()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.get_current_usermail"><code class="docutils literal notranslate"><span class="pre">get_current_usermail()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.get_current_username"><code class="docutils literal notranslate"><span class="pre">get_current_username()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.git.html#pcvs.helpers.git.request_git_attr"><code class="docutils literal notranslate"><span class="pre">request_git_attr()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="pcvs.helpers.git.html">pcvs.helpers.git module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcvs.helpers.pm.html">pcvs.helpers.pm module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pcvs.helpers.pm.html#pcvs.helpers.pm.ModuleManager"><code class="docutils literal notranslate"><span class="pre">ModuleManager</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="pcvs.helpers.pm.html#pcvs.helpers.pm.ModuleManager.get"><code class="docutils literal notranslate"><span class="pre">ModuleManager.get()</span></code></a></li>
@@ -477,7 +329,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+    <p>&#169; Copyright 2020-2026, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

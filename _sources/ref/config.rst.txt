@@ -13,17 +13,125 @@ which are:
 * machine
 * runtime
 
-One of each configuration are used to build a profile.
+One of each configuration are used to build a **profile**.
 The profile is the top level configuration used to run pcvs.
 
 Scope
 -----
 
-PCVS allows 3 scopes :
+PCVS allows 3 scopes:
 
-* **global** for everyone on the machine having access to the PCVS installation
-* **user** accessible from everywhere for the corresponding user
-* **local** accessible only from a directory
+* **local** accessible only from a specific ``.pcvs`` folder.
+    The **local** folder is defined as the first ``.pcvs`` folder found walking up
+    the file system tree from the execution directory of pcvs.
+* **user** accessible from everywhere for the corresponding user, store in ``~/.pcvs``
+* **global** for everyone on the machine having access to the PCVS installation.
+    **global** configuration are read only, they are stored in the pcvs installation and
+    override at each pcvs install. This scope is used to ship default configurations
+    that can be used directly or as template for creating your own configuration in user or local scope.
+
+Command usage
+-------------
+
+To list existing configurations, use the command:
+
+.. code-block:: bash
+
+    $ pcvs config list
+
+To create a config, one can use the command:
+
+.. code-block:: bash
+
+    $ pcvs config create user:example_profile
+
+By default, the new configuration will contain the default configuration block for your configuration type.
+To copy from another configuration block, use:
+
+.. code-block:: bash
+
+    $ pcvs config create --clone global:compiler:gcc user:compiler:mygcc
+
+This configuration is fully customizable with any text editor, to edit the configuration, use the command:
+
+.. code-block:: bash
+
+    $ pcvs config edit profile:example_profile
+
+To export or import configuration, use the command:
+
+.. code-block:: bash
+
+    $ pcvs config export profile:default --output test.yml
+    $ pcvs config import user:profile:default_copy --source test.yml
+
+To delete a configuration, use the command:
+
+.. code-block:: bash
+
+    $ pcvs config destroy <configuration_name>
+
+
+Files architecture
+------------------
+
+For each storage scope, configurations are stored in files in a tree like structure
+and can be edited manually for automation.
+
+.. warning::
+
+    When edited manually, pcvs will not be able to check and validate your configuration.
+    Using ``pcvs config edit`` is preferred.
+
+.. code-block::
+
+    ~/.pcvs
+    ├── compiler
+    │   ├── default.yml
+    │   ├── gcc.yml
+    │   └── mpi.yml
+    ├── criterion
+    │   ├── default.yml
+    │   └── mpi.yml
+    ├── group
+    │   ├── common.yml
+    │   └── default.yml
+    ├── machine
+    │   ├── default.yml
+    │   └── slurm.yml
+    ├── plugin
+    │   ├── default.py
+    │   └── mpi.py
+    ├── profile
+    │   ├── default.yml
+    │   ├── gcc.yml
+    │   └── mpi.yml
+    └── runtime
+        ├── default.yml
+        └── mpi.yml
+
+
+.. _profile-scope:
+
+Profile
+-------
+
+A PCVS **profile** is the root configuration block that link all configurations together
+and need to be provided to pcvs to run a test suite.
+A profile contain 5 references, to one of each of the configuration types.
+It will look like that:
+
+.. code-block:: yaml
+
+    compiler: local:gcc
+    criterion: global:default
+    group: default
+    machine: mycluster.yml
+    runtime: default
+
+**Scopes** can be optionally provided.
+If not provided, all scope are check in order **local** -> **user** -> **global**.
+File extensions are optionnals.
 
 Configuration description
 -------------------------
@@ -31,7 +139,7 @@ Configuration description
 Compilers configuration
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The compiler node describes how to use a compiler, it include the following nodes:
+The compiler node describes how to use a compiler, it includes the following nodes:
 * ``program``: the name of the program to execute
 * ``envs``: the env to export at build time for that compiler, useful if you are using a Makefile
 * ``extension``: the source code extension match by the compilers.
@@ -130,7 +238,7 @@ description can contain any node present in the Configuration basic blocks (CF
 Example
 +++++++
 
-The following example allow you to disable the ``n_omp`` criterion of the group ``GRPMPI``.
+The following example allows disabling the ``n_omp`` criterion of the group ``GRPMPI``.
 
 .. code-block:: yaml
 
@@ -156,7 +264,7 @@ Runtime configuration
 ^^^^^^^^^^^^^^^^^^^^^
 ``program`` specify a wrapper for runtime tests, such as ``mpirun`` for example.
 The ``compiling.wrapper`` specify a wrapper for test compilation.
-It can be use to run the compilation on an other node using ``srun`` for example.
+It can be used to run the compilation on another node using ``srun`` for example.
 
 The ``criterions`` node contains arguments passed to the launching command.
 For example, if ``prterun`` takes the "-np" argument, which corresponds
@@ -193,5 +301,5 @@ The plugin configuration is a python plugin with a function to filter valid crit
 
 .. warning::
    When cloning a plugin with ``pcvs create --clone`` make sure to rename the
-   Class in the plugin. Otherwise only one of the 2 plugins with the same name
+   Class in the plugin. Otherwise, only one of the 2 plugins with the same name
    will be loaded.

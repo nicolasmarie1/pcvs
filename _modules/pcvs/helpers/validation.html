@@ -5,17 +5,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pcvs.helpers.validation &mdash; PCVS 0.9.0.dev0 documentation</title>
+  <title>pcvs.helpers.validation &mdash; PCVS 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
     <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
-      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -29,8 +29,9 @@
 
           
           
-          <a href="../../../index.html" class="icon icon-home">
-            PCVS
+          <a href="../../../index.html">
+            
+              <img src="../../../_static/pcvs_logo.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -53,7 +54,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/bank.html">Banks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
@@ -90,12 +91,12 @@
              
   <h1>Source code for pcvs.helpers.validation</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pprint</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">jsonschema</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">YAML</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">YAMLError</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">PATH_INSTDIR</span>
@@ -104,7 +105,6 @@
 
 <div class="viewcode-block" id="ValidationScheme">
 <a class="viewcode-back" href="../../../api/pcvs.helpers.validation.html#pcvs.helpers.validation.ValidationScheme">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ValidationScheme</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Object manipulating schemes (yaml) to enforce data formats.</span>
@@ -139,9 +139,12 @@
 <span class="sd">        Create a new ValidationScheme instance based on a given model.</span>
 
 <span class="sd">        During initialisation the file scheme is loaded from disk.</span>
-<span class="sd">        :param name: name</span>
-<span class="sd">        :raises SchemeError: file is not found OR unable to load</span>
-<span class="sd">        the YAML scheme file.</span>
+
+<span class="sd">        :param schema_name: Name of the schema that will be loaded for validation.</span>
+<span class="sd">        :raises ValidationException.InvalidSchemeError: file is not found OR unable to load the YAML scheme file.</span>
+
+<span class="sd">        # noqa: DAR401</span>
+<span class="sd">        # noqa: DAR402</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">schema_name</span> <span class="o">=</span> <span class="n">schema_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># the content of the schema</span>
@@ -160,11 +163,12 @@
 <span class="sd">        Validate a given datastructure (dict) agasint the loaded scheme.</span>
 
 <span class="sd">        :param content: json to validate</span>
-<span class="sd">        :type content: dict</span>
 <span class="sd">        :param filepath: the path of the file content come from</span>
-<span class="sd">        :type filepath: str</span>
-<span class="sd">        :raises FormatError: data are not valid</span>
-<span class="sd">        :raises SchemeError: issue while applying scheme</span>
+<span class="sd">        :raises ValidationException.FormatError: data are not valid</span>
+<span class="sd">        :raises ValidationException.SchemeError: issue while applying scheme</span>
+
+<span class="sd">        # noqa: DAR401</span>
+<span class="sd">        # noqa: DAR402</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">filepath</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">filepath</span><span class="p">:</span>
@@ -176,13 +180,13 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">jsonschema</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">instance</span><span class="o">=</span><span class="n">content</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">jsonschema</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ValidationException</span><span class="o">.</span><span class="n">FormatError</span><span class="p">(</span>
-                <span class="n">reason</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Failed to validate input file: &#39;</span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;Validation against schema &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">schema_name</span><span class="si">}</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;Context is: </span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;Schema is: </span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;Validation error message is:</span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+            <span class="n">fe</span> <span class="o">=</span> <span class="n">ValidationException</span><span class="o">.</span><span class="n">FormatError</span><span class="p">(</span><span class="n">reason</span><span class="o">=</span><span class="s2">&quot;Failed to validate input file.&quot;</span><span class="p">)</span>
+            <span class="n">fe</span><span class="o">.</span><span class="n">add_dbg</span><span class="p">(</span><span class="s2">&quot;file path&quot;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+            <span class="n">fe</span><span class="o">.</span><span class="n">add_dbg</span><span class="p">(</span><span class="s2">&quot;validation schema&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_name</span><span class="p">)</span>
+            <span class="n">fe</span><span class="o">.</span><span class="n">add_dbg</span><span class="p">(</span><span class="s2">&quot;YAML validator error&quot;</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+            <span class="n">fe</span><span class="o">.</span><span class="n">add_dbg</span><span class="p">(</span><span class="s2">&quot;file content&quot;</span><span class="p">,</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">content</span><span class="p">))</span>
+            <span class="n">fe</span><span class="o">.</span><span class="n">add_dbg</span><span class="p">(</span><span class="s2">&quot;raw schema&quot;</span><span class="p">,</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">fe</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
         <span class="k">except</span> <span class="n">jsonschema</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">SchemaError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ValidationException</span><span class="o">.</span><span class="n">SchemeError</span><span class="p">(</span>
                 <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">schema_name</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">e</span>
@@ -198,7 +202,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+    <p>&#169; Copyright 2020-2026, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

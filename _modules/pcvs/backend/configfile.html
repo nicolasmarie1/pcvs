@@ -5,17 +5,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pcvs.backend.configfile &mdash; PCVS 0.9.0.dev0 documentation</title>
+  <title>pcvs.backend.configfile &mdash; PCVS 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
     <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
-      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -29,8 +29,9 @@
 
           
           
-          <a href="../../../index.html" class="icon icon-home">
-            PCVS
+          <a href="../../../index.html">
+            
+              <img src="../../../_static/pcvs_logo.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -53,7 +54,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/bank.html">Banks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
@@ -124,7 +125,6 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">click</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">YAML</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pcvs.backend.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
@@ -137,7 +137,6 @@
 
 <div class="viewcode-block" id="ConfigFile">
 <a class="viewcode-back" href="../../../api/pcvs.backend.configfile.html#pcvs.backend.configfile.ConfigFile">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConfigFile</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handle configuration file.</span>
@@ -165,6 +164,8 @@
 <span class="sd">        Lower representation (str) -&gt; upper representation (yml).</span>
 
 <span class="sd">        This function only make sense when considering it&#39;s overrides.</span>
+
+<span class="sd">        :param raw: The content of the config file as a str.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_raw</span> <span class="o">=</span> <span class="n">raw</span>
 
@@ -173,6 +174,8 @@
 <span class="sd">        Upper representation (yml) -&gt; lower representation (str).</span>
 
 <span class="sd">        This function only make sense when considering it&#39;s overrides.</span>
+
+<span class="sd">        :return: The content of the config file as a str.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw</span>
 
@@ -258,8 +261,6 @@
 <span class="sd">        Open the current configuration for edition.</span>
 
 <span class="sd">        After eddition, the new file is loaded, check and then written to disk.</span>
-
-<span class="sd">        :raises Exception: Something occurred during the edition or at the validation of the edited file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">exist</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_load_from_disk</span><span class="p">()</span>
@@ -314,7 +315,6 @@
 
 <div class="viewcode-block" id="YmlConfigFile">
 <a class="viewcode-back" href="../../../api/pcvs.backend.configfile.html#pcvs.backend.configfile.YmlConfigFile">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">YmlConfigFile</span><span class="p">(</span><span class="n">ConfigFile</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Yaml File Configuration.</span>
@@ -404,7 +404,6 @@
 
 <div class="viewcode-block" id="Profile">
 <a class="viewcode-back" href="../../../api/pcvs.backend.configfile.html#pcvs.backend.configfile.Profile">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Profile</span><span class="p">(</span><span class="n">YmlConfigFile</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A profile represents the most complete object the user can provide.</span>
 
@@ -431,6 +430,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize a profile.</span>
 
+<span class="sd">        :param config_desc: The config Descriptor for the profile file.</span>
 <span class="sd">        :param cl: A ConfigLocator Object used to locat config specify by Profile.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">config_desc</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">ConfigKind</span><span class="o">.</span><span class="n">PROFILE</span>
@@ -441,6 +441,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_load_sub_configs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load sub configurations referenced by plugin.&quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">loaded</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_check</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">Profile</span><span class="o">.</span><span class="n">CONFIGS_KINDS</span><span class="p">:</span>
             <span class="n">user_token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">kind</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
             <span class="k">if</span> <span class="n">user_token</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
@@ -516,7 +517,6 @@
 
 <div class="viewcode-block" id="get_conf">
 <a class="viewcode-back" href="../../../api/pcvs.backend.configfile.html#pcvs.backend.configfile.get_conf">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_conf</span><span class="p">(</span><span class="n">cd</span><span class="p">:</span> <span class="n">ConfigDesc</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConfigFile</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get Appropriate ConfigFile Object from a :class:`~pcvs.helpers.storage.ConfigDesc`.&quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="n">cd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -535,7 +535,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+    <p>&#169; Copyright 2020-2026, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

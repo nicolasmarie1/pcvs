@@ -6,17 +6,17 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pcvs.helpers.resource_tracker module &mdash; PCVS 0.9.0.dev0 documentation</title>
+  <title>pcvs.helpers.resource_tracker module &mdash; PCVS 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
     <link rel="shortcut icon" href="../_static/pcvs_favicon.ico"/>
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=c6d8f4ca"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -32,8 +32,9 @@
 
           
           
-          <a href="../index.html" class="icon icon-home">
-            PCVS
+          <a href="../index.html">
+            
+              <img src="../_static/pcvs_logo.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -56,7 +57,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../ref/test-file.html">Validation setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ref/config.html">Configurations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ref/bank.html">Banks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ref/session.html">Sessions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ref/utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ref/examples.html">Input Examples</a></li>
@@ -117,14 +118,38 @@
              
   <section id="module-pcvs.helpers.resource_tracker">
 <span id="pcvs-helpers-resource-tracker-module"></span><h1>pcvs.helpers.resource_tracker module<a class="headerlink" href="#module-pcvs.helpers.resource_tracker" title="Link to this heading"></a></h1>
+<p>Module for resource tracking.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pcvs.helpers.resource_tracker.ResourceTracker">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.resource_tracker.</span></span><span class="sig-name descname"><span class="pre">ResourceTracker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dims_values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/resource_tracker.html#ResourceTracker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.resource_tracker.ResourceTracker" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pcvs.helpers.resource_tracker.</span></span><span class="sig-name descname"><span class="pre">ResourceTracker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dims_values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/resource_tracker.html#ResourceTracker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.resource_tracker.ResourceTracker" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A resource tracker that track resources usage of tests.</p>
+<dl class="simple">
+<dt>The resources ‘used’ by tests are:</dt><dd><ul class="simple">
+<li><p>the number of jobs use to run make for build job.</p></li>
+<li><dl class="simple">
+<dt>the number of nodes, processes (mpi) &amp; threads (omp)</dt><dd><p>that the runtime of the test use.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+<p>A resource is represented as a list of int,
+eaches representing a number of resources at it’s level.
+It is usually a list of two elements representing: [nb_nodes, nb_threads_per_node].
+note: there can be any number of elements.</p>
+<p>The resource tracker, considering a resource, representing the available hardware,
+will handle  allocation of resource representing the job allocation.</p>
+<p>The main purpose of this class is to have a smart way to handle parallel tests execution
+that have any resources requirements while tracking overall usage of a cluster to avoid surcharging
+the cluster scheduler (like slurm).</p>
+<p>Initialize a resources allocator.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.resource_tracker.ResourceTracker.alloc">
 <span class="sig-name descname"><span class="pre">alloc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">allocation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/resource_tracker.html#ResourceTracker.alloc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.resource_tracker.ResourceTracker.alloc" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Make an allocation in the resources allocator.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
 </dd>
@@ -133,13 +158,14 @@
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pcvs.helpers.resource_tracker.ResourceTracker.alloc_tracking_counter">
-<span class="sig-name descname"><span class="pre">alloc_tracking_counter</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#pcvs.helpers.resource_tracker.ResourceTracker.alloc_tracking_counter" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">alloc_tracking_counter</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#pcvs.helpers.resource_tracker.ResourceTracker.alloc_tracking_counter" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.resource_tracker.ResourceTracker.do_alloc">
 <span class="sig-name descname"><span class="pre">do_alloc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">allocation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alloc_tracking_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/resource_tracker.html#ResourceTracker.do_alloc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.resource_tracker.ResourceTracker.do_alloc" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Inner allocation function.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
 </dd>
@@ -149,7 +175,8 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="pcvs.helpers.resource_tracker.ResourceTracker.free">
 <span class="sig-name descname"><span class="pre">free</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alloc_tracking_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pcvs/helpers/resource_tracker.html#ResourceTracker.free"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pcvs.helpers.resource_tracker.ResourceTracker.free" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Free an allocation.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
 </dd>
@@ -171,7 +198,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+    <p>&#169; Copyright 2020-2026, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

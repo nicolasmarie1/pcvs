@@ -5,17 +5,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pcvs.backend.session &mdash; PCVS 0.9.0.dev0 documentation</title>
+  <title>pcvs.backend.session &mdash; PCVS 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
     <link rel="shortcut icon" href="../../../_static/pcvs_favicon.ico"/>
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=c6d8f4ca"></script>
-      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -29,8 +29,9 @@
 
           
           
-          <a href="../../../index.html" class="icon icon-home">
-            PCVS
+          <a href="../../../index.html">
+            
+              <img src="../../../_static/pcvs_logo.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -53,7 +54,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/test-file.html">Validation setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/config.html">Configurations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../ref/profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref/bank.html">Banks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/session.html">Sessions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ref/examples.html">Input Examples</a></li>
@@ -100,8 +101,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">YAML</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml.constructor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Constructor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml.main</span><span class="w"> </span><span class="kn">import</span> <span class="n">yaml_object</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml.representer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Representer</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typeguard</span><span class="w"> </span><span class="kn">import</span> <span class="n">typechecked</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml.representer</span><span class="w"> </span><span class="kn">import</span> <span class="n">RoundTripRepresenter</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing_extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Self</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pcvs</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
@@ -112,7 +112,6 @@
 
 <div class="viewcode-block" id="session_file_hash">
 <a class="viewcode-back" href="../../../api/pcvs.backend.session.html#pcvs.backend.session.session_file_hash">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">session_file_hash</span><span class="p">(</span><span class="n">session_infos</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span>
         <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">session_infos</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">],</span> <span class="n">session_infos</span><span class="p">[</span><span class="s2">&quot;started&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
@@ -122,11 +121,11 @@
 
 <div class="viewcode-block" id="store_session_to_file">
 <a class="viewcode-back" href="../../../api/pcvs.backend.session.html#pcvs.backend.session.store_session_to_file">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">store_session_to_file</span><span class="p">(</span><span class="n">infos</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save a new session into the session file (in HOME dir).</span>
 
-<span class="sd">    :param c: session infos to store</span>
+<span class="sd">    :param infos: session infos to store</span>
+<span class="sd">    :raises IOError: When the session file can&#39;t be written to disk.</span>
 <span class="sd">    :return: the sid associated to new create session id.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">yml</span>
@@ -139,7 +138,7 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
             <span class="n">yml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">infos</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">e</span>
     <span class="k">return</span> <span class="n">shash</span></div>
 
@@ -147,7 +146,6 @@
 
 <div class="viewcode-block" id="update_session_from_file">
 <a class="viewcode-back" href="../../../api/pcvs.backend.session.html#pcvs.backend.session.update_session_from_file">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">update_session_from_file</span><span class="p">(</span><span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Update data from a running session from the global file.</span>
 
@@ -181,7 +179,6 @@
 
 <div class="viewcode-block" id="remove_session_from_file">
 <a class="viewcode-back" href="../../../api/pcvs.backend.session.html#pcvs.backend.session.remove_session_from_file">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">remove_session_from_file</span><span class="p">(</span><span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;clear a session from logs.</span>
 
@@ -200,7 +197,6 @@
 
 <div class="viewcode-block" id="list_alive_sessions">
 <a class="viewcode-back" href="../../../api/pcvs.backend.session.html#pcvs.backend.session.list_alive_sessions">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">list_alive_sessions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load and return the complete dict from session.yml file</span>
 
@@ -226,9 +222,9 @@
 
 <div class="viewcode-block" id="main_detached_session">
 <a class="viewcode-back" href="../../../api/pcvs.backend.session.html#pcvs.backend.session.main_detached_session">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">main_detached_session</span><span class="p">(</span><span class="n">sid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main function processed when running in detached mode.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main function processed when running in detached mode.</span>
 
 <span class="sd">    This function is called by Session.run_detached() and is launched from</span>
 <span class="sd">    cloned process (same global env, new main function).</span>
@@ -239,6 +235,8 @@
 <span class="sd">    :param user_func: the Python function used as the new main()</span>
 <span class="sd">    :param args: user_func() arguments</span>
 <span class="sd">    :param kwargs: user_func() arguments</span>
+
+<span class="sd">    :return: The return of the ``user_func`` function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># When calling a subprocess, the parent is attached to its child</span>
@@ -270,7 +268,6 @@
 
 <div class="viewcode-block" id="SessionState">
 <a class="viewcode-back" href="../../../api/pcvs.backend.session.html#pcvs.backend.session.SessionState">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="nd">@yaml_object</span><span class="p">(</span><span class="n">yml</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">SessionState</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Enum of possible Session states.&quot;&quot;&quot;</span>
@@ -283,7 +280,7 @@
 <div class="viewcode-block" id="SessionState.to_yaml">
 <a class="viewcode-back" href="../../../api/pcvs.backend.session.html#pcvs.backend.session.SessionState.to_yaml">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">to_yaml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">representer</span><span class="p">:</span> <span class="n">Representer</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_yaml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">representer</span><span class="p">:</span> <span class="n">RoundTripRepresenter</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a Test.State to a valid YAML representation.</span>
 
 <span class="sd">        A new tag is created: &#39;Session.State&#39; as a scalar (str).</span>
@@ -324,7 +321,6 @@
 
 <div class="viewcode-block" id="Session">
 <a class="viewcode-back" href="../../../api/pcvs.backend.session.html#pcvs.backend.session.Session">[docs]</a>
-<span class="nd">@typechecked</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Session</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Object representing a running validation (detached or not).</span>
 
@@ -433,7 +429,7 @@
 
 <span class="sd">        Arguments are for user function only.</span>
 <span class="sd">        :param args: user function positional arguments</span>
-<span class="sd">        :param kwargs user function keyword-based arguments.</span>
+<span class="sd">        :param kwargs: user function keyword-based arguments.</span>
 
 <span class="sd">        :return: the Session id created for this run.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -503,7 +499,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+    <p>&#169; Copyright 2020-2026, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

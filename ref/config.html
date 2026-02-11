@@ -6,21 +6,21 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configurations &mdash; PCVS 0.9.0.dev0 documentation</title>
+  <title>Configurations &mdash; PCVS 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
     <link rel="shortcut icon" href="../_static/pcvs_favicon.ico"/>
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=c6d8f4ca"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Profiles" href="profile.html" />
+    <link rel="next" title="Banks" href="bank.html" />
     <link rel="prev" title="Validation setup" href="test-file.html" /> 
 </head>
 
@@ -32,8 +32,9 @@
 
           
           
-          <a href="../index.html" class="icon icon-home">
-            PCVS
+          <a href="../index.html">
+            
+              <img src="../_static/pcvs_logo.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -58,6 +59,9 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Configurations</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#generalities">Generalities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scope">Scope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#command-usage">Command usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#files-architecture">Files architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#profile">Profile</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#configuration-description">Configuration description</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#compilers-configuration">Compilers configuration</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#compilers-example">Compilers example</a></li>
@@ -81,7 +85,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="profile.html">Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bank.html">Banks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="session.html">Sessions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Input Examples</a></li>
@@ -129,23 +133,116 @@ which are:</p>
 <li><p>machine</p></li>
 <li><p>runtime</p></li>
 </ul>
-<p>One of each configuration are used to build a profile.
+<p>One of each configuration are used to build a <strong>profile</strong>.
 The profile is the top level configuration used to run pcvs.</p>
 </section>
 <section id="scope">
 <h2>Scope<a class="headerlink" href="#scope" title="Link to this heading"></a></h2>
-<p>PCVS allows 3 scopes :</p>
+<p>PCVS allows 3 scopes:</p>
 <ul class="simple">
-<li><p><strong>global</strong> for everyone on the machine having access to the PCVS installation</p></li>
-<li><p><strong>user</strong> accessible from everywhere for the corresponding user</p></li>
-<li><p><strong>local</strong> accessible only from a directory</p></li>
+<li><dl class="simple">
+<dt><strong>local</strong> accessible only from a specific <code class="docutils literal notranslate"><span class="pre">.pcvs</span></code> folder.</dt><dd><p>The <strong>local</strong> folder is defined as the first <code class="docutils literal notranslate"><span class="pre">.pcvs</span></code> folder found walking up
+the file system tree from the execution directory of pcvs.</p>
+</dd>
+</dl>
+</li>
+<li><p><strong>user</strong> accessible from everywhere for the corresponding user, store in <code class="docutils literal notranslate"><span class="pre">~/.pcvs</span></code></p></li>
+<li><dl class="simple">
+<dt><strong>global</strong> for everyone on the machine having access to the PCVS installation.</dt><dd><p><strong>global</strong> configuration are read only, they are stored in the pcvs installation and
+override at each pcvs install. This scope is used to ship default configurations
+that can be used directly or as template for creating your own configuration in user or local scope.</p>
+</dd>
+</dl>
+</li>
 </ul>
+</section>
+<section id="command-usage">
+<h2>Command usage<a class="headerlink" href="#command-usage" title="Link to this heading"></a></h2>
+<p>To list existing configurations, use the command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pcvs<span class="w"> </span>config<span class="w"> </span>list
+</pre></div>
+</div>
+<p>To create a config, one can use the command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pcvs<span class="w"> </span>config<span class="w"> </span>create<span class="w"> </span>user:example_profile
+</pre></div>
+</div>
+<p>By default, the new configuration will contain the default configuration block for your configuration type.
+To copy from another configuration block, use:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pcvs<span class="w"> </span>config<span class="w"> </span>create<span class="w"> </span>--clone<span class="w"> </span>global:compiler:gcc<span class="w"> </span>user:compiler:mygcc
+</pre></div>
+</div>
+<p>This configuration is fully customizable with any text editor, to edit the configuration, use the command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pcvs<span class="w"> </span>config<span class="w"> </span>edit<span class="w"> </span>profile:example_profile
+</pre></div>
+</div>
+<p>To export or import configuration, use the command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pcvs<span class="w"> </span>config<span class="w"> </span><span class="nb">export</span><span class="w"> </span>profile:default<span class="w"> </span>--output<span class="w"> </span>test.yml
+$<span class="w"> </span>pcvs<span class="w"> </span>config<span class="w"> </span>import<span class="w"> </span>user:profile:default_copy<span class="w"> </span>--source<span class="w"> </span>test.yml
+</pre></div>
+</div>
+<p>To delete a configuration, use the command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pcvs<span class="w"> </span>config<span class="w"> </span>destroy<span class="w"> </span>&lt;configuration_name&gt;
+</pre></div>
+</div>
+</section>
+<section id="files-architecture">
+<h2>Files architecture<a class="headerlink" href="#files-architecture" title="Link to this heading"></a></h2>
+<p>For each storage scope, configurations are stored in files in a tree like structure
+and can be edited manually for automation.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>When edited manually, pcvs will not be able to check and validate your configuration.
+Using <code class="docutils literal notranslate"><span class="pre">pcvs</span> <span class="pre">config</span> <span class="pre">edit</span></code> is preferred.</p>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>~/.pcvs
+├── compiler
+│   ├── default.yml
+│   ├── gcc.yml
+│   └── mpi.yml
+├── criterion
+│   ├── default.yml
+│   └── mpi.yml
+├── group
+│   ├── common.yml
+│   └── default.yml
+├── machine
+│   ├── default.yml
+│   └── slurm.yml
+├── plugin
+│   ├── default.py
+│   └── mpi.py
+├── profile
+│   ├── default.yml
+│   ├── gcc.yml
+│   └── mpi.yml
+└── runtime
+    ├── default.yml
+    └── mpi.yml
+</pre></div>
+</div>
+</section>
+<section id="profile">
+<span id="profile-scope"></span><h2>Profile<a class="headerlink" href="#profile" title="Link to this heading"></a></h2>
+<p>A PCVS <strong>profile</strong> is the root configuration block that link all configurations together
+and need to be provided to pcvs to run a test suite.
+A profile contain 5 references, to one of each of the configuration types.
+It will look like that:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">compiler</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">local:gcc</span>
+<span class="nt">criterion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">global:default</span>
+<span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default</span>
+<span class="nt">machine</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mycluster.yml</span>
+<span class="nt">runtime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default</span>
+</pre></div>
+</div>
+<p><strong>Scopes</strong> can be optionally provided.
+If not provided, all scope are check in order <strong>local</strong> -&gt; <strong>user</strong> -&gt; <strong>global</strong>.
+File extensions are optionnals.</p>
 </section>
 <section id="configuration-description">
 <h2>Configuration description<a class="headerlink" href="#configuration-description" title="Link to this heading"></a></h2>
 <section id="compilers-configuration">
 <h3>Compilers configuration<a class="headerlink" href="#compilers-configuration" title="Link to this heading"></a></h3>
-<p>The compiler node describes how to use a compiler, it include the following nodes:
+<p>The compiler node describes how to use a compiler, it includes the following nodes:
 * <code class="docutils literal notranslate"><span class="pre">program</span></code>: the name of the program to execute
 * <code class="docutils literal notranslate"><span class="pre">envs</span></code>: the env to export at build time for that compiler, useful if you are using a Makefile
 * <code class="docutils literal notranslate"><span class="pre">extension</span></code>: the source code extension match by the compilers.
@@ -230,7 +327,7 @@ description can contain any node present in the Configuration basic blocks (CF
 <cite>Validation Setup</cite> section).</p>
 <section id="id1">
 <h4>Example<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
-<p>The following example allow you to disable the <code class="docutils literal notranslate"><span class="pre">n_omp</span></code> criterion of the group <code class="docutils literal notranslate"><span class="pre">GRPMPI</span></code>.</p>
+<p>The following example allows disabling the <code class="docutils literal notranslate"><span class="pre">n_omp</span></code> criterion of the group <code class="docutils literal notranslate"><span class="pre">GRPMPI</span></code>.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">GRPMPI</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">run</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">iterate</span><span class="p">:</span>
@@ -254,7 +351,7 @@ description can contain any node present in the Configuration basic blocks (CF
 <h3>Runtime configuration<a class="headerlink" href="#runtime-configuration" title="Link to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">program</span></code> specify a wrapper for runtime tests, such as <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> for example.
 The <code class="docutils literal notranslate"><span class="pre">compiling.wrapper</span></code> specify a wrapper for test compilation.
-It can be use to run the compilation on an other node using <code class="docutils literal notranslate"><span class="pre">srun</span></code> for example.</p>
+It can be used to run the compilation on another node using <code class="docutils literal notranslate"><span class="pre">srun</span></code> for example.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">criterions</span></code> node contains arguments passed to the launching command.
 For example, if <code class="docutils literal notranslate"><span class="pre">prterun</span></code> takes the “-np” argument, which corresponds
 to the number of MPI threads, let’s say <code class="docutils literal notranslate"><span class="pre">n_mpi</span></code>,
@@ -285,7 +382,7 @@ The plugin configuration is a python plugin with a function to filter valid crit
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>When cloning a plugin with <code class="docutils literal notranslate"><span class="pre">pcvs</span> <span class="pre">create</span> <span class="pre">--clone</span></code> make sure to rename the
-Class in the plugin. Otherwise only one of the 2 plugins with the same name
+Class in the plugin. Otherwise, only one of the 2 plugins with the same name
 will be loaded.</p>
 </div>
 </section>
@@ -298,13 +395,13 @@ will be loaded.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="test-file.html" class="btn btn-neutral float-left" title="Validation setup" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="profile.html" class="btn btn-neutral float-right" title="Profiles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="bank.html" class="btn btn-neutral float-right" title="Banks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020-2025, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
+    <p>&#169; Copyright 2020-2026, Commissariat a l&#39;Energie Atomique et aux Energies Alternatives.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
