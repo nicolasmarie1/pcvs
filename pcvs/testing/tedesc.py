@@ -53,11 +53,13 @@ def detect_compiler(build_info: dict) -> list[str] | None:
     return None
 
 
-def extract_compilers_envs() -> list[str]:
+def extract_compilers_envs(variants: list[str]) -> list[str]:
     """Extract compilers environment."""
     envs = []
     for _, compiler in GlobalConfig.root["compiler"]["compilers"].items():
         envs += compiler.get("envs", [])
+        for v in variants:
+            envs += compiler.get("variants", {}).get(v, {}).get("envs", [])
     return envs
 
 
@@ -419,7 +421,7 @@ class TEDescriptor:
             basepath = os.path.dirname(self._build["files"][0])
             command.append("-f {}".format(" ".join(self._build["files"])))
 
-        envs = extract_compilers_envs()
+        envs = extract_compilers_envs(self._build.get("variants", []))
         jobs = self._build.get("make", {}).get("jobs", 1)
         # build the 'make' command
         command.append(f"-j {jobs}")
@@ -445,7 +447,7 @@ class TEDescriptor:
         else:
             command.append(self._srcdir)
 
-        envs = extract_compilers_envs()
+        envs = extract_compilers_envs(self._build.get("variants", []))
         command.append(
             r"-G 'Unix Makefiles' " r"-DCMAKE_BINARY_DIR='{build}' ".format(build=self._buildir)
         )
@@ -478,7 +480,7 @@ class TEDescriptor:
             autogen_path = os.path.join(os.path.dirname(configure_path), "autogen.sh")
             command.append("{} && ".format(autogen_path))
 
-        envs = extract_compilers_envs()
+        envs = extract_compilers_envs(self._build.get("variants", []))
 
         command.append(r"{configure} ".format(configure=configure_path))
 
