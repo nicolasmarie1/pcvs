@@ -923,5 +923,7 @@ def generate_local_variables(label: str, subprefix: str) -> tuple[str, str, str,
         os.path.join(GlobalConfig.root["validation"]["output"], "test_suite", label)
     )
     cur_buildir = os.path.normpath(os.path.join(base_buildir, subprefix))
-
+    io.console.nodebug(
+        f"src_dir: {base_srcdir}/{{{subprefix}}}, buildir: {base_buildir}/{{{subprefix}}}"
+    )
     return base_srcdir, cur_srcdir, base_buildir, cur_buildir

@@ -415,7 +415,6 @@ class TEDescriptor:
         """
         command = ["make"]
         basepath = self._srcdir
-
         # change makefile path if overridden by 'files'
         if "files" in self._build:
             basepath = os.path.dirname(self._build["files"][0])
@@ -441,21 +440,29 @@ class TEDescriptor:
 
         :return: the command to be used, env to be imported & nb threads to run the test.
         """
+        envs = extract_compilers_envs(self._build.get("variants", []))
+
         command = ["cmake"]
         if "files" in self._build:
-            command.append(self._build["files"][0])
+            src_dir = self._build["files"][0]
         else:
-            command.append(self._srcdir)
+            src_dir = self._srcdir
+        command.append(f" -S {src_dir} ")
 
-        envs = extract_compilers_envs(self._build.get("variants", []))
+        cmake_build_dir = self._buildir
+        sub_build_dir = self._build["cmake"].get("sub_build_dir")
+        if sub_build_dir is not None:
+            cmake_build_dir = os.path.join(cmake_build_dir, sub_build_dir)
+        command.append(f" -B {cmake_build_dir} ")
+
         command.append(
-            r"-G 'Unix Makefiles' " r"-DCMAKE_BINARY_DIR='{build}' ".format(build=self._buildir)
+            r" -G 'Unix Makefiles' " r"-DCMAKE_BINARY_DIR='{build}' ".format(build=self._buildir)
         )
 
         command += self._build["cmake"].get("args", [])
         envs += self._build["cmake"].get("envs", [])
 
-        self._build["files"] = [os.path.join(self._buildir, "Makefile")]
+        self._build["files"] = [os.path.join(cmake_build_dir, "Makefile")]
         tmp = self.__build_from_makefile()
         next_command = tmp[0]
         envs += tmp[1]
