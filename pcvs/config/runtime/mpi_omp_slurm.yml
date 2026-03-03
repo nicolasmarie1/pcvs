@@ -23,4 +23,4 @@ criterions:
     position: "after"
     type: "argument"
 
-plugin: "mpi_omp"
+defaultplugin: "mpi_omp"

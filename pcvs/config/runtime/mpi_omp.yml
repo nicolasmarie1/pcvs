@@ -13,4 +13,4 @@ criterions:
     position: "after"
     type: "environment"
 
-plugin: "mpi_omp"
+defaultplugin: "mpi_omp"

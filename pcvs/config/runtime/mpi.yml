@@ -7,4 +7,4 @@ criterions:
     numeric: true
     type: "argument"
     position: "after"
-plugin: "mpi"
+defaultplugin: "mpi"

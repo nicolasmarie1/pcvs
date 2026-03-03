@@ -18,4 +18,4 @@ criterions:
     position: "after"
     type: "argument"
 
-plugin: "mpi"
+defaultplugin: "mpi"
