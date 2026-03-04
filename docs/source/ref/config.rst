@@ -139,7 +139,7 @@ Configuration description
 Compilers configuration
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The compiler node describes how to use a compiler, it includes the following nodes:
+The compiler configuration describes how to use a compiler, it includes the following nodes:
 * ``program``: the name of the program to execute
 * ``envs``: the env to export at build time for that compiler, useful if you are using a Makefile
 * ``extension``: the source code extension match by the compilers.
@@ -214,9 +214,10 @@ The variant must have a **name**, and **arguments** as such:
     example_variant:
         args: additional arguments for the example variant
     openmp:
-        args: -fopenmp
+        args: [ '-fopenmp' ]
+        envs: [ 'PCVS_CFLAGS="-fopenmp"' ]
     strict:
-        args: -Werror -Wall -Wextra
+        args: [ '-Werror', '-Wall', '-Wextra' ]
 
 In this example the variants "example_variant", "openmp", and "strict" have to be
 specified in the validation setup where the user wants to use them.
@@ -229,7 +230,7 @@ specified in the validation setup where the user wants to use them.
 Criterion configuration
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The criterion node contains a collection of iterators that describe the tests.
+The criterion configuration contains a collection of iterators that describe the tests.
 PCVS can iterate over custom parameters as such :
 
 .. code-block:: yaml
@@ -289,9 +290,9 @@ Series Examples
 Group configuration
 ^^^^^^^^^^^^^^^^^^^
 
-The group node contains group definitions that describe tests. A group
-description can contain any node present in the Configuration basic blocks (CF
-`Validation Setup` section).
+The group configuration contains group definitions that describe tests.
+A group description is a test template that can contain any node present in the Test Configuration.
+(cf. :ref:`test-file`)
 
 Example
 +++++++
@@ -313,7 +314,7 @@ The following scheme shows how group can be used to inherit part of the criterio
 Machine configuration
 ^^^^^^^^^^^^^^^^^^^^^
 
-The machine node describes the constraints of the physical machine.
+The machine configuration describes the constraints of the physical machine.
 
 .. code-block:: yaml
 
@@ -348,7 +349,7 @@ Runtime configuration
 The ``compiling.wrapper`` specify a wrapper for test compilation.
 It can be used to run the compilation on another node using ``srun`` for example.
 
-The ``criterions`` node contains arguments passed to the launching command.
+The ``criterions`` configuration contains arguments passed to the launching command.
 For example, if ``prterun`` takes the "-np" argument, which corresponds
 to the number of MPI threads, let's say ``n_mpi``,
 we will get the following runtime profile:
