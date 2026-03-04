@@ -113,7 +113,9 @@ patternProperties:
               target:
                 type: string
               jobs:
-                type: integer
+                OneOf:
+                  - type: integer
+                  - type: boolean
               args:
                 type: array
                 items:

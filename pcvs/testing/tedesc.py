@@ -418,7 +418,15 @@ class TEDescriptor:
             command.append("-f {}".format(" ".join(self._build["files"])))
 
         envs = extract_compilers_envs(self._build.get("variants", []))
-        jobs = self._build.get("make", {}).get("jobs", 1)
+
+        threads_config: int | bool | None = self._build.get("make", {}).get("jobs")
+        jobs = 1
+        if isinstance(threads_config, bool):
+            if threads_config:
+                jobs = GlobalConfig.root["machine"].get("build_job_threads")
+        elif isinstance(threads_config, int):
+            jobs = threads_config
+
         # build the 'make' command
         command.append(f"-j {jobs}")
         command.append(
