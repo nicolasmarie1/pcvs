@@ -34,7 +34,7 @@ class ConfigScope(Enum):
 
     def __str__(self) -> str:
         """Convert to str."""
-        return self.name
+        return self.name.lower()
 
     def __repr__(self) -> str:
         """Convert to str."""
@@ -78,7 +78,7 @@ class ConfigKind(Enum):
 
     def __str__(self) -> str:
         """Convert to str."""
-        return self.name
+        return self.name.lower()
 
     def __repr__(self) -> str:
         """Convert to str."""
