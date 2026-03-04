@@ -1,4 +1,14 @@
-<div align="center"><img src="./docs/source/_static/pcvs_logo.png" width=300px></div>
+<div align="center">
+<!-- Try to fetch the image from LIHPC -->
+<object
+    type="image/png"
+    data="https://www-lihpc.cea.fr/images/software/pcvs_logo.png"
+    width=300px
+>
+<!-- If it fails (offline, forges...) use the file in the repo -->
+<img src="docs/source/_static/pcvs_logo.png" width=300px/>
+</object>
+</div>
 
 <div align="center"><h1> Parallel Computing Validation System </h1> </div>
 
