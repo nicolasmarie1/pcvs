@@ -305,12 +305,12 @@ patternProperties:
                         type: string
                     additionalProperties: false
                 additionalProperties: false
-              inherite:
+              inherit:
                 type: array
                 items:
                   type: string
             patternProperties:
-              ^(?!program|inherite).*$:
+              ^(?!program|inherit).*$:
                 type: object
                 properties:
                   values:

@@ -234,10 +234,10 @@ patternProperties:
                         type: string
                     additionalProperties: false
                 additionalProperties: false
-              # whitelist of criterions to inherite
-              inherite: { type: array, items: {type: string}}
+              # whitelist of criterions to inherit
+              inherit: { type: array, items: {type: string}}
             patternProperties: # criterion values
-              "^(?!program|inherite).*$":
+              "^(?!program|inherit).*$":
                 type: object
                 properties:
                   values:

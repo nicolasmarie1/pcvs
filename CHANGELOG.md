@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/)
 - **Report**
   - Main jobs list in report TUI can now be filtered based on their success status.
 - **Config**
-  - Add a '<test_name>.run.iterate.inherite' entry to test / group configuration.
+  - Add a '<test_name>.run.iterate.inherit' entry to test / group configuration.
     If present only criterion with the name specify in the list will be used.
   - Add a 'compilers.<name>.type' entry to compiler to defined their types.
     This can be done in place of specifying file extension.

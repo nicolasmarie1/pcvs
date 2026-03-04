@@ -2,7 +2,7 @@
 Module for parsing configuration.
 
 - :class:`~ConfigFile`: a file on the disc, can be read, write, verify, edited, display ...
-- :class:`~YmlConfigFile`: inherite :class:`~ConfigFile` and add yaml parsing support.
+- :class:`~YmlConfigFile`: inherit :class:`~ConfigFile` and add yaml parsing support.
 - :class:`~Profile`: A :class:`~YmlConfigFile` that also contain multiples
   others :class:`~YmlConfigFile` that represent it's configuration.
 

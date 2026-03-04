@@ -336,10 +336,10 @@ class TEDescriptor:
             test_crits = {}
             # browse declared criterions (system-wide)
             for k_sys, v_sys in self._sys_crit.items():
-                # if we do not inherite from this criterion, skip it
+                # if we do not inherit from this criterion, skip it
                 if (
-                    "inherite" in self._run["iterate"]
-                    and k_sys not in self._run["iterate"]["inherite"]
+                    "inherit" in self._run["iterate"]
+                    and k_sys not in self._run["iterate"]["inherit"]
                 ):
                     continue
                 # if key is overridden by the test
