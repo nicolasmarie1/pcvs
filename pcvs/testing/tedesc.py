@@ -245,9 +245,6 @@ class TEDescriptor:
 
         # compute local criterions relatively to system-wide's
         self._configure_criterions()
-        # apply retro-compatibility w/ old syntax
-        # TODO: verify that we can remove this without breaking
-        # self._compatibility_support(nodecontent.get("_compat", None))
 
     def get_binary_name(self) -> str:
         """
