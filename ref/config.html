@@ -70,6 +70,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#criterion-configuration">Criterion configuration</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#example">Example</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#series">Series</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#series-examples">Series Examples</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#group-configuration">Group configuration</a><ul>
@@ -318,6 +320,43 @@ PCVS can iterate over custom parameters as such :</p>
 <p>In this case the program has to iterate on the core number and has to take the
 values 1 and 2. The name <code class="docutils literal notranslate"><span class="pre">n_core</span></code> is arbitrary and has to be put in the
 validation setup file.</p>
+</section>
+<section id="series">
+<h4>Series<a class="headerlink" href="#series" title="Link to this heading"></a></h4>
+<p>When iterators are declared as <code class="docutils literal notranslate"><span class="pre">numeric</span></code> by the runtime,
+special syntaxes have been introduced to ease the definition of series of number.
+These are called sequences and can be used as a replacement of a single value.
+They map as dict instead of a single value.
+There is 3 types of sequences:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sequence</span></code> | <code class="docutils literal notranslate"><span class="pre">arithmeric</span></code>: to create an arithmetic sequence: <code class="docutils literal notranslate"><span class="pre">U(n+1)</span> <span class="pre">=</span> <span class="pre">U(n)</span> <span class="pre">+</span> <span class="pre">k</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">multiplication</span></code> | <code class="docutils literal notranslate"><span class="pre">geometric</span></code>: to create a geometric sequence: <code class="docutils literal notranslate"><span class="pre">U(n+1)</span> <span class="pre">=</span> <span class="pre">U(n)</span> <span class="pre">*</span> <span class="pre">k</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">powerof</span></code>: to create a list within a range where values are power of k.</p></li>
+</ul>
+<p>Each operation comes with three parameters:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">from</span></code>: lowerbound (inclusive)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">to</span></code>: upperbound (inclusive)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">of</span></code>: the stride/factor/power to apply</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">op</span></code>: type of operation:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">seq</span></code> | <code class="docutils literal notranslate"><span class="pre">ari</span></code> | <code class="docutils literal notranslate"><span class="pre">arithmetic</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mul</span></code> | <code class="docutils literal notranslate"><span class="pre">geo</span></code> | <code class="docutils literal notranslate"><span class="pre">geometric</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pow</span></code> | <code class="docutils literal notranslate"><span class="pre">powerof</span></code></p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</section>
+<section id="series-examples">
+<h4>Series Examples<a class="headerlink" href="#series-examples" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">{op:</span> <span class="pre">seq,</span> <span class="pre">from:</span> <span class="pre">2,</span> <span class="pre">to:</span> <span class="pre">10,</span>&#160; <span class="pre">of:</span> <span class="pre">2}</span></code> –&gt; <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">4,</span> <span class="pre">6,</span> <span class="pre">8,</span> <span class="pre">10]</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{op:</span> <span class="pre">mul,</span> <span class="pre">from:</span> <span class="pre">1,</span> <span class="pre">to:</span> <span class="pre">100,</span> <span class="pre">of:</span> <span class="pre">2}</span></code> –&gt; <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">4,</span> <span class="pre">8,</span> <span class="pre">16,</span> <span class="pre">32,</span> <span class="pre">64]</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{op:</span> <span class="pre">pow,</span> <span class="pre">from:</span> <span class="pre">2,</span> <span class="pre">to:</span> <span class="pre">10,</span>&#160; <span class="pre">of:</span> <span class="pre">2}</span></code> –&gt; <code class="docutils literal notranslate"><span class="pre">[4,</span> <span class="pre">9]</span></code> ==  <code class="docutils literal notranslate"><span class="pre">[2^2,</span> <span class="pre">3^2]</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{op:</span> <span class="pre">pow,</span> <span class="pre">from:</span> <span class="pre">1,</span> <span class="pre">to:</span> <span class="pre">100,</span> <span class="pre">of:</span> <span class="pre">3}</span></code> –&gt; <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">8,</span> <span class="pre">27,</span> <span class="pre">64]</span></code> == <code class="docutils literal notranslate"><span class="pre">[1^3,</span> <span class="pre">2^3,</span> <span class="pre">3^3,</span> <span class="pre">4^3]</span></code></p></li>
+</ul>
 </section>
 </section>
 <section id="group-configuration">

@@ -216,7 +216,6 @@ PCVS can iterate over custom parameters as such :
 Example
 +++++++
 
-
 .. code-block:: yaml
 
     iterators:
@@ -227,6 +226,39 @@ Example
 In this case the program has to iterate on the core number and has to take the
 values 1 and 2. The name ``n_core`` is arbitrary and has to be put in the
 validation setup file.
+
+
+Series
+++++++
+
+When iterators are declared as ``numeric`` by the runtime,
+special syntaxes have been introduced to ease the definition of series of number.
+These are called sequences and can be used as a replacement of a single value.
+They map as dict instead of a single value.
+There is 3 types of sequences:
+
+* ``sequence`` | ``arithmeric``: to create an arithmetic sequence: ``U(n+1) = U(n) + k``.
+* ``multiplication`` | ``geometric``: to create a geometric sequence: ``U(n+1) = U(n) * k``.
+* ``powerof``: to create a list within a range where values are power of k.
+
+Each operation comes with three parameters:
+
+* ``from``: lowerbound (inclusive)
+* ``to``: upperbound (inclusive)
+* ``of``: the stride/factor/power to apply
+* ``op``: type of operation:
+
+    * ``seq`` | ``ari`` | ``arithmetic``
+    * ``mul`` | ``geo`` | ``geometric``
+    * ``pow`` | ``powerof``
+
+Series Examples
++++++++++++++++
+
+* ``{op: seq, from: 2, to: 10,  of: 2}`` --> ``[2, 4, 6, 8, 10]``
+* ``{op: mul, from: 1, to: 100, of: 2}`` --> ``[1, 2, 4, 8, 16, 32, 64]``
+* ``{op: pow, from: 2, to: 10,  of: 2}`` --> ``[4, 9]`` ==  ``[2^2, 3^2]``
+* ``{op: pow, from: 1, to: 100, of: 3}`` --> ``[1, 8, 27, 64]`` == ``[1^3, 2^3, 3^3, 4^3]``
 
 Group configuration
 ^^^^^^^^^^^^^^^^^^^
