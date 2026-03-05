@@ -423,7 +423,7 @@ class TEDescriptor:
         jobs = 1
         if isinstance(threads_config, bool):
             if threads_config:
-                jobs = GlobalConfig.root["machine"].get("build_job_threads")
+                jobs = GlobalConfig.root["machine"].get("build_job_threads", jobs)
         elif isinstance(threads_config, int):
             jobs = threads_config
 
