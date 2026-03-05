@@ -192,6 +192,18 @@ class ConfigFile:
                 )
                 io.console.exception(e)
 
+    def do_import(self, config_str: str) -> None:
+        """
+        Import a config from a string.
+
+        :param config_str: the config to import
+        """
+        try:
+            self.from_str(config_str)
+            self.flush_to_disk()
+        except Exception as e:
+            io.console.exception(e)
+
     # Others
     def display(self) -> None:
         """Pretty print Configuration block."""
