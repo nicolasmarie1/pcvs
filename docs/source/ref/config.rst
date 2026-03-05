@@ -1,3 +1,5 @@
+.. _config:
+
 Configurations
 ==============
 
@@ -15,6 +17,8 @@ which are:
 
 One of each configuration are used to build a **profile**.
 The profile is the top level configuration used to run pcvs.
+
+.. _config-scope:
 
 Scope
 -----
@@ -140,6 +144,7 @@ Compilers configuration
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 The compiler configuration describes how to use a compiler, it includes the following nodes:
+
 * ``program``: the name of the program to execute
 * ``envs``: the env to export at build time for that compiler, useful if you are using a Makefile
 * ``extension``: the source code extension match by the compilers.

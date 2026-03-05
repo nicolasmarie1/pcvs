@@ -1,8 +1,8 @@
 .. _test-file:
 
-****************
-Validation setup
-****************
+******************
+Test Specification
+******************
 
 Generalities
 ============

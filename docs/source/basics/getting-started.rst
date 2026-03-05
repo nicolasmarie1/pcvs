@@ -4,8 +4,8 @@
  Getting Started
 ##################
 
-Installation
-############
+Quick Install
+#############
 
 The source code is available on GitHub. To checkout the latest release:
 (detailed documentation in :doc:`installation`):
@@ -69,28 +69,30 @@ directory for this example. Here is the content of this file:
 
 .. code-block:: yaml
 
-	# put this in test/pcvs.yml:
-	all_reduce_test:
-		build:
-			files: ["coll/all-reduce.c"]
-		run:
-			program: "a.out"
-	pt2pt_test:
-		build:
-			files: ["pt2pt/wave.c"]
-		run:
-			program: "a.out"
+    # put this in test/pcvs.yml:
+    all_reduce_test:
+      build:
+        files: ["coll/all-reduce.c"]
+      run:
+        program: "a.out"
+    pt2pt_test:
+      build:
+        files: ["pt2pt/wave.c"]
+        sources:
+          ldflags: "-lm"
+      run:
+        program: "a.out"
 
-This file specifies two root nodes referred as *Test Expressions* (TE) or *Test
-Descriptors* (TD). It contains subondes describing how to build programs.
+This file specifies two root nodes referred as *Test Expressions* (TE) or *Test Descriptors* (TD).
+It contains subondes describing how to build programs.
 A ``build`` gives information about how to build the program.
-``files`` (a list *or* a string) contains the whole list of files required to
-build the program (in case of a C file for instance).  With no other
-information, PCVS will assume the program to be built with a compiler (no
-invocation to a build system here). A ``run`` subnode instructs PCVS to execute
-this program. The expected program name is ``a.out``. This is the simplest way
-to integrate tests to PCVS. For a complete list of nodes to be used in a
-``pcvs.yml``, please consult :ref:`te-format`
+``files`` (a list *or* a string) contains the whole list of files required to build the program (in case of a C file for instance).
+With no other information, PCVS will assume the program to be built with a compiler (no invocation to a build system here).
+A ``run`` subnode instructs PCVS to execute this program.
+The expected program name is ``a.out``.
+This is the simplest way to integrate tests to PCVS.
+For more detailed documentation on test setup, consult: :ref:`test-file`.
+For a complete list of nodes to be used in a ``pcvs.yml``, please consult :ref:`te-format`.
 
 .. warning::
 	Beware of tabulations, YAML indentations only supports spaces !
@@ -98,16 +100,17 @@ to integrate tests to PCVS. For a complete list of nodes to be used in a
 Execute the test-suite
 ######################
 
-PCVS relies on (1) test specifications and (2) execution profile to create and
-execute a full benchmarks. Building a valid profile may be complex at first but
-offer a huge flexibility to solve complex validation scenarios. Still, most
-scenarios share similarities, like, in that case, running MPI programs. PCVS
-comes with default profiles for default scenarios. Here, we select the
-`mpi` base profile to build our own:
+PCVS relies on test specifications (:ref:`test-file`) and execution profile
+(:ref:`config`) to create and execute a full benchmarks.
+Building a valid profile may be complex at first but offer a huge flexibility
+to solve complex validation scenarios.
+Still, most scenarios share similarities, like, in that case, running MPI programs.
+PCVS comes with default profiles for default scenarios.
+Here, we select the `mpi` base profile to build our own:
 
 .. code-block:: bash
 
-    $ pcvs config create user:profile:default
+    $ pcvs config create user:profile:my-profile --clone global:profile:mpi
     $ pcvs config list
 
 By specifying ``user:profile``, it will save the profile under ``~/.pcvs/profile`` and
@@ -128,8 +131,12 @@ located:
 	$ pcvs run --profile my-profile ./tests/
 
 .. note::
-	the ``user.`` prefix to the profile name may be removed as there is no
+	the ``user:`` prefix to the profile name may be removed as there is no
 	name ambiguity, PCVS will detect the proper scope.
+
+.. note::
+
+    If no profile argument is provided, PCVS will look for a profile named ``default``.
 
 Access the results
 ##################
@@ -141,8 +148,8 @@ directly process by third-party tools. The :download:`scheme
 parser with compliant output. Currently, PCVS only provides specific JSON format.
 It is planned to support common validation format (like JUnit).
 
-If no third-party tool is available, PCVS comes with a lightweight web server
-(=Flask) to serve results in a web browser:
+If no third-party tool is available,
+PCVS comes with a lightweight web server (=Flask) to serve results in a web browser or a tui using textual:
 
 .. code-block:: bash
 
@@ -150,5 +157,8 @@ If no third-party tool is available, PCVS comes with a lightweight web server
 	$ pcvs report
 	# OR you may specify the run path
 	$ pcvs report <path>
+	# to use the tui
+	$ pcvs --tui report
+
 
 Then, browse http://localhost:5000/ to browse your results.
