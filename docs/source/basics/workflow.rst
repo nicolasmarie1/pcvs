@@ -83,10 +83,11 @@ With a directory like such :
     ├── pcvs.yml
     └── tutorial_program.c
 
-The run will :
 
-* build ``tutorial_binary`` by compiling ``tutorial.c`` using gcc (as specified earlier)
-* run the ``tutorial_binary`` file
+When run, PCVS will:
+
+* build ``tuto`` by compiling ``tutorial.c`` using gcc (or any other compiler you have specify in your config).
+* run the ``tuto`` file.
 
 Many other options are available such as tags, flags, etc, these are referenced in the documentation of PCVS.
 

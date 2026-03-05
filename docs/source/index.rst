@@ -58,11 +58,12 @@ frameworks).
    :maxdepth: 1
    :caption: Basics
 
-   basics/features
-   basics/getting-started
+   basics/tuto
    basics/installation
-   basics/basic-use
    basics/issues
+
+   basics/getting-started
+   basics/basic-use
    basics/workflow
 
 .. toctree::
