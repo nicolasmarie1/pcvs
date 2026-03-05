@@ -162,10 +162,35 @@ class ConfigFile:
         edited_stream = click.edit(
             self._raw, extension=ConfigKind.get_file_ext(self._descriptor.kind), require_save=True
         )
+
+        def get_rejected_file_name(count: int) -> str:
+            return "_".join(
+                [
+                    str(self._descriptor.scope),
+                    str(self._descriptor.kind),
+                    self._descriptor.path.stem,
+                    f"rejected_{count}",
+                    self._descriptor.path.suffix,
+                ]
+            )
+
         if edited_stream is not None:
-            self._load(edited_stream)
-            self._check()
-            self._flush_to_disk()
+            try:
+                self._load(edited_stream)
+                self._check()
+                self._flush_to_disk()
+            except Exception as e:
+                i: int = 0
+                path: str = get_rejected_file_name(i)
+                while os.path.exists(path):
+                    i += 1
+                    path = get_rejected_file_name(i)
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(edited_stream)
+                io.console.error(
+                    f"Failed to verify edited configuration, rejected configuration saved at {path}"
+                )
+                io.console.exception(e)
 
     # Others
     def display(self) -> None:
