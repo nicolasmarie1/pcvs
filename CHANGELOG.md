@@ -5,6 +5,26 @@ track what changed from each release.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 
+## [1.1.0] -- 2026-03
+
+### Added
+
+- **Config**
+  - Better handling on bad configurations rejection (on edit & import)
+  - Compilers variants environment variables in makefiles build.
+  - Support for cmake custom build directory.
+  - Default values for make -j jobs at runtime.
+- **DOC**
+  - More documentation for criterions, machine, groups & compilers configurations.
+  - merge redundant getting started, basic use and workflow documentations into a nicer tutorial.
+
+### Fixed
+
+- **Config**
+  - ! fixed default configuration using `plugin` node instead of `defaultplugin` node.
+- **CLI**
+  - pcvs-debug-*.log will only be generated on errors or with high debug level.
+
 ## [1.0.0] -- 2026-02-10
 
 ### Added
@@ -29,7 +49,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/)
 - **CLI**
   - change run-filter and print-filter behavior. There are now order dependents.
 
-## Fixed
+### Fixed
 
 - **Bank**
   - Fix logic error in bank initialization.
