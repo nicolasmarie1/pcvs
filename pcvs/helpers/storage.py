@@ -289,7 +289,7 @@ class ConfigLocator:
             # config does not exist yet, but scope is not provided
             if should_exist is None or not should_exist:
                 return (
-                    "For a configuration that may not exist, specifying a scope is mendatory, "
+                    "For a configuration that may not exist, specifying a scope is mandatory, "
                     f"error parsing: '{user_token}'"
                 )
             # kind not provided, neither by token nor by function
@@ -304,7 +304,7 @@ class ConfigLocator:
             if scope is None:
                 if should_exist is None or not should_exist:
                     return (
-                        "For a configuration that may not exist, specifying a scope is mendatory, "
+                        "For a configuration that may not exist, specifying a scope is mandatory, "
                         f"error parsing: '{user_token}'"
                     )
             if kind is None:

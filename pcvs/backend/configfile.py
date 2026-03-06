@@ -179,7 +179,7 @@ class ConfigFile:
         io.console.print(self._flush())
 
     def validate(self) -> None:
-        """Validate a Config against it's shema."""
+        """Validate a Config against it's schema."""
         assert self.loaded
         self._check()
 
