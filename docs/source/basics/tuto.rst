@@ -7,7 +7,7 @@ Tutorial
 Quick Install
 #############
 
-The source code is available on GitHub. To checkout the latest release:
+The source code is available on GitHub. To check out the latest release:
 (detailed documentation in :doc:`installation`):
 
 .. code-block:: bash
@@ -74,7 +74,7 @@ This program is the only entry point to PCVS:
 Create tests descriptions
 #########################
 
-Before using PCVS, let's consider a provided test-suite as any ``tests/`` directory
+Before using PCVS, let's consider a provided test-suite in a ``tests/`` directory
 (:download:`all-reduce.c <../examples/all-reduce.c>` & :download:`wave.c <../examples/wave.c>` provided for convenience):
 With a directory like such:
 
@@ -106,8 +106,8 @@ A basic ``pcvs.yml`` file for our tests may look like this:
 
 This file specifies two root nodes referred as *Test Expressions* (TE) or *Test Descriptors* (TD).
 It contains subondes describing how to build programs.
-A ``build`` gives information about how to build the program.
-``files`` (a list *or* a string) contains the whole list of files required to build the program (in case of a C file for instance).
+The ``build`` node gives information about how to build the program.
+``files`` (a list *or* a string) contains the whole list of files required to build the program (in this case a C file).
 With no other information, PCVS will assume the program to be built with a compiler (no invocation to a build system here).
 A ``run`` subnode instructs PCVS to execute the program.
 This is the simplest way to integrate tests to PCVS.
@@ -116,11 +116,11 @@ PCVS also supports building programs through Make, CMake & Autotools, each syste
 having its own set of keys to configure:
 
 * ``build.make.target``: allow configuring a Make target to invoke.
-* ``build.cmake.vars``: variables to forward to cmake (to be prefixed w/ ``-D``)
+* ``build.cmake``: for cmake configurations.
 * ``build.autotools.params``: configure script flags
 * ``build.autotools.autogen``: boolean whether to execute autogen.sh first.
 
-By default, a test is considered valid if it's exit code is 0.
+By default, a test is considered valid if its exit code is 0.
 The ``validate`` node allow modifying the validation process depending on
 return code, stdout content, execution time, etc...
 
@@ -133,61 +133,46 @@ For a complete list of nodes to be used in a ``pcvs.yml``, please consult :ref:`
 
 Proper YAML formats can be checked with:
 
-.. code-block::bash
+.. code-block:: bash
 
     $ pcvs check --directory tests
 
-Jobs can also be described using a `pcvs.setup` file, which must return a
+Jobs can also be described using a ``pcvs.setup`` file, which must return a
 yaml-structured character string describing a valid pcvs configuration as would
-a `pcvs.yml`.
+a ``pcvs.yml``.
 
 .. _tuto_config:
 
 Create a configuration profile
 ##############################
 
-A profile contains link to part of the the whole PCVS configuration.
-While this approach allow deeply complex configurations,
-we will target a simple MPI implementation for this example.
+Validation profiles are configuration files used at launch by ``pcvs run``.
+A profile contains link to part of the whole PCVS configuration.
+This approach allow flexibility for complex configurations.
+A complete configuration is composed of 5 configurations:
+``compiler``, ``criterion``, ``group``, ``machine`` & ``runtime``.
 For full configuration details, look at :ref:`config`.
-To create the most basic profile able to run MPI programs,
-we may herit ours from a provided configuration:
 
-Validation profiles are configuration files used at launch in pcvs run.
-
-Building a valid profile may be complex at first but offer a huge flexibility
-to solve complex validation scenarios.
-Still, most scenarios share similarities, like, in that case, running MPI programs.
-PCVS comes with default profiles for default scenarios.
-Here, we select the `mpi` base profile to build our own:
+To list all available default ``pfofile`` and ``configuration``, use:
 
 .. code-block:: bash
 
-    $ pcvs config create user:profile:my-profile --clone global:profile:mpi
     $ pcvs config list
 
-By specifying ``user:profile``, it will save the profile under ``~/.pcvs/profile`` and
-make it available for the whole ``$USER``, no matter the current working
-directory used when running PCVS. To learn more about profile scope, please see :ref:`profile-scope`.
+For this example, we will target a simple MPI implementation.
+To create the most basic profile able to run MPI programs,
+we may herit ours from the provided ``mpi`` configuration:
 
-.. note::
-	As this profile uses MPI, we need to source an MPI implementation in the
-	environment. Please use the method suiting your needs (spack/module/source).
-	If interested in autoloading spack-or-module-based MPI implementation,
-	please read :doc:`/ref/config`.
-
-.. code-block:: sh
+.. code-block:: bash
 
     $ pcvs config create user:profile:myprofile --clone global:profile:mpi
 
+By specifying ``user:profile``, it will save the profile under ``~/.pcvs/profile`` and
+make it available for the whole ``$USER``, no matter the current working
+directory used when running PCVS. To learn more about profile scope, please see :ref:`config-scope`.
+
 This profile can be references with ``user:profile:myprofile``
 (or ``profile:myprofile`` in short, where there are no possible conflicts).
-
-This profile will be available at user-level scope.
-It is also possible to set this profile as ``local`` (only for the current ``.pcvs`` directory).
-For more information about scope, refer to :ref:`config-scope`.
-You may replace ``myprofile`` by a name of your choice.
-For a complete list of available templates, please check ``pcvs config list global``.
 
 A profile can be edited if necessary with ``pcvs config edit profile:myprofile``.
 It will open an ``$EDITOR``.
@@ -204,17 +189,6 @@ Once fixed, the profile can be saved as a replacement with:
     Please use this option with care.
     In case of a rejection, the import needs to be forced in order to replace the old one.
 
-A profile is a configuration pointing to the others 5 configurations files needed for pcvs to work.
-
-* compiler
-* criterion
-* group
-* machine
-* runtimes
-
-You can modify each of those configurations like you would do with a profile.
-For more details on each configurations files, please look at :ref:`config`.
-
 If profiles are edited directly, proper YAML formats can be checked before ``pcvs`` execution with:
 
 .. code-block:: sh
@@ -229,7 +203,7 @@ PCVS relies on test specifications (:ref:`tuto_test-desc`) and execution profile
 
 To start PCVS, you must provide the profile & the directory where tests are located:
 
-.. code-block::bash
+.. code-block:: bash
 
     $ pcvs run --profile myprofile ./tests/
 
@@ -250,23 +224,23 @@ Once started, the validation process is logged under ``$PWD/.pcvs-build`` direct
 If the directory already exists, it is cleaned up and reused.
 A lock is put in that directory to protect against concurrent PCVS execution in the same directory.
 
-When the `pcvs run` command is run, PCVS will recursively scan the target directory,
-find any ``pcvs.yml`` or ``pcvs.setup`` file within the directory or its subdirectories,
-and launch the corresponding tests.
+When the ``pcvs run`` command is run, PCVS will recursively scan the target directory,
+find any ``pcvs.yml`` or ``pcvs.setup`` file within the directory
+or its subdirectories to launch the corresponding tests.
 
- PCVS will:
+PCVS will:
 
 * run ``pcvs.setup`` file to generate associated ``pcvs.yaml`` file.
 * parse ``pcvs.yaml`` file to generate tests to run.
 * build ``all_reduce`` & ``wave`` by compiling their corresponding c file
   using the compiler provided by the compiler configuration of ``myprofile``.
-* run the ``all_reduce`` & ``wave`` program multiples times as describes by criterions.
+* run the ``all_reduce`` & ``wave`` program as many times as describes by criterions.
 
 Access the results
 ##################
 
 Results are stored in ``$PWD/.pcvs-build/rawdata/*.json`` by default.
-The default output directory may be changed with `pcvs run --output`.
+The default output directory may be changed with ``pcvs run --output``.
 JSON files can directly process by third-party tools.
 The :download:`scheme <../../../pcvs/schemes/test-result-scheme.yml>`
 can be used to update the input parser with compliant output.

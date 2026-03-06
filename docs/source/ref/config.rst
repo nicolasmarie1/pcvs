@@ -115,8 +115,6 @@ and can be edited manually for automation.
         └── mpi.yml
 
 
-.. _profile-scope:
-
 Profile
 -------
 
