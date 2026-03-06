@@ -92,7 +92,6 @@ PCVS needs rules to know how to parse the test-suite above to create tests.
 This will be done through ``pcvs.yml`` specification file.
 Such a file can be placed anywhere in the file tree.
 Consider putting it directly under the ``tests/`` directory for this example.
-Here is the content of this file:
 
 .. note::
     A test is the combination of a program, its arguments and the environment used to execute it.
@@ -153,7 +152,7 @@ A complete configuration is composed of 5 configurations:
 ``compiler``, ``criterion``, ``group``, ``machine`` & ``runtime``.
 For full configuration details, look at :ref:`config`.
 
-To list all available default ``pfofile`` and ``configuration``, use:
+To list all available default ``profile`` and ``configuration``, use:
 
 .. code-block:: bash
 
