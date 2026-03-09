@@ -325,7 +325,7 @@ The machine configuration describes the constraints of the physical machine.
         nodes: 2               # number of accessible nodes
         cores_per_node: 12     # number of accessible cores per node
         concurrent_run: 4      # maximum number of processes that can coexist
-        build_jobs_threads: 1  # default number of workers for concurrent building (i.e. make -j)
+        build_job_threads: 1   # default number of workers for concurrent building (i.e. make -j)
         # Machine level resource manager configuration
         job_manager:
             # Configuration of the allocation command
