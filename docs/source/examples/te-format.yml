@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cea-hpc/pcvs/refs/heads/master/pcvs/schemes/generated/te-scheme.yml
 ---
 # This node will be ignored while unrolling tests
 # as node name starts with a dot "."
