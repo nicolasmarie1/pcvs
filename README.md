@@ -56,12 +56,14 @@ $ coverage run
 
 Once installed, the program should be available as `pcvs`.
 
-> [!TIP] Some PCVS specific test-suite exists
+> [!TIP]
+> Some PCVS specific test-suite exists,
 > [PCVS-Benchmarks](https://github.com/cea-hpc/pcvs-benchmarks) is a curated set of HPC benchmarks and test suite with PCVS test descriptions
 
 ## Basic usage
 
-> [!NOTE] You can add autocompletion for PCVS commands to your favorite shell
+> [!NOTE]
+> You can add autocompletion for PCVS commands to your favorite shell
 >
 > ```sh
 > # ZSH support
